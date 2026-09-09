@@ -1,3 +1,0 @@
-docs/invariants/CORE.md
-docs/invariants/METADATA.md
-docs/invariants/COMMAND-BUSINESS-DATA.md

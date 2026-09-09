@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: evo
+      POSTGRES_PASSWORD: evo
+      POSTGRES_DB: evo
+    ports:
+      - "5432:5432"
+    volumes:
+      - evo_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evo -d evo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  evo_postgres:
