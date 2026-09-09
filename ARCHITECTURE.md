@@ -213,3 +213,36 @@ Ledger effects and high-water advancement are atomic.
 Authoritative decimal arithmetic uses decimal strings + `decimal.js`; PostgreSQL persists `numeric(38,12)`.
 
 Cross-platform repository path safety is now an executable architecture invariant.
+
+
+## v0.9 integrated candidate
+
+The staged roadmap after M3 has been collapsed into one integrated validation candidate.
+
+Implemented runtime loop:
+
+```text
+Human / AI / Automation
+→ Command
+→ BusinessData
+→ PostingInput
+→ Posting Rules
+→ LedgerEntry / LedgerBalance
+→ WorkItem
+→ Query / Next Command
+```
+
+Cross-cutting runtime foundations now include:
+
+```text
+Permission
+Cost
+Replay
+AI Capability Catalog
+Outbox
+Feature Flags
+Docker Deployment
+```
+
+v0.9 is a validation candidate, not a claim of production maturity.
+v1.0 is gated by real workload, failure, upgrade and operational evidence.

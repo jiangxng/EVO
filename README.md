@@ -1,70 +1,75 @@
-# EVO
+# EVO — Enterprise Operating System
 
-EVO is an AI-native Enterprise Operating System.
+**Version:** 0.9.0 Production Candidate / Validation Build
 
-This repository is designed so that **the repository itself is the authoritative engineering context**. Human memory and LLM chat memory are not architecture dependencies.
+EVO is an AI-native, metadata-driven enterprise operating system built around:
 
-## M0 status
-
-This scaffold establishes:
-
-- TypeScript / Node.js runtime
-- Fastify API process
-- Worker process
-- PostgreSQL + Kysely foundation
-- SQL migration runner
-- structured logging
-- structured errors
-- architecture manifest
-- module ownership map
-- architecture dependency test
-- Vitest foundation
-- CI
-- change/compatibility/performance documentation structure
-
-## Requirements
-
-- Node.js 24 LTS
-- PostgreSQL 18 for local development
-- npm
-
-## Start locally
-
-```bash
-cp .env.example .env
-docker compose up -d
-npm install
-npm run migrate
-npm run dev:api
+```text
+Metadata
+→ Command
+→ BusinessData
+→ Posting
+→ Ledger
+→ Balance / Cost / State
+→ Work
+→ Next Command
 ```
 
-In another terminal:
+## Fastest start
+
+Install Docker Desktop, then:
 
 ```bash
-npm run dev:worker
+docker compose up -d --build
 ```
 
-Checks:
+Open:
 
-```bash
-npm run check
+```text
+http://localhost:3000
 ```
 
-## Cold-start rule for humans and LLMs
+See [`DEPLOY.md`](./DEPLOY.md).
 
-Before changing code:
+## Included in v0.9
 
-1. Read `ARCHITECTURE.md`.
-2. Read the target module `README.md`.
-3. Read relevant files under `docs/interfaces/`.
-4. Read relevant files under `docs/invariants/`.
-5. Read active ADR/change records.
-6. Inspect only the target implementation and tests unless broader context is required.
+- Enterprise Metadata / Template / Application Instance foundation
+- Human / AI / Automation common Command boundary
+- Actor permission grants
+- Idempotent CommandExecution
+- append-only BusinessData history
+- deterministic PostingInput ordering
+- retroactive posting detection / replay-required state
+- controlled posting JSON AST
+- generic LedgerEntry / LedgerBalance
+- deterministic dimension hashing
+- WorkItem projection from ledger state
+- FIFO / LIFO / Moving Average / Specific Identification cost engine foundation
+- Full Replay and deterministic digest validation
+- AI command capability catalog
+- transactional Outbox with worker publication
+- feature flag foundation
+- migration/version/compatibility metadata
+- Windows/Linux repository path invariant
+- Docker deployment
+- browser Validation Console
 
-Do not use old chat history as the only source for an architectural decision.
+## Status
 
+This is the first integrated candidate intended for validation.
 
-## Architecture history
+It is **not claimed to be production-proven v1.0** until it has been exercised with real workloads, failure injection, migration exercises and enterprise scenarios.
 
-Versioned architecture documents are stored under `docs/architecture/`.
-Start with root `ARCHITECTURE.md` for the current implementation context.
+## Architecture
+
+Current implementation context:
+
+```text
+ARCHITECTURE.md
+```
+
+Versioned architecture history:
+
+```text
+docs/architecture/
+```

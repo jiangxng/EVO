@@ -323,6 +323,86 @@ export interface PostingFailureTable {
   created_at: Timestamp;
 }
 
+
+export interface PermissionGrantTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  actor_type: 'HUMAN' | 'AI' | 'AUTOMATION' | 'EXTERNAL_SYSTEM';
+  actor_id: string;
+  permission_code: string;
+  resource_scope: JsonObject;
+  created_at: Timestamp;
+}
+
+export interface FeatureFlagTable {
+  id: Generated<string>;
+  code: string;
+  enterprise_id: string | null;
+  enabled: boolean;
+  config: JsonObject;
+  owner: string;
+  introduced_in: string;
+  expires_at: Timestamp | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface WorkItemTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  work_type: string;
+  title: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
+  priority: number;
+  source_ledger_code: string;
+  source_dimension_hash: string;
+  source_dimensions: JsonObject;
+  source_quantity: Numeric;
+  source_amount: Numeric;
+  assigned_actor_type: string | null;
+  assigned_actor_id: string | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  completed_at: Timestamp | null;
+}
+
+export interface ReplayRunTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  consistency_domain: string;
+  mode: 'FULL';
+  status: 'PREPARING' | 'REBUILDING' | 'VALIDATING' | 'COMPLETED' | 'FAILED';
+  boundary_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
+  before_digest: string | null;
+  after_digest: string | null;
+  started_at: Timestamp;
+  completed_at: Timestamp | null;
+  error: JsonObject | null;
+}
+
+export interface CostRunTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  method: 'FIFO' | 'LIFO' | 'MOVING_AVERAGE' | 'SPECIFIC_IDENTIFICATION';
+  status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  started_at: Timestamp;
+  completed_at: Timestamp | null;
+  error: JsonObject | null;
+}
+
+export interface CostResultTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  cost_run_id: string;
+  business_data_id: string;
+  pool_key: string;
+  method: string;
+  quantity: Numeric;
+  unit_cost: Numeric | null;
+  total_cost: Numeric | null;
+  created_at: Timestamp;
+}
+
 export interface Database {
   schema_migrations: SchemaMigrationTable;
   evo_runtime_info: EvoRuntimeInfoTable;
@@ -349,4 +429,10 @@ export interface Database {
   ledger_entry: LedgerEntryTable;
   ledger_balance: LedgerBalanceTable;
   posting_failure: PostingFailureTable;
+  permission_grant: PermissionGrantTable;
+  feature_flag: FeatureFlagTable;
+  work_item: WorkItemTable;
+  replay_run: ReplayRunTable;
+  cost_run: CostRunTable;
+  cost_result: CostResultTable;
 }
