@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "architectureBaseline": [
+    "EVO-08",
+    "EVO-09",
+    "EVO-10",
+    "EVO-11",
+    "EVO-12"
+  ],
+  "modules": {
+    "identity": {
+      "owns": [
+        "actor/auth primitives"
+      ],
+      "mayDependOn": []
+    },
+    "metadata": {
+      "owns": [
+        "enterprise",
+        "domain_definition",
+        "transaction_type",
+        "application_definition",
+        "application_definition_version",
+        "field_group_definition",
+        "field_definition",
+        "application_instance",
+        "enterprise_application_overlay",
+        "command_definition",
+        "posting_rule",
+        "ledger_definition",
+        "valuation_policy"
+      ],
+      "mayDependOn": [
+        "identity"
+      ]
+    },
+    "application": {
+      "owns": [
+        "effective application runtime"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata"
+      ]
+    },
+    "command": {
+      "owns": [
+        "command_execution",
+        "command orchestration"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata",
+        "application",
+        "business-data"
+      ]
+    },
+    "business-data": {
+      "owns": [
+        "business_data",
+        "business history semantics"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata"
+      ]
+    },
+    "posting": {
+      "owns": [
+        "posting_input",
+        "enterprise_runtime_state",
+        "posting_run",
+        "posting_failure",
+        "posting execution"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "ledger"
+      ]
+    },
+    "ledger": {
+      "owns": [
+        "ledger_dataset",
+        "ledger_entry",
+        "ledger_balance",
+        "ledger semantics"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "cost": {
+      "owns": [
+        "cost_pool",
+        "cost_layer",
+        "cost_match",
+        "cost_result",
+        "cost_run"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "ledger"
+      ]
+    },
+    "replay": {
+      "owns": [
+        "replay_run"
+      ],
+      "mayDependOn": [
+        "business-data",
+        "posting",
+        "ledger",
+        "cost"
+      ]
+    },
+    "workflow": {
+      "owns": [
+        "process_instance",
+        "work_item",
+        "plan"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "command",
+        "query"
+      ]
+    },
+    "ai": {
+      "owns": [
+        "ai audit/runtime integration"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata",
+        "command",
+        "query"
+      ]
+    },
+    "integration": {
+      "owns": [
+        "outbox_event",
+        "integration runtime"
+      ],
+      "mayDependOn": [
+        "identity",
+        "command"
+      ]
+    },
+    "query": {
+      "owns": [
+        "read composition"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "ledger",
+        "cost"
+      ]
+    }
+  },
+  "currentMilestone": "M3",
+  "dbSchemaVersion": 4,
+  "metadataSchemaVersion": 1
+}

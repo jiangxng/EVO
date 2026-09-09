@@ -1,7 +1,8 @@
 # EVO Architecture Manifest
 
 **Status:** Authoritative repository map  
-**Baseline:** EVO-08 through EVO-12  
+**Baseline:** EVO-08 through EVO-12
+**Implementation milestone:** M3 — Posting + Ledger  
 **Rule:** If implementation conflicts with an accepted architecture decision or invariant, the conflict must be resolved explicitly; do not silently reinterpret the architecture.
 
 ## Canonical runtime flow
@@ -39,7 +40,7 @@ Human / AI / Automation / External System
 9. Cross-module writes must respect module ownership.
 10. Chat memory is not an authoritative architecture store.
 
-See `docs/invariants/CORE.md`.
+See `docs/invariants/core.md`.
 
 ## Modules
 
@@ -139,3 +140,76 @@ Vertical tuning
 - Change records: `docs/change/`
 - Performance: `docs/performance/`
 - Operations: `docs/operations/`
+
+
+## M1 implementation status
+
+Implemented metadata kernel:
+
+```text
+Enterprise
+Domain
+TransactionType
+ApplicationDefinition
+ApplicationDefinitionVersion
+FieldGroupDefinition
+FieldDefinition
+ApplicationInstance
+EnterpriseApplicationOverlay
+CommandDefinition
+PostingRule
+LedgerDefinition
+ValuationPolicy
+EffectiveDefinitionResolver
+```
+
+Key decision: resolver never guesses how to rebase an overlay onto a different base definition version. A mismatch fails explicitly until a governed upgrade/rebase process is introduced.
+
+
+## M2 implementation status
+
+Implemented controlled write foundation:
+
+```text
+Actor-aware Command
+→ CommandExecution
+→ BusinessData
+→ PostingInput
+→ OutboxEvent
+```
+
+Atomic in one PostgreSQL transaction.
+
+Initial posting sequence allocation is serialized per Enterprise.
+
+Canonical order remains:
+
+```text
+effective_at
++ posting_priority
++ posting_sequence
+```
+
+Retroactive inputs do not live-post out of order. They set `replay_required` and remain blocked for Replay.
+
+
+## M3 implementation status
+
+Implemented deterministic posting and generic ledger foundation:
+
+```text
+PostingInput
+→ Controlled Posting AST
+→ PostingRun
+→ LedgerEntry
+→ LedgerBalance
+→ Authoritative High-Water
+```
+
+Normal posting is serialized by initial Enterprise consistency domain and stops while Replay is required.
+
+Ledger effects and high-water advancement are atomic.
+
+Authoritative decimal arithmetic uses decimal strings + `decimal.js`; PostgreSQL persists `numeric(38,12)`.
+
+Cross-platform repository path safety is now an executable architecture invariant.
