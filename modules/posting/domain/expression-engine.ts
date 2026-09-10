@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js';
+import { Decimal } from 'decimal.js';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type {
   JsonObject,

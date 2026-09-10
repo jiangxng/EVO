@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js';
+import { Decimal } from 'decimal.js';
 import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';

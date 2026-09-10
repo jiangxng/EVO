@@ -5,8 +5,9 @@ import type {
 } from 'kysely';
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
-export type JsonObject = JSONColumnType<Record<string, unknown>>;
-export type JsonArray = JSONColumnType<readonly unknown[]>;
+export type GeneratedTimestamp = Generated<Timestamp>;
+export type JsonObject = JSONColumnType<Record<string, unknown>, Record<string, unknown>, Record<string, unknown>>;
+export type JsonArray = JSONColumnType<readonly unknown[], readonly unknown[], readonly unknown[]>;
 
 export interface SchemaMigrationTable {
   version: string;
@@ -18,7 +19,7 @@ export interface EvoRuntimeInfoTable {
   singleton: boolean;
   architecture_baseline: string;
   db_schema_version: number;
-  updated_at: Timestamp;
+  updated_at: GeneratedTimestamp;
 }
 
 export interface EnterpriseTable {
@@ -27,8 +28,8 @@ export interface EnterpriseTable {
   name: string;
   status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
   default_timezone: string;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
 }
 
 export interface DomainDefinitionTable {
@@ -36,7 +37,7 @@ export interface DomainDefinitionTable {
   code: string;
   name: string;
   description: string | null;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface TransactionTypeTable {
@@ -45,7 +46,7 @@ export interface TransactionTypeTable {
   code: string;
   name: string;
   description: string | null;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface ApplicationDefinitionTable {
@@ -54,7 +55,7 @@ export interface ApplicationDefinitionTable {
   code: string;
   name: string;
   description: string | null;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface ApplicationDefinitionVersionTable {
@@ -66,7 +67,7 @@ export interface ApplicationDefinitionVersionTable {
   base_config: JsonObject;
   definition_hash: string | null;
   published_at: Timestamp | null;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface FieldGroupDefinitionTable {
@@ -100,8 +101,8 @@ export interface ApplicationInstanceTable {
   pinned_definition_version: number | null;
   status: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
   config: JsonObject;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
 }
 
 export interface EnterpriseApplicationOverlayTable {
@@ -114,7 +115,7 @@ export interface EnterpriseApplicationOverlayTable {
   patch: JsonObject;
   overlay_hash: string | null;
   published_at: Timestamp | null;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface CommandDefinitionTable {
@@ -137,7 +138,7 @@ export interface LedgerDefinitionTable {
   amount_semantics: string | null;
   dimension_schema: JsonObject;
   config: JsonObject;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface PostingRuleTable {
@@ -148,7 +149,7 @@ export interface PostingRuleTable {
   condition_ast: JsonObject;
   effect_ast: JsonObject;
   rule_schema_version: number;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface ValuationPolicyTable {
@@ -162,7 +163,7 @@ export interface ValuationPolicyTable {
   config: JsonObject;
   version: number;
   status: 'ACTIVE' | 'RETIRED';
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 
@@ -182,7 +183,7 @@ export interface CommandExecutionTable {
   status: 'RECEIVED' | 'PENDING_APPROVAL' | 'PROCESSING' | 'COMPLETED' | 'REJECTED' | 'FAILED';
   result: JsonObject | null;
   error: JsonObject | null;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
 }
 
@@ -197,7 +198,7 @@ export interface BusinessDataTable {
   effective_at: Timestamp;
   metadata_version: number;
   payload: JsonObject;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface EnterpriseRuntimeStateTable {
@@ -210,7 +211,7 @@ export interface EnterpriseRuntimeStateTable {
   last_posted_priority: number | null;
   last_posted_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
   active_replay_run_id: string | null;
-  updated_at: Timestamp;
+  updated_at: GeneratedTimestamp;
 }
 
 export interface PostingInputTable {
@@ -225,7 +226,7 @@ export interface PostingInputTable {
   metadata_version: number;
   status: 'QUEUED' | 'BLOCKED_REPLAY_REQUIRED' | 'PROCESSING' | 'POSTED' | 'FAILED';
   retroactive: boolean;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
   posted_at: Timestamp | null;
 }
 
@@ -242,7 +243,7 @@ export interface OutboxEventTable {
   status: 'PENDING' | 'PUBLISHED' | 'FAILED';
   attempts: number;
   available_at: Timestamp;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
   published_at: Timestamp | null;
 }
 
@@ -256,7 +257,7 @@ export interface LedgerDatasetTable {
   kind: 'CURRENT' | 'CANDIDATE' | 'ARCHIVED';
   status: 'BUILDING' | 'ACTIVE' | 'FAILED' | 'ARCHIVED';
   posting_boundary_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
   activated_at: Timestamp | null;
 }
 
@@ -268,7 +269,7 @@ export interface PostingRunTable {
   mode: 'NORMAL' | 'REPLAY';
   metadata_version: number;
   status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  started_at: Timestamp;
+  started_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
   error: JsonObject | null;
 }
@@ -294,7 +295,7 @@ export interface LedgerEntryTable {
   effective_at: Timestamp;
   posting_priority: number;
   posting_sequence: ColumnType<bigint, bigint | number | string, bigint | number | string>;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface LedgerBalanceTable {
@@ -309,7 +310,7 @@ export interface LedgerBalanceTable {
   last_effective_at: Timestamp;
   last_posting_priority: number;
   last_posting_sequence: ColumnType<bigint, bigint | number | string, bigint | number | string>;
-  updated_at: Timestamp;
+  updated_at: GeneratedTimestamp;
 }
 
 export interface PostingFailureTable {
@@ -320,7 +321,7 @@ export interface PostingFailureTable {
   error_message: string;
   error_context: JsonObject;
   retryable: boolean;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 
@@ -331,7 +332,7 @@ export interface PermissionGrantTable {
   actor_id: string;
   permission_code: string;
   resource_scope: JsonObject;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface FeatureFlagTable {
@@ -343,8 +344,8 @@ export interface FeatureFlagTable {
   owner: string;
   introduced_in: string;
   expires_at: Timestamp | null;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
 }
 
 export interface WorkItemTable {
@@ -361,8 +362,8 @@ export interface WorkItemTable {
   source_amount: Numeric;
   assigned_actor_type: string | null;
   assigned_actor_id: string | null;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
 }
 
@@ -375,7 +376,7 @@ export interface ReplayRunTable {
   boundary_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
   before_digest: string | null;
   after_digest: string | null;
-  started_at: Timestamp;
+  started_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
   error: JsonObject | null;
 }
@@ -385,7 +386,7 @@ export interface CostRunTable {
   enterprise_id: string;
   method: 'FIFO' | 'LIFO' | 'MOVING_AVERAGE' | 'SPECIFIC_IDENTIFICATION';
   status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  started_at: Timestamp;
+  started_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
   error: JsonObject | null;
 }
@@ -400,7 +401,7 @@ export interface CostResultTable {
   quantity: Numeric;
   unit_cost: Numeric | null;
   total_cost: Numeric | null;
-  created_at: Timestamp;
+  created_at: GeneratedTimestamp;
 }
 
 export interface Database {
