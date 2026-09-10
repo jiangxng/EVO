@@ -139,7 +139,13 @@ try {
   await ledger('receivable','待收款');
   await ledger('inventory','库存');
 
-  async function rule(versionId: string, code: string, priority: number, condition: object, effect: object) {
+  async function rule(
+    versionId: string,
+    code: string,
+    priority: number,
+    condition: Record<string, unknown>,
+    effect: Record<string, unknown>
+  ) {
     await db.insertInto('posting_rule').values({
       application_definition_version_id: versionId,
       code, priority,
