@@ -11,7 +11,7 @@ export interface AppErrorOptions {
 export class AppError extends Error {
   readonly code: string;
   readonly module: string;
-  readonly operation?: string;
+  readonly operation: string | undefined;
   readonly retryable: boolean;
   readonly details: Readonly<Record<string, unknown>>;
 

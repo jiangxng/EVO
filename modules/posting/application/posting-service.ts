@@ -65,8 +65,20 @@ export class PostingService implements PostingProcessor {
           candidate.id
         );
 
-        if (locked.state !== 'READY' || locked.candidate === undefined) {
-          return { status: locked.state };
+        if (locked.state === 'IDLE') return { status: 'IDLE' };
+        if (locked.state === 'BLOCKED_REPLAY_REQUIRED') {
+          return { status: 'BLOCKED_REPLAY_REQUIRED' };
+        }
+        if (locked.state === 'RACE_RETRY') return { status: 'RACE_RETRY' };
+        if (locked.candidate === undefined) {
+          throw new AppError({
+            code: 'POSTING_LOCKED_CANDIDATE_MISSING',
+            message: 'Posting state is READY but no candidate was returned.',
+            module: 'posting',
+            operation: 'processNext',
+            retryable: true,
+            details: { expectedPostingInputId: candidate.id }
+          });
         }
 
         const current = locked.candidate;

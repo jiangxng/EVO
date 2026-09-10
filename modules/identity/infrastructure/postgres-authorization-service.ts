@@ -25,7 +25,7 @@ export class PostgresAuthorizationService implements AuthorizationService {
         message: 'Actor does not have permission for this command.',
         module: 'identity',
         operation: 'require',
-        details: request
+        details: { ...request }
       });
     }
   }

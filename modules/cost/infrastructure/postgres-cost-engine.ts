@@ -69,12 +69,15 @@ export class PostgresCostEngine implements CostEngine {
         if (movement.business_data_type === 'inventory.received') {
           const totalCost = new Decimal(String(payload.totalCost ?? '0'));
           if (quantity.lte(0)) throw new Error('Receipt quantity must be positive.');
-          layers.push({
+          const layer: Layer = {
             businessDataId: movement.id,
             quantity,
-            unitCost: totalCost.div(quantity),
-            lot: payload.lot === undefined ? undefined : String(payload.lot)
-          });
+            unitCost: totalCost.div(quantity)
+          };
+          if (payload.lot !== undefined) {
+            layer.lot = String(payload.lot);
+          }
+          layers.push(layer);
           continue;
         }
 
