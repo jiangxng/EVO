@@ -5,7 +5,9 @@
     "EVO-09",
     "EVO-10",
     "EVO-11",
-    "EVO-12"
+    "EVO-12",
+    "EVO-13-v0.2",
+    "EVO-v1.0.0-alpha.1"
   ],
   "modules": {
     "identity": {
@@ -157,15 +159,58 @@
         "ledger",
         "cost"
       ]
+    },
+    "capability": {
+      "owns": [
+        "capability_definition",
+        "enterprise capability semantics"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "flow": {
+      "owns": [
+        "flow_definition",
+        "flow_instance",
+        "flow_trace",
+        "business_object_link"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "command"
+      ]
+    },
+    "metrics": {
+      "owns": [
+        "metric_definition",
+        "governed metric semantics"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "query"
+      ]
+    },
+    "sop": {
+      "owns": [
+        "sop_definition",
+        "sop_version",
+        "sop_step"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
     }
   },
-  "currentMilestone": "v0.9-production-candidate",
-  "dbSchemaVersion": 5,
-  "metadataSchemaVersion": 1,
+  "currentMilestone": "v1.0.0-alpha.1",
+  "dbSchemaVersion": 6,
+  "metadataSchemaVersion": 2,
   "release": {
-    "version": "0.9.0",
-    "status": "production-candidate",
+    "version": "1.0.0-alpha.1",
+    "status": "alpha",
     "validationConsole": "/",
-    "deployment": "docker-compose"
+    "deployment": "docker-compose",
+    "contextContractVersion": "1.0"
   }
 }

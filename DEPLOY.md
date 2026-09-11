@@ -1,4 +1,4 @@
-# EVO v0.9 — Simplest Deployment
+# EVO v1.0.0-alpha.1 — Simplest Deployment
 
 ## Requirement
 

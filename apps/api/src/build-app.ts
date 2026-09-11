@@ -9,13 +9,21 @@ export interface BuildAppOptions {
   readonly loggerLevel?: string;
 }
 
+type DemoActorBody = { actor?: { type?: 'HUMAN'|'AI'; id?: string } };
+
+function resolveActor(body: DemoActorBody) {
+  return body.actor?.type === 'AI'
+    ? { type: 'AI' as const, id: body.actor.id ?? 'demo-agent' }
+    : { type: 'HUMAN' as const, id: body.actor?.id ?? 'demo-user' };
+}
+
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const app = Fastify({
     logger: { level: options.loggerLevel ?? 'info' },
     requestIdHeader: 'x-request-id'
   });
 
-  app.get('/health/live', async () => ({ status: 'ok', service: 'evo-api', version: '0.9.0' }));
+  app.get('/health/live', async () => ({ status: 'ok', service: 'evo-api', version: '1.0.0-alpha.1' }));
 
   app.get('/health/ready', async (_request, reply) => {
     if (options.database === undefined) {
@@ -23,7 +31,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     }
     try {
       await options.database.ping();
-      return { status: 'ready', version: '0.9.0' };
+      return { status: 'ready', version: '1.0.0-alpha.1' };
     } catch {
       return reply.code(503).send({ status: 'not_ready', reason: 'database_unavailable' });
     }
@@ -45,20 +53,23 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
       const ids = await demoIds(runtime);
       return {
         actorBoundary: 'AI uses the same Command boundary as Human/Automation.',
+        contextContract: 'LLM.md + context.manifest.json',
         tools: await runtime.ai.list(ids.enterpriseId)
       };
     });
 
     app.post('/api/v1/demo/sales-orders/approve', async (request) => {
       const ids = await demoIds(runtime);
-      const body = request.body as {
-        actor?: { type?: 'HUMAN'|'AI'; id?: string };
-        orderNo: string; customer: string; totalQuantity: number;
-        totalAmount: string; currency: string;
+      const body = request.body as DemoActorBody & {
+        orderNo: string;
+        customer: string;
+        productId: string;
+        quantity: number;
+        unitPrice: string;
+        totalAmount: string;
+        currency: string;
       };
-      const actor = body.actor?.type === 'AI'
-        ? { type: 'AI' as const, id: body.actor.id ?? 'demo-agent' }
-        : { type: 'HUMAN' as const, id: body.actor?.id ?? 'demo-user' };
+      const actor = resolveActor(body);
 
       await runtime.auth.require({
         enterpriseId: ids.enterpriseId,
@@ -73,88 +84,148 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         commandCode: 'approve-sales-order',
         actor,
         requestId: request.id,
-        correlationId: request.id,
+        correlationId: `O2C:${body.orderNo}`,
         idempotencyKey: `approve:${body.orderNo}`,
         input: {
           orderNo: body.orderNo,
           customer: body.customer,
-          totalQuantity: body.totalQuantity,
+          productId: body.productId,
+          quantity: body.quantity,
+          unitPrice: body.unitPrice,
           totalAmount: body.totalAmount,
-          currency: body.currency
+          currency: body.currency,
+          fulfillmentMode: 'MAKE'
         },
         effectiveAt: new Date(),
-        businessObjectKey: body.orderNo
+        businessObjectKey: body.orderNo,
+        lineage: {
+          flowDefinitionId: ids.flowDefinitionId,
+          flowInstanceKey: body.orderNo,
+          stepCode: 'sales-order-approved'
+        }
       });
+      await runtime.flow.projectCommand(result.commandExecutionId);
       const posted = await drainPosting(runtime, ids.enterpriseId);
       return { command: result, posted };
     });
 
-    app.post('/api/v1/demo/inventory/receive', async (request) => {
+    app.post('/api/v1/demo/production/complete', async (request) => {
       const ids = await demoIds(runtime);
-      const body = request.body as {
-        actor?: { type?: 'HUMAN'|'AI'; id?: string };
-        productId: string; warehouse: string; quantity: number; totalCost: string;
+      const body = request.body as DemoActorBody & {
+        orderNo: string;
+        customer: string;
+        productId: string;
+        warehouse: string;
+        quantity: number;
+        totalCost: string;
       };
-      const actor = body.actor?.type === 'AI'
-        ? { type: 'AI' as const, id: body.actor.id ?? 'demo-agent' }
-        : { type: 'HUMAN' as const, id: body.actor?.id ?? 'demo-user' };
+      const actor = resolveActor(body);
+
       await runtime.auth.require({
-        enterpriseId: ids.enterpriseId, actorType: actor.type, actorId: actor.id,
-        permissionCode: 'inventory.receive'
+        enterpriseId: ids.enterpriseId,
+        actorType: actor.type,
+        actorId: actor.id,
+        permissionCode: 'production.complete'
       });
+
+      const parent = await runtime.db.selectFrom('business_data')
+        .select('id')
+        .where('enterprise_id','=',ids.enterpriseId)
+        .where('business_data_type','=','sales_order.approved')
+        .where('business_object_key','=',body.orderNo)
+        .orderBy('business_object_version','desc')
+        .executeTakeFirstOrThrow();
+
       const result = await runtime.command.execute({
         enterpriseId: ids.enterpriseId,
-        applicationInstanceId: ids.inventoryAppId,
-        commandCode: 'receive-inventory',
+        applicationInstanceId: ids.productionAppId,
+        commandCode: 'complete-production',
         actor,
         requestId: request.id,
-        correlationId: request.id,
-        idempotencyKey: `receive:${body.productId}:${body.warehouse}:${request.id}`,
+        correlationId: `O2C:${body.orderNo}`,
+        causationId: parent.id,
+        idempotencyKey: `production-complete:${body.orderNo}:${body.productId}:${request.id}`,
         input: {
-          movementType: 'RECEIVE',
+          orderNo: body.orderNo,
+          customer: body.customer,
           productId: body.productId,
           warehouse: body.warehouse,
           quantity: body.quantity,
           totalCost: body.totalCost
         },
         effectiveAt: new Date(),
-        businessObjectKey: `INV:${body.warehouse}:${body.productId}`
+        businessObjectKey: `PROD:${body.orderNo}:${body.productId}`,
+        lineage: {
+          flowDefinitionId: ids.flowDefinitionId,
+          flowInstanceKey: body.orderNo,
+          stepCode: 'production-completed',
+          parentBusinessDataId: parent.id,
+          relationType: 'FULFILLS'
+        }
       });
+      await runtime.flow.projectCommand(result.commandExecutionId);
       const posted = await drainPosting(runtime, ids.enterpriseId);
       return { command: result, posted };
     });
 
-    app.post('/api/v1/demo/inventory/ship', async (request) => {
+    app.post('/api/v1/demo/shipments/create', async (request) => {
       const ids = await demoIds(runtime);
-      const body = request.body as {
-        actor?: { type?: 'HUMAN'|'AI'; id?: string };
-        productId: string; warehouse: string; quantity: number; lot?: string;
+      const body = request.body as DemoActorBody & {
+        shipmentNo: string;
+        orderNo: string;
+        customer: string;
+        productId: string;
+        warehouse: string;
+        quantity: number;
+        lot?: string;
       };
-      const actor = body.actor?.type === 'AI'
-        ? { type: 'AI' as const, id: body.actor.id ?? 'demo-agent' }
-        : { type: 'HUMAN' as const, id: body.actor?.id ?? 'demo-user' };
+      const actor = resolveActor(body);
+
       await runtime.auth.require({
-        enterpriseId: ids.enterpriseId, actorType: actor.type, actorId: actor.id,
+        enterpriseId: ids.enterpriseId,
+        actorType: actor.type,
+        actorId: actor.id,
         permissionCode: 'inventory.ship'
       });
+
+      const parent = await runtime.db.selectFrom('business_data')
+        .select('id')
+        .where('enterprise_id','=',ids.enterpriseId)
+        .where('business_data_type','=','sales_order.approved')
+        .where('business_object_key','=',body.orderNo)
+        .orderBy('business_object_version','desc')
+        .executeTakeFirstOrThrow();
+
       const result = await runtime.command.execute({
         enterpriseId: ids.enterpriseId,
         applicationInstanceId: ids.inventoryAppId,
-        commandCode: 'ship-inventory',
+        commandCode: 'ship-sales-order',
         actor,
         requestId: request.id,
-        correlationId: request.id,
-        idempotencyKey: `ship:${body.productId}:${body.warehouse}:${request.id}`,
+        correlationId: `O2C:${body.orderNo}`,
+        causationId: parent.id,
+        idempotencyKey: `shipment:${body.shipmentNo}`,
         input: {
           movementType: 'SHIP',
+          shipmentNo: body.shipmentNo,
+          orderNo: body.orderNo,
+          customer: body.customer,
           productId: body.productId,
           warehouse: body.warehouse,
           quantity: body.quantity,
           lot: body.lot ?? null
         },
         effectiveAt: new Date(),
-        businessObjectKey: `INV:${body.warehouse}:${body.productId}`
+        businessObjectKey: body.shipmentNo,
+        lineage: {
+          flowDefinitionId: ids.flowDefinitionId,
+          flowInstanceKey: body.orderNo,
+          stepCode: 'shipment-created',
+          parentBusinessDataId: parent.id,
+          relationType: 'FULFILLS'
+        }
       });
+      await runtime.flow.projectCommand(result.commandExecutionId);
       const posted = await drainPosting(runtime, ids.enterpriseId);
       return { command: result, posted };
     });
@@ -179,8 +250,9 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         boundarySequence: replay.boundarySequence.toString(),
         posted,
         beforeDigest,
+        replayRecordedBeforeDigest: replay.beforeDigest,
         afterDigest,
-        deterministic: beforeDigest === afterDigest
+        deterministic: beforeDigest === afterDigest && replay.beforeDigest === beforeDigest
       };
     });
   }

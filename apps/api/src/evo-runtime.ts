@@ -15,6 +15,7 @@ import { PostgresReplayService } from '../../../modules/replay/infrastructure/po
 import { PostgresCostEngine } from '../../../modules/cost/infrastructure/postgres-cost-engine.js';
 import { PostgresEnterpriseQuery } from '../../../modules/query/infrastructure/postgres-enterprise-query.js';
 import { PostgresAiCapabilityCatalog } from '../../../modules/ai/infrastructure/postgres-ai-capability-catalog.js';
+import { PostgresFlowProjection } from '../../../modules/flow/infrastructure/postgres-flow-projection.js';
 
 export function createEvoRuntime(database: DatabaseHandle) {
   const db = database.db;
@@ -43,7 +44,8 @@ export function createEvoRuntime(database: DatabaseHandle) {
     replay: new PostgresReplayService(db),
     cost: new PostgresCostEngine(db),
     query: new PostgresEnterpriseQuery(db),
-    ai: new PostgresAiCapabilityCatalog(db)
+    ai: new PostgresAiCapabilityCatalog(db),
+    flow: new PostgresFlowProjection(db)
   };
 }
 
@@ -56,7 +58,14 @@ export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
   return {
     enterpriseId: enterprise.id,
     salesAppId: apps.find(x => x.code === 'sales')?.id ?? '',
-    inventoryAppId: apps.find(x => x.code === 'inventory')?.id ?? ''
+    productionAppId: apps.find(x => x.code === 'production')?.id ?? '',
+    inventoryAppId: apps.find(x => x.code === 'inventory')?.id ?? '',
+    flowDefinitionId: (await runtime.db.selectFrom('flow_definition')
+      .select('id')
+      .where('enterprise_id','=',enterprise.id)
+      .where('code','=','order-to-cash')
+      .where('version','=',1)
+      .executeTakeFirstOrThrow()).id
   };
 }
 

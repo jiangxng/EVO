@@ -40,7 +40,7 @@ export class PostgresCostEngine implements CostEngine {
         .selectFrom('business_data')
         .select(['id','business_data_type','payload','effective_at','created_at'])
         .where('enterprise_id', '=', enterpriseId)
-        .where('business_data_type', 'in', ['inventory.received','inventory.shipped'])
+        .where('business_data_type', 'in', ['production.completed','inventory.received','sales_shipment.created'])
         .orderBy('effective_at')
         .orderBy('created_at')
         .execute();
@@ -66,7 +66,7 @@ export class PostgresCostEngine implements CostEngine {
         const layers = pools.get(poolKey) ?? [];
         pools.set(poolKey, layers);
 
-        if (movement.business_data_type === 'inventory.received') {
+        if (movement.business_data_type === 'production.completed' || movement.business_data_type === 'inventory.received') {
           const totalCost = new Decimal(String(payload.totalCost ?? '0'));
           if (quantity.lte(0)) throw new Error('Receipt quantity must be positive.');
           const layer: Layer = {

@@ -1,0 +1,33 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+const root = process.cwd();
+
+async function text(file: string) {
+  return readFile(join(root, file), 'utf8');
+}
+
+describe('LLM context determinism contract', () => {
+  it('ships the canonical project context files', async () => {
+    const manifest = JSON.parse(await text('context.manifest.json')) as {
+      requiredReading: string[];
+      rules: Record<string, unknown>;
+    };
+    expect(manifest.requiredReading).toContain('PHILOSOPHY.md');
+    expect(manifest.requiredReading).toContain('INVARIANTS.md');
+    expect(manifest.requiredReading).toContain('PUBLIC-API.md');
+    expect(manifest.rules.actualWriteBoundary).toBe('Command');
+    expect(manifest.rules.replayExecutesCommands).toBe(false);
+    for (const file of manifest.requiredReading) {
+      expect((await text(file)).length).toBeGreaterThan(20);
+    }
+  });
+
+  it('keeps key semantic prohibitions explicit', async () => {
+    const invariants = await text('INVARIANTS.md');
+    expect(invariants).toContain('Replay never executes Commands');
+    expect(invariants).toContain('must not infer them from matching quantities');
+    expect(invariants).toContain('CostResult cannot silently mutate LedgerBalance');
+  });
+});

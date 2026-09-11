@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import type {
@@ -20,14 +21,23 @@ export class PostgresReplayService implements ReplayService {
       const boundary = BigInt(runtime.next_posting_sequence) - 1n;
 
       const balances = await trx
-        .selectFrom('ledger_balance')
-        .select(['ledger_definition_id','dimension_hash','quantity','amount'])
-        .where('enterprise_id', '=', enterpriseId)
-        .orderBy('ledger_definition_id')
-        .orderBy('dimension_hash')
+        .selectFrom('ledger_balance as b')
+        .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
+        .select(['d.code as ledger','b.dimension_hash','b.quantity','b.amount'])
+        .where('b.enterprise_id', '=', enterpriseId)
+        .orderBy('d.code')
+        .orderBy('b.dimension_hash')
         .execute();
 
-      const beforeDigest = JSON.stringify(balances);
+      const beforeSnapshot = balances.map((row) => ({
+        ledger: row.ledger,
+        dimension_hash: row.dimension_hash,
+        quantity: row.quantity,
+        amount: row.amount
+      }));
+      const beforeDigest = createHash('sha256')
+        .update(JSON.stringify(beforeSnapshot))
+        .digest('hex');
 
       const run = await trx
         .insertInto('replay_run')
@@ -38,7 +48,9 @@ export class PostgresReplayService implements ReplayService {
           status: 'REBUILDING',
           boundary_sequence: boundary,
           before_digest: beforeDigest,
+          before_snapshot: beforeSnapshot,
           after_digest: null,
+          validation_status: 'NOT_VALIDATED',
           completed_at: null,
           error: null
         })
@@ -112,10 +124,16 @@ export class PostgresReplayService implements ReplayService {
     afterDigest: string
   ): Promise<void> {
     await this.db.transaction().execute(async (trx) => {
+      const run = await trx.selectFrom('replay_run')
+        .select('before_digest')
+        .where('id', '=', replayRunId)
+        .executeTakeFirstOrThrow();
+
       await trx.updateTable('replay_run')
         .set({
           status: 'COMPLETED',
           after_digest: afterDigest,
+          validation_status: run.before_digest === afterDigest ? 'MATCH' : 'MISMATCH',
           completed_at: sql`now()`
         })
         .where('id', '=', replayRunId)

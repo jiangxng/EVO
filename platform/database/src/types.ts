@@ -167,6 +167,126 @@ export interface ValuationPolicyTable {
 }
 
 
+
+export interface ItemDefinitionTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  code: string;
+  name: string;
+  item_type: 'MATERIAL' | 'SEMI_FINISHED' | 'FINISHED_GOOD' | 'MERCHANDISE' | 'CONSUMABLE' | 'SERVICE' | 'ASSET_ITEM';
+  track_inventory: boolean;
+  default_fulfillment_mode: 'MAKE' | 'BUY' | 'STOCK' | 'SERVICE' | null;
+  base_unit: string;
+  config: JsonObject;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface CapabilityDefinitionTable {
+  id: Generated<string>;
+  enterprise_id: string | null;
+  code: string;
+  name: string;
+  description: string | null;
+  version: number;
+  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
+  config: JsonObject;
+  created_at: GeneratedTimestamp;
+  published_at: Timestamp | null;
+}
+
+export interface FlowDefinitionTable {
+  id: Generated<string>;
+  enterprise_id: string | null;
+  code: string;
+  name: string;
+  description: string | null;
+  version: number;
+  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
+  definition: JsonObject;
+  created_at: GeneratedTimestamp;
+  published_at: Timestamp | null;
+}
+
+export interface FlowInstanceTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  flow_definition_id: string;
+  instance_key: string;
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  started_at: GeneratedTimestamp;
+  completed_at: Timestamp | null;
+}
+
+export interface BusinessObjectLinkTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  from_business_data_id: string;
+  to_business_data_id: string;
+  relation_type: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'DERIVES_FROM' | 'REFERENCES';
+  metadata: JsonObject;
+  created_at: GeneratedTimestamp;
+}
+
+export interface FlowTraceTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  flow_definition_id: string;
+  flow_instance_id: string;
+  command_execution_id: string;
+  business_data_id: string;
+  step_code: string;
+  correlation_id: string;
+  causation_id: string | null;
+  created_at: GeneratedTimestamp;
+}
+
+export interface MetricDefinitionTable {
+  id: Generated<string>;
+  enterprise_id: string | null;
+  code: string;
+  name: string;
+  description: string | null;
+  version: number;
+  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
+  value_type: string;
+  definition: JsonObject;
+  lineage: JsonObject;
+  created_at: GeneratedTimestamp;
+  published_at: Timestamp | null;
+}
+
+export interface SopDefinitionTable {
+  id: Generated<string>;
+  enterprise_id: string | null;
+  code: string;
+  name: string;
+  description: string | null;
+  created_at: GeneratedTimestamp;
+}
+
+export interface SopVersionTable {
+  id: Generated<string>;
+  sop_definition_id: string;
+  version: number;
+  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
+  summary: string | null;
+  config: JsonObject;
+  created_at: GeneratedTimestamp;
+  published_at: Timestamp | null;
+}
+
+export interface SopStepTable {
+  id: Generated<string>;
+  sop_version_id: string;
+  step_no: number;
+  code: string;
+  title: string;
+  instruction: string;
+  evidence_requirement: JsonObject;
+  control: JsonObject;
+}
+
 export interface CommandExecutionTable {
   id: Generated<string>;
   enterprise_id: string;
@@ -180,6 +300,7 @@ export interface CommandExecutionTable {
   idempotency_scope: string;
   idempotency_key: string;
   input: JsonObject;
+  lineage: JsonObject | null;
   status: 'RECEIVED' | 'PENDING_APPROVAL' | 'PROCESSING' | 'COMPLETED' | 'REJECTED' | 'FAILED';
   result: JsonObject | null;
   error: JsonObject | null;
@@ -375,7 +496,9 @@ export interface ReplayRunTable {
   status: 'PREPARING' | 'REBUILDING' | 'VALIDATING' | 'COMPLETED' | 'FAILED';
   boundary_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
   before_digest: string | null;
+  before_snapshot: JsonArray | JsonObject | null;
   after_digest: string | null;
+  validation_status: 'MATCH' | 'MISMATCH' | 'NOT_VALIDATED' | null;
   started_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
   error: JsonObject | null;
@@ -436,4 +559,14 @@ export interface Database {
   replay_run: ReplayRunTable;
   cost_run: CostRunTable;
   cost_result: CostResultTable;
+  item_definition: ItemDefinitionTable;
+  capability_definition: CapabilityDefinitionTable;
+  flow_definition: FlowDefinitionTable;
+  flow_instance: FlowInstanceTable;
+  business_object_link: BusinessObjectLinkTable;
+  flow_trace: FlowTraceTable;
+  metric_definition: MetricDefinitionTable;
+  sop_definition: SopDefinitionTable;
+  sop_version: SopVersionTable;
+  sop_step: SopStepTable;
 }

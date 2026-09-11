@@ -1,75 +1,30 @@
 # EVO — Enterprise Operating System
 
-**Version:** 0.9.0 Production Candidate / Validation Build
+Current baseline: **v1.0.0-alpha.1**
 
-EVO is an AI-native, metadata-driven enterprise operating system built around:
+EVO models the enterprise, runs the enterprise, and helps the enterprise improve itself.
 
-```text
-Metadata
-→ Command
-→ BusinessData
-→ Posting
-→ Ledger
-→ Balance / Cost / State
-→ Work
-→ Next Command
-```
+Start with `LLM.md` if you are an AI/coding agent. Humans and models should treat `PHILOSOPHY.md`, `CONCEPTS.md`, `INVARIANTS.md`, `ARCHITECTURE.md`, `PUBLIC-API.md`, `architecture.manifest.json` and `context.manifest.json` as authoritative project context.
 
-## Fastest start
+## Reference Flow
 
-Install Docker Desktop, then:
+Sales Order → Production Completion → Inventory → Shipment → Cost → Replay
+
+The alpha.1 reference intentionally removes the ambiguous generic inventory receipt from the main demo. Production completion is the explicit business cause of finished-goods inventory increase.
+
+## Run
 
 ```bash
+cp .env.example .env
 docker compose up -d --build
 ```
 
-Open:
+Open `http://localhost:3000/`.
 
-```text
-http://localhost:3000
+Validate:
+
+```bash
+docker compose exec api node dist/scripts/validate-demo.js
 ```
 
-See [`DEPLOY.md`](./DEPLOY.md).
-
-## Included in v0.9
-
-- Enterprise Metadata / Template / Application Instance foundation
-- Human / AI / Automation common Command boundary
-- Actor permission grants
-- Idempotent CommandExecution
-- append-only BusinessData history
-- deterministic PostingInput ordering
-- retroactive posting detection / replay-required state
-- controlled posting JSON AST
-- generic LedgerEntry / LedgerBalance
-- deterministic dimension hashing
-- WorkItem projection from ledger state
-- FIFO / LIFO / Moving Average / Specific Identification cost engine foundation
-- Full Replay and deterministic digest validation
-- AI command capability catalog
-- transactional Outbox with worker publication
-- feature flag foundation
-- migration/version/compatibility metadata
-- Windows/Linux repository path invariant
-- Docker deployment
-- browser Validation Console
-
-## Status
-
-This is the first integrated candidate intended for validation.
-
-It is **not claimed to be production-proven v1.0** until it has been exercised with real workloads, failure injection, migration exercises and enterprise scenarios.
-
-## Architecture
-
-Current implementation context:
-
-```text
-ARCHITECTURE.md
-```
-
-Versioned architecture history:
-
-```text
-docs/architecture/
-```
+See `DEPLOY.md` and `docs/change/EVO-v0.9-to-v1.0-alpha.1.md`.

@@ -25,31 +25,29 @@ try {
     'enterprise'
   );
 
-  const salesDomain = await one(
-    db.insertInto('domain_definition')
-      .values({ code: 'sales', name: 'Sales', description: 'Sales domain' })
-      .onConflict((oc) => oc.column('code').doUpdateSet({ name: 'Sales' }))
-      .returning('id').executeTakeFirst(), 'sales domain'
-  );
-  const inventoryDomain = await one(
-    db.insertInto('domain_definition')
-      .values({ code: 'inventory', name: 'Inventory', description: 'Inventory domain' })
-      .onConflict((oc) => oc.column('code').doUpdateSet({ name: 'Inventory' }))
-      .returning('id').executeTakeFirst(), 'inventory domain'
-  );
+  async function domain(code: string, name: string) {
+    return one(
+      db.insertInto('domain_definition')
+        .values({ code, name, description: `${name} domain` })
+        .onConflict((oc) => oc.column('code').doUpdateSet({ name }))
+        .returning('id').executeTakeFirst(), `${code} domain`
+    );
+  }
+  const salesDomain = await domain('sales', 'Sales');
+  const productionDomain = await domain('production', 'Production');
+  const inventoryDomain = await domain('inventory', 'Inventory');
 
-  const salesType = await one(
-    db.insertInto('transaction_type')
-      .values({ domain_id: salesDomain.id, code: 'sales_order', name: 'Sales Order', description: null })
-      .onConflict((oc) => oc.column('code').doUpdateSet({ name: 'Sales Order' }))
-      .returning('id').executeTakeFirst(), 'sales type'
-  );
-  const inventoryType = await one(
-    db.insertInto('transaction_type')
-      .values({ domain_id: inventoryDomain.id, code: 'inventory_movement', name: 'Inventory Movement', description: null })
-      .onConflict((oc) => oc.column('code').doUpdateSet({ name: 'Inventory Movement' }))
-      .returning('id').executeTakeFirst(), 'inventory type'
-  );
+  async function txType(domainId: string, code: string, name: string) {
+    return one(
+      db.insertInto('transaction_type')
+        .values({ domain_id: domainId, code, name, description: null })
+        .onConflict((oc) => oc.column('code').doUpdateSet({ name }))
+        .returning('id').executeTakeFirst(), `${code} transaction type`
+    );
+  }
+  const salesType = await txType(salesDomain.id, 'sales_order', 'Sales Order');
+  const productionType = await txType(productionDomain.id, 'production_completion', 'Production Completion');
+  const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
 
   async function app(code: string, name: string, typeId: string) {
     return one(
@@ -60,7 +58,8 @@ try {
     );
   }
   const salesApp = await app('sales_order', 'Sales Order', salesType.id);
-  const invApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
+  const productionApp = await app('production_completion', 'Production Completion', productionType.id);
+  const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
 
   async function version(appId: string) {
     const existing = await db.selectFrom('application_definition_version')
@@ -73,13 +72,14 @@ try {
         status: 'PUBLISHED',
         schema_version: 1,
         base_config: {},
-        definition_hash: 'demo-v1',
+        definition_hash: 'demo-v1-alpha1',
         published_at: new Date()
       }).returning('id').executeTakeFirst(), 'version'
     );
   }
   const salesVersion = await version(salesApp.id);
-  const invVersion = await version(invApp.id);
+  const productionVersion = await version(productionApp.id);
+  const inventoryVersion = await version(inventoryApp.id);
 
   async function instance(appId: string, code: string, name: string) {
     return one(
@@ -88,15 +88,104 @@ try {
         application_definition_id: appId,
         code,
         name,
-        pinned_definition_version: null,
+        pinned_definition_version: 1,
         status: 'ACTIVE',
         config: {}
-      }).onConflict((oc) => oc.columns(['enterprise_id','code']).doUpdateSet({ name }))
+      }).onConflict((oc) => oc.columns(['enterprise_id','code']).doUpdateSet({ name, pinned_definition_version: 1 }))
         .returning('id').executeTakeFirst(), code
     );
   }
   await instance(salesApp.id, 'sales', 'Sales');
-  await instance(invApp.id, 'inventory', 'Inventory');
+  await instance(productionApp.id, 'production', 'Production');
+  await instance(inventoryApp.id, 'inventory', 'Inventory');
+
+  await db.insertInto('item_definition').values({
+    enterprise_id: enterprise.id,
+    code: 'P-100',
+    name: 'Demo Finished Good P-100',
+    item_type: 'FINISHED_GOOD',
+    track_inventory: true,
+    default_fulfillment_mode: 'MAKE',
+    base_unit: 'EA',
+    config: {}
+  }).onConflict((oc) => oc.columns(['enterprise_id','code']).doUpdateSet({
+    name: 'Demo Finished Good P-100',
+    item_type: 'FINISHED_GOOD',
+    track_inventory: true,
+    default_fulfillment_mode: 'MAKE',
+    base_unit: 'EA'
+  })).execute();
+
+  async function capability(code: string, name: string) {
+    await db.insertInto('capability_definition').values({
+      enterprise_id: enterprise.id,
+      code, name, description: null, version: 1, status: 'PUBLISHED', config: {}, published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({ name, status: 'PUBLISHED' })).execute();
+  }
+  await capability('sell', 'Sell');
+  await capability('produce', 'Produce');
+  await capability('deliver', 'Deliver');
+  await capability('collect', 'Collect');
+
+  const flow = await one(
+    db.insertInto('flow_definition').values({
+      enterprise_id: enterprise.id,
+      code: 'order-to-cash',
+      name: 'Order to Cash',
+      description: 'Reference cross-domain flow for EVO v1 alpha.',
+      version: 1,
+      status: 'PUBLISHED',
+      definition: {
+        steps: ['sales-order-approved','production-completed','shipment-created','costed','collection']
+      },
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name: 'Order to Cash', status: 'PUBLISHED'
+    })).returning('id').executeTakeFirst(), 'flow definition'
+  );
+
+  await db.insertInto('metric_definition').values({
+    enterprise_id: enterprise.id,
+    code: 'order-fulfillment-open-qty',
+    name: 'Open Order Fulfillment Quantity',
+    description: 'Quantity still pending shipment in the reference flow.',
+    version: 1,
+    status: 'PUBLISHED',
+    value_type: 'DECIMAL',
+    definition: { source: 'ledger_balance', ledger: 'pending_shipment', aggregation: 'sum(quantity)' },
+    lineage: { sourceLedger: 'pending_shipment' },
+    published_at: new Date()
+  }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({ status: 'PUBLISHED' })).execute();
+
+  const sop = await one(
+    db.insertInto('sop_definition').values({
+      enterprise_id: enterprise.id,
+      code: 'finished-goods-completion',
+      name: 'Finished Goods Completion',
+      description: 'Reference SOP for production completion.'
+    }).onConflict((oc) => oc.columns(['enterprise_id','code']).doUpdateSet({ name: 'Finished Goods Completion' }))
+      .returning('id').executeTakeFirst(), 'sop definition'
+  );
+  const sopVersion = await one(
+    db.insertInto('sop_version').values({
+      sop_definition_id: sop.id,
+      version: 1,
+      status: 'PUBLISHED',
+      summary: 'Confirm produced quantity, warehouse and total production cost before completion.',
+      config: {},
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['sop_definition_id','version']).doUpdateSet({ status: 'PUBLISHED' }))
+      .returning('id').executeTakeFirst(), 'sop version'
+  );
+  await db.insertInto('sop_step').values({
+    sop_version_id: sopVersion.id,
+    step_no: 1,
+    code: 'confirm-completion',
+    title: 'Confirm production completion',
+    instruction: 'Verify order, item, completed quantity, warehouse and total production cost before issuing the completion Command.',
+    evidence_requirement: { requiredFields: ['orderNo','productId','quantity','warehouse','totalCost'] },
+    control: { authorization: 'production.complete' }
+  }).onConflict((oc) => oc.columns(['sop_version_id','step_no']).doUpdateSet({ title: 'Confirm production completion' })).execute();
 
   const trueExpr = { type: 'literal', value: true };
   const field = (path: string) => ({ type: 'field', path });
@@ -122,8 +211,10 @@ try {
     })).execute();
   }
   await command(salesVersion.id, 'approve-sales-order', 'Approve Sales Order', 'sales_order.approved');
-  await command(invVersion.id, 'receive-inventory', 'Receive Inventory', 'inventory.received');
-  await command(invVersion.id, 'ship-inventory', 'Ship Inventory', 'inventory.shipped');
+  await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
+  await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
+  // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
+  await command(inventoryVersion.id, 'receive-inventory', 'Receive Inventory (Legacy Demo)', 'inventory.received');
 
   async function ledger(code: string, name: string) {
     await db.insertInto('ledger_definition').values({
@@ -138,6 +229,7 @@ try {
   await ledger('pending_shipment','待出库/发货');
   await ledger('receivable','待收款');
   await ledger('inventory','库存');
+  await ledger('cogs','销售成本');
 
   async function rule(
     versionId: string,
@@ -157,45 +249,30 @@ try {
     })).execute();
   }
 
-  const orderDims = {
-    order_no: field('orderNo'),
-    customer: field('customer')
-  };
+  const orderDims = { order_no: field('orderNo'), customer: field('customer'), product_id: field('productId') };
   await rule(salesVersion.id,'order-pending-production',10,trueExpr,{
-    ledgerCode:'pending_production',
-    quantity: field('totalQuantity'),
-    amount: { type:'literal', value:'0' },
-    dimensions: orderDims
+    ledgerCode:'pending_production', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
   await rule(salesVersion.id,'order-pending-shipment',20,trueExpr,{
-    ledgerCode:'pending_shipment',
-    quantity: field('totalQuantity'),
-    amount: { type:'literal', value:'0' },
-    dimensions: orderDims
+    ledgerCode:'pending_shipment', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
   await rule(salesVersion.id,'order-receivable',30,trueExpr,{
-    ledgerCode:'receivable',
-    quantity: { type:'literal', value:0 },
-    amount: field('totalAmount'),
-    currency: field('currency'),
-    dimensions: orderDims
+    ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: orderDims
   });
 
-  const invDims = {
-    product_id: field('productId'),
-    warehouse: field('warehouse')
-  };
-  await rule(invVersion.id,'inventory-receive',10,eq('movementType','RECEIVE'),{
-    ledgerCode:'inventory',
-    quantity: field('quantity'),
-    amount: field('totalCost'),
-    dimensions: invDims
+  const invDims = { product_id: field('productId'), warehouse: field('warehouse') };
+  await rule(productionVersion.id,'production-close-demand',10,trueExpr,{
+    ledgerCode:'pending_production', quantity: neg('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
-  await rule(invVersion.id,'inventory-ship',20,eq('movementType','SHIP'),{
-    ledgerCode:'inventory',
-    quantity: neg('quantity'),
-    amount: { type:'literal', value:'0' },
-    dimensions: invDims
+  await rule(productionVersion.id,'production-finished-goods',20,trueExpr,{
+    ledgerCode:'inventory', quantity: field('quantity'), amount: field('totalCost'), dimensions: invDims
+  });
+
+  await rule(inventoryVersion.id,'shipment-inventory',10,eq('movementType','SHIP'),{
+    ledgerCode:'inventory', quantity: neg('quantity'), amount: { type:'literal', value:'0' }, dimensions: invDims
+  });
+  await rule(inventoryVersion.id,'shipment-close-pending',20,eq('movementType','SHIP'),{
+    ledgerCode:'pending_shipment', quantity: neg('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
 
   for (const [actorType, actorId] of [
@@ -215,14 +292,14 @@ try {
   }
 
   await db.insertInto('feature_flag').values({
-    code: 'posting_evaluator_v2',
+    code: 'v10_reference_flow',
     enterprise_id: enterprise.id,
-    enabled: false,
-    config: { rollout: 'demo' },
-    owner: 'posting',
-    introduced_in: '0.9.0',
+    enabled: true,
+    config: { flow: 'order-to-cash', alpha: 1 },
+    owner: 'flow',
+    introduced_in: '1.0.0-alpha.1',
     expires_at: null
-  }).onConflict((oc) => oc.columns(['code','enterprise_id']).doNothing()).execute();
+  }).onConflict((oc) => oc.columns(['code','enterprise_id']).doUpdateSet({ enabled: true })).execute();
 
   await db.insertInto('valuation_policy').values({
     enterprise_id: enterprise.id,
@@ -239,7 +316,9 @@ try {
   console.log(JSON.stringify({
     status: 'ok',
     enterpriseId: enterprise.id,
-    enterpriseCode: 'EVO_DEMO'
+    enterpriseCode: 'EVO_DEMO',
+    referenceItem: 'P-100',
+    referenceFlowId: flow.id
   }, null, 2));
 } finally {
   await database.destroy();

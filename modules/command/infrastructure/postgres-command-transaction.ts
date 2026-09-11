@@ -77,6 +77,13 @@ export class PostgresCommandTransaction
           idempotency_scope: input.idempotencyScope,
           idempotency_key: input.request.idempotencyKey,
           input: input.request.input,
+          lineage: input.request.lineage === undefined ? null : {
+            flowDefinitionId: input.request.lineage.flowDefinitionId,
+            flowInstanceKey: input.request.lineage.flowInstanceKey,
+            stepCode: input.request.lineage.stepCode,
+            ...(input.request.lineage.parentBusinessDataId === undefined ? {} : { parentBusinessDataId: input.request.lineage.parentBusinessDataId }),
+            ...(input.request.lineage.relationType === undefined ? {} : { relationType: input.request.lineage.relationType })
+          },
           status: 'PROCESSING',
           result: null,
           error: null,

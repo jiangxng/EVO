@@ -10,7 +10,7 @@ export class PostgresEnterpriseQuery implements EnterpriseQuery {
   constructor(private readonly db: Kysely<Database>) {}
 
   async dashboard(enterpriseId: string): Promise<EnterpriseDashboard> {
-    const [enterprise, runtime, balances, workItems, recentBusinessData, postingInputs, costRuns, replayRuns] =
+    const [enterprise, runtime, balances, workItems, recentBusinessData, postingInputs, costRuns, costResults, flowTraces, replayRuns] =
       await Promise.all([
         this.db.selectFrom('enterprise').selectAll().where('id','=',enterpriseId).executeTakeFirst(),
         this.db.selectFrom('enterprise_runtime_state').selectAll().where('enterprise_id','=',enterpriseId).executeTakeFirst(),
@@ -32,11 +32,19 @@ export class PostgresEnterpriseQuery implements EnterpriseQuery {
           .orderBy('posting_sequence','desc').limit(30).execute(),
         this.db.selectFrom('cost_run').selectAll().where('enterprise_id','=',enterpriseId)
           .orderBy('started_at','desc').limit(10).execute(),
+        this.db.selectFrom('cost_result').selectAll().where('enterprise_id','=',enterpriseId)
+          .orderBy('created_at','desc').limit(30).execute(),
+        this.db.selectFrom('flow_trace as t')
+          .innerJoin('flow_definition as f','f.id','t.flow_definition_id')
+          .innerJoin('flow_instance as i','i.id','t.flow_instance_id')
+          .select(['t.id','f.code as flow','i.instance_key','t.step_code','t.business_data_id','t.command_execution_id','t.correlation_id','t.causation_id','t.created_at'])
+          .where('t.enterprise_id','=',enterpriseId)
+          .orderBy('t.created_at','desc').limit(50).execute(),
         this.db.selectFrom('replay_run').selectAll().where('enterprise_id','=',enterpriseId)
           .orderBy('started_at','desc').limit(10).execute()
       ]);
 
-    return { enterprise, runtime, balances, workItems, recentBusinessData, postingInputs, costRuns, replayRuns };
+    return { enterprise, runtime, balances, workItems, recentBusinessData, postingInputs, costRuns, costResults, flowTraces, replayRuns };
   }
 
   async balanceDigest(enterpriseId: string): Promise<string> {

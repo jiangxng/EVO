@@ -1,8 +1,8 @@
 # EVO Architecture Manifest
 
 **Status:** Authoritative repository map  
-**Baseline:** EVO-08 through EVO-12
-**Implementation milestone:** M3 — Posting + Ledger  
+**Baseline:** EVO-08 through EVO-13 v0.2 + v1.0.0-alpha.1 change set
+**Implementation milestone:** v1.0.0-alpha.1 — Enterprise Model + Semantic Reference Flow  
 **Rule:** If implementation conflicts with an accepted architecture decision or invariant, the conflict must be resolved explicitly; do not silently reinterpret the architecture.
 
 ## Canonical runtime flow
@@ -54,6 +54,10 @@ See `docs/invariants/core.md`.
 | posting | ordered PostingInput execution | emits ledger effects |
 | ledger | LedgerEntry / LedgerBalance | consumed by cost/query |
 | cost | valuation results | consumes ledger |
+| capability | enterprise capability definitions | metadata-aligned classification |
+| flow | FlowDefinition / FlowInstance / FlowTrace / business links | explicit cross-domain lineage |
+| metrics | governed MetricDefinition semantics | read/semantic layer |
+| sop | versioned SOP knowledge | enterprise knowledge layer |
 | replay | rebuild orchestration | orchestrates posting/ledger/cost |
 | workflow | process/work/plan | invokes commands |
 | ai | AI gateway | query + commands only |
@@ -246,3 +250,42 @@ Docker Deployment
 
 v0.9 is a validation candidate, not a claim of production maturity.
 v1.0 is gated by real workload, failure, upgrade and operational evidence.
+
+
+## v1.0.0-alpha.1 convergence
+
+The v0.9 runtime validation baseline is preserved, but the semantic reference is upgraded.
+
+```text
+Enterprise Model
+  Capability · Domain · Flow · Item · SOP · Metric
+        ↓
+Application / Tool
+        ↓
+Command
+        ↓
+BusinessData + explicit Lineage
+        ↓
+Posting → Ledger → Cost → Work
+        ↓
+Replay / Metrics / Management Intelligence
+```
+
+Reference business chain:
+
+```text
+Sales Order (explicit Item)
+→ Production Demand
+→ Production Completion
+→ Finished Goods Inventory
+→ Sales Shipment
+→ CostResult
+→ [Valuation Posting boundary]
+→ Inventory Value / COGS
+```
+
+Alpha.1 deliberately does not pretend that generic `inventory.received` explains business cause. The reference path uses `production.completed` as the explicit cause of finished-goods receipt and `sales_shipment.created` as the explicit order-linked shipment fact.
+
+Business object linkage and Flow Trace are persisted; causation/fulfillment must not be inferred from equal quantities.
+
+Repository context determinism is now a first-class architecture constraint. See `LLM.md` and `context.manifest.json`.

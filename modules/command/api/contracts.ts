@@ -6,6 +6,14 @@ export interface CommandActor {
   readonly id: string;
 }
 
+export interface CommandLineage {
+  readonly flowDefinitionId: string;
+  readonly flowInstanceKey: string;
+  readonly stepCode: string;
+  readonly parentBusinessDataId?: string;
+  readonly relationType?: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'DERIVES_FROM' | 'REFERENCES';
+}
+
 export interface ExecuteCommandRequest {
   readonly enterpriseId: string;
   readonly applicationInstanceId: string;
@@ -20,6 +28,7 @@ export interface ExecuteCommandRequest {
   readonly postingPriority?: number;
   readonly businessObjectKey: string;
   readonly expectedBusinessVersion?: bigint;
+  readonly lineage?: CommandLineage;
 }
 
 export interface ExecuteCommandResult {
