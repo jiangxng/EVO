@@ -39,6 +39,32 @@ export class PostgresReplayService implements ReplayService {
         .update(JSON.stringify(beforeSnapshot))
         .digest('hex');
 
+      const latestCostRun = await trx.selectFrom('cost_run')
+        .select(['id','method','valuation_policy_id','valuation_policy_version'])
+        .where('enterprise_id','=',enterpriseId)
+        .where('status','=','COMPLETED')
+        .orderBy('started_at','desc')
+        .executeTakeFirst();
+
+      const valuationRulePins: Record<string, { id: string; version: number }> = {};
+      if (latestCostRun !== undefined) {
+        const pinnedRows = await trx.selectFrom('cost_result as c')
+          .innerJoin('business_data as b','b.id','c.business_data_id')
+          .select(['b.business_data_type','c.valuation_rule_id','c.valuation_rule_version'])
+          .where('c.cost_run_id','=',latestCostRun.id)
+          .where('c.valuation_rule_id','is not',null)
+          .where('c.valuation_rule_version','is not',null)
+          .execute();
+        for (const row of pinnedRows) {
+          if (row.valuation_rule_id !== null && row.valuation_rule_version !== null) {
+            valuationRulePins[row.business_data_type] = {
+              id: row.valuation_rule_id,
+              version: row.valuation_rule_version
+            };
+          }
+        }
+      }
+
       const run = await trx
         .insertInto('replay_run')
         .values({
@@ -52,7 +78,11 @@ export class PostgresReplayService implements ReplayService {
           after_digest: null,
           validation_status: 'NOT_VALIDATED',
           completed_at: null,
-          error: null
+          error: null,
+          cost_method: latestCostRun?.method ?? null,
+          valuation_policy_id: latestCostRun?.valuation_policy_id ?? null,
+          valuation_policy_version: latestCostRun?.valuation_policy_version ?? null,
+          valuation_rule_pins: valuationRulePins
         })
         .returning('id')
         .executeTakeFirstOrThrow();
@@ -85,6 +115,14 @@ export class PostgresReplayService implements ReplayService {
           .where('ledger_dataset_id', 'in', ids).execute();
       }
 
+      await trx.deleteFrom('valuation_position')
+        .where('enterprise_id', '=', enterpriseId).execute();
+      await trx.deleteFrom('valuation_posting_run')
+        .where('enterprise_id', '=', enterpriseId).execute();
+      await trx.deleteFrom('cost_result')
+        .where('enterprise_id', '=', enterpriseId).execute();
+      await trx.deleteFrom('cost_run')
+        .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('posting_run')
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('posting_failure')
@@ -113,7 +151,14 @@ export class PostgresReplayService implements ReplayService {
       return {
         replayRunId: run.id,
         boundarySequence: boundary,
-        beforeDigest
+        beforeDigest,
+        costMethod: latestCostRun?.method ?? null,
+        costPins: latestCostRun === undefined ? null : {
+          ...(latestCostRun.valuation_policy_id !== null && latestCostRun.valuation_policy_version !== null
+            ? { valuationPolicyId: latestCostRun.valuation_policy_id, valuationPolicyVersion: latestCostRun.valuation_policy_version }
+            : {}),
+          valuationRules: valuationRulePins
+        }
       };
     });
   }

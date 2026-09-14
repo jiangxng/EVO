@@ -3,10 +3,12 @@ import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { ValuationPostingService } from '../../valuation/api/contracts.js';
 import type {
   CostEngine,
   CostMethod,
-  CostRecalculationResult
+  CostRecalculationResult,
+  CostReplayPins
 } from '../api/contracts.js';
 
 interface Layer {
@@ -17,12 +19,48 @@ interface Layer {
 }
 
 export class PostgresCostEngine implements CostEngine {
-  constructor(private readonly db: Kysely<Database>) {}
+  constructor(
+    private readonly db: Kysely<Database>,
+    private readonly valuation: ValuationPostingService
+  ) {}
 
   async recalculate(
     enterpriseId: string,
-    method: CostMethod
+    method: CostMethod,
+    pins?: CostReplayPins
   ): Promise<CostRecalculationResult> {
+    let policy: { id: string; version: number } | undefined;
+    if (pins?.valuationPolicyId !== undefined && pins.valuationPolicyVersion !== undefined) {
+      policy = await this.db.selectFrom('valuation_policy')
+        .select(['id','version'])
+        .where('id','=',pins.valuationPolicyId)
+        .where('version','=',pins.valuationPolicyVersion)
+        .where('method','=',method)
+        .executeTakeFirst();
+    } else {
+      policy = await this.db.selectFrom('valuation_policy')
+        .select(['id','version'])
+        .where('enterprise_id','=',enterpriseId)
+        .where('method','=',method)
+        .where('status','=','ACTIVE')
+        .orderBy('version','desc')
+        .executeTakeFirst();
+      policy ??= await this.db.selectFrom('valuation_policy')
+        .select(['id','version'])
+        .where('enterprise_id','is',null)
+        .where('method','=',method)
+        .where('status','=','ACTIVE')
+        .orderBy('version','desc')
+        .executeTakeFirst();
+    }
+    if (policy === undefined) {
+      throw new AppError({
+        code: 'COST_VALUATION_POLICY_NOT_FOUND',
+        message: `No active valuation policy for method ${method}.`,
+        module: 'cost', operation: 'recalculate'
+      });
+    }
+
     const run = await this.db
       .insertInto('cost_run')
       .values({
@@ -30,7 +68,10 @@ export class PostgresCostEngine implements CostEngine {
         method,
         status: 'PROCESSING',
         completed_at: null,
-        error: null
+        error: null,
+        valuation_policy_id: policy.id,
+        valuation_policy_version: policy.version,
+        cost_engine_version: '2'
       })
       .returning('id')
       .executeTakeFirstOrThrow();
@@ -47,6 +88,7 @@ export class PostgresCostEngine implements CostEngine {
 
       const pools = new Map<string, Layer[]>();
       let resultCount = 0;
+      let valuationPostingCount = 0;
 
       for (const movement of movements) {
         const payload = movement.payload as JsonObject;
@@ -126,7 +168,39 @@ export class PostgresCostEngine implements CostEngine {
 
         const unitCost = total.div(quantity);
 
-        await this.db
+        const pinnedRule = pins?.valuationRules?.[movement.business_data_type];
+        let valuationRule: { id: string; version: number } | undefined;
+        if (pinnedRule !== undefined) {
+          valuationRule = await this.db.selectFrom('valuation_rule')
+            .select(['id','version'])
+            .where('id','=',pinnedRule.id)
+            .where('version','=',pinnedRule.version)
+            .executeTakeFirst();
+        } else {
+          valuationRule = await this.db.selectFrom('valuation_rule')
+            .select(['id','version'])
+            .where('enterprise_id','=',enterpriseId)
+            .where('source_business_data_type','=',movement.business_data_type)
+            .where('status','=','PUBLISHED')
+            .orderBy('version','desc')
+            .executeTakeFirst();
+          valuationRule ??= await this.db.selectFrom('valuation_rule')
+            .select(['id','version'])
+            .where('enterprise_id','is',null)
+            .where('source_business_data_type','=',movement.business_data_type)
+            .where('status','=','PUBLISHED')
+            .orderBy('version','desc')
+            .executeTakeFirst();
+        }
+        if (valuationRule === undefined) {
+          throw new AppError({
+            code: 'VALUATION_RULE_NOT_FOUND',
+            message: `No published valuation rule for ${movement.business_data_type}.`,
+            module: 'cost', operation: 'recalculate'
+          });
+        }
+
+        const result = await this.db
           .insertInto('cost_result')
           .values({
             enterprise_id: enterpriseId,
@@ -136,17 +210,22 @@ export class PostgresCostEngine implements CostEngine {
             method,
             quantity: quantity.toString(),
             unit_cost: unitCost.toString(),
-            total_cost: total.toString()
+            total_cost: total.toString(),
+            valuation_rule_id: valuationRule.id,
+            valuation_rule_version: valuationRule.version
           })
-          .execute();
+          .returning('id')
+          .executeTakeFirstOrThrow();
         resultCount += 1;
+        const valuation = await this.valuation.postCostResult(result.id);
+        if (valuation.status === 'POSTED') valuationPostingCount += 1;
       }
 
       await this.db.updateTable('cost_run')
         .set({ status: 'COMPLETED', completed_at: sql`now()` })
         .where('id', '=', run.id).execute();
 
-      return { costRunId: run.id, method, resultCount };
+      return { costRunId: run.id, method, resultCount, valuationPostingCount };
     } catch (error) {
       await this.db.updateTable('cost_run')
         .set({

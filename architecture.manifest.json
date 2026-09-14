@@ -7,7 +7,7 @@
     "EVO-11",
     "EVO-12",
     "EVO-13-v0.2",
-    "EVO-v1.0.0-alpha.1"
+    "EVO-v1.0.0-alpha.2"
   ],
   "modules": {
     "identity": {
@@ -89,7 +89,8 @@
         "ledger semantics"
       ],
       "mayDependOn": [
-        "metadata"
+        "metadata",
+        "dimensions"
       ]
     },
     "cost": {
@@ -102,7 +103,8 @@
       ],
       "mayDependOn": [
         "metadata",
-        "ledger"
+        "ledger",
+        "valuation"
       ]
     },
     "replay": {
@@ -113,7 +115,8 @@
         "business-data",
         "posting",
         "ledger",
-        "cost"
+        "cost",
+        "valuation"
       ]
     },
     "workflow": {
@@ -157,7 +160,8 @@
         "metadata",
         "business-data",
         "ledger",
-        "cost"
+        "cost",
+        "valuation"
       ]
     },
     "capability": {
@@ -201,16 +205,39 @@
       "mayDependOn": [
         "metadata"
       ]
+    },
+    "dimensions": {
+      "owns": [
+        "dimension_definition",
+        "ledger dimension policy semantics"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "valuation": {
+      "owns": [
+        "valuation_rule",
+        "valuation_posting_run",
+        "valuation_position",
+        "valuation posting execution"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "ledger",
+        "posting",
+        "dimensions"
+      ]
     }
   },
-  "currentMilestone": "v1.0.0-alpha.1",
-  "dbSchemaVersion": 6,
-  "metadataSchemaVersion": 2,
+  "currentMilestone": "v1.0.0-alpha.2",
+  "dbSchemaVersion": 7,
+  "metadataSchemaVersion": 3,
   "release": {
-    "version": "1.0.0-alpha.1",
+    "version": "1.0.0-alpha.2",
     "status": "alpha",
     "validationConsole": "/",
     "deployment": "docker-compose",
-    "contextContractVersion": "1.0"
+    "contextContractVersion": "1.1"
   }
 }

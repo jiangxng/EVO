@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-Write-Host "Starting EVO v1.0.0-alpha.1..."
+Write-Host "Starting EVO v1.0.0-alpha.2..."
 docker compose up -d --build
 Write-Host ""
 Write-Host "EVO is starting."

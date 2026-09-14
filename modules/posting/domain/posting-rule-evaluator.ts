@@ -44,7 +44,8 @@ function evaluateDimensions(
   const result: Record<string, JsonValue> = {};
 
   for (const [key, expression] of Object.entries(raw)) {
-    result[key] = evaluateExpression(expression, { payload });
+    const value = evaluateExpression(expression, { payload });
+    if (value !== null && value !== '') result[key] = value;
   }
 
   return result;

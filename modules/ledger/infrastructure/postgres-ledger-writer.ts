@@ -7,6 +7,8 @@ import type {
 } from '../api/contracts.js';
 import type { LedgerWriter } from '../api/ledger-writer.js';
 import { dimensionHash } from '../domain/canonical-json.js';
+import { validateDimensionPolicy } from '../../dimensions/domain/dimension-policy.js';
+import type { LedgerDimensionPolicy } from '../../dimensions/api/contracts.js';
 
 export class PostgresLedgerWriter implements LedgerWriter {
   async applyPosting(
@@ -23,7 +25,7 @@ export class PostgresLedgerWriter implements LedgerWriter {
     for (const effect of effects) {
       const ledger = await trx
         .selectFrom('ledger_definition')
-        .select(['id', 'code'])
+        .select(['id', 'code', 'dimension_schema'])
         .where('code', '=', effect.ledgerCode)
         .executeTakeFirst();
 
@@ -40,6 +42,22 @@ export class PostgresLedgerWriter implements LedgerWriter {
         });
       }
 
+      const dimensionRows = await trx
+        .selectFrom('dimension_definition')
+        .select('code')
+        .where('status', '=', 'PUBLISHED')
+        .where((eb) => eb.or([
+          eb('enterprise_id', 'is', null),
+          eb('enterprise_id', '=', context.enterpriseId)
+        ]))
+        .execute();
+      validateDimensionPolicy(
+        ledger.code,
+        ledger.dimension_schema as unknown as LedgerDimensionPolicy,
+        effect.dimensions,
+        new Set(dimensionRows.map((row) => row.code))
+      );
+
       const hash = dimensionHash(effect.dimensions);
 
       await trx
@@ -55,6 +73,7 @@ export class PostgresLedgerWriter implements LedgerWriter {
           posting_rule_id: effect.postingRuleId,
           posting_rule_schema_version: effect.postingRuleSchemaVersion,
           effect_index: effect.effectIndex,
+          entry_source_kind: 'POSTING',
           quantity: effect.quantity,
           amount: effect.amount,
           unit: effect.unit,

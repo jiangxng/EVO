@@ -3,14 +3,14 @@ export const demoConsoleHtml = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EVO v1.0.0-alpha.1 Reference Flow</title>
+<title>EVO v1.0.0-alpha.2 Reference Flow</title>
 <style>
 body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:1280px;margin:28px auto;padding:0 18px;background:#f7f7f8;color:#202124}
 h1{margin-bottom:4px}.muted{color:#666}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:20px 0}.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;box-shadow:0 1px 3px #00000010}label{display:block;margin-top:8px;font-size:13px;color:#555}input,select{width:100%;box-sizing:border-box;padding:8px;margin-top:3px}button{padding:9px 14px;margin:8px 6px 0 0;cursor:pointer}pre{background:#111;color:#e8e8e8;padding:14px;border-radius:10px;overflow:auto;max-height:520px}.ok{color:#067d3f;font-weight:600}.warn{color:#a15c00;font-weight:600}
 </style>
 </head>
 <body>
-<h1>EVO v1.0.0-alpha.1 Reference Flow</h1>
+<h1>EVO v1.0.0-alpha.2 Reference Flow</h1>
 <div class="muted">业务语义链：Sales Order → Production Completion → Shipment → Cost → Replay。库存变化必须有明确业务原因。</div>
 <div class="grid">
 <div class="card"><h3>1. 销售订单审批</h3>

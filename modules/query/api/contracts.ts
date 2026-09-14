@@ -7,6 +7,7 @@ export interface EnterpriseDashboard {
   readonly postingInputs: readonly unknown[];
   readonly costRuns: readonly unknown[];
   readonly costResults: readonly unknown[];
+  readonly valuationPostingRuns: readonly unknown[];
   readonly flowTraces: readonly unknown[];
   readonly replayRuns: readonly unknown[];
 }

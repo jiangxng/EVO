@@ -72,7 +72,7 @@ try {
         status: 'PUBLISHED',
         schema_version: 1,
         base_config: {},
-        definition_hash: 'demo-v1-alpha1',
+        definition_hash: 'demo-v1-alpha2',
         published_at: new Date()
       }).returning('id').executeTakeFirst(), 'version'
     );
@@ -216,20 +216,56 @@ try {
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
   await command(inventoryVersion.id, 'receive-inventory', 'Receive Inventory (Legacy Demo)', 'inventory.received');
 
-  async function ledger(code: string, name: string) {
+  for (const [code, name] of [
+    ['order_no','Order'],
+    ['customer','Customer'],
+    ['product_id','Product'],
+    ['warehouse','Warehouse'],
+    ['project','Project'],
+    ['department','Department'],
+    ['profit_center','Profit Center'],
+    ['cost_center','Cost Center']
+  ] as const) {
+    await db.insertInto('dimension_definition').values({
+      enterprise_id: null,
+      code,
+      name,
+      data_type: 'TEXT',
+      version: 1,
+      status: 'PUBLISHED',
+      config: {},
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name, status: 'PUBLISHED'
+    })).execute();
+  }
+
+  async function ledger(code: string, name: string, dimensionSchema: Record<string, unknown>) {
     await db.insertInto('ledger_definition').values({
       code, name,
       quantity_semantics: 'SIGNED',
       amount_semantics: 'SIGNED',
-      dimension_schema: {},
+      dimension_schema: dimensionSchema,
       config: {}
-    }).onConflict((oc) => oc.column('code').doUpdateSet({ name })).execute();
+    }).onConflict((oc) => oc.column('code').doUpdateSet({ name, dimension_schema: dimensionSchema })).execute();
   }
-  await ledger('pending_production','待生产');
-  await ledger('pending_shipment','待出库/发货');
-  await ledger('receivable','待收款');
-  await ledger('inventory','库存');
-  await ledger('cogs','销售成本');
+  const operationalOrderPolicy = {
+    required: ['order_no','product_id'],
+    optional: ['customer','project','department','profit_center','cost_center']
+  };
+  const inventoryPolicy = {
+    required: ['product_id','warehouse'],
+    optional: ['order_no','customer','project','department','profit_center','cost_center']
+  };
+  const receivablePolicy = {
+    required: ['order_no','customer'],
+    optional: ['product_id','project','department','profit_center','cost_center']
+  };
+  await ledger('pending_production','待生产', operationalOrderPolicy);
+  await ledger('pending_shipment','待出库/发货', operationalOrderPolicy);
+  await ledger('receivable','待收款', receivablePolicy);
+  await ledger('inventory','库存', inventoryPolicy);
+  await ledger('cogs','销售成本', inventoryPolicy);
 
   async function rule(
     versionId: string,
@@ -249,7 +285,11 @@ try {
     })).execute();
   }
 
-  const orderDims = { order_no: field('orderNo'), customer: field('customer'), product_id: field('productId') };
+  const orderDims = {
+    order_no: field('orderNo'), customer: field('customer'), product_id: field('productId'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
   await rule(salesVersion.id,'order-pending-production',10,trueExpr,{
     ledgerCode:'pending_production', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
@@ -260,7 +300,12 @@ try {
     ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: orderDims
   });
 
-  const invDims = { product_id: field('productId'), warehouse: field('warehouse') };
+  const invDims = {
+    product_id: field('productId'), warehouse: field('warehouse'),
+    order_no: field('orderNo'), customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
   await rule(productionVersion.id,'production-close-demand',10,trueExpr,{
     ledgerCode:'pending_production', quantity: neg('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
@@ -295,23 +340,49 @@ try {
     code: 'v10_reference_flow',
     enterprise_id: enterprise.id,
     enabled: true,
-    config: { flow: 'order-to-cash', alpha: 1 },
+    config: { flow: 'order-to-cash', alpha: 2, dimensions: true, valuationPosting: true },
     owner: 'flow',
-    introduced_in: '1.0.0-alpha.1',
+    introduced_in: '1.0.0-alpha.2',
     expires_at: null
   }).onConflict((oc) => oc.columns(['code','enterprise_id']).doUpdateSet({ enabled: true })).execute();
 
-  await db.insertInto('valuation_policy').values({
+  await db.insertInto('valuation_rule').values({
     enterprise_id: enterprise.id,
-    code: 'inventory_default',
-    name: 'Default Inventory Cost',
-    method: 'FIFO',
-    negative_inventory_policy: 'DISALLOW_NEGATIVE',
-    pool_dimension_schema: { keys: ['warehouse','productId'] },
-    config: {},
+    code: 'shipment-inventory-to-cogs',
+    name: 'Shipment Inventory Value to COGS',
+    source_business_data_type: 'sales_shipment.created',
+    inventory_ledger_code: 'inventory',
+    cogs_ledger_code: 'cogs',
+    dimension_mapping: {
+      product_id: field('productId'),
+      warehouse: field('warehouse'),
+      order_no: field('orderNo'),
+      customer: field('customer'),
+      project: field('project'),
+      department: field('department'),
+      profit_center: field('profitCenter'),
+      cost_center: field('costCenter')
+    },
     version: 1,
-    status: 'ACTIVE'
-  }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doNothing()).execute();
+    status: 'PUBLISHED',
+    published_at: new Date()
+  }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+    status: 'PUBLISHED'
+  })).execute();
+
+  for (const method of ['FIFO','LIFO','MOVING_AVERAGE','SPECIFIC_IDENTIFICATION'] as const) {
+    await db.insertInto('valuation_policy').values({
+      enterprise_id: enterprise.id,
+      code: `inventory_${method.toLowerCase()}`,
+      name: `${method} Inventory Cost`,
+      method,
+      negative_inventory_policy: 'DISALLOW_NEGATIVE',
+      pool_dimension_schema: { keys: ['warehouse','productId'] },
+      config: { alpha2: true },
+      version: 1,
+      status: 'ACTIVE'
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({ status: 'ACTIVE' })).execute();
+  }
 
   console.log(JSON.stringify({
     status: 'ok',

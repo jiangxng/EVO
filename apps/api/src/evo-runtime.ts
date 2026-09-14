@@ -13,6 +13,7 @@ import { PostgresWorkProjection } from '../../../modules/workflow/infrastructure
 import { PostgresAuthorizationService } from '../../../modules/identity/infrastructure/postgres-authorization-service.js';
 import { PostgresReplayService } from '../../../modules/replay/infrastructure/postgres-replay-service.js';
 import { PostgresCostEngine } from '../../../modules/cost/infrastructure/postgres-cost-engine.js';
+import { PostgresValuationPostingService } from '../../../modules/valuation/infrastructure/postgres-valuation-posting-service.js';
 import { PostgresEnterpriseQuery } from '../../../modules/query/infrastructure/postgres-enterprise-query.js';
 import { PostgresAiCapabilityCatalog } from '../../../modules/ai/infrastructure/postgres-ai-capability-catalog.js';
 import { PostgresFlowProjection } from '../../../modules/flow/infrastructure/postgres-flow-projection.js';
@@ -35,6 +36,8 @@ export function createEvoRuntime(database: DatabaseHandle) {
     createTransactionRunner(db)
   );
 
+  const valuation = new PostgresValuationPostingService(db);
+
   return {
     db,
     command,
@@ -42,7 +45,8 @@ export function createEvoRuntime(database: DatabaseHandle) {
     work: new PostgresWorkProjection(db),
     auth: new PostgresAuthorizationService(db),
     replay: new PostgresReplayService(db),
-    cost: new PostgresCostEngine(db),
+    valuation,
+    cost: new PostgresCostEngine(db, valuation),
     query: new PostgresEnterpriseQuery(db),
     ai: new PostgresAiCapabilityCatalog(db),
     flow: new PostgresFlowProjection(db)

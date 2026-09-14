@@ -1,7 +1,7 @@
 # EVO Public API Contract
 
 Status: Authoritative Contract Overview
-Version: 1.0-alpha.1
+Version: 1.0-alpha.2
 
 ## Boundary Philosophy
 
@@ -25,7 +25,7 @@ Every public Command request must define:
 
 Public responses expose stable execution identifiers and status. Internal implementation classes, SQL schema and worker details are not public API.
 
-## Current v1.0-alpha.1 Reference Endpoints
+## Current v1.0-alpha.2 Reference Endpoints
 
 The `/api/v1/demo/*` endpoints are validation/reference endpoints and are not yet general production API commitments.
 
@@ -63,3 +63,19 @@ A repeated Command with the same idempotency scope/key returns the prior complet
 ## Versioning
 
 Additive changes are preferred. Breaking behavior or schema changes require an explicit version transition and compatibility policy. Historical Replay must not depend on whatever definition happens to be latest at replay time.
+
+## v1.0.0-alpha.2 additions
+
+### Dimension contracts
+- `DimensionDefinition`: governed analytical key.
+- `LedgerDefinition.dimension_schema`: `{ required?: string[], optional?: string[], forbidden?: string[] }`.
+- Posting effects continue to use `dimensions`, but are now validated against published DimensionDefinitions and the target Ledger policy.
+
+### Valuation Posting
+`ValuationPostingService.postCostResult(costResultId)` converts a pinned CostResult into Inventory Value / COGS LedgerEntries. Reposting an identical target is `NO_CHANGE`; a changed target posts only the delta.
+
+### Cost recalculation
+`CostEngine.recalculate(enterpriseId, method, pins?)` supports explicit replay pins for ValuationPolicy and ValuationRule versions.
+
+### Replay
+`prepareFullReplay()` returns the preserved cost method and cost pins needed to reconstruct the pre-replay valuation semantics.

@@ -1,8 +1,8 @@
 # EVO Architecture Manifest
 
 **Status:** Authoritative repository map  
-**Baseline:** EVO-08 through EVO-13 v0.2 + v1.0.0-alpha.1 change set
-**Implementation milestone:** v1.0.0-alpha.1 — Enterprise Model + Semantic Reference Flow  
+**Baseline:** EVO-08 through EVO-13 v0.2 + v1.0.0-alpha.2 change set
+**Implementation milestone:** v1.0.0-alpha.2 — Dimensions + Valuation Posting  
 **Rule:** If implementation conflicts with an accepted architecture decision or invariant, the conflict must be resolved explicitly; do not silently reinterpret the architecture.
 
 ## Canonical runtime flow
@@ -52,8 +52,10 @@ See `docs/invariants/core.md`.
 | command | controlled business writes | creates BusinessData |
 | business-data | durable business history | consumed by posting/query |
 | posting | ordered PostingInput execution | emits ledger effects |
+| dimensions | DimensionDefinition / ledger dimension policies | validates analytical dimensions |
 | ledger | LedgerEntry / LedgerBalance | consumed by cost/query |
-| cost | valuation results | consumes ledger |
+| cost | deterministic cost calculation / CostResult | consumes business history and valuation policy |
+| valuation | ValuationRule / ValuationPostingRun / ValuationPosition | CostResult → Ledger value effects |
 | capability | enterprise capability definitions | metadata-aligned classification |
 | flow | FlowDefinition / FlowInstance / FlowTrace / business links | explicit cross-domain lineage |
 | metrics | governed MetricDefinition semantics | read/semantic layer |
@@ -84,6 +86,10 @@ posting
 ledger
    ↓
 cost
+   ↓
+valuation
+   ↓
+ledger (value effects)
 
 workflow → command/query
 replay → posting/ledger/cost
@@ -289,3 +295,11 @@ Alpha.1 deliberately does not pretend that generic `inventory.received` explains
 Business object linkage and Flow Trace are persisted; causation/fulfillment must not be inferred from equal quantities.
 
 Repository context determinism is now a first-class architecture constraint. See `LLM.md` and `context.manifest.json`.
+
+## v1.0.0-alpha.2 convergence
+
+The runtime spine is extended without changing the business write boundary:
+
+`Command -> BusinessData -> Posting -> Ledger(quantity/operational amount) -> Cost -> Valuation Posting -> Ledger(value/COGS) -> Work -> Replay`
+
+Dimensions are cross-cutting governed semantics, not an independent fact system. Normal Posting and Valuation Posting share LedgerEntry/LedgerBalance but have different source provenance (`POSTING` vs `VALUATION`).

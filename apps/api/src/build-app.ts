@@ -23,7 +23,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     requestIdHeader: 'x-request-id'
   });
 
-  app.get('/health/live', async () => ({ status: 'ok', service: 'evo-api', version: '1.0.0-alpha.1' }));
+  app.get('/health/live', async () => ({ status: 'ok', service: 'evo-api', version: '1.0.0-alpha.2' }));
 
   app.get('/health/ready', async (_request, reply) => {
     if (options.database === undefined) {
@@ -31,7 +31,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     }
     try {
       await options.database.ping();
-      return { status: 'ready', version: '1.0.0-alpha.1' };
+      return { status: 'ready', version: '1.0.0-alpha.2' };
     } catch {
       return reply.code(503).send({ status: 'not_ready', reason: 'database_unavailable' });
     }
@@ -68,6 +68,10 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         unitPrice: string;
         totalAmount: string;
         currency: string;
+        project?: string;
+        department?: string;
+        profitCenter?: string;
+        costCenter?: string;
       };
       const actor = resolveActor(body);
 
@@ -94,7 +98,11 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
           unitPrice: body.unitPrice,
           totalAmount: body.totalAmount,
           currency: body.currency,
-          fulfillmentMode: 'MAKE'
+          fulfillmentMode: 'MAKE',
+          project: body.project ?? null,
+          department: body.department ?? null,
+          profitCenter: body.profitCenter ?? null,
+          costCenter: body.costCenter ?? null
         },
         effectiveAt: new Date(),
         businessObjectKey: body.orderNo,
@@ -118,6 +126,10 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         warehouse: string;
         quantity: number;
         totalCost: string;
+        project?: string;
+        department?: string;
+        profitCenter?: string;
+        costCenter?: string;
       };
       const actor = resolveActor(body);
 
@@ -129,7 +141,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
       });
 
       const parent = await runtime.db.selectFrom('business_data')
-        .select('id')
+        .select(['id','payload'])
         .where('enterprise_id','=',ids.enterpriseId)
         .where('business_data_type','=','sales_order.approved')
         .where('business_object_key','=',body.orderNo)
@@ -151,7 +163,11 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
           productId: body.productId,
           warehouse: body.warehouse,
           quantity: body.quantity,
-          totalCost: body.totalCost
+          totalCost: body.totalCost,
+          project: body.project ?? (parent.payload as Record<string, unknown>).project ?? null,
+          department: body.department ?? (parent.payload as Record<string, unknown>).department ?? null,
+          profitCenter: body.profitCenter ?? (parent.payload as Record<string, unknown>).profitCenter ?? null,
+          costCenter: body.costCenter ?? (parent.payload as Record<string, unknown>).costCenter ?? null
         },
         effectiveAt: new Date(),
         businessObjectKey: `PROD:${body.orderNo}:${body.productId}`,
@@ -178,6 +194,10 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         warehouse: string;
         quantity: number;
         lot?: string;
+        project?: string;
+        department?: string;
+        profitCenter?: string;
+        costCenter?: string;
       };
       const actor = resolveActor(body);
 
@@ -189,7 +209,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
       });
 
       const parent = await runtime.db.selectFrom('business_data')
-        .select('id')
+        .select(['id','payload'])
         .where('enterprise_id','=',ids.enterpriseId)
         .where('business_data_type','=','sales_order.approved')
         .where('business_object_key','=',body.orderNo)
@@ -213,7 +233,11 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
           productId: body.productId,
           warehouse: body.warehouse,
           quantity: body.quantity,
-          lot: body.lot ?? null
+          lot: body.lot ?? null,
+          project: body.project ?? (parent.payload as Record<string, unknown>).project ?? null,
+          department: body.department ?? (parent.payload as Record<string, unknown>).department ?? null,
+          profitCenter: body.profitCenter ?? (parent.payload as Record<string, unknown>).profitCenter ?? null,
+          costCenter: body.costCenter ?? (parent.payload as Record<string, unknown>).costCenter ?? null
         },
         effectiveAt: new Date(),
         businessObjectKey: body.shipmentNo,
@@ -241,6 +265,9 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
       const beforeDigest = await runtime.query.balanceDigest(ids.enterpriseId);
       const replay = await runtime.replay.prepareFullReplay(ids.enterpriseId);
       const posted = await drainPosting(runtime, ids.enterpriseId);
+      const cost = replay.costMethod === null
+        ? null
+        : await runtime.cost.recalculate(ids.enterpriseId, replay.costMethod, replay.costPins ?? undefined);
       const afterDigest = await runtime.query.balanceDigest(ids.enterpriseId);
       await runtime.replay.completeFullReplay(
         replay.replayRunId, ids.enterpriseId, afterDigest
@@ -249,6 +276,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         replayRunId: replay.replayRunId,
         boundarySequence: replay.boundarySequence.toString(),
         posted,
+        cost,
         beforeDigest,
         replayRecordedBeforeDigest: replay.beforeDigest,
         afterDigest,

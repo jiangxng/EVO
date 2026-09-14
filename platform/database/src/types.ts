@@ -130,6 +130,19 @@ export interface CommandDefinitionTable {
   config: JsonObject;
 }
 
+export interface DimensionDefinitionTable {
+  id: Generated<string>;
+  enterprise_id: string | null;
+  code: string;
+  name: string;
+  data_type: string;
+  version: number;
+  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
+  config: JsonObject;
+  created_at: GeneratedTimestamp;
+  published_at: Timestamp | null;
+}
+
 export interface LedgerDefinitionTable {
   id: Generated<string>;
   code: string;
@@ -150,6 +163,21 @@ export interface PostingRuleTable {
   effect_ast: JsonObject;
   rule_schema_version: number;
   created_at: GeneratedTimestamp;
+}
+
+export interface ValuationRuleTable {
+  id: Generated<string>;
+  enterprise_id: string | null;
+  code: string;
+  name: string;
+  source_business_data_type: string;
+  inventory_ledger_code: string;
+  cogs_ledger_code: string;
+  dimension_mapping: JsonObject;
+  version: number;
+  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
+  created_at: GeneratedTimestamp;
+  published_at: Timestamp | null;
 }
 
 export interface ValuationPolicyTable {
@@ -395,16 +423,43 @@ export interface PostingRunTable {
   error: JsonObject | null;
 }
 
+export interface ValuationPostingRunTable {
+  id: Generated<string>;
+  enterprise_id: string;
+  cost_run_id: string;
+  cost_result_id: string;
+  business_data_id: string;
+  valuation_rule_id: string;
+  valuation_rule_version: number;
+  previous_total_cost: Numeric;
+  target_total_cost: Numeric;
+  delta_total_cost: Numeric;
+  status: 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'NO_CHANGE';
+  created_at: GeneratedTimestamp;
+  completed_at: Timestamp | null;
+  error: JsonObject | null;
+}
+
+export interface ValuationPositionTable {
+  enterprise_id: string;
+  business_data_id: string;
+  valuation_rule_id: string;
+  valuation_rule_version: number;
+  total_cost: Numeric;
+  last_cost_result_id: string;
+  updated_at: GeneratedTimestamp;
+}
+
 export interface LedgerEntryTable {
   id: Generated<string>;
   enterprise_id: string;
   consistency_domain: string;
   ledger_dataset_id: string;
   ledger_definition_id: string;
-  posting_run_id: string;
-  posting_input_id: string;
+  posting_run_id: string | null;
+  posting_input_id: string | null;
   business_data_id: string;
-  posting_rule_id: string;
+  posting_rule_id: string | null;
   posting_rule_schema_version: number;
   effect_index: number;
   quantity: Numeric | null;
@@ -416,6 +471,11 @@ export interface LedgerEntryTable {
   effective_at: Timestamp;
   posting_priority: number;
   posting_sequence: ColumnType<bigint, bigint | number | string, bigint | number | string>;
+  entry_source_kind: Generated<'POSTING' | 'VALUATION'>;
+  valuation_posting_run_id: Generated<string | null>;
+  cost_result_id: Generated<string | null>;
+  valuation_rule_id: Generated<string | null>;
+  valuation_rule_version: Generated<number | null>;
   created_at: GeneratedTimestamp;
 }
 
@@ -502,6 +562,10 @@ export interface ReplayRunTable {
   started_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
   error: JsonObject | null;
+  cost_method: 'FIFO' | 'LIFO' | 'MOVING_AVERAGE' | 'SPECIFIC_IDENTIFICATION' | null;
+  valuation_policy_id: string | null;
+  valuation_policy_version: number | null;
+  valuation_rule_pins: JsonObject;
 }
 
 export interface CostRunTable {
@@ -512,6 +576,9 @@ export interface CostRunTable {
   started_at: GeneratedTimestamp;
   completed_at: Timestamp | null;
   error: JsonObject | null;
+  valuation_policy_id: string | null;
+  valuation_policy_version: number | null;
+  cost_engine_version: string;
 }
 
 export interface CostResultTable {
@@ -524,6 +591,8 @@ export interface CostResultTable {
   quantity: Numeric;
   unit_cost: Numeric | null;
   total_cost: Numeric | null;
+  valuation_rule_id: string | null;
+  valuation_rule_version: number | null;
   created_at: GeneratedTimestamp;
 }
 
@@ -540,8 +609,10 @@ export interface Database {
   application_instance: ApplicationInstanceTable;
   enterprise_application_overlay: EnterpriseApplicationOverlayTable;
   command_definition: CommandDefinitionTable;
+  dimension_definition: DimensionDefinitionTable;
   ledger_definition: LedgerDefinitionTable;
   posting_rule: PostingRuleTable;
+  valuation_rule: ValuationRuleTable;
   valuation_policy: ValuationPolicyTable;
   command_execution: CommandExecutionTable;
   business_data: BusinessDataTable;
@@ -551,6 +622,8 @@ export interface Database {
   ledger_dataset: LedgerDatasetTable;
   posting_run: PostingRunTable;
   ledger_entry: LedgerEntryTable;
+  valuation_posting_run: ValuationPostingRunTable;
+  valuation_position: ValuationPositionTable;
   ledger_balance: LedgerBalanceTable;
   posting_failure: PostingFailureTable;
   permission_grant: PermissionGrantTable;
