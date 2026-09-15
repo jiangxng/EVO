@@ -1,0 +1,140 @@
+openapi: 3.1.0
+info:
+  title: EVO Enterprise Package API
+  version: 0.1.0
+  description: EVO-owned public definition portability contract. Validation and planning never grant deployment authority.
+paths:
+  /api/v1/enterprise-package/capabilities:
+    get:
+      operationId: getEnterprisePackageCapabilities
+      responses:
+        '200':
+          description: Supported package/runtime capabilities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageCapabilities'
+  /api/v1/enterprise-package/schema/{version}:
+    get:
+      operationId: getEnterprisePackageSchema
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Authoritative EVO Enterprise Package JSON Schema. }
+        '404': { $ref: '#/components/responses/ContractError' }
+  /api/v1/enterprise-package/validate:
+    post:
+      operationId: validateEnterprisePackage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: './enterprise-package-v0.1.schema.json' }
+      responses:
+        '200':
+          description: Side-effect-free validation result.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationResult' }
+  /api/v1/enterprises/{enterpriseId}/package/plan:
+    post:
+      operationId: planEnterprisePackageDeployment
+      parameters: [ { $ref: '#/components/parameters/EnterpriseId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeployRequest' }
+      responses:
+        '200': { description: Side-effect-free deployment plan. }
+        '409': { $ref: '#/components/responses/ContractError' }
+  /api/v1/enterprises/{enterpriseId}/package/deploy:
+    post:
+      operationId: deployEnterprisePackage
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseId'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeployRequest' }
+      responses:
+        '200': { description: Idempotent replay or successful governed deployment. }
+        '201': { description: Successful governed deployment. }
+        '401': { $ref: '#/components/responses/ContractError' }
+        '403': { $ref: '#/components/responses/ContractError' }
+        '409': { $ref: '#/components/responses/ContractError' }
+  /api/v1/enterprises/{enterpriseId}/package/export:
+    get:
+      operationId: exportEnterprisePackage
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseId'
+        - name: mode
+          in: query
+          required: false
+          schema: { type: string, enum: [DEFINITION_ONLY], default: DEFINITION_ONLY }
+      responses:
+        '200':
+          description: Portable definition-only Enterprise Package.
+          content:
+            application/json:
+              schema: { $ref: './enterprise-package-v0.1.schema.json' }
+        '401': { $ref: '#/components/responses/ContractError' }
+        '403': { $ref: '#/components/responses/ContractError' }
+components:
+  parameters:
+    EnterpriseId:
+      name: enterpriseId
+      in: path
+      required: true
+      schema: { type: string, minLength: 1 }
+  schemas:
+    PackageCapabilities:
+      type: object
+      required: [supportedPackageSchemaVersions, supportedDefinitionKinds]
+      properties:
+        supportedPackageSchemaVersions: { type: array, items: { type: string } }
+        supportedDefinitionKinds: { type: array, items: { type: string } }
+        evoRuntimeVersion: { type: string }
+    DeployRequest:
+      type: object
+      additionalProperties: false
+      required: [package]
+      properties:
+        expectedBaseVersion: { type: [string, integer] }
+        package: { $ref: './enterprise-package-v0.1.schema.json' }
+    ValidationIssue:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        path: { type: string }
+        definitionKey: { type: string }
+    ValidationResult:
+      type: object
+      required: [valid, packageSchemaVersion, issues]
+      properties:
+        valid: { type: boolean }
+        packageSchemaVersion: { type: string }
+        issues: { type: array, items: { $ref: '#/components/schemas/ValidationIssue' } }
+    ErrorEnvelope:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        correlationId: { type: string }
+  responses:
+    ContractError:
+      description: Stable machine-readable EVO contract error.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
