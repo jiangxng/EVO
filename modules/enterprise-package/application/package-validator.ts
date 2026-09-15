@@ -6,6 +6,7 @@ import {
   type PackageValidationIssue,
   type PackageValidationResult
 } from '../api/contracts.js';
+import { validateDefinitionSemantics } from './definition-semantics.js';
 
 const forbiddenRuntimeKinds = new Set([
   'business-data', 'ledger-entry', 'ledger-balance', 'balance', 'cost-result',
@@ -43,6 +44,7 @@ export function validateEnterprisePackage(pkg: EnterprisePackageV01): PackageVal
     const logicalKey = `${definition.kind}:${definition.key}`;
     if (logicalKeys.has(logicalKey)) issues.push(issue('MULTIPLE_VERSIONS_IN_PACKAGE', path, `Package must contain at most one target version of ${logicalKey}.`));
     logicalKeys.add(logicalKey);
+    issues.push(...validateDefinitionSemantics(definition, path));
   });
 
   pkg.definitions.forEach((definition, index) => {
