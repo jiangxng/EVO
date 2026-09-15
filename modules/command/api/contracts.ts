@@ -48,4 +48,8 @@ export interface CommandCapability {
   readonly commandCode: string;
   readonly resultingBusinessDataType: string;
   readonly metadataVersion: number;
+  /** Published EVO-owned schema. External proposals cannot override it. */
+  readonly inputSchema: JsonObject;
+  /** Application definition schema version governing this schema. */
+  readonly inputSchemaVersion: number;
 }
