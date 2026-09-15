@@ -5,6 +5,7 @@ import type {
   ExecuteCommandRequest,
   ExecuteCommandResult
 } from '../api/contracts.js';
+import { validateCommandInput } from './command-input-schema-validator.js';
 import type { CommandTransactionPort } from './command-transaction-port.js';
 
 export class CommandService implements CommandExecutor {
@@ -23,6 +24,8 @@ export class CommandService implements CommandExecutor {
       request.applicationInstanceId,
       request.commandCode
     );
+
+    validateCommandInput(request.input, capability.inputSchema);
 
     const idempotencyScope = [
       request.actor.type,

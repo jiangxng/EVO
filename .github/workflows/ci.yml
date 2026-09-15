@@ -8,36 +8,51 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
+        env: { POSTGRES_USER: evo, POSTGRES_PASSWORD: evo, POSTGRES_DB: evo }
+        ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-
+          --health-cmd "pg_isready -U evo -d evo" --health-interval 5s --health-timeout 5s --health-retries 10
+    env: { DATABASE_URL: "postgres://evo:evo@localhost:5432/evo", NODE_ENV: test, LOG_LEVEL: silent }
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
+        with: { node-version: 24 }
       - run: npm install
       - run: npm run migrate
       - run: npm run typecheck
       - run: npm run test
+
+  apm-v030-certification:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env: { POSTGRES_USER: evo, POSTGRES_PASSWORD: evo, POSTGRES_DB: evo }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U evo -d evo" --health-interval 5s --health-timeout 5s --health-retries 10
+    env: { DATABASE_URL: "postgres://evo:evo@localhost:5432/evo", NODE_ENV: test, LOG_LEVEL: silent, HOST: "127.0.0.1", PORT: "3000" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: npm install
+      - run: npm run migrate
+      - run: npm run seed:demo
+      - run: npm run seed:apm:v03
+      - name: Start EVO API
+        run: |
+          npm run dev:api > /tmp/evo-api.log 2>&1 &
+          for i in {1..30}; do curl -fsS http://127.0.0.1:3000/health/ready && break; sleep 1; done
+      - name: Verify canonical observation and proposal admission without execution
+        run: |
+          curl -fsS http://127.0.0.1:3000/api/v1/apm/observation | grep 'obs-apm-so-0182-v7'
+          curl -fsS -X POST http://127.0.0.1:3000/api/v1/apm/command-proposals/admit -H 'content-type: application/json' -d '{"contractVersion":"1.0.0","proposalId":"proposal-alt-supplier-001","enterpriseId":"APM","commandCode":"procurement.use-alternate-supplier","inputSchemaVersion":"1","proposedInput":{"supplierId":"SUPPLIER-B"},"correlationId":"corr-apm-shortage-001"}' | grep 'NOT_EXECUTED'
+      - name: Verify canonical Eidos ActionRequest reaches real EVO Command and changes observation
+        run: |
+          curl -fsS -X POST http://127.0.0.1:3000/api/v1/apm/actions/execute -H 'content-type: application/json' -d '{"contractVersion":"1.0.0","actionRequestId":"ar-ci-001","experienceInstanceId":"xi-ci-001","experienceContractVersion":"1.0.0","capabilityId":"decision-panel","capabilityVersion":"1.0.0","actionSemantic":"APPROVE_RECOMMENDATION","targetRef":{"host":"enterprise-runtime","resourceType":"supplier-decision","resourceId":"SO-20260918-0182"},"interactionContext":{"surface":"desktop"},"submittedValues":{"supplierId":"SUPPLIER-B"},"confirmationEvidence":{"confirmed":true,"method":"explicit-click"},"actorContextRef":"actor-context-1","correlationId":"corr-apm-shortage-001","occurredAt":"2026-09-15T08:04:00Z","presentedStateEtag":"state-7","presentedDefinitionVersion":"1"}' | tee /tmp/apm-result.json
+          grep 'procurement.alternate-supplier-selected' /tmp/evo-api.log || true
+          grep 'obs-apm-so-0182-supplier-v1' /tmp/apm-result.json

@@ -22,26 +22,12 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const db = database.db;
   const metadata = new PostgresMetadataRepository(db);
   const capabilities = new MetadataCommandCapabilityResolver(metadata);
-  const command = new CommandService(
-    capabilities,
-    new PostgresCommandTransaction(db)
-  );
+  const command = new CommandService(capabilities, new PostgresCommandTransaction(db));
   const state = new PostgresPostingStateStore(db);
-  const posting = new PostingService(
-    state,
-    state,
-    new PostgresBusinessDataReader(db),
-    new PostgresPostingMetadataReader(db),
-    new PostgresLedgerWriter(),
-    createTransactionRunner(db)
-  );
-
+  const posting = new PostingService(state, state, new PostgresBusinessDataReader(db), new PostgresPostingMetadataReader(db), new PostgresLedgerWriter(), createTransactionRunner(db));
   const valuation = new PostgresValuationPostingService(db);
-
   return {
-    db,
-    command,
-    posting,
+    db, command, posting,
     work: new PostgresWorkProjection(db),
     auth: new PostgresAuthorizationService(db),
     replay: new PostgresReplayService(db),
@@ -54,38 +40,26 @@ export function createEvoRuntime(database: DatabaseHandle) {
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
-  const enterprise = await runtime.db.selectFrom('enterprise')
-    .select(['id']).where('code','=','EVO_DEMO').executeTakeFirstOrThrow();
-  const apps = await runtime.db.selectFrom('application_instance')
-    .select(['id','code']).where('enterprise_id','=',enterprise.id).execute();
-
+  const enterprise = await runtime.db.selectFrom('enterprise').select(['id']).where('code','=','EVO_DEMO').executeTakeFirstOrThrow();
+  const apps = await runtime.db.selectFrom('application_instance').select(['id','code']).where('enterprise_id','=',enterprise.id).execute();
   return {
     enterpriseId: enterprise.id,
     salesAppId: apps.find(x => x.code === 'sales')?.id ?? '',
     productionAppId: apps.find(x => x.code === 'production')?.id ?? '',
     inventoryAppId: apps.find(x => x.code === 'inventory')?.id ?? '',
-    flowDefinitionId: (await runtime.db.selectFrom('flow_definition')
-      .select('id')
-      .where('enterprise_id','=',enterprise.id)
-      .where('code','=','order-to-cash')
-      .where('version','=',1)
-      .executeTakeFirstOrThrow()).id
+    apmProcurementAppId: apps.find(x => x.code === 'apm-procurement')?.id ?? '',
+    flowDefinitionId: (await runtime.db.selectFrom('flow_definition').select('id')
+      .where('enterprise_id','=',enterprise.id).where('code','=','order-to-cash').where('version','=',1).executeTakeFirstOrThrow()).id
   };
 }
 
-export async function drainPosting(
-  runtime: ReturnType<typeof createEvoRuntime>,
-  enterpriseId: string
-): Promise<number> {
+export async function drainPosting(runtime: ReturnType<typeof createEvoRuntime>, enterpriseId: string): Promise<number> {
   let count = 0;
   for (let i = 0; i < 10000; i += 1) {
     const result = await runtime.posting.processNext(enterpriseId);
-    if (result.status === 'IDLE') break;
-    if (result.status === 'BLOCKED_REPLAY_REQUIRED') break;
+    if (result.status === 'IDLE' || result.status === 'BLOCKED_REPLAY_REQUIRED') break;
     if (result.status === 'RACE_RETRY') continue;
-    if (result.status === 'FAILED') {
-      throw new Error(`Posting failed: ${result.errorCode}`);
-    }
+    if (result.status === 'FAILED') throw new Error(`Posting failed: ${result.errorCode}`);
     count += 1;
   }
   await runtime.work.refresh(enterpriseId);

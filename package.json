@@ -3,9 +3,7 @@
   "version": "1.0.0-alpha.2",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=24.20.0 <25"
-  },
+  "engines": { "node": ">=24.20.0 <25" },
   "scripts": {
     "dev:api": "node --env-file-if-exists=.env --import tsx apps/api/src/main.ts",
     "dev:worker": "node --env-file-if-exists=.env --import tsx apps/worker/src/main.ts",
@@ -23,6 +21,7 @@
     "test:command": "vitest run modules/command modules/business-data",
     "test:posting": "vitest run modules/posting modules/ledger",
     "seed:demo": "node --env-file-if-exists=.env --import tsx scripts/seed-demo.ts",
+    "seed:apm:v03": "node --env-file-if-exists=.env --import tsx scripts/seed-apm-v03.ts",
     "validate:demo": "node --env-file-if-exists=.env --import tsx scripts/validate-demo.ts",
     "start": "node dist/apps/api/src/main.js"
   },
