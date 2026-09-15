@@ -1,13 +1,13 @@
 import { buildApp } from './build-app.js';
 import { createDatabase } from '../../../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../../../platform/runtime/src/config.js';
+import { createEvoRuntime } from './evo-runtime.js';
+import { registerApmIntegration } from './apm-integration.js';
 
 const config = loadRuntimeConfig();
 const database = createDatabase(config.databaseUrl);
-const app = buildApp({
-  database,
-  loggerLevel: config.logLevel
-});
+const app = buildApp({ database, loggerLevel: config.logLevel });
+registerApmIntegration(app, createEvoRuntime(database));
 
 async function shutdown(signal: string): Promise<void> {
   app.log.info({ signal }, 'Shutting down EVO API.');
