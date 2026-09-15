@@ -82,7 +82,7 @@ export class PostgresValuationPostingService implements ValuationPostingService 
         return { valuationPostingRunId: run.id, status: 'NO_CHANGE', ledgerEffectCount: 0, deltaTotalCost: '0' };
       }
 
-      const dimensions = this.resolveDimensions(rule.dimension_mapping, business.payload as JsonObject);
+      const dimensions = this.resolveDimensions(rule.dimension_mapping as JsonObject, business.payload as JsonObject);
       const datasetId = await this.ensureActiveDataset(trx, cost.enterprise_id, postingInput.consistency_domain);
       const knownRows = await trx.selectFrom('dimension_definition').select('code')
         .where('status', '=', 'PUBLISHED')
