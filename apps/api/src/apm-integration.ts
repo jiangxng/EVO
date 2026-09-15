@@ -31,13 +31,13 @@ export async function apmObservation(runtime: Runtime) {
     lineage:{sourceSystem:'EVO',sourceBusinessDataId:selection?.businessDataId ?? null}, correlationId:'corr-apm-shortage-001'
   };
 }
-async function executeAlternateSupplier(runtime: Runtime, requestId: string, input: {supplierId:string;idempotencyKey:string;correlationId:string;causationId?:string}) {
+async function executeAlternateSupplier(runtime: Runtime, requestId: string, input: {supplierId:string;idempotencyKey:string;correlationId:string}) {
   const ids=await demoIds(runtime); if(!ids.apmProcurementAppId) fail('APM_PROCUREMENT_NOT_INSTALLED','Run seed:apm:v03 before the APM integration demo.');
   await runtime.auth.require({enterpriseId:ids.enterpriseId,actorType:'HUMAN',actorId:'demo-user',permissionCode:'procurement.use-alternate-supplier'});
   if(input.supplierId!=='SUPPLIER-B') fail('APM_ALTERNATE_SUPPLIER_REQUIRED','The reference decision admits only the qualified alternate supplier.');
   const current=await selectedSupplier(runtime,ids.enterpriseId);
   const result=await runtime.command.execute({enterpriseId:ids.enterpriseId,applicationInstanceId:ids.apmProcurementAppId,commandCode:'procurement.use-alternate-supplier',
-    actor:{type:'HUMAN',id:'demo-user'},requestId,correlationId:input.correlationId,...(input.causationId===undefined?{}:{causationId:input.causationId}),
+    actor:{type:'HUMAN',id:'demo-user'},requestId,correlationId:input.correlationId,
     idempotencyKey:input.idempotencyKey,input:{supplierId:input.supplierId},effectiveAt:new Date(),businessObjectKey:APM.orderNo,
     expectedBusinessVersion:current===null?0n:BigInt(current.version)});
   return {command:result,outcome:{contractVersion:'1.0.0',status:'EXECUTED',businessDataId:result.businessDataId,correlationId:input.correlationId},observation:await apmObservation(runtime)};
@@ -65,6 +65,6 @@ export function registerApmIntegration(app:FastifyInstance,runtime:Runtime):void
     if(!values||typeof values.supplierId!=='string') fail('ACTION_INPUT_REQUIRED','submittedValues.supplierId is required.');
     const actionRequestId=String(body.actionRequestId??''); if(!actionRequestId) fail('ACTION_REQUEST_ID_REQUIRED','actionRequestId is required.');
     return executeAlternateSupplier(runtime,request.id,{supplierId:values.supplierId,idempotencyKey:`eidos:${actionRequestId}`,
-      correlationId:String(body.correlationId??'corr-apm-shortage-001'),causationId:actionRequestId});
+      correlationId:String(body.correlationId??'corr-apm-shortage-001')});
   });
 }
