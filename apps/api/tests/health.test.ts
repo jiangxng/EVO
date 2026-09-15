@@ -21,7 +21,8 @@ describe('API health', () => {
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
       status: 'ok',
-      service: 'evo-api'
+      service: 'evo-api',
+      version: '1.0.0-alpha.2'
     });
   });
 
