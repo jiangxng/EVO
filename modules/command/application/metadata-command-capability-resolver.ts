@@ -65,7 +65,9 @@ export class MetadataCommandCapabilityResolver
       commandDefinitionId: command.id,
       commandCode: command.code,
       resultingBusinessDataType: command.resultingBusinessDataType,
-      metadataVersion: version.version
+      metadataVersion: version.version,
+      inputSchema: command.inputSchema,
+      inputSchemaVersion: version.schemaVersion
     };
   }
 }
