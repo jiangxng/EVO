@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { DatabaseHandle } from '../../../platform/database/src/index.js';
 import { AppError } from '../../../platform/contracts/src/index.js';
+import type { JsonObject, JsonValue } from '../../../modules/metadata/api/contracts.js';
 import { createEvoRuntime, demoIds, drainPosting } from './evo-runtime.js';
 import { demoConsoleHtml } from './demo-console.js';
 
@@ -15,6 +16,10 @@ function resolveActor(body: DemoActorBody) {
   return body.actor?.type === 'AI'
     ? { type: 'AI' as const, id: body.actor.id ?? 'demo-agent' }
     : { type: 'HUMAN' as const, id: body.actor?.id ?? 'demo-user' };
+}
+
+function payloadValue(payload: JsonObject, key: string): JsonValue {
+  return payload[key] ?? null;
 }
 
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
@@ -147,6 +152,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         .where('business_object_key','=',body.orderNo)
         .orderBy('business_object_version','desc')
         .executeTakeFirstOrThrow();
+      const parentPayload = parent.payload as JsonObject;
 
       const result = await runtime.command.execute({
         enterpriseId: ids.enterpriseId,
@@ -164,10 +170,10 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
           warehouse: body.warehouse,
           quantity: body.quantity,
           totalCost: body.totalCost,
-          project: body.project ?? (parent.payload as Record<string, unknown>).project ?? null,
-          department: body.department ?? (parent.payload as Record<string, unknown>).department ?? null,
-          profitCenter: body.profitCenter ?? (parent.payload as Record<string, unknown>).profitCenter ?? null,
-          costCenter: body.costCenter ?? (parent.payload as Record<string, unknown>).costCenter ?? null
+          project: body.project ?? payloadValue(parentPayload, 'project'),
+          department: body.department ?? payloadValue(parentPayload, 'department'),
+          profitCenter: body.profitCenter ?? payloadValue(parentPayload, 'profitCenter'),
+          costCenter: body.costCenter ?? payloadValue(parentPayload, 'costCenter')
         },
         effectiveAt: new Date(),
         businessObjectKey: `PROD:${body.orderNo}:${body.productId}`,
@@ -215,6 +221,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         .where('business_object_key','=',body.orderNo)
         .orderBy('business_object_version','desc')
         .executeTakeFirstOrThrow();
+      const parentPayload = parent.payload as JsonObject;
 
       const result = await runtime.command.execute({
         enterpriseId: ids.enterpriseId,
@@ -234,10 +241,10 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
           warehouse: body.warehouse,
           quantity: body.quantity,
           lot: body.lot ?? null,
-          project: body.project ?? (parent.payload as Record<string, unknown>).project ?? null,
-          department: body.department ?? (parent.payload as Record<string, unknown>).department ?? null,
-          profitCenter: body.profitCenter ?? (parent.payload as Record<string, unknown>).profitCenter ?? null,
-          costCenter: body.costCenter ?? (parent.payload as Record<string, unknown>).costCenter ?? null
+          project: body.project ?? payloadValue(parentPayload, 'project'),
+          department: body.department ?? payloadValue(parentPayload, 'department'),
+          profitCenter: body.profitCenter ?? payloadValue(parentPayload, 'profitCenter'),
+          costCenter: body.costCenter ?? payloadValue(parentPayload, 'costCenter')
         },
         effectiveAt: new Date(),
         businessObjectKey: body.shipmentNo,
