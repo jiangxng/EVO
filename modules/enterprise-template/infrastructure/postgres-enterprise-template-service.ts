@@ -13,7 +13,14 @@ function canonical(value: JsonValue): string {
 }
 function digest(definition: JsonObject): string { return createHash('sha256').update(canonical(definition)).digest('hex'); }
 function fail(code:string,message:string):never { throw new AppError({code,message,module:'enterprise-template',operation:'runtime'}); }
-function asDate(value: Date | string): Date { return value instanceof Date ? value : new Date(value); }
+function asDate(value: unknown): Date {
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+  fail('ENTERPRISE_TEMPLATE_TIMESTAMP_INVALID','Database returned an invalid enterprise-template timestamp.');
+}
 
 export class PostgresEnterpriseTemplateService implements EnterpriseTemplateService {
   constructor(private readonly db: Kysely<Database>) {}
