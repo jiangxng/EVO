@@ -65,6 +65,11 @@ export class PostgresReplayService implements ReplayService {
         }
       }
 
+      // node-postgres serializes top-level arrays as PostgreSQL array literals. These columns are jsonb,
+      // so serialize explicitly at the infrastructure boundary to preserve the JSON array/object shape.
+      const beforeSnapshotJson = JSON.stringify(beforeSnapshot);
+      const valuationRulePinsJson = JSON.stringify(valuationRulePins);
+
       const run = await trx
         .insertInto('replay_run')
         .values({
@@ -74,7 +79,7 @@ export class PostgresReplayService implements ReplayService {
           status: 'REBUILDING',
           boundary_sequence: boundary,
           before_digest: beforeDigest,
-          before_snapshot: beforeSnapshot,
+          before_snapshot: sql`${beforeSnapshotJson}::jsonb`,
           after_digest: null,
           validation_status: 'NOT_VALIDATED',
           completed_at: null,
@@ -82,7 +87,7 @@ export class PostgresReplayService implements ReplayService {
           cost_method: latestCostRun?.method ?? null,
           valuation_policy_id: latestCostRun?.valuation_policy_id ?? null,
           valuation_policy_version: latestCostRun?.valuation_policy_version ?? null,
-          valuation_rule_pins: valuationRulePins
+          valuation_rule_pins: sql`${valuationRulePinsJson}::jsonb`
         })
         .returning('id')
         .executeTakeFirstOrThrow();
