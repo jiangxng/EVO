@@ -13,6 +13,7 @@ function canonical(value: JsonValue): string {
 }
 function digest(definition: JsonObject): string { return createHash('sha256').update(canonical(definition)).digest('hex'); }
 function fail(code:string,message:string):never { throw new AppError({code,message,module:'enterprise-template',operation:'runtime'}); }
+function asDate(value: Date | string): Date { return value instanceof Date ? value : new Date(value); }
 
 export class PostgresEnterpriseTemplateService implements EnterpriseTemplateService {
   constructor(private readonly db: Kysely<Database>) {}
@@ -46,13 +47,13 @@ export class PostgresEnterpriseTemplateService implements EnterpriseTemplateServ
       if(!target||target.status!=='PUBLISHED') fail('ENTERPRISE_TEMPLATE_VERSION_NOT_PUBLISHED',`Template ${templateCode} v${version} is not published.`);
       const row=await trx.insertInto('enterprise_template_binding').values({enterprise_id:enterprise.id,enterprise_template_id:target.templateId,enterprise_template_version_id:target.versionId,bound_by:actorId,binding_reason:reason??null})
         .onConflict(oc=>oc.column('enterprise_id').doUpdateSet({enterprise_template_id:target.templateId,enterprise_template_version_id:target.versionId,bound_by:actorId,binding_reason:reason??null,bound_at:sql`now()`})).returning('bound_at').executeTakeFirstOrThrow();
-      return {enterpriseId:enterprise.id,enterpriseCode:enterprise.code,templateCode,templateVersion:target.version,semanticDigest:target.semanticDigest,boundAt:row.bound_at as Date};
+      return {enterpriseId:enterprise.id,enterpriseCode:enterprise.code,templateCode,templateVersion:target.version,semanticDigest:target.semanticDigest,boundAt:asDate(row.bound_at)};
     });
   }
 
   async getEnterpriseBinding(enterpriseCode:string):Promise<EnterpriseTemplateBinding|null>{
     const row=await this.db.selectFrom('enterprise as e').innerJoin('enterprise_template_binding as b','b.enterprise_id','e.id').innerJoin('enterprise_template as t','t.id','b.enterprise_template_id').innerJoin('enterprise_template_version as v','v.id','b.enterprise_template_version_id')
       .select(['e.id as enterpriseId','e.code as enterpriseCode','t.code as templateCode','v.version as templateVersion','v.semantic_digest as semanticDigest','b.bound_at as boundAt']).where('e.code','=',enterpriseCode).executeTakeFirst();
-    return row===undefined?null:{...row,boundAt:row.boundAt as Date};
+    return row===undefined?null:{...row,boundAt:asDate(row.boundAt)};
   }
 }
