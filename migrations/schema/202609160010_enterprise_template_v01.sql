@@ -19,13 +19,14 @@ create table if not exists enterprise_template_version (
   semantic_digest text not null,
   created_at timestamptz not null default now(),
   published_at timestamptz,
-  unique (enterprise_template_id, version)
+  unique (enterprise_template_id, version),
+  unique (enterprise_template_id, id)
 );
 
 create table if not exists enterprise_template_binding (
   enterprise_id uuid primary key references enterprise(id),
   enterprise_template_id uuid not null references enterprise_template(id),
-  enterprise_template_version_id uuid not null references enterprise_template_version(id),
+  enterprise_template_version_id uuid not null,
   bound_at timestamptz not null default now(),
   bound_by text not null,
   binding_reason text,
