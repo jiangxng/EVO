@@ -179,11 +179,11 @@ export class PostgresValuationPostingService implements ValuationPostingService 
     });
   }
 
-  private resolveDimensions(mapping: JsonObject, payload: JsonObject): JsonObject {
-    const result: Record<string, JsonValue> = {};
+  private resolveDimensions(mapping: Readonly<Record<string, JsonValue>>, payload: JsonObject): JsonObject {
+    const result: JsonObject = {};
     for (const [code, expression] of Object.entries(mapping)) {
       if (expression === null) continue;
-      const value = evaluateExpression(expression as JsonValue, { payload });
+      const value = evaluateExpression(expression, { payload });
       if (value !== null && value !== '') result[code] = value;
     }
     return result;
