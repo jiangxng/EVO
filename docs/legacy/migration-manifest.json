@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "evo.legacy-migration-manifest/1.0",
+  "policy": "LOSSLESS_FIRST_SEMANTIC_CONVERGENCE_SECOND",
+  "sources": [
+    {"repository":"jiangxng/Asloop-Backend","role":"primary legacy ERP business metadata/data/code"},
+    {"repository":"jiangxng/bookkeeping","role":"accounting policy/balance/cost semantic source"}
+  ],
+  "dispositions": ["PRESERVED","TRANSFORMED","MERGED","SPLIT","LEGACY_ONLY","DEPRECATED","UNRESOLVED"],
+  "knownBaselines": {
+    "account_field":451,
+    "trans_type":372,
+    "trans_type_direction":29,
+    "calc_rel":134,
+    "c_expression_custom":8553,
+    "tpl_trans_type_obj_field_rel":13743,
+    "release_schema_tables":176
+  },
+  "batches": [
+    {"id":"01","name":"schema-inventory","status":"IN_PROGRESS"},
+    {"id":"02","name":"master-metadata","status":"PENDING"},
+    {"id":"03","name":"fields","status":"PENDING"},
+    {"id":"04","name":"transaction-types","status":"PENDING"},
+    {"id":"05","name":"transaction-field-relations","status":"PENDING"},
+    {"id":"06","name":"directions","status":"PENDING"},
+    {"id":"07","name":"calculation-relations","status":"PENDING"},
+    {"id":"08","name":"expressions","status":"PENDING"},
+    {"id":"09","name":"accounts-policies-dimensions","status":"PENDING"},
+    {"id":"10","name":"balances-cost","status":"PENDING"},
+    {"id":"11","name":"code-semantic-rules","status":"PENDING"},
+    {"id":"12","name":"cross-reference-conservation","status":"PENDING"}
+  ],
+  "conservationRule": "SOURCE_TOTAL_EQUALS_ACCOUNTED_SOURCE_ITEMS",
+  "unknownsMustBePreserved": true
+}
