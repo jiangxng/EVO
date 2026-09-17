@@ -248,15 +248,124 @@ The combined Asloop + bookkeeping evidence now supports testing these stronger h
 
 These are development hypotheses, not frozen constitutional invariants.
 
-## 19. Next archaeology gate
+## 19. Archaeology update — unresolved value, lineage, ordering, and projection granularity
 
-Before promoting the hypotheses above, continue evidence collection on:
+Further bookkeeping evidence sharpens the candidate architecture.
 
-- Asloop `C_COMPONENT` direction/matching/data-collector semantics;
-- implementation or historical meaning of `lastStockOut`;
-- full calculation-relation genealogy (`crinvn`, `crunph`, `crniwh`, `crunpr`, `crnows`, `crclnt`, `crsppl`, invoice/revenue/cost/tax/expense relations);
-- bookkeeping `Policy`, `Account`, `BalanceService`, `TransdataAccountService`, SQL cost functions and recalculation path;
-- `foreign`, currency, exchange settlement and FX gain/loss evidence in both systems;
-- physical indexes/materialized fields that reveal expected access patterns.
+### 19.1 A fact may exist before its monetary interpretation is known
 
-At the next evidence gate, produce a Legacy Calculation Genealogy and a field semantic/performance classification matrix before changing authoritative EVO contracts.
+`Policy` separates `quantityFormula` (described as a business value) from `amountFormula` (described as a financial value). During rule audit, quantity can be evaluated immediately, while server-side amount formula keywords such as `成本`, `成本合计`, `借方成本`, `贷方成本`, `分摊成本`, and `跨库成本` are deliberately preserved for later backend evaluation.
+
+`TransdataAccount.amountFactor` is intentionally a string for the same reason: many monetary amounts depend on cost that becomes available only after prerequisite movements/state exist.
+
+Candidate requirement:
+
+> An immutable Economic Fact / Economic Flow may be valid while one or more value interpretations are unresolved. Value resolution is an interpretation step, not a prerequisite for fact existence.
+
+EVO must therefore distinguish `UNRESOLVED`, `PROVISIONAL`, and authoritative/versioned valuation states rather than using null/zero ambiguously.
+
+### 19.2 Legacy CostMwa contains two different semantics
+
+`CostMwa` extends `Balance` and stores a latest unit price, but adjacent historical comments explicitly say that the average price is already represented by balance history and that `cost_mwa` could be simplified to retain material/cost relationships.
+
+`CostMwaService` additionally stores a `path` obtained from a material-path function. This is evidence that legacy CostMwa mixes:
+
+1. a rebuildable/materialized cost snapshot (`price`); and
+2. a semantically meaningful cost/material lineage path.
+
+EVO MUST NOT migrate this table one-to-one. Candidate split:
+
+`MaterializedCostSnapshot` (rebuildable) + `CostLineage/AllocationRelation` (semantic lineage).
+
+The lineage should be able to answer why a resulting resource/value has a particular cost by tracing source resource movements, business facts, allocations, transformations and calculation runs.
+
+### 19.3 Business causal lineage is separate from cost and accounting lineage
+
+`Transdata` carries explicit parent relationships for transfer and processing: an outbound transfer can be the parent of the corresponding inbound movement; processing also uses parent/child relations.
+
+This suggests at least three distinct graph semantics:
+
+- Business Causality Graph — why one business fact exists because of another;
+- Allocation / Cost Lineage Graph — which source quantities/values were consumed or transferred into which targets;
+- Accounting Projection Graph — which business/economic interpretations produced which accounting entries.
+
+EVO SHOULD NOT collapse these into one generic `parent_id`/`source_id` relation. A common graph infrastructure may be shared, but relation semantics must remain explicit.
+
+### 19.4 Economic order is not calculation dependency order
+
+Legacy bookkeeping manually reorders generated entries so cost prerequisites are evaluated before dependent entries and debit/credit balance formulas are evaluated later. It also uses temporary balance state when multiple same-object outbound entries occur in one calculation batch.
+
+The historical implementation should not be copied, but it demonstrates two independent ordering requirements:
+
+- **Economic Order** — deterministic ordering of facts/resource movements by business-effective sequence;
+- **Calculation Dependency** — topological ordering of interpretations/projections because one result depends on another.
+
+A third ordering concern is projection/materialization execution order. These concerns may coincide in simple cases but MUST NOT be represented as one ambiguous sequence field.
+
+Candidate runtime requirement: calculation dependencies become an explicit versioned DAG with cycle detection, deterministic topological ordering, observability and replay boundaries.
+
+### 19.5 Time semantics need separation
+
+Because a business occurrence may be recorded now, interpreted later, and projected/reprojected again later, candidate temporal roles include:
+
+- `effective_at` — when the enterprise fact economically/business-wise occurred;
+- `recorded_at` — when EVO durably accepted the fact;
+- interpretation run time / identity — when and under which pinned rules the fact was interpreted;
+- projection run time / identity — when and under which projection version derived state was materialized.
+
+Do not prematurely make every role a duplicated timestamp column; run identities and lineage may carry some of this information. The invariant is semantic separation, not a fixed physical schema.
+
+### 19.6 Balance granularity is metadata-defined
+
+`Account.getPersistenceContext` and related comments explicitly state that balance persistence containers can have different granularities, for example account-level versus order-level, and `costCalcConfig` controls the calculation fields used for persistence.
+
+Therefore EVO should not hard-code a universal balance key such as `ledger + resource + warehouse`.
+
+Candidate definition:
+
+`BalanceProjectionDefinition = ledger/state + measures[] + dimensions[] + aggregationKey[] + materializationPolicy + consistency/rebuild policy`
+
+Examples may include inventory by material/warehouse/lot, receivable by customer/currency, production cost by production order/material, and bank balance by account/currency.
+
+### 19.7 Replay checkpoints are physical optimization, not truth
+
+The legacy recalculation procedure seeds `balance_recalc` and `cost_mwa_recalc` from the latest historical state before a target transaction time and then recalculates forward. This validates the need for scalable replay checkpoints.
+
+Candidate rule:
+
+> Facts are canonical. Interpretation datasets are versioned. Projections and checkpoints are rebuildable/materializable accelerators.
+
+A checkpoint must identify its input boundary, ordering contract, definition/policy versions, digest/integrity information where appropriate, and the projection state it accelerates. Replaying from a valid checkpoint plus the same subsequent ordered input must be equivalent to replaying from the canonical origin.
+
+## 20. Candidate lifecycle model after current evidence gate
+
+The working model is now:
+
+`Enterprise Reality`
+` -> Business Fact [immutable]`
+` -> Economic Flow + Measurements [immutable]`
+` -> Causal / Matching / Allocation Relations`
+` -> CostBasis`
+` -> Interpretation Run [versioned, replayable]`
+` -> Cost / Valuation / Settlement Results`
+` -> Value & Cost Lineage`
+` -> Accounting / Operational Projections [rebuildable]`
+` -> Balance / Read / Reporting Materializations [rebuildable]`
+` -> Replay Checkpoints [rebuildable optimization]`
+
+The exact persistence boundary of matching/allocation relations remains under investigation: some relations may themselves be business facts (for example an explicitly selected settlement allocation), while algorithmically produced allocations are interpretation results. EVO must model provenance so these cases are distinguishable.
+
+## 21. Next archaeology gate
+
+Continue evidence collection before promoting the hypotheses above into authoritative architecture:
+
+- reconstruct Asloop `c_match_rel` / `c_match_field` semantics and their runtime consumers;
+- trace `calc_rel` genealogy and determine how source/match relationships evolved;
+- locate or infer `lastStockOut` only from implementation evidence, never by name;
+- reconstruct foreign-currency and settlement semantics (`foreign`, exchange definitions, settlement exchange, realized/unrealized differences);
+- compare explicit/user-selected allocations versus algorithm-generated allocations;
+- inspect bookkeeping SQL functions for material path, newest cost, cross-warehouse cost, opposite-side amount and balance updates;
+- classify legacy fields by both semantic role and storage role;
+- build the first standalone Legacy Calculation Genealogy and semantic/performance evidence matrix.
+
+The next repository update should either (a) close the generalized Allocation/Matching hypothesis with evidence, or (b) record where the legacy systems materially diverge and therefore require separate EVO primitives.
