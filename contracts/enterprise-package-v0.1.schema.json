@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:evo:enterprise-package:0.1",
+  "title": "EVO Enterprise Package v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["packageSchemaVersion", "packageId", "packageVersion", "name", "compatibility", "definitions"],
+  "properties": {
+    "packageSchemaVersion": { "const": "0.1" },
+    "packageId": { "type": "string", "minLength": 1 },
+    "packageVersion": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evoRuntime"],
+      "properties": {
+        "evoRuntime": { "type": "string", "minLength": 1 },
+        "requiresCapabilities": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/packageDependency" },
+      "default": []
+    },
+    "definitions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/definition" }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "source": { "type": "string" },
+        "sourceVersion": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "$defs": {
+    "packageDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packageId", "versionRange"],
+      "properties": {
+        "packageId": { "type": "string", "minLength": 1 },
+        "versionRange": { "type": "string", "minLength": 1 }
+      }
+    },
+    "definition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "key", "version", "spec"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "enterprise",
+            "domain",
+            "transaction-type",
+            "application-definition",
+            "field-group",
+            "field-definition",
+            "command-definition",
+            "capability-definition",
+            "flow-definition",
+            "sop-definition",
+            "metric-definition",
+            "dimension-definition",
+            "ledger-definition",
+            "posting-rule",
+            "cost-policy",
+            "valuation-policy",
+            "authorization-template"
+          ]
+        },
+        "key": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "integer"] },
+        "dependsOn": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/definitionRef" },
+          "default": []
+        },
+        "spec": { "type": "object" }
+      }
+    },
+    "definitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "key", "version"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "integer"] }
+      }
+    }
+  }
+}

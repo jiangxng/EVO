@@ -1,0 +1,1074 @@
+{
+  "artifact": "EVO-v1.0.0-alpha.2-Dimensions-Valuation-Posting-Candidate",
+  "version": "1.0.0-alpha.2",
+  "dbSchemaVersion": 7,
+  "contextContractVersion": "1.1",
+  "fileCount": 213,
+  "files": [
+    {
+      "path": ".dockerignore",
+      "sha256": "d914efe01923fa9dbd7b9133daacec5b40b42525cbc085f3b52836af14e88a7f",
+      "bytes": 43
+    },
+    {
+      "path": ".env.example",
+      "sha256": "fd8db0d5164190a2601a716a67aa719b1bdd14a463f78b337a92e97893e01471",
+      "bytes": 139
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "5ac2c48f345b92b680648a33dafd7639ee4c2c2a4af54f71bd65d0b81d20a8a9",
+      "bytes": 154
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "d64f86fc30563e448e07a80c8fdcecc191740792d671d9a7e7e78db038a58583",
+      "bytes": 829
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "bc8b4869781f8b7c12e5199a6753050b7c647520e7d1701d483fc528a78c039a",
+      "bytes": 57
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "sha256": "73633a373643300cf20510b28ff418f14110f284f4833043589450c6a72ad59d",
+      "bytes": 8152
+    },
+    {
+      "path": "CANDIDATE-NOTES.md",
+      "sha256": "d2cf8be381459c61d37d872f87399c51e86a0b0e71e415290caf1c99e30244e4",
+      "bytes": 1297
+    },
+    {
+      "path": "CONCEPTS.md",
+      "sha256": "5a51491ba6f59729ec408df584902411b9b732efe2286f33e634fb532c86c1d5",
+      "bytes": 3488
+    },
+    {
+      "path": "DEPLOY.md",
+      "sha256": "bec16ccec101b9d9f1fbb5cd43ce0acb7e8f08024dc3d0d398dd2d02e48d8254",
+      "bytes": 1876
+    },
+    {
+      "path": "Dockerfile",
+      "sha256": "83b83dd07aa0ffc81b36951591883c79bebbb87ee08b6f225535aee93129ba76",
+      "bytes": 501
+    },
+    {
+      "path": "INVARIANTS.md",
+      "sha256": "3310e995e0419da78bad2fa3679c37e4697c2cccaa855e11c7f5731ee39b605f",
+      "bytes": 3771
+    },
+    {
+      "path": "LLM.md",
+      "sha256": "77f0eac0ed232198d983d63032ea87ffad563ffa17a7c53b7454ba3fac7aa204",
+      "bytes": 2939
+    },
+    {
+      "path": "PHILOSOPHY.md",
+      "sha256": "3949deb3bbef2950aec77300ca0bfb3b97f11a0abb26dcf3e80cdcf97c69b6f2",
+      "bytes": 2345
+    },
+    {
+      "path": "PUBLIC-API.md",
+      "sha256": "e0e38b579a459885a10a763f26f9063a925e1d2c451c9886308705fd1ad736ba",
+      "bytes": 2958
+    },
+    {
+      "path": "README.md",
+      "sha256": "2f3901b02e39e36b5c26bde784ebe1d1aed645811a75a313d9d78f389c99428e",
+      "bytes": 1512
+    },
+    {
+      "path": "apps/api/src/build-app.ts",
+      "sha256": "fec2411b71c3d2d5f6165784cb06ac121c3eb7994a35b8c64c59c91da9d0dc54",
+      "bytes": 11438
+    },
+    {
+      "path": "apps/api/src/demo-console.ts",
+      "sha256": "19bb9f85909e4c118cc710b12ba31e2ff5e81a0446d19ed2c76d03d2ef23e748",
+      "bytes": 4829
+    },
+    {
+      "path": "apps/api/src/evo-runtime.ts",
+      "sha256": "232ccc8740c96f38c8c362d85098804a551a578924a877b16f59795778c17c1f",
+      "bytes": 4564
+    },
+    {
+      "path": "apps/api/src/main.ts",
+      "sha256": "de1f2f5ae06453843eb3f6d845fda1219b9d23d324d002158962dcdf34fafec0",
+      "bytes": 846
+    },
+    {
+      "path": "apps/api/tests/health.test.ts",
+      "sha256": "67ef91074c70d309233ed53255f157217167cf6f2f5dc88d951dfd51dd4d9840",
+      "bytes": 923
+    },
+    {
+      "path": "apps/worker/src/main.ts",
+      "sha256": "1bf311da30d951b5af7abdf11a521ad4311934142f2c9006f0b08545ba66c6e8",
+      "bytes": 1718
+    },
+    {
+      "path": "architecture.manifest.json",
+      "sha256": "4098ecc653d04b24287cab6bb8c1699ab2834e455e9bfe0e74e8f2fb75f7edc7",
+      "bytes": 4585
+    },
+    {
+      "path": "benchmarks/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "compatibility.yaml",
+      "sha256": "56e3179e1e681c76a26f4f25e81e9d89abc3494441f0c57ca3484de386cfad3d",
+      "bytes": 260
+    },
+    {
+      "path": "context.manifest.json",
+      "sha256": "f883c28f86fd8fa23d7c4412db70c27b3cc379ac4859948905818077c7eac7c9",
+      "bytes": 1454
+    },
+    {
+      "path": "deploy.ps1",
+      "sha256": "4ae60c59ce1bde8cdd3cf501cb907db4a4328800cad8ef30adeba2df3a9b6cb7",
+      "bytes": 243
+    },
+    {
+      "path": "deploy.sh",
+      "sha256": "a94d4f92c7d8fd58f417c557a573a74cabc44f6b933ea0793e2a8dc247fb8e79",
+      "bytes": 140
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha256": "bcab080c0a799f80cd8a517304c52dc5bf3b04978a637e13cc9d5b1a38fc67ba",
+      "bytes": 1511
+    },
+    {
+      "path": "docs/adr/ADR-0001-m1-metadata-version-publication.md",
+      "sha256": "01fcae8ea7244bf72f6db6eb5d98c13184ea064c00c01772b0a919c158a2667c",
+      "bytes": 1170
+    },
+    {
+      "path": "docs/adr/ADR-0002-retroactive-posting-input.md",
+      "sha256": "de2f6e58b2b61e4496cca35cef41c94e8ac0a6303cefd91fc72aff433b9722e4",
+      "bytes": 2307
+    },
+    {
+      "path": "docs/adr/ADR-0003-command-atomic-write-boundary.md",
+      "sha256": "bfb4841e8ff59a0d7f57c7fb87a1e5414a37ec8e8a6bbde9b364ede1bc1ea42c",
+      "bytes": 883
+    },
+    {
+      "path": "docs/adr/ADR-0004-posting-ledger-atomicity.md",
+      "sha256": "27aae672a27a645bd47892614de5d2adc342f11a026ea4769a1928067bb14a44",
+      "bytes": 907
+    },
+    {
+      "path": "docs/adr/ADR-0005-controlled-posting-expression-ast.md",
+      "sha256": "f2a18da2208fd7fa738d34c5ac9dc100e686aafb28cee720d46c6c1484944f25",
+      "bytes": 721
+    },
+    {
+      "path": "docs/adr/ADR-0006-cross-platform-repository-paths.md",
+      "sha256": "e2e346b3f0686ca731fec18228519479b9aa45259233a189d9b7675baafc7d85",
+      "bytes": 1002
+    },
+    {
+      "path": "docs/adr/ADR-0014-dimensions-and-valuation-posting.md",
+      "sha256": "af2e04436b0db7901bdc2c62a0ffdccd566661336e2784f05f4efa44296cc6a8",
+      "bytes": 743
+    },
+    {
+      "path": "docs/adr/README.md",
+      "sha256": "e15d874dab5196c0472520a10346a442e347a39cd056621f38dbaa2041f77998",
+      "bytes": 387
+    },
+    {
+      "path": "docs/architecture/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/architecture/EVO-00-Core-Architecture-v0.1.md",
+      "sha256": "a9615b2110cae6c925519f3dfaaae99e7ffdf8acc3a3cc392a2d4af8f3a6bf07",
+      "bytes": 6591
+    },
+    {
+      "path": "docs/architecture/EVO-01-Enterprise-Metadata-Model-v0.1.md",
+      "sha256": "88155e1596c3ab81f0acbf76cd04199f382e7a3b581d55f0ab4c2d925095a77e",
+      "bytes": 9966
+    },
+    {
+      "path": "docs/architecture/EVO-02-Business-Data-Posting-Sequence-Model-v0.1.md",
+      "sha256": "570021e743ff527fc5655bd845dece9b57188e93e3b6cf1a3e92060a2a99d76a",
+      "bytes": 6578
+    },
+    {
+      "path": "docs/architecture/EVO-03-Ledger-Conditional-Posting-Model-v0.1.md",
+      "sha256": "67cd23884070254135aa1faef42b90b5d21604e4121a340503292982361b3730",
+      "bytes": 9558
+    },
+    {
+      "path": "docs/architecture/EVO-04-Cost-Valuation-Model-v0.1.md",
+      "sha256": "9586aec06e9699683375e19c52db9e82ad2c3c3f80f9e8e2350c064c75200fc2",
+      "bytes": 16187
+    },
+    {
+      "path": "docs/architecture/EVO-05-Replay-Recalculation-Model-v0.1.md",
+      "sha256": "17c17121bddf63833bf8ac9c7208e55652013ebe80856aedb862d16bcf2d0f7d",
+      "bytes": 13246
+    },
+    {
+      "path": "docs/architecture/EVO-06-Command-Process-Work-Model-v0.1.md",
+      "sha256": "f1ad71bafe10f9af2f2200a7a6d1ac5a05e02b6f8e6b207f89135fb0b32be4bc",
+      "bytes": 16804
+    },
+    {
+      "path": "docs/architecture/EVO-07-AI-Native-Architecture-v0.1.md",
+      "sha256": "bf70d0bf4f61268252bafa4585768e0775accd2c40b080e2aee6aa0de5dbb560",
+      "bytes": 18789
+    },
+    {
+      "path": "docs/architecture/EVO-08-Architecture-Convergence-v0.2.md",
+      "sha256": "01636186bc1fc099e600bf2a46de4fe21d4cc9080da75dd0b28eb3df94edb4ef",
+      "bytes": 28009
+    },
+    {
+      "path": "docs/architecture/EVO-09-Physical-Data-Model-Runtime-Storage-Architecture-v0.1.md",
+      "sha256": "c3140220e22bda85919754fdc3fe9f2dd66d71465908109c42947410b8d52677",
+      "bytes": 33925
+    },
+    {
+      "path": "docs/architecture/EVO-10-Service-Boundaries-Runtime-Components-v0.1.md",
+      "sha256": "f2265389ebed1a87765178b4bf63440eff88db9176e1be9eca0116c54abf2b26",
+      "bytes": 30252
+    },
+    {
+      "path": "docs/architecture/EVO-11-API-Command-Contracts-v0.1.md",
+      "sha256": "f4580599179e53f358616f7430a33270204d8a9c89336b5dedabfe5aa96efeb1",
+      "bytes": 27310
+    },
+    {
+      "path": "docs/architecture/EVO-12-Repository-Structure-Implementation-Roadmap-v0.1.md",
+      "sha256": "60b710c11f3dc5435bd3cba88722e086614fcbc6f3258681f945ce5a7db77173",
+      "bytes": 43991
+    },
+    {
+      "path": "docs/architecture/EVO-13-Enterprise-Operating-Model-Convergence-v0.2.md",
+      "sha256": "c0f01fec7573ceccfc240f7de3bb9dffe65cadcbd44a7198e4bedf624d988ffc",
+      "bytes": 38248
+    },
+    {
+      "path": "docs/architecture/README.md",
+      "sha256": "4a891ff9299dc1c6601c8fb26f9b361e709a551b89108550d124db8169de4bbb",
+      "bytes": 1003
+    },
+    {
+      "path": "docs/change/EVO-v0.9-to-v1.0-alpha.1.md",
+      "sha256": "da39f68d43bbe4240e8890d36cd8f1ef7db340b7d0f5508a5b7fa2114fcd8384",
+      "bytes": 2250
+    },
+    {
+      "path": "docs/change/EVO-v1.0.0-alpha.1-to-alpha.2.md",
+      "sha256": "0bf39001d8181ec8a5da1ea6cb9b5815f01f931e2ae7f5f00f666bca5f61bbeb",
+      "bytes": 1397
+    },
+    {
+      "path": "docs/change/README.md",
+      "sha256": "681f44d126a9edd663ea11dfde9c7933f4550358e6b39589f39a71f8b0197594",
+      "bytes": 799
+    },
+    {
+      "path": "docs/change/compatibility/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/change/design/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/change/migrations/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/change/releases/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/change/releases/m3-repository-baseline.md",
+      "sha256": "793a687a9c0360c3850df51ca4244e5e82cdbdb8957af47a756dc6b2e1cb0f18",
+      "bytes": 547
+    },
+    {
+      "path": "docs/change/releases/v0.9-production-candidate.md",
+      "sha256": "346346dafe5b0a395d1deda925bb722aca7a2789613588497f602f282c511029",
+      "bytes": 732
+    },
+    {
+      "path": "docs/change/releases/v0.9.2-build-fix.md",
+      "sha256": "227654108eef6c631d47ea2716676d4cb2cfa1ec39e536325ae764c5626b8072",
+      "bytes": 528
+    },
+    {
+      "path": "docs/change/releases/v1.0.0-alpha.1.md",
+      "sha256": "49f7c8d5355daacdc0b5c54bf68796fd540a1ca087739c091e5f98144e82c544",
+      "bytes": 931
+    },
+    {
+      "path": "docs/change/releases/v1.0.0-alpha.2.md",
+      "sha256": "f0d33e7a8e071a3d8c7b68987b8f5dac7df4a4ee09d2679dadcefee75ee3540a",
+      "bytes": 356
+    },
+    {
+      "path": "docs/change/requirements/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/interfaces/README.md",
+      "sha256": "13bc530a20c8670fc5b0ea83e682b108b95d670955db364b508501831a5ed86d",
+      "bytes": 541
+    },
+    {
+      "path": "docs/interfaces/business-lineage.md",
+      "sha256": "9179e1faa722b9de724eb70101e175cc76b7babac194083ba2b0ad3f09d6d12e",
+      "bytes": 921
+    },
+    {
+      "path": "docs/interfaces/command-business-data.md",
+      "sha256": "54f20493e66e939b48536b59c8cd931c10b35adeba98ba8c5c72365d6dc0522a",
+      "bytes": 3017
+    },
+    {
+      "path": "docs/interfaces/metadata-kernel.md",
+      "sha256": "9b3e8ca857f14a024fae3be0a0e57b7270726a9d19dc2f78acc4671bcf7b982b",
+      "bytes": 2314
+    },
+    {
+      "path": "docs/interfaces/posting-ledger.md",
+      "sha256": "fb11d91ecf3241d2d984565bdd9b7320a56ccf51ee54f061b2238252ea1a25bd",
+      "bytes": 3186
+    },
+    {
+      "path": "docs/interfaces/valuation-posting.md",
+      "sha256": "b73968117c98b1561f7b2d392f08819203cdeeec8479ee2ef5d4eb0958cf4d07",
+      "bytes": 1112
+    },
+    {
+      "path": "docs/invariants/command-business-data.md",
+      "sha256": "adb612482d0249c98f4c8c21aa03e6a41cd782bb130b9f25d4a6b3469050dd88",
+      "bytes": 1297
+    },
+    {
+      "path": "docs/invariants/core.md",
+      "sha256": "f8e704ad367bce6e002220ef0e19f9c8ec7b4a839fee2c4168595a4e63caf25e",
+      "bytes": 1205
+    },
+    {
+      "path": "docs/invariants/metadata.md",
+      "sha256": "fea87ef31d5c4d294323b3e89e5a13263294d4c6dc03d04ea5db076da3085a43",
+      "bytes": 910
+    },
+    {
+      "path": "docs/invariants/posting-ledger.md",
+      "sha256": "a9a513b3aef67c12c3d25565dcddc2c8014ee8bb2cf26a66176d056e21a62fd0",
+      "bytes": 1362
+    },
+    {
+      "path": "docs/operations/LOCAL-DEVELOPMENT.md",
+      "sha256": "2b117457d057bcadc53e2bb8e3ea92c247cb9bfb939d66f01ac60a1bb669787e",
+      "bytes": 368
+    },
+    {
+      "path": "docs/operations/POSTGRES-18.md",
+      "sha256": "64be9ae137bc784fb1acb8daf65c48453804f6b1795ea96dd498d59230867b4f",
+      "bytes": 766
+    },
+    {
+      "path": "docs/operations/V1-ALPHA1-VALIDATION.md",
+      "sha256": "a9e3f0711dc27216a377105271a6fc9d83a574173439ce77841444243d456bc9",
+      "bytes": 2248
+    },
+    {
+      "path": "docs/operations/V1-ALPHA2-VALIDATION.md",
+      "sha256": "8e4e2b234c9170b950a94203dea28ee6ff1b94b30622abd639fe02f93c35b824",
+      "bytes": 567
+    },
+    {
+      "path": "docs/performance/BASELINE.md",
+      "sha256": "e65833d1f3ed4ef763d964260b128fcba8cba35ee62bc80b660f5fbde88bf8b2",
+      "bytes": 909
+    },
+    {
+      "path": "migrations/data/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "migrations/schema/202609090001_m0_bootstrap.sql",
+      "sha256": "18dccdd85265ac74567d0da766042917e6094bdbddce22f37a3811d7e95a1417",
+      "bytes": 704
+    },
+    {
+      "path": "migrations/schema/202609090010_m1_metadata_kernel.sql",
+      "sha256": "38f299d7be37dcc30663db9891fe37846ffbcdb2d127cadc814d317de7253481",
+      "bytes": 7227
+    },
+    {
+      "path": "migrations/schema/202609090020_m2_command_business_data.sql",
+      "sha256": "769dd0b917ee3d90d07e2f79877ea51f9ec3bf321e155718dacf3e3a01aed343",
+      "bytes": 4608
+    },
+    {
+      "path": "migrations/schema/202609090030_m3_posting_ledger.sql",
+      "sha256": "77c3a1db72d9d92219d3360c1b834313a88d26d3effafca7a951600f679f7247",
+      "bytes": 4075
+    },
+    {
+      "path": "migrations/schema/202609090040_v09_candidate.sql",
+      "sha256": "19df685d722406974f25dd81864006e0797d92274604266ce513a56f6511f66a",
+      "bytes": 3736
+    },
+    {
+      "path": "migrations/schema/202609110010_v10_alpha1_enterprise_model.sql",
+      "sha256": "773848c0b087413ba12ec7a4ef93105c8f464c53f0028f2a65761504974f260d",
+      "bytes": 5800
+    },
+    {
+      "path": "migrations/schema/202609130010_v10_alpha2_dimensions_valuation.sql",
+      "sha256": "63dff74fc4740ba9f54b6dd626909bdc4e8a7fa27d8b1c7e8bed9506081634ae",
+      "bytes": 4500
+    },
+    {
+      "path": "modules/ai/README.md",
+      "sha256": "7bd7093820cff1993cefeb60a0e95d0f1c8ced05586c72aad23ea49a756af96c",
+      "bytes": 640
+    },
+    {
+      "path": "modules/ai/api/contracts.ts",
+      "sha256": "46178930a9de5c8a2b5b4594031a7bdc80d06dc8d753c549905824fde5d57469",
+      "bytes": 332
+    },
+    {
+      "path": "modules/ai/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/ai/infrastructure/postgres-ai-capability-catalog.ts",
+      "sha256": "721d9fd2ad4d2955ecb72e7c129f5f84ee97b3ad7b965d70091fa54489250ce3",
+      "bytes": 1348
+    },
+    {
+      "path": "modules/application/README.md",
+      "sha256": "73a09e7be29a52a99b5a6df3e7b80b269089e1b89b2039e4a4fe7a1b6f5ac43b",
+      "bytes": 646
+    },
+    {
+      "path": "modules/application/api/index.ts",
+      "sha256": "db7d99cbeeba04b09b6a62bf73c3bae1a11f6b17789e58cd4f71dc56166ac842",
+      "bytes": 126
+    },
+    {
+      "path": "modules/business-data/README.md",
+      "sha256": "f7d7c72f4ddb01d8c958ce27da2e64c62f626843bcaa52fedce948508e48b8e3",
+      "bytes": 730
+    },
+    {
+      "path": "modules/business-data/api/business-data-reader.ts",
+      "sha256": "98a4120bf807b4cea766c0b4f552b3b66a63447ebb4c5def2571fd09257b807d",
+      "bytes": 212
+    },
+    {
+      "path": "modules/business-data/api/contracts.ts",
+      "sha256": "e23cd438ee20914561c692f56eff8eab23b99d08c36cd7b6e3c9bf3adea282f9",
+      "bytes": 897
+    },
+    {
+      "path": "modules/business-data/api/index.ts",
+      "sha256": "b9d3cab986a64dd5977f3bf5b2a99efd4abff6996344c45ecf015657cd8337d9",
+      "bytes": 75
+    },
+    {
+      "path": "modules/business-data/domain/posting-order.ts",
+      "sha256": "19c0691b5f2133538deabc3bb97ae3d6c28e46c9a41e14c15d8ee459215239f0",
+      "bytes": 831
+    },
+    {
+      "path": "modules/business-data/infrastructure/postgres-business-data-reader.ts",
+      "sha256": "5ea7b699d15f6dff45f88188805f8b7e942df96180e2b836a99d65a896728fd0",
+      "bytes": 1297
+    },
+    {
+      "path": "modules/business-data/tests/posting-order.test.ts",
+      "sha256": "9f5aabcef8550de47f87c8912fc8c24ecb25d5497a52cc3deb3563ba2dadd6df",
+      "bytes": 1398
+    },
+    {
+      "path": "modules/capability/CONTEXT.md",
+      "sha256": "4909ee769407d765a14fa5b9ba83790cca6f58db1324e6035a324f4458c43e01",
+      "bytes": 564
+    },
+    {
+      "path": "modules/capability/README.md",
+      "sha256": "b6e38f2358121c29c1bc116d75dd515e14cad41f6a44ce8cf5e4fa47c7c9908a",
+      "bytes": 160
+    },
+    {
+      "path": "modules/command/README.md",
+      "sha256": "e685a6954b094b8e6b18e7507560b2d2f5d678ad62f20051d62fb896e291dc8f",
+      "bytes": 970
+    },
+    {
+      "path": "modules/command/api/command-capability-resolver.ts",
+      "sha256": "3c806088391a12ec8c8f983ed2d5ce2399e50e41ce0e0008600d0f2bc17d26c3",
+      "bytes": 234
+    },
+    {
+      "path": "modules/command/api/command-executor.ts",
+      "sha256": "a1fdeea4cf5fd93c35c153e098e6116ad93a2864e815a42d14a1c1b555d2253e",
+      "bytes": 199
+    },
+    {
+      "path": "modules/command/api/contracts.ts",
+      "sha256": "5435cab314e9e88692321b3ae0bd4b913256fe7f7486617e839c5ae3a2598cf6",
+      "bytes": 1634
+    },
+    {
+      "path": "modules/command/api/index.ts",
+      "sha256": "246f76e6ef08473d140fbd4eed4040472f268eeba70524181a1a6938fe55e65f",
+      "bytes": 121
+    },
+    {
+      "path": "modules/command/application/command-service.ts",
+      "sha256": "761a418ae449eb4c6db470c8bbe408ac60b2ce3d52a810401c9ed9a0085141c4",
+      "bytes": 1971
+    },
+    {
+      "path": "modules/command/application/command-transaction-port.ts",
+      "sha256": "58eda4ef71aad63106876399f4a9979f31c76c263a576ac716c2a00ddfe6226d",
+      "bytes": 389
+    },
+    {
+      "path": "modules/command/application/metadata-command-capability-resolver.ts",
+      "sha256": "62191d3f6dae63c13b565eed8b2ac9bc1d4deeebb76bc5683c1cb163d4def680",
+      "bytes": 2432
+    },
+    {
+      "path": "modules/command/infrastructure/postgres-command-transaction.ts",
+      "sha256": "0f0034ac89a8608645ad20bcf2e784f3699a2ed6607ea56547b4ff5032e8ee51",
+      "bytes": 10520
+    },
+    {
+      "path": "modules/command/tests/command-service.test.ts",
+      "sha256": "68e8d0d3a956c4843181eb79a78a675ef76ab3ca4ac022eb36c22ed0002bc66f",
+      "bytes": 2505
+    },
+    {
+      "path": "modules/cost/README.md",
+      "sha256": "fa12f6ee2e6aecb018b8c459035f3b1328171424f694ade80ee2fc02509f0986",
+      "bytes": 632
+    },
+    {
+      "path": "modules/cost/api/contracts.ts",
+      "sha256": "731547e4179a87faf0e6fc22b2817d5f8f05a5cd7d3bbe86e6e84ceaea4f85eb",
+      "bytes": 668
+    },
+    {
+      "path": "modules/cost/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/cost/infrastructure/postgres-cost-engine.ts",
+      "sha256": "9a00aca03a877a200bc7e10a3faad9653a090b8204d6a9db2c90fa1d46194ec3",
+      "bytes": 9008
+    },
+    {
+      "path": "modules/dimensions/CONTEXT.md",
+      "sha256": "a0f2a4ab49a6cd7214023dd4b81bc41ed6a569500b4db23839f12199dd22c620",
+      "bytes": 560
+    },
+    {
+      "path": "modules/dimensions/README.md",
+      "sha256": "75d8662d0ef724c9c6903e1e4c81f8dea003f4827846d7d4a763b7682daaf14a",
+      "bytes": 402
+    },
+    {
+      "path": "modules/dimensions/api/contracts.ts",
+      "sha256": "56b08911322500594496088cfa19d066b8706cd4e20a0440d7e97ffe2979b7c4",
+      "bytes": 423
+    },
+    {
+      "path": "modules/dimensions/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/dimensions/domain/dimension-policy.ts",
+      "sha256": "1fa9456d28eec949ab174b50e81d7238190faf9600ab40558439f7f2750e27c2",
+      "bytes": 1778
+    },
+    {
+      "path": "modules/dimensions/tests/dimension-policy.test.ts",
+      "sha256": "d47efdea9422e4e42570c52f754c41658bfee259b6f8514a59a35cd8138044f2",
+      "bytes": 1024
+    },
+    {
+      "path": "modules/flow/CONTEXT.md",
+      "sha256": "ecd64ad1450b86b1d6771cd2a7603191eeb16d8efe3186e278ea10c78a3b2309",
+      "bytes": 509
+    },
+    {
+      "path": "modules/flow/README.md",
+      "sha256": "4b6df948507d31adba7d2c7a965b4770c68fdbfe96ad24a5c4a5597a9bf68a6b",
+      "bytes": 99
+    },
+    {
+      "path": "modules/flow/api/contracts.ts",
+      "sha256": "41eb38bcb24251c9badb1c64ca5c69d845e8660a868eb858949c8fd612f58395",
+      "bytes": 97
+    },
+    {
+      "path": "modules/flow/api/index.ts",
+      "sha256": "3fc10e3afddb4ad8416246594062701575a19748cd8a5cf423c2cfc7c05f6863",
+      "bytes": 54
+    },
+    {
+      "path": "modules/flow/infrastructure/postgres-flow-projection.ts",
+      "sha256": "5808e64ecc0afac390765905492c4fc0495887cf27bbfb6e3d28600dd94515df",
+      "bytes": 2731
+    },
+    {
+      "path": "modules/identity/README.md",
+      "sha256": "09f584840954e9423155ead143e097ceabaaa967908f5d365ab7b2ddc367f24c",
+      "bytes": 629
+    },
+    {
+      "path": "modules/identity/api/authorization.ts",
+      "sha256": "fe429de86e53376616d297ff3eb4eb25eeb625dae7a75482778d6f9fce552120",
+      "bytes": 347
+    },
+    {
+      "path": "modules/identity/api/index.ts",
+      "sha256": "08d2e7f0c5252f75d31095d82c2e34b45b9fbbf1581c727a34316fcafd0f9c73",
+      "bytes": 36
+    },
+    {
+      "path": "modules/identity/infrastructure/postgres-authorization-service.ts",
+      "sha256": "7aa85adb5efa5f01d06e48a4d6df787a4d5ebd6cebed8f09dc3583d50c5e82f3",
+      "bytes": 1091
+    },
+    {
+      "path": "modules/integration/README.md",
+      "sha256": "e38cb7816a8e0f15e799a8a92281cd22d970ff75cd64259c18cf58b512fbe457",
+      "bytes": 639
+    },
+    {
+      "path": "modules/integration/api/contracts.ts",
+      "sha256": "11b143d8cd96fa5bc2e4d9b106b84311be4e206c93fff718eef28b2017370657",
+      "bytes": 86
+    },
+    {
+      "path": "modules/integration/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/integration/infrastructure/log-outbox-publisher.ts",
+      "sha256": "dea81cab03725306295c46329d216f57870245189e47990070663141ecf44906",
+      "bytes": 1169
+    },
+    {
+      "path": "modules/ledger/README.md",
+      "sha256": "1aeb3f3016a3f01154de50ac104e026975b308eb9c7fca5f834c2865327cfea7",
+      "bytes": 691
+    },
+    {
+      "path": "modules/ledger/api/contracts.ts",
+      "sha256": "8c9e07c8d0e489b694f58e2a4ff0500617cd653386d9d7a3c6d4f2824ddc736c",
+      "bytes": 974
+    },
+    {
+      "path": "modules/ledger/api/index.ts",
+      "sha256": "4d3b9c16e32e57a0fa02f573006eab7bef1f997b0cb65df2e9aaa926135cfd43",
+      "bytes": 104
+    },
+    {
+      "path": "modules/ledger/api/ledger-reader.ts",
+      "sha256": "a4beac9f198c7bd6bf1cabbd9ebfc35e4208274d13f02bdc5e37b2e8887fb369",
+      "bytes": 200
+    },
+    {
+      "path": "modules/ledger/api/ledger-writer.ts",
+      "sha256": "11511e530b051ac5189d43d29d99707541b27583cd659267c5dcf0b34e05b73d",
+      "bytes": 351
+    },
+    {
+      "path": "modules/ledger/domain/canonical-json.ts",
+      "sha256": "269dcffee1498f0431138b083cc9b356c0492d237062649f68bf9b77f7b12428",
+      "bytes": 1094
+    },
+    {
+      "path": "modules/ledger/infrastructure/postgres-ledger-reader.ts",
+      "sha256": "3fa6ae5af9fba99c7836819e5d615356d61caccd865821ca1535a6228c68f597",
+      "bytes": 1413
+    },
+    {
+      "path": "modules/ledger/infrastructure/postgres-ledger-writer.ts",
+      "sha256": "463e163a48f2e4716263ac1863b295271c7096b0f75d5ec916c4adc46a2b1c01",
+      "bytes": 5477
+    },
+    {
+      "path": "modules/ledger/tests/canonical-json.test.ts",
+      "sha256": "18c40542591fbd64f86b2fe589bd4c8055ff25c1f62c8175edef2dd46f14bc49",
+      "bytes": 671
+    },
+    {
+      "path": "modules/metadata/README.md",
+      "sha256": "98a8ae2e47042298bf2d490a43dcae8b35d7c3b2b46295596ebc7e6691f28685",
+      "bytes": 1858
+    },
+    {
+      "path": "modules/metadata/api/contracts.ts",
+      "sha256": "901b4fb966472c55f810a4d056c69b4b700b7a3cd3e0afc7f41b8490523bf49f",
+      "bytes": 2784
+    },
+    {
+      "path": "modules/metadata/api/index.ts",
+      "sha256": "36febfed50e4103f1320679b6973892e479f974483b076eb9f957da83d08e96b",
+      "bytes": 154
+    },
+    {
+      "path": "modules/metadata/api/metadata-reader.ts",
+      "sha256": "d7b44506b5e73d642bd59e4187add3df28c0a503cdf64b62c5828c805d4245f8",
+      "bytes": 1135
+    },
+    {
+      "path": "modules/metadata/api/metadata-writer.ts",
+      "sha256": "267b5ff6a48f4ffb3b9bd6edfeb310530057508fbf5d2c9a6c432ae60d239f74",
+      "bytes": 1040
+    },
+    {
+      "path": "modules/metadata/api/posting-metadata-reader.ts",
+      "sha256": "63e33c83c4d7676646e5c65026961774051beaaef589ee711d36ee21530a361e",
+      "bytes": 470
+    },
+    {
+      "path": "modules/metadata/application/effective-definition-resolver.ts",
+      "sha256": "a8b5ef43029c7f08874fc3fe4731686597e2263e5c85d5b924f057ed4d75366c",
+      "bytes": 3801
+    },
+    {
+      "path": "modules/metadata/application/metadata-service.ts",
+      "sha256": "9587ce19902e7918ed9f14709bb5416e4994144b356e15b2c2d21c61c00953c2",
+      "bytes": 1572
+    },
+    {
+      "path": "modules/metadata/domain/json-merge.ts",
+      "sha256": "738972bc206f0caf19c10ff2eb04df6dcfe5692822710458495b329ae8a10725",
+      "bytes": 946
+    },
+    {
+      "path": "modules/metadata/infrastructure/postgres-metadata-repository.ts",
+      "sha256": "50999b1eaf68aefe7f4c58e1406620578459a30f268a93e73ed989190c385b21",
+      "bytes": 10663
+    },
+    {
+      "path": "modules/metadata/infrastructure/postgres-posting-metadata-reader.ts",
+      "sha256": "40f66273b69149ebabf3fab202d567eb81af75d4df312af8b09702d5cdc9db5c",
+      "bytes": 2067
+    },
+    {
+      "path": "modules/metadata/tests/effective-definition-resolver.test.ts",
+      "sha256": "094490318167c92d9e659ec89ec3dc143b385eda488767dba6bfc19304bdc51f",
+      "bytes": 3469
+    },
+    {
+      "path": "modules/metadata/tests/json-merge.test.ts",
+      "sha256": "ce2ac0b75d1f73ee8d5bcfedad30b08ad0525d96a51357647d246be802500dd2",
+      "bytes": 678
+    },
+    {
+      "path": "modules/metadata/tests/metadata-service.test.ts",
+      "sha256": "09408c24a5c3ef1a6077cf94a9255ecf8be2115aae989b35b62db685a257d7e0",
+      "bytes": 1419
+    },
+    {
+      "path": "modules/metrics/CONTEXT.md",
+      "sha256": "c4bf062b2506e89b13afb2c8275fe92ad07c411389d9b1147810abcd5375c1ff",
+      "bytes": 349
+    },
+    {
+      "path": "modules/metrics/README.md",
+      "sha256": "5ac2ee39bc33fc10ff5ecfd2bcf4e415e8d040c528c8c18021d8d803da23bdc7",
+      "bytes": 112
+    },
+    {
+      "path": "modules/posting/README.md",
+      "sha256": "975269589cbfe6f53fbb50260cbd67f47a85e403953340825b983ccd34909d1b",
+      "bytes": 1019
+    },
+    {
+      "path": "modules/posting/api/contracts.ts",
+      "sha256": "f1f13321c01924a2eeedc4de1f56c6da48fe8b3ee76219b9c956179347cd6f43",
+      "bytes": 1095
+    },
+    {
+      "path": "modules/posting/api/index.ts",
+      "sha256": "ff366f63082359b5c0577dd75a34fb32234b4b824f01d29e29a3d67a1e6efc43",
+      "bytes": 72
+    },
+    {
+      "path": "modules/posting/api/posting-processor.ts",
+      "sha256": "632a394749ca67ebae5b1d22af74200ec8c96a3fa3fea5f9537693bc22b2d644",
+      "bytes": 167
+    },
+    {
+      "path": "modules/posting/application/posting-service.ts",
+      "sha256": "d47719d8c62c9b1e7a3518c1418bb614870ada8d88ca8c595e79a15d60eb05bb",
+      "bytes": 4727
+    },
+    {
+      "path": "modules/posting/application/posting-state-store.ts",
+      "sha256": "d6eee5ac1cf2ee9ef3f3ddb4d5459d7646f2e78686f1685fd10924b6891443e2",
+      "bytes": 1025
+    },
+    {
+      "path": "modules/posting/domain/expression-engine.ts",
+      "sha256": "ecbeda74d1fefadf38b680a4c94ae085980d57b4bab04b3ed1911384a1a0828b",
+      "bytes": 4490
+    },
+    {
+      "path": "modules/posting/domain/posting-rule-evaluator.ts",
+      "sha256": "08d224185ef109935c0448ee7576dced0183c3bca26a850627ffaa0331bdba4c",
+      "bytes": 3408
+    },
+    {
+      "path": "modules/posting/infrastructure/postgres-posting-state-store.ts",
+      "sha256": "2a21430585e24ee536179939cdd8725827c93ad6d2c7fa536c944fb42751bac1",
+      "bytes": 5894
+    },
+    {
+      "path": "modules/posting/tests/expression-engine.test.ts",
+      "sha256": "7ac64391b2755f8f77d1ca13843aa66c92a4954b5dac49dd6974a8f396e93c10",
+      "bytes": 1381
+    },
+    {
+      "path": "modules/posting/tests/posting-rule-evaluator.test.ts",
+      "sha256": "db273be69a57e3f1e2a0d5eedb04edd25f71abaca6358aca8c81d6ff1ab2d7cc",
+      "bytes": 1520
+    },
+    {
+      "path": "modules/query/README.md",
+      "sha256": "70fa8d4e6d5ff93183bb0b47a6cfaff812e17cb82c080e0571d145b8abc242a9",
+      "bytes": 613
+    },
+    {
+      "path": "modules/query/api/contracts.ts",
+      "sha256": "35761d73b1bb0e08f99b412986cc6453c2e71c66a9c6e73029cf5bd26e11bece",
+      "bytes": 665
+    },
+    {
+      "path": "modules/query/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/query/infrastructure/postgres-enterprise-query.ts",
+      "sha256": "1c5f4947cd6e4510fff1f70b72c424718504ea2713ed89fe77c6c0548f5ef002",
+      "bytes": 3684
+    },
+    {
+      "path": "modules/replay/README.md",
+      "sha256": "200fca71e26ce72605600a229ca38e49f59168d5d355ca5481ba89261c6cd140",
+      "bytes": 620
+    },
+    {
+      "path": "modules/replay/api/contracts.ts",
+      "sha256": "fdfcc9c2c887a32c636c60e30f2edcfb22c14280c8ecde9b3909cdd96dcaa797",
+      "bytes": 521
+    },
+    {
+      "path": "modules/replay/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/replay/infrastructure/postgres-replay-service.ts",
+      "sha256": "ba9a934ab7c58bbd9c6c4f96f26c9d95febffce5f8bab384cf20e842f420b244",
+      "bytes": 6971
+    },
+    {
+      "path": "modules/sop/CONTEXT.md",
+      "sha256": "49e70a2b15176791765e732bba923ab10b5937dbd4dbf3c8c15d7b5ad4ebff53",
+      "bytes": 345
+    },
+    {
+      "path": "modules/sop/README.md",
+      "sha256": "6ebe69d183b20351e34d537c4da766f298b18821a536c63142db8abaa69ea385",
+      "bytes": 91
+    },
+    {
+      "path": "modules/valuation/CONTEXT.md",
+      "sha256": "4a98ebb7e7116c41f32b3cf6a7f5b9f23831b81296ba464d75620b4b04adf03d",
+      "bytes": 628
+    },
+    {
+      "path": "modules/valuation/README.md",
+      "sha256": "281c7ffff9ae0bf699de26ecfec80a131e6f100b2fb31a45a0be46305e6180e7",
+      "bytes": 356
+    },
+    {
+      "path": "modules/valuation/api/contracts.ts",
+      "sha256": "2e1118447ff370e6a47598d9e169f6146726c4c141d84c9dba41f140529699f9",
+      "bytes": 321
+    },
+    {
+      "path": "modules/valuation/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/valuation/domain/valuation-delta.ts",
+      "sha256": "7ae135805fc10d284d4d9035da44ccdf2e14fe5d902be3d3bac33d8b3f906eb6",
+      "bytes": 424
+    },
+    {
+      "path": "modules/valuation/infrastructure/postgres-valuation-posting-service.ts",
+      "sha256": "d0eb65978e845059cd5283a59e278307a338c90a98f9ec82073650d49c57bd95",
+      "bytes": 9435
+    },
+    {
+      "path": "modules/valuation/tests/valuation-delta.test.ts",
+      "sha256": "5c9ebff598f0986bb1d50a693475c3d93dd25578f19f0fe358be9c60e5f6239f",
+      "bytes": 533
+    },
+    {
+      "path": "modules/workflow/README.md",
+      "sha256": "4159ff09f84251a151441fc93062799c412e9fcda0507153954dc9e26118c231",
+      "bytes": 624
+    },
+    {
+      "path": "modules/workflow/api/contracts.ts",
+      "sha256": "26bdf6691bf019344ba1719b9095301d8b8cab2bf6b16a8a6057e169e221775b",
+      "bytes": 519
+    },
+    {
+      "path": "modules/workflow/api/index.ts",
+      "sha256": "b059a8b840df303284f7de2f799992b825c8381579ba6cd11d782ad0e36deaa2",
+      "bytes": 32
+    },
+    {
+      "path": "modules/workflow/infrastructure/postgres-work-projection.ts",
+      "sha256": "36a87384ad3ef134694ef313dc5a12d438bad083d4cb8e3b825fbdc158883cbd",
+      "bytes": 3317
+    },
+    {
+      "path": "package.json",
+      "sha256": "8e5fc9d3a7a380b6d8bcb5b8771a477810881d910d46bade1296af6e601b2103",
+      "bytes": 1606
+    },
+    {
+      "path": "platform/contracts/src/app-error.ts",
+      "sha256": "2e20c6a58d81d8b0a3d1ab86fd8ccf8b6deb27372554e61e99fdf09d6ad93466",
+      "bytes": 809
+    },
+    {
+      "path": "platform/contracts/src/index.ts",
+      "sha256": "29f84ef4a076f8cc4bd6a0f5cf065d0d33d7dd98f2b7fbf163fb6db3cdb99d59",
+      "bytes": 70
+    },
+    {
+      "path": "platform/contracts/src/request-context.ts",
+      "sha256": "538e54c28e15a206ee1da186df2cd6fd8a30369f4dd59f07897b50087c4848d8",
+      "bytes": 324
+    },
+    {
+      "path": "platform/contracts/tests/app-error.test.ts",
+      "sha256": "45cc6c77e0fa4367af060a250c6b7906595ec099beee740b1cc87b48ced0405e",
+      "bytes": 601
+    },
+    {
+      "path": "platform/database/src/database.ts",
+      "sha256": "7a3bfcbaec48839ed471008bd06813009ab4f274ab0547380f1bddf7a4875736",
+      "bytes": 677
+    },
+    {
+      "path": "platform/database/src/index.ts",
+      "sha256": "8eccf381bb3147e06512995a7ef01173477a0dcc93f7033ad70cc27bbb08b04e",
+      "bytes": 94
+    },
+    {
+      "path": "platform/database/src/transaction.ts",
+      "sha256": "3a07f03812201af6b2b06cc6bc71bd9edc3488cb9bf0554c7402b30af3932f56",
+      "bytes": 545
+    },
+    {
+      "path": "platform/database/src/types.ts",
+      "sha256": "28f9ae611c92c790466c25d9532c38ee8db4eba3f5f79f5559c418e716a80007",
+      "bytes": 18383
+    },
+    {
+      "path": "platform/observability/src/logger.ts",
+      "sha256": "204eb89dd715c3b8407b2a7aa9e3cd3c8abd31f50646a46af67afe488c2ef3b7",
+      "bytes": 406
+    },
+    {
+      "path": "platform/runtime/src/config.ts",
+      "sha256": "173625d45b1d2ecdadda7342b1c58260f9abc47f53caa5e48078027a85f146f4",
+      "bytes": 937
+    },
+    {
+      "path": "platform/testing/architecture/context-contract.test.ts",
+      "sha256": "cebc732ae7dcc58b84056730a586cc7c86cc3ae42f39b007be2b3cf1019bf7b0",
+      "bytes": 1316
+    },
+    {
+      "path": "platform/testing/architecture/module-boundaries.test.ts",
+      "sha256": "1ad0fccc0b7c90a538dce6317779d73b1e134cac25dd674a0a3a3d1c68739276",
+      "bytes": 3073
+    },
+    {
+      "path": "platform/testing/architecture/repository-paths.test.ts",
+      "sha256": "cb433b350ccd1e40c034c971c90abc9669e032cbd52d1df5880789411247d4db",
+      "bytes": 2356
+    },
+    {
+      "path": "scripts/migrate.ts",
+      "sha256": "4b56fff7f92ba3a132f11979dad2b7513c32b480a6d99727852e9a0ea800006a",
+      "bytes": 2026
+    },
+    {
+      "path": "scripts/seed-demo.ts",
+      "sha256": "66c689208a1503be5571752f2c9195a132908e53a6501aade90e656e9db5dfda",
+      "bytes": 16362
+    },
+    {
+      "path": "scripts/seed-m1.ts",
+      "sha256": "64b34d2af5a8ebda4e0c9278f4a477c018dfd9b1e448ce9ce612631882cf5e1a",
+      "bytes": 2458
+    },
+    {
+      "path": "scripts/validate-demo.ts",
+      "sha256": "d6c3d8cc1d7ed582ad3caf43f1d32ed08482821db6926205183d9d83818052e5",
+      "bytes": 6094
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "02b4742d7fa98cc7e5cdc195e654cab96d3a5fd4f4f3b9911328aad022c9ea28",
+      "bytes": 666
+    },
+    {
+      "path": "vitest.config.ts",
+      "sha256": "9eefb609f4c8a4eba799a22a027060356bc9e3ef8b17cf4af727d0cbc62e088f",
+      "bytes": 200
+    }
+  ]
+}

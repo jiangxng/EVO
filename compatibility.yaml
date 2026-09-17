@@ -1,0 +1,19 @@
+evo_core: "0.9"
+api:
+  supported:
+    - "v1"
+node:
+  major: 24
+db_schema:
+  min: 5
+  max: 5
+metadata_schema:
+  supported:
+    - 1
+posting_rule_schema:
+  supported:
+    - 1
+cost_policy_schema:
+  supported:
+    - 1
+compatibility_window: "N/N-1 planned for v1.0"
