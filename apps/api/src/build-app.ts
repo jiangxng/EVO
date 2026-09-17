@@ -3,6 +3,7 @@ import type { DatabaseHandle } from '../../../platform/database/src/index.js';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { JsonObject, JsonValue } from '../../../modules/metadata/api/contracts.js';
 import { legacyEnterpriseTemplateV1 } from '../../../modules/enterprise-template/reference/legacy-enterprise-template-v1.js';
+import { enterpriseCoreV1 } from '../../../modules/enterprise-template/reference/enterprise-core-v1.js';
 import { createEvoRuntime, demoIds, drainPosting } from './evo-runtime.js';
 import { demoConsoleHtml } from './demo-console.js';
 
@@ -19,11 +20,11 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
   const runtime=createEvoRuntime(options.database);
   app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
 
-  // EVO-owned Enterprise Template boundary. Published versions are immutable and enterprises pin an explicit version.
   app.get('/api/v1/enterprise-templates/:templateCode',async request=>{const p=request.params as {templateCode:string};const q=request.query as {version?:string};const version=q.version===undefined?undefined:Number(q.version);return runtime.enterpriseTemplates.get(p.templateCode,version);});
   app.put('/api/v1/enterprise-templates/:templateCode/versions/:version',async request=>{const p=request.params as {templateCode:string;version:string};const body=request.body as {name:string;description?:string;definition:JsonObject};const input={templateCode:p.templateCode,templateName:body.name,version:Number(p.version),definition:body.definition,...(body.description===undefined?{}:{description:body.description})};return runtime.enterpriseTemplates.publish(input);});
   app.get('/api/v1/enterprises/:enterpriseCode/template',async request=>runtime.enterpriseTemplates.getEnterpriseBinding((request.params as {enterpriseCode:string}).enterpriseCode));
   app.put('/api/v1/enterprises/:enterpriseCode/template',async request=>{const p=request.params as {enterpriseCode:string};const body=request.body as {templateCode:string;version:number;actorId?:string;reason?:string};return runtime.enterpriseTemplates.bindEnterprise(p.enterpriseCode,body.templateCode,body.version,body.actorId??'evo-admin',body.reason);});
+  app.post('/api/v1/enterprise-templates/enterprise-core/initialize',async()=>runtime.enterpriseTemplates.publish({templateCode:'enterprise-core',templateName:'EVO Enterprise Core',description:'Repository-owned cross-industry initialization template distilled from Asloop-Backend and bookkeeping semantics.',version:1,definition:enterpriseCoreV1}));
   app.post('/api/v1/enterprise-templates/legacy-reference/initialize',async()=>runtime.enterpriseTemplates.publish({templateCode:'legacy-enterprise-core',templateName:'Legacy Enterprise Core',description:'Semantic template distilled from Asloop-Backend and bookkeeping; no legacy implementation copied.',version:1,definition:legacyEnterpriseTemplateV1}));
 
   app.get('/api/v1/demo/dashboard',async()=>{const ids=await demoIds(runtime);return runtime.query.dashboard(ids.enterpriseId);});
