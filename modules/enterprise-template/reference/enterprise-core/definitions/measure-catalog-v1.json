@@ -1,0 +1,10 @@
+{
+  "$schema":"evo.measure-catalog/1.0",
+  "status":"CONVERGENCE_CANDIDATE",
+  "measures":[
+    {"code":"quantity","valueType":"DECIMAL","requiresUnit":true,"origin":"LEGACY_CONVERGED","legacyEvidence":{"calcRelField":"qty","incidence":87}},
+    {"code":"amount","valueType":"DECIMAL","requiresCurrencyBasis":true,"origin":"LEGACY_CONVERGED","legacyEvidence":{"calcRelField":"amount","incidence":73}},
+    {"code":"foreign-amount","valueType":"DECIMAL","requiresCurrency":true,"requiresFxLineage":true,"origin":"LEGACY_CONVERGED","legacyEvidence":{"calcRelField":"foreign","incidence":4}}
+  ],
+  "invariants":["NO_FLOAT_MONEY","MULTI_MEASURE_LEDGER_ALLOWED","UNIT_SEMANTICS_EXPLICIT","CURRENCY_BASIS_EXPLICIT"]
+}
