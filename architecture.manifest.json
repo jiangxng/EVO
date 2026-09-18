@@ -236,7 +236,8 @@
         "valuation_run",
         "valuation_result",
         "FX period-end valuation runtime",
-        "FX realized settlement valuation runtime"
+        "FX realized settlement valuation runtime",
+        "canonical valuation.requested interpretation and replay lineage"
       ],
       "mayDependOn": [
         "metadata",
@@ -324,7 +325,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 12,
+  "dbSchemaVersion": 13,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
