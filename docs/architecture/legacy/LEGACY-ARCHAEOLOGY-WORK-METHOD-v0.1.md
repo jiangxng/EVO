@@ -328,3 +328,39 @@ Entry order:
 ` → transfer/return basis carry-over`
 ` → backdated behavior`
 ` → unified CostMethodPolicy model`
+
+
+# 14. 2026-09-18 packet ledger update — AP-COST-METHOD-001
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-COST-METHOD-001.md`
+
+Status:
+
+`SEMANTIC GATE CLOSED`
+
+Do not reopen cost-method sources merely to look for a legacy LIFO label. Current evidence explicitly distinguishes:
+
+- moving average pool valuation;
+- ordered allocation substrate;
+- latest-in price reference;
+- explicit source-referenced costing.
+
+Strict legacy LIFO remains not evidenced.
+
+Current first unresolved gate:
+
+`AP-RECALC-001 — Change Impact / Local Recalculation vs Full Replay`
+
+Entry order:
+
+`proc_update_balance_by_diff`
+` → recalc.sql`
+` → balance_log`
+` → cost_mwa.path / source UUID`
+` → backdated insertion boundary`
+` → downstream dependency closure`
+` → incremental stop condition`
+` → equivalence against full replay`
+` → checkpoint contract`
