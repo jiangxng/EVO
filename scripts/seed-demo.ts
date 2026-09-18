@@ -376,6 +376,7 @@ try {
     quantityField: 'quantity',
     quantityUnit: 'EA',
     basisAmountField: 'totalCost',
+    basisUnit: 'CNY',
     specificIdentityField: 'lot'
   };
 
