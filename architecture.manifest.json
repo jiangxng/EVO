@@ -1,31 +1,293 @@
 {
   "version": 1,
-  "architectureBaseline": ["EVO-08", "EVO-09", "EVO-10", "EVO-11", "EVO-12", "EVO-13-v0.2", "EVO-v1.0.0-alpha.2"],
+  "architectureBaseline": [
+    "EVO-08",
+    "EVO-09",
+    "EVO-10",
+    "EVO-11",
+    "EVO-12",
+    "EVO-13-v0.2",
+    "EVO-v1.0.0-alpha.2",
+    "Economic-Runtime-Freeze-v0.1"
+  ],
   "modules": {
-    "identity": { "owns": ["actor/auth primitives"], "mayDependOn": [] },
-    "metadata": { "owns": ["enterprise", "domain_definition", "transaction_type", "application_definition", "application_definition_version", "field_group_definition", "field_definition", "application_instance", "enterprise_application_overlay", "command_definition", "posting_rule", "ledger_definition", "valuation_policy"], "mayDependOn": ["identity"] },
-    "application": { "owns": ["effective application runtime"], "mayDependOn": ["identity", "metadata"] },
-    "command": { "owns": ["command_execution", "command orchestration"], "mayDependOn": ["identity", "metadata", "application", "business-data"] },
-    "business-data": { "owns": ["business_data", "business history semantics"], "mayDependOn": ["identity", "metadata"] },
-    "posting": { "owns": ["posting_input", "enterprise_runtime_state", "posting_run", "posting_failure", "posting execution"], "mayDependOn": ["metadata", "business-data", "ledger"] },
-    "ledger": { "owns": ["ledger_dataset", "ledger_entry", "ledger_balance", "ledger semantics"], "mayDependOn": ["metadata", "dimensions"] },
-    "cost": { "owns": ["cost_pool", "cost_layer", "cost_match", "cost_result", "cost_run"], "mayDependOn": ["metadata", "ledger", "valuation"] },
-    "replay": { "owns": ["replay_run"], "mayDependOn": ["business-data", "posting", "ledger", "cost", "valuation"] },
-    "workflow": { "owns": ["process_instance", "work_item", "plan"], "mayDependOn": ["metadata", "command", "query"] },
-    "ai": { "owns": ["ai audit/runtime integration"], "mayDependOn": ["identity", "metadata", "command", "query"] },
-    "integration": { "owns": ["outbox_event", "integration runtime"], "mayDependOn": ["identity", "command"] },
-    "query": { "owns": ["read composition"], "mayDependOn": ["metadata", "business-data", "ledger", "cost", "valuation"] },
-    "capability": { "owns": ["capability_definition", "enterprise capability semantics"], "mayDependOn": ["metadata"] },
-    "flow": { "owns": ["flow_definition", "flow_instance", "flow_trace", "business_object_link"], "mayDependOn": ["metadata", "business-data", "command"] },
-    "metrics": { "owns": ["metric_definition", "governed metric semantics"], "mayDependOn": ["metadata", "query"] },
-    "sop": { "owns": ["sop_definition", "sop_version", "sop_step"], "mayDependOn": ["metadata"] },
-    "dimensions": { "owns": ["dimension_definition", "ledger dimension policy semantics"], "mayDependOn": ["metadata"] },
-    "valuation": { "owns": ["valuation_rule", "valuation_posting_run", "valuation_position", "valuation posting execution"], "mayDependOn": ["metadata", "ledger", "posting", "dimensions"] },
-    "enterprise-package": { "owns": ["enterprise package contract", "definition-only package validation", "deployment plan and target orchestration"], "mayDependOn": ["metadata"] },
-    "enterprise-template": { "owns": ["enterprise_template", "enterprise_template_version", "enterprise_template_binding", "enterprise template version pinning"], "mayDependOn": ["metadata"] }
+    "identity": {
+      "owns": [
+        "actor/auth primitives"
+      ],
+      "mayDependOn": []
+    },
+    "metadata": {
+      "owns": [
+        "enterprise",
+        "domain_definition",
+        "transaction_type",
+        "application_definition",
+        "application_definition_version",
+        "field_group_definition",
+        "field_definition",
+        "application_instance",
+        "enterprise_application_overlay",
+        "command_definition",
+        "posting_rule",
+        "ledger_definition",
+        "valuation_policy"
+      ],
+      "mayDependOn": [
+        "identity"
+      ]
+    },
+    "application": {
+      "owns": [
+        "effective application runtime"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata"
+      ]
+    },
+    "command": {
+      "owns": [
+        "command_execution",
+        "command orchestration"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata",
+        "application",
+        "business-data"
+      ]
+    },
+    "business-data": {
+      "owns": [
+        "business_data",
+        "business history semantics"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata"
+      ]
+    },
+    "posting": {
+      "owns": [
+        "posting_input",
+        "enterprise_runtime_state",
+        "posting_run",
+        "posting_failure",
+        "posting execution"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "ledger"
+      ]
+    },
+    "ledger": {
+      "owns": [
+        "ledger_dataset",
+        "ledger_entry",
+        "ledger_balance",
+        "ledger semantics"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "dimensions"
+      ]
+    },
+    "cost": {
+      "owns": [
+        "cost_pool",
+        "cost_layer",
+        "cost_match",
+        "cost_result",
+        "cost_run"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "ledger",
+        "valuation",
+        "allocation",
+        "economic"
+      ]
+    },
+    "replay": {
+      "owns": [
+        "replay_run"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "posting",
+        "ledger",
+        "cost",
+        "valuation",
+        "allocation",
+        "economic"
+      ]
+    },
+    "workflow": {
+      "owns": [
+        "process_instance",
+        "work_item",
+        "plan"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "command",
+        "query"
+      ]
+    },
+    "ai": {
+      "owns": [
+        "ai audit/runtime integration"
+      ],
+      "mayDependOn": [
+        "identity",
+        "metadata",
+        "command",
+        "query"
+      ]
+    },
+    "integration": {
+      "owns": [
+        "outbox_event",
+        "integration runtime"
+      ],
+      "mayDependOn": [
+        "identity",
+        "command"
+      ]
+    },
+    "query": {
+      "owns": [
+        "read composition"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "ledger",
+        "cost",
+        "valuation"
+      ]
+    },
+    "capability": {
+      "owns": [
+        "capability_definition",
+        "enterprise capability semantics"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "flow": {
+      "owns": [
+        "flow_definition",
+        "flow_instance",
+        "flow_trace",
+        "business_object_link"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "command"
+      ]
+    },
+    "metrics": {
+      "owns": [
+        "metric_definition",
+        "governed metric semantics"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "query"
+      ]
+    },
+    "sop": {
+      "owns": [
+        "sop_definition",
+        "sop_version",
+        "sop_step"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "dimensions": {
+      "owns": [
+        "dimension_definition",
+        "ledger dimension policy semantics"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "valuation": {
+      "owns": [
+        "valuation_rule",
+        "valuation_posting_run",
+        "valuation_position",
+        "valuation posting execution"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "ledger",
+        "posting",
+        "dimensions"
+      ]
+    },
+    "enterprise-package": {
+      "owns": [
+        "enterprise package contract",
+        "definition-only package validation",
+        "deployment plan and target orchestration"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "enterprise-template": {
+      "owns": [
+        "enterprise_template",
+        "enterprise_template_version",
+        "enterprise_template_binding",
+        "enterprise template version pinning"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "economic": {
+      "owns": [
+        "economic measurement contracts",
+        "basis evidence contracts",
+        "rate observation and dataset pin contracts"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "allocation": {
+      "owns": [
+        "allocation instruction contracts",
+        "allocation policy contracts",
+        "allocation relation contracts",
+        "allocation run semantics"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "economic",
+        "business-data"
+      ]
+    }
   },
   "currentMilestone": "v1.0.0-alpha.2",
   "dbSchemaVersion": 7,
   "metadataSchemaVersion": 3,
-  "release": { "version": "1.0.0-alpha.2", "status": "alpha", "validationConsole": "/", "deployment": "docker-compose", "contextContractVersion": "1.1" }
+  "release": {
+    "version": "1.0.0-alpha.2",
+    "status": "alpha",
+    "validationConsole": "/",
+    "deployment": "docker-compose",
+    "contextContractVersion": "1.1"
+  }
 }
