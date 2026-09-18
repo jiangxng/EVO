@@ -25,6 +25,7 @@ try {
     input: {
       orderNo, customer: 'Validation', productId: 'P-100', quantity: 10,
       unitPrice: '100.00', totalAmount: '1000.00', currency: 'USD',
+      localCarryingAmount: '7000.00', localCurrency: 'CNY',
       fulfillmentMode: 'MAKE', project, department: 'SALES',
       profitCenter: 'PC-PROJECT', costCenter: 'CC-SALES'
     },
@@ -161,6 +162,85 @@ try {
     throw new Error(`COGS expected 20, got ${cogs.amount}`);
   }
 
+  const fxPositionDefinition = await runtime.db.selectFrom('position_definition')
+    .select(['id','version','semantic_digest'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('code','=','fx_receivable')
+    .where('status','=','PUBLISHED')
+    .where('version','=',1)
+    .executeTakeFirstOrThrow();
+
+  const replayRateDataset = await runtime.rates.publish({
+    enterpriseId: ids.enterpriseId,
+    code: `demo-replay-fx-${suffix}`,
+    version: 1,
+    provider: 'validate-demo',
+    observations: [{
+      role: 'PERIOD_END_VALUATION',
+      sourceUnit: 'USD',
+      targetUnit: 'CNY',
+      rate: '7.2',
+      effectiveAt: new Date('2026-09-18T00:00:00.000Z'),
+      precision: 6
+    }]
+  });
+
+  const valuationAt = new Date('2026-09-18T23:59:59.000Z');
+  const valuationRequest = await runtime.command.execute({
+    enterpriseId: ids.enterpriseId,
+    applicationInstanceId: ids.valuationAppId,
+    commandCode: 'request-valuation',
+    actor: { type: 'AUTOMATION', id: 'demo-automation' },
+    requestId: `${orderNo}:fx-period-end`,
+    correlationId,
+    causationId: orderBusiness.id,
+    idempotencyKey: `${orderNo}:fx-period-end`,
+    input: {
+      requestCode: `FX-${orderNo}`,
+      valuationKind: 'FX_PERIOD_END',
+      valuationAt: valuationAt.toISOString(),
+      scope: {
+        kind: 'DIMENSION_QUERY',
+        dimensions: { order_no: orderNo, customer: 'Validation' }
+      },
+      positionDefinition: {
+        definitionId: fxPositionDefinition.id,
+        version: fxPositionDefinition.version,
+        digest: fxPositionDefinition.semantic_digest
+      },
+      rateDataset: {
+        datasetId: replayRateDataset.id,
+        version: replayRateDataset.version,
+        digest: replayRateDataset.digest
+      },
+      policy: { amountScale: 2, roundingMode: 'HALF_UP' }
+    },
+    effectiveAt: valuationAt,
+    businessObjectKey: `FX-REQ:${orderNo}`
+  });
+  await drainPosting(runtime, ids.enterpriseId);
+
+  const preReplayBoundary = BigInt((await runtime.db.selectFrom('enterprise_runtime_state')
+    .select('next_posting_sequence')
+    .where('enterprise_id','=',ids.enterpriseId)
+    .executeTakeFirstOrThrow()).next_posting_sequence) - 1n;
+  const valuationInitial = await runtime.valuationReplay.replayAcceptedRequests(
+    ids.enterpriseId,
+    'enterprise',
+    preReplayBoundary
+  );
+  if (valuationInitial.replayedRequestCount !== 1) {
+    throw new Error(`Expected one canonical valuation request, got ${valuationInitial.replayedRequestCount}.`);
+  }
+  const initialFxResult = await runtime.db.selectFrom('valuation_result')
+    .select(['result_kind','delta_amount'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('result_kind','=','FX_PERIOD_END')
+    .executeTakeFirstOrThrow();
+  if (!new Decimal(initialFxResult.delta_amount).eq(200)) {
+    throw new Error(`Expected canonical FX period-end delta 200, got ${initialFxResult.delta_amount}.`);
+  }
+
   const consistencyDomain = (await runtime.db.selectFrom('enterprise_runtime_state')
     .select('consistency_domain')
     .where('enterprise_id','=',ids.enterpriseId)
@@ -180,6 +260,16 @@ try {
   await drainPosting(runtime, ids.enterpriseId);
   if (replay.costMethod !== null) {
     await runtime.cost.recalculate(ids.enterpriseId, replay.costMethod, replay.costPins ?? undefined);
+  }
+  const valuationReplayResult = await runtime.valuationReplay.replayAcceptedRequests(
+    ids.enterpriseId,
+    consistencyDomain,
+    replay.boundarySequence
+  );
+  if (valuationReplayResult.replayedRequestCount !== 1) {
+    throw new Error(
+      `Expected Full Replay to rebuild one canonical valuation request, got ${valuationReplayResult.replayedRequestCount}.`
+    );
   }
   const after = await computeEconomicRuntimeDigest(
     runtime.db,
@@ -237,25 +327,22 @@ try {
     throw new Error('Coverage certification must remain DRAFT while safety blockers remain.');
   }
 
-  // Dependency-graph coverage scenario runs AFTER the verified Full Replay checkpoint.
-  // This intentionally does not claim that FX derived state is replayable yet.
-  const fxRateDataset = await runtime.rates.publish({
-    enterpriseId: ids.enterpriseId,
-    code: `demo-fx-${suffix}`,
-    version: 1,
-    provider: 'validate-demo',
-    observations: [{
-      role: 'PERIOD_END_VALUATION',
-      sourceUnit: 'USD',
-      targetUnit: 'CNY',
-      rate: '7.2',
-      effectiveAt: new Date('2026-09-18T00:00:00.000Z'),
-      precision: 6
-    }]
-  });
+  // FX period-end is now a replayed canonical valuation request.
+  // The post-checkpoint scenario only adds realized settlement producer coverage.
+  const replayedFxResult = await runtime.db.selectFrom('valuation_result as r')
+    .innerJoin('valuation_run as v','v.id','r.valuation_run_id')
+    .select(['r.delta_amount','r.target_measurements'])
+    .where('r.enterprise_id','=',ids.enterpriseId)
+    .where('r.result_kind','=','FX_PERIOD_END')
+    .where('v.status','=','COMPLETED')
+    .orderBy('v.completed_at','desc')
+    .executeTakeFirstOrThrow();
+  if (!new Decimal(replayedFxResult.delta_amount).eq(200)) {
+    throw new Error(`Expected replayed FX period-end delta 200, got ${replayedFxResult.delta_amount}.`);
+  }
 
   const fxOpenPosition = {
-    positionKey: `receivable:${orderBusiness.id}`,
+    positionKey: 'reference-fx-position',
     sourceBusinessDataIds: [orderBusiness.id],
     dimensions: { order_no: orderNo, customer: 'Validation' },
     foreign: {
@@ -264,28 +351,11 @@ try {
       role: 'RESOURCE_QUANTITY' as const
     },
     carrying: {
-      value: '7000',
+      value: '7200',
       unit: 'CNY',
       role: 'VALUATION_AMOUNT' as const
     }
   };
-
-  const fxPeriodEnd = await runtime.fxValuation.revaluePeriodEnd({
-    enterpriseId: ids.enterpriseId,
-    valuationAt: new Date('2026-09-18T23:59:59.000Z'),
-    rateDataset: {
-      datasetId: fxRateDataset.id,
-      version: fxRateDataset.version,
-      digest: fxRateDataset.digest
-    },
-    policy: { amountScale: 2, roundingMode: 'HALF_UP' },
-    positions: [fxOpenPosition]
-  });
-
-  const fxPeriodResult = fxPeriodEnd.results[0];
-  if (fxPeriodResult === undefined || fxPeriodResult.delta.value !== '200') {
-    throw new Error(`Expected FX period-end delta 200, got ${fxPeriodResult?.delta.value ?? 'missing'}.`);
-  }
 
   const payment = await runtime.command.execute({
     enterpriseId: ids.enterpriseId,
@@ -444,7 +514,7 @@ try {
     fxCoverage: {
       periodEndDelta: fxPeriodResult.delta.value,
       realizedSettlementDelta: fxSettlement.result.realizedDelta.value,
-      rateDatasetId: fxRateDataset.id,
+      rateDatasetId: replayRateDataset.id,
       allocationInstructionId: fxInstruction.id
     },
     beforeDigest: before,
