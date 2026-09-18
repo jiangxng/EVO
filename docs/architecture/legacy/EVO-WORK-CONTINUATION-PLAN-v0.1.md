@@ -956,3 +956,66 @@ Initial scope is deliberate:
 - accounting projection remains a later deterministic projection from the realized result.
 
 Partial settlement/general multi-source settlement can extend the same substrate after the closure path is certified.
+
+
+---
+
+# 24. ER-FX-002 — Realized FX Settlement / Position Closure — COMPLETED
+
+Verified implementation checkpoint:
+
+`bfdc65e4c9b177ced0f91ca11607b2a7d43fe2e6`
+
+GitHub CI:
+
+`SUCCESS`
+
+Verified pipeline:
+- migrations;
+- TypeScript typecheck;
+- build;
+- tests.
+
+Delivered:
+
+- `FxSettlementClosureRequest / Result / RunResult` contracts;
+- domain invariant for full foreign-position closure;
+- realized delta:
+  `actual local settlement value - exact remaining carrying basis`;
+- unit/role validation between foreign resource, carrying basis and settlement measurements;
+- explicit rejection of partial settlement in the first certified implementation;
+- `DefaultFxSettlementService`;
+- one deterministic semantic input digest shared by AllocationRun and ValuationRun;
+- settlement closure emits one derived `allocation_relation` from source position key to canonical settlement BusinessData;
+- realized FX emits `FX_REALIZED_SETTLEMENT` generic `valuation_result`;
+- AllocationInstruction remains canonical and survives replay;
+- AllocationRun/Relation and generic ValuationRun/Result are deleted/rebuilt by full replay;
+- enterprise isolation checks are enforced when allocation lineage references BusinessData;
+- valuation module dependency on allocation is declared in `architecture.manifest.json`;
+- module docs distinguish period-end revaluation from realized settlement.
+
+Current FX runtime separation is now executable:
+
+`FX_PERIOD_END`
+= open foreign position + pinned period-end RateDataset → revaluation delta
+
+`FX_REALIZED_SETTLEMENT`
+= open foreign position + canonical settlement BusinessData + Allocation closure → realized delta
+
+These operations share valuation infrastructure but are not the same semantic event.
+
+## Next active phase
+
+`ER-C05 — Dependency-Scoped Incremental Replay Planning & Equivalence`
+
+Implementation sequence:
+
+1. build pure ImpactRoot → DependencyClosure planner;
+2. select the latest valid ReplayCheckpoint at/before earliest affected sequence;
+3. fall back to full replay when graph/checkpoint safety cannot be proven;
+4. add deterministic plan digest;
+5. add plan-level tests before any incremental mutation execution;
+6. only after planning is certified, implement candidate incremental rebuild;
+7. compare candidate digest against full replay before enabling activation.
+
+Generic valuation-result accounting projection remains a separate downstream packet and must not block replay correctness work.
