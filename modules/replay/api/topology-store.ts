@@ -14,6 +14,12 @@ export interface ReplayTopologyStore extends CalculationDependencyStore {
     atOrBeforeSequence: bigint
   ): Promise<ReplayCheckpointDescriptor | null>;
 
+  getLatestIncrementalSafeCheckpoint(
+    enterpriseId: string,
+    consistencyDomain: string,
+    atOrBeforeSequence: bigint
+  ): Promise<ReplayCheckpointDescriptor | null>;
+
   invalidateCheckpoint(
     checkpointId: string,
     reason: string
