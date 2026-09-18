@@ -36,3 +36,5 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm run test
+      - run: npm run seed:demo
+      - run: npm run validate:demo
