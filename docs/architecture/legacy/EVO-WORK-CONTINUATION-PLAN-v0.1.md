@@ -2102,3 +2102,150 @@ future v0.3 / v0.4 ...
 ```
 
 No existing database-design or continuity document was overwritten for this work.
+
+
+---
+
+# 40. ER-C05B4 progress — Promotion certified, Incremental Generation substrate started
+
+## 40.1 ER-C05B4.1 — CLOSED / CERTIFIED
+
+Certification:
+
+`docs/architecture/certification/ER-C05B4.1-CHECKPOINT-PROMOTION-CERTIFICATION-v0.1.md`
+
+Certified implementation head:
+
+`c13269a197c50bf1cf190e5d1c8032405a33fee6`
+
+True E2E run:
+
+`35404542720 — SUCCESS`
+
+Proven:
+
+- original ReplayCheckpoint remains `safeForIncremental=false`;
+- ReplayCoverageCertification is independently CERTIFIED;
+- explicit `replay_checkpoint_promotion` authorizes use of the checkpoint;
+- promoted read view becomes `safeForIncremental=true`;
+- IncrementalReplayPlanner selects only promoted checkpoints;
+- planner does not fall back when promotion and semantic scope are valid;
+- promotion is auditable and revocable.
+
+Schema v14 added:
+
+`replay_checkpoint_promotion`
+
+Database snapshot after v14:
+
+- 61 tables;
+- 651 fields.
+
+Bilingual delta:
+
+`docs/architecture/database/EVO-CURRENT-DATABASE-DESIGN-BILINGUAL-v0.3.md`
+
+## 40.2 ER-C05B4.2 architecture finding
+
+A real Incremental Replay cannot safely be implemented as:
+
+`delete suffix rows → rebuild suffix`
+
+because completed CostRun / AllocationRun / ValuationRun may have originally produced both prefix and suffix outputs. Partially deleting their results would leave false audit lineage even if final balances happened to match.
+
+ADR:
+
+`docs/architecture/decisions/2026-09-19-incremental-replay-materialization-generation-v0.1.md`
+
+Frozen direction:
+
+> derived state must belong to an explicit materialization generation / Economic Runtime Dataset so a candidate interpretation can be built and verified without corrupting the currently active interpretation.
+
+## 40.3 B4.2 decomposition
+
+Main line is now:
+
+```text
+B4.2A Economic Runtime Generation substrate
+→ B4.2B Checkpoint prefix-state restore
+→ B4.2C real suffix recompute + Full Replay equivalence
+```
+
+Do not implement a fake Incremental Replay that internally performs Full Replay and merely changes the label.
+
+## 40.4 Economic Runtime Dataset substrate
+
+Contract:
+
+`modules/replay/api/runtime-dataset.ts`
+
+Schema migration:
+
+`migrations/schema/202609190010_economic_runtime_dataset.sql`
+
+Service:
+
+`modules/replay/infrastructure/postgres-economic-runtime-dataset-service.ts`
+
+DB Schema Version:
+
+`15`
+
+Dataset lifecycle:
+
+```text
+CURRENT / ACTIVE
+    ↓
+CANDIDATE / BUILDING
+    ↓
+CANDIDATE / VERIFIED
+    ↓ atomic activation
+new CURRENT / ACTIVE
+old CURRENT → ARCHIVED
+```
+
+Candidate binds:
+
+- parent active dataset;
+- promoted checkpoint;
+- checkpoint promotion;
+- incremental plan digest;
+- start/boundary sequence.
+
+A failed candidate never replaces current production state.
+
+## 40.5 Current E2E validation
+
+Reference validation now includes the EconomicRuntimeDataset lifecycle but does NOT yet claim module-level candidate isolation or actual incremental execution.
+
+Current target head:
+
+`69513bc771adcfa48b577a3126d4f1f462aec938`
+
+Target workflow:
+
+`35405169593`
+
+At this checkpoint the workflow is still running (npm install stage after runner initialization).
+
+Already verified separately:
+
+- migration/contract/type/service commits before the final reference assertion have produced green CI;
+- the remaining proof is the complete E2E lifecycle assertion at the target head.
+
+## 40.6 Next after lifecycle green
+
+Do not jump directly to IncrementalReplay execution.
+
+Next engineering packet:
+
+1. scope derived families to EconomicRuntimeDataset generation;
+2. converge existing `ledger_dataset` under/with the parent generation;
+3. preserve immutable completed Run semantics;
+4. define minimum Checkpoint prefix state, especially Cost pool state:
+   - FIFO/LIFO layers;
+   - Moving Average quantity/value pool;
+   - Specific-ID source state;
+   - valuation carrying state;
+5. build isolated candidate suffix;
+6. only then compare candidate digest to independent Full Replay digest.
