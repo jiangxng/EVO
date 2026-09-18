@@ -69,11 +69,29 @@ export interface ReplayCheckpointDescriptor {
 
 export interface IncrementalReplayPlan {
   readonly enterpriseId: string;
+  readonly consistencyDomain: string;
+  readonly graphVersion: string;
   readonly impactRoots: readonly ImpactRoot[];
   readonly dependencyClosure: readonly CalculationDependencyEdge[];
   readonly earliestAffectedSequence: bigint;
   readonly checkpoint?: ReplayCheckpointDescriptor;
   readonly fallbackToFullReplay: boolean;
+  readonly fallbackReasons: readonly string[];
+  readonly planDigest: string;
+}
+
+export interface PlanIncrementalReplayRequest {
+  readonly enterpriseId: string;
+  readonly consistencyDomain: string;
+  readonly graphVersion: string;
+  readonly runtimeSemanticVersion: string;
+  readonly impactRoots: readonly ImpactRoot[];
+  readonly earliestAffectedSequence: bigint;
+  readonly dependencyGraphComplete: boolean;
+}
+
+export interface IncrementalReplayPlanner {
+  plan(request: PlanIncrementalReplayRequest): Promise<IncrementalReplayPlan>;
 }
 
 export interface ReplayEquivalenceResult {
