@@ -118,8 +118,16 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
       a.id.localeCompare(b.id) || a.schemaVersion - b.schemaVersion
     );
 
+    const postingMetadataRows = await this.db.selectFrom('posting_input')
+      .select('metadata_version')
+      .where('enterprise_id','=',enterpriseId)
+      .where('consistency_domain','=',run.consistency_domain)
+      .where('posting_sequence','<=',boundarySequence)
+      .orderBy('metadata_version')
+      .execute();
+
     const postingMetadataVersions = [...new Set(
-      orderedRows.map((row) => row.posting_metadata_version)
+      postingMetadataRows.map((row) => row.metadata_version)
     )].sort((a,b) => a-b);
 
     const postingPolicyPins: JsonObject = {
