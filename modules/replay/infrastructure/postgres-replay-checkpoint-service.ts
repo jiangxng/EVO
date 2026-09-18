@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import type { Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import { ECONOMIC_RUNTIME_SEMANTIC_VERSION } from '../../economic/domain/runtime-version.js';
@@ -6,7 +6,7 @@ import {
   ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
   versionedDependencyNodeId
 } from '../../lineage/domain/node-identity.js';
-import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { JsonObject } from '../../metadata/api/contracts.js';
 import type {
   ReplayCheckpointDescriptor
 } from '../api/contracts.js';
@@ -14,33 +14,11 @@ import type { ReplayCheckpointService } from '../api/checkpoint-service.js';
 import type { ReplayTopologyStore } from '../api/topology-store.js';
 import { computeReplayInputDigest } from './postgres-replay-digest.js';
 
-function canonical(value: JsonValue): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  const object = value as JsonObject;
-  return `{${Object.keys(object).sort().map((key) =>
-    `${JSON.stringify(key)}:${canonical(object[key] ?? null)}`
-  ).join(',')}}`;
-}
-
-function digest(value: JsonValue): string {
-  return createHash('sha256').update(canonical(value)).digest('hex');
-}
-
 function asBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') return value;
   if (typeof value === 'number' && Number.isInteger(value)) return BigInt(value);
   if (typeof value === 'string' && /^-?\d+$/.test(value)) return BigInt(value);
   throw new Error('Replay checkpoint source contains an invalid sequence.');
-}
-
-function iso(value: unknown): string {
-  if (value instanceof Date) return value.toISOString();
-  if (typeof value === 'string' || typeof value === 'number') {
-    const date = new Date(value);
-    if (!Number.isNaN(date.getTime())) return date.toISOString();
-  }
-  throw new Error('Replay checkpoint source contains an invalid timestamp.');
 }
 
 export class PostgresReplayCheckpointService implements ReplayCheckpointService {
