@@ -11,6 +11,11 @@ describe('valuation request BusinessData', () => {
         kind: 'EXPLICIT_POSITIONS',
         positionKeys: ['dealer:USD:ACME']
       },
+      positionDefinition: {
+        definitionId: 'position-def-1',
+        version: 1,
+        digest: 'c'.repeat(64)
+      },
       rateDataset: {
         datasetId: 'dataset-1',
         version: 3,
@@ -30,6 +35,11 @@ describe('valuation request BusinessData', () => {
       valuationKind: 'FX_PERIOD_END',
       valuationAt: '2026-09-30T23:59:59.000Z',
       scope: { kind: 'DIMENSION_QUERY', dimensions: {} },
+      positionDefinition: {
+        definitionId: 'position-def-1',
+        version: 1,
+        digest: 'c'.repeat(64)
+      },
       rateDataset: {
         datasetId: 'dataset-1',
         version: 0,
