@@ -1,6 +1,6 @@
 import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
-import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { JsonObject } from '../../metadata/api/contracts.js';
 import type {
   RecordValuationResultInput,
   StartValuationRunInput,
@@ -39,10 +39,10 @@ export class PostgresValuationStore implements ValuationStore {
       valuation_run_id: input.valuationRunId,
       result_kind: input.resultKind,
       position_key: input.positionKey,
-      source_business_data_ids: sql<JsonValue>`${JSON.stringify(input.sourceBusinessDataIds)}::jsonb`,
+      source_business_data_ids: sql<readonly unknown[]>`${JSON.stringify(input.sourceBusinessDataIds)}::jsonb`,
       dimensions: input.dimensions,
-      source_measurements: sql<JsonValue>`${JSON.stringify(input.sourceMeasurements)}::jsonb`,
-      target_measurements: sql<JsonValue>`${JSON.stringify(input.targetMeasurements)}::jsonb`,
+      source_measurements: sql<readonly unknown[]>`${JSON.stringify(input.sourceMeasurements)}::jsonb`,
+      target_measurements: sql<readonly unknown[]>`${JSON.stringify(input.targetMeasurements)}::jsonb`,
       delta_amount: input.delta.value,
       delta_unit: input.delta.unit,
       lineage: input.lineage
