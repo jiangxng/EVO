@@ -130,6 +130,22 @@ export class PostgresReplayService implements ReplayService {
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('cost_run')
         .where('enterprise_id', '=', enterpriseId).execute();
+
+      // Allocation instructions are canonical business intent and must survive replay.
+      // Allocation runs/relations are derived interpretation results and are rebuilt.
+      const allocationRunIds = await trx.selectFrom('allocation_run')
+        .select('id')
+        .where('enterprise_id','=',enterpriseId)
+        .execute();
+      const derivedAllocationRunIds = allocationRunIds.map((row) => row.id);
+      if (derivedAllocationRunIds.length > 0) {
+        await trx.deleteFrom('allocation_relation')
+          .where('allocation_run_id','in',derivedAllocationRunIds)
+          .execute();
+        await trx.deleteFrom('allocation_run')
+          .where('id','in',derivedAllocationRunIds)
+          .execute();
+      }
       await trx.deleteFrom('posting_run')
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('posting_failure')
