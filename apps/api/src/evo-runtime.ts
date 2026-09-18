@@ -30,6 +30,9 @@ import { PostgresValuationStore } from '../../../modules/valuation/infrastructur
 import { DefaultFxValuationService } from '../../../modules/valuation/application/fx-valuation-service.js';
 import { DefaultFxSettlementService } from '../../../modules/valuation/application/fx-settlement-service.js';
 import { PostgresPositionDefinitionStore } from '../../../modules/position/infrastructure/postgres-position-definition-store.js';
+import { PostgresFxPositionResolver } from '../../../modules/valuation/infrastructure/postgres-fx-position-resolver.js';
+import { DefaultValuationRequestInterpreter } from '../../../modules/valuation/application/valuation-request-interpreter.js';
+import { PostgresValuationRequestReplayService } from '../../../modules/valuation/infrastructure/postgres-valuation-request-replay-service.js';
 
 export function createEvoRuntime(database: DatabaseHandle) {
   const db = database.db;
@@ -43,21 +46,24 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const allocation = new PostgresAllocationStore(db);
   const rates = new PostgresRateDatasetStore(db);
   const positions = new PostgresPositionDefinitionStore(db);
+  const fxPositionResolver = new PostgresFxPositionResolver(db,positions);
   const valuationInputs = new PostgresValuationInputReader(db);
   const replayTopology = new PostgresReplayTopologyStore(db);
   const dependencyGraph = new PostgresDependencyGraphRebuilder(db,replayTopology);
   const replayCheckpoint = new PostgresReplayCheckpointService(db,replayTopology);
   const replayCoverage = new PostgresReplayCoverageCertificationService(db,dependencyGraph);
   const fxValuation = new DefaultFxValuationService(rates,valuationStore,replayTopology);
+  const valuationRequests = new DefaultValuationRequestInterpreter(fxPositionResolver,fxValuation);
+  const valuationReplay = new PostgresValuationRequestReplayService(db,valuationRequests);
   const fxSettlement = new DefaultFxSettlementService(allocation,valuationStore,replayTopology);
   const incrementalReplayPlanner = new DefaultIncrementalReplayPlanner(replayTopology);
-  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCoverage, incrementalReplayPlanner, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCoverage, incrementalReplayPlanner, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
   const enterprise = await runtime.db.selectFrom('enterprise').select(['id']).where('code','=','EVO_DEMO').executeTakeFirstOrThrow();
   const apps = await runtime.db.selectFrom('application_instance').select(['id','code']).where('enterprise_id','=',enterprise.id).execute();
-  return { enterpriseId:enterprise.id, salesAppId:apps.find(x=>x.code==='sales')?.id??'', productionAppId:apps.find(x=>x.code==='production')?.id??'', inventoryAppId:apps.find(x=>x.code==='inventory')?.id??'', flowDefinitionId:(await runtime.db.selectFrom('flow_definition').select('id').where('enterprise_id','=',enterprise.id).where('code','=','order-to-cash').where('version','=',1).executeTakeFirstOrThrow()).id };
+  return { enterpriseId:enterprise.id, salesAppId:apps.find(x=>x.code==='sales')?.id??'', productionAppId:apps.find(x=>x.code==='production')?.id??'', inventoryAppId:apps.find(x=>x.code==='inventory')?.id??'', valuationAppId:apps.find(x=>x.code==='valuation')?.id??'', flowDefinitionId:(await runtime.db.selectFrom('flow_definition').select('id').where('enterprise_id','=',enterprise.id).where('code','=','order-to-cash').where('version','=',1).executeTakeFirstOrThrow()).id };
 }
 
 export async function drainPosting(runtime:ReturnType<typeof createEvoRuntime>,enterpriseId:string):Promise<number>{
