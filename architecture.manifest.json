@@ -230,13 +230,17 @@
         "valuation_rule",
         "valuation_posting_run",
         "valuation_position",
-        "valuation posting execution"
+        "valuation posting execution",
+        "valuation_run",
+        "valuation_result",
+        "FX period-end valuation runtime"
       ],
       "mayDependOn": [
         "metadata",
         "ledger",
         "posting",
-        "dimensions"
+        "dimensions",
+        "economic"
       ]
     },
     "enterprise-package": {
@@ -291,7 +295,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 9,
+  "dbSchemaVersion": 10,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
