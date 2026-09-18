@@ -27,5 +27,6 @@ export interface PublishRateDatasetInput {
 export interface RateDatasetStore {
   publish(input: PublishRateDatasetInput): Promise<RateDataset>;
   get(code: string, version: number, enterpriseId?: string): Promise<RateDataset | null>;
+  getById(datasetId: string): Promise<RateDataset | null>;
   listObservations(datasetId: string): Promise<readonly RateObservation[]>;
 }
