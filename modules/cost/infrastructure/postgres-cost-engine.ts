@@ -1,8 +1,10 @@
+import { createHash } from 'node:crypto';
 import { Decimal } from 'decimal.js';
 import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { AllocationStore } from '../../allocation/api/store.js';
 import type { ValuationPostingService } from '../../valuation/api/contracts.js';
 import { addToMovingAverage, consumeMovingAverage } from '../domain/moving-average.js';
 import type {
@@ -29,6 +31,7 @@ interface RuntimeCostConfig {
   readonly inboundBusinessDataTypes: readonly string[];
   readonly outboundBusinessDataTypes: readonly string[];
   readonly quantityField: string;
+  readonly quantityUnit: string;
   readonly basisAmountField: string;
   readonly specificIdentityField?: string;
   readonly poolDimensions: readonly string[];
@@ -117,7 +120,8 @@ function poolKey(payload: JsonObject, dimensions: readonly string[]): string {
 export class PostgresCostEngine implements CostEngine {
   constructor(
     private readonly db: Kysely<Database>,
-    private readonly valuation: ValuationPostingService
+    private readonly valuation: ValuationPostingService,
+    private readonly allocation: AllocationStore
   ) {}
 
   async recalculate(
@@ -159,6 +163,47 @@ export class PostgresCostEngine implements CostEngine {
       );
     }
 
+    let allocationPolicy:
+      | { id: string; version: number; source_ordering: 'OLDEST_FIRST' | 'NEWEST_FIRST' | 'EXPLICIT_ONLY' | 'POLICY_DEFINED' }
+      | undefined;
+
+    if (method !== 'MOVING_AVERAGE') {
+      if (pins.allocationPolicyId === undefined || pins.allocationPolicyVersion === undefined) {
+        fail(
+          'COST_ALLOCATION_POLICY_PIN_REQUIRED',
+          `Cost method ${method} requires an explicit allocation policy id and version.`
+        );
+      }
+
+      allocationPolicy = await this.db.selectFrom('allocation_policy')
+        .select(['id','version','source_ordering'])
+        .where('id','=',pins.allocationPolicyId)
+        .where('version','=',pins.allocationPolicyVersion)
+        .where('status','=','PUBLISHED')
+        .executeTakeFirst();
+
+      if (allocationPolicy === undefined) {
+        fail(
+          'COST_ALLOCATION_POLICY_PIN_NOT_FOUND',
+          `Pinned allocation policy ${pins.allocationPolicyId} v${pins.allocationPolicyVersion} is not published.`
+        );
+      }
+
+      const expectedOrdering =
+        method === 'FIFO'
+          ? 'OLDEST_FIRST'
+          : method === 'LIFO'
+            ? 'NEWEST_FIRST'
+            : 'EXPLICIT_ONLY';
+
+      if (allocationPolicy.source_ordering !== expectedOrdering) {
+        fail(
+          'COST_ALLOCATION_POLICY_MISMATCH',
+          `Cost method ${method} requires source ordering ${expectedOrdering}, got ${allocationPolicy.source_ordering}.`
+        );
+      }
+    }
+
     const run = await this.db
       .insertInto('cost_run')
       .values({
@@ -169,10 +214,14 @@ export class PostgresCostEngine implements CostEngine {
         error: null,
         valuation_policy_id: policy.id,
         valuation_policy_version: policy.version,
-        cost_engine_version: '3'
+        allocation_policy_id: allocationPolicy?.id ?? null,
+        allocation_policy_version: allocationPolicy?.version ?? null,
+        cost_engine_version: '4'
       })
       .returning('id')
       .executeTakeFirstOrThrow();
+
+    let allocationRunId: string | undefined;
 
     try {
       const movementTypes = [...new Set([
@@ -196,6 +245,29 @@ export class PostgresCostEngine implements CostEngine {
         .orderBy('p.posting_sequence')
         .orderBy('b.id')
         .execute();
+
+      if (allocationPolicy !== undefined) {
+        const inputDigest = createHash('sha256').update(JSON.stringify({
+          enterpriseId,
+          method,
+          valuationPolicy: { id: policy.id, version: policy.version },
+          allocationPolicy: { id: allocationPolicy.id, version: allocationPolicy.version },
+          movements: movements.map((movement) => ({
+            id: movement.id,
+            type: movement.business_data_type,
+            effectiveAt: String(movement.effective_at),
+            postingSequence: String(movement.posting_sequence)
+          }))
+        })).digest('hex');
+
+        const allocationRun = await this.allocation.startRun({
+          enterpriseId,
+          allocationPolicyId: allocationPolicy.id,
+          allocationPolicyVersion: allocationPolicy.version,
+          inputDigest
+        });
+        allocationRunId = allocationRun.id;
+      }
 
       const pools = new Map<string, PoolState>();
       let resultCount = 0;
@@ -265,6 +337,7 @@ export class PostgresCostEngine implements CostEngine {
         } else {
           let remaining = quantity;
           const ordered = method === 'LIFO' ? [...state.layers].reverse() : state.layers;
+          let allocationSequence = 0;
           const specificIdentity = method === 'SPECIFIC_IDENTIFICATION'
             ? stringField(payload, runtime.specificIdentityField!)
             : '';
@@ -278,7 +351,37 @@ export class PostgresCostEngine implements CostEngine {
             if (specificIdentity && layer.specificIdentity !== specificIdentity) continue;
             const take = Decimal.min(layer.quantity, remaining);
             if (take.lte(0)) continue;
-            total = total.plus(take.times(layer.unitCost));
+            const allocatedCost = take.times(layer.unitCost);
+            total = total.plus(allocatedCost);
+
+            if (allocationRunId === undefined || allocationPolicy === undefined) {
+              fail('COST_ALLOCATION_RUN_MISSING', 'Layer cost method requires an active allocation run.');
+            }
+
+            allocationSequence += 1;
+            await this.allocation.recordRelation({
+              enterpriseId,
+              allocationRunId,
+              sourceBusinessDataId: layer.businessDataId,
+              consumerBusinessDataId: movement.id,
+              measurements: [{
+                value: take.toString(),
+                unit: runtime.quantityUnit,
+                role: 'RESOURCE_QUANTITY'
+              }],
+              sequence: allocationSequence,
+              allocationPolicyId: allocationPolicy.id,
+              allocationPolicyVersion: allocationPolicy.version,
+              lineage: {
+                costRunId: run.id,
+                method,
+                poolKey: key,
+                sourceUnitCost: layer.unitCost.toString(),
+                allocatedCost: allocatedCost.toString(),
+                ...(specificIdentity ? { specificIdentity } : {})
+              }
+            });
+
             layer.quantity = layer.quantity.minus(take);
             remaining = remaining.minus(take);
           }
@@ -333,12 +436,19 @@ export class PostgresCostEngine implements CostEngine {
         if (valuation.status === 'POSTED') valuationPostingCount += 1;
       }
 
+      if (allocationRunId !== undefined) {
+        await this.allocation.completeRun(allocationRunId);
+      }
+
       await this.db.updateTable('cost_run')
         .set({ status: 'COMPLETED', completed_at: sql`now()` })
         .where('id', '=', run.id).execute();
 
       return { costRunId: run.id, method, resultCount, valuationPostingCount };
     } catch (error) {
+      if (allocationRunId !== undefined) {
+        await this.allocation.failRun(allocationRunId, error);
+      }
       await this.db.updateTable('cost_run')
         .set({
           status: 'FAILED',
