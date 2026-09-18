@@ -31,3 +31,9 @@ M0 placeholder. Concrete contracts are introduced by the milestone that implemen
 - Moving Average is a quantity+amount valuation pool. It MUST NOT simulate residual state by consuming receipt layers while retaining original layer unit costs.
 - Valuation rules used by authoritative cost runs are explicitly pinned.
 - Cost execution order follows semantic effective order plus explicit posting sequence and stable tie-breaker.
+
+
+Residual closure invariant:
+- when a final consumption exhausts a quantity/value pool, the consuming result takes the exact remaining amount;
+- do not recompute the final amount as rounded unit-cost × quantity;
+- this prevents ghost residual value and must hold under deterministic replay.
