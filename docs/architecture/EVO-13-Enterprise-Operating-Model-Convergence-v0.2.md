@@ -2228,3 +2228,525 @@ Replay     = 按真实历史重新构建
 ---
 
 **End of EVO-13 v0.2**
+
+
+---
+
+# 48. 2026-09-18 增量收敛：项目意图与开发方法
+
+> **性质：Incremental Convergence Addendum**
+>
+> 本节只增加新的认识，不删除、不覆盖、不重写前述历史结论。前述章节继续作为 EVO 架构演化历史的一部分保留；若后续认识发生变化，应继续以新增章节、ADR、genealogy 或 supersedes/refines 关系记录，而不是擦除历史。
+
+## 48.1 “想做什么”保持稳定
+
+经过 Enterprise Template 建设与 Asloop / bookkeeping legacy archaeology，EVO 的长期目标没有发生方向性变化：
+
+> **EVO 仍然要成为一个可生长的 Enterprise Operating System：能够描述企业、运行企业，并帮助企业持续优化自身。**
+
+最近工作的价值不是重新定义产品，而是把“怎样可靠地做到这件事”理解得更深。
+
+因此，前述 Enterprise / Capability / Flow / Process / Application / Tool / Command / BusinessData / Ledger / Cost / Work / Metric / Management Intelligence / Replay / Scenario 等整体方向继续有效。
+
+## 48.2 核心运行链需要更细的内部语义解释
+
+原有：
+
+```text
+Command
+→ BusinessData
+→ Posting
+→ Ledger
+→ Cost
+→ Work
+→ Replay
+```
+
+继续作为产品级简洁主链保留。
+
+但在 Runtime / Economic Kernel / Enterprise Template 内部，需要允许更精细的解释：
+
+```text
+Enterprise Template
+        ↓
+Enterprise Instance
+        ↓
+Command / Execution
+        ↓
+Business / Economic Fact
+        ↓
+Economic Movement / Measurement
+        ↓
+Matching / Allocation
+        ↓
+Cost Basis / Valuation
+        ↓
+Operational + Accounting Projection
+        ↓
+Ledger Entry / Materialized State
+        ↓
+Checkpoint / Replay
+```
+
+这些概念目前并不意味着必须立即各自建立数据库表、服务或独立 Runtime。
+
+原则仍然是：
+
+> **先确认语义边界与不变量，再决定物理实现。**
+
+> **只有出现独立生命周期、独立不变量或明确运行需求时，才升级为一等运行对象。**
+
+## 48.3 不再把不同 lineage 压缩成一个通用 parent/source 关系
+
+最近的 legacy archaeology 表明，企业历史中至少存在若干语义不同的关系网络：
+
+```text
+Business Causality
+Allocation / Matching Lineage
+Cost / Valuation Lineage
+Accounting Projection Lineage
+Calculation Dependency / Change Impact
+```
+
+这些关系可能在某些业务中重合，但不能因此视为同一语义。
+
+后续设计必须优先回答：
+
+```text
+为什么发生？
+从哪里分配/核销？
+成本从哪里来？
+为什么产生这条投影/分录？
+发生变化后哪些计算真正受影响？
+```
+
+而不是仅保存一个无法解释语义的 `parent_id` 或 `source_id`。
+
+是否需要独立的 Impact Propagation Graph，或仅把 Change Impact Analysis 作为 Calculation Dependency Graph 上的一种操作，继续保留为待证实设计问题。
+
+## 48.4 Legacy Archaeology 升级为 Enterprise Template 的正式输入管线
+
+Legacy archaeology 不再只是“参考旧系统”。
+
+对于 Asloop、bookkeeping 以及未来任何需要吸收的历史企业系统，推荐过程升级为：
+
+```text
+Legacy Source
+      ↓
+Raw Asset Preservation
+      ↓
+Atomic Asset Inventory
+      ↓
+Semantic Archaeology
+      ↓
+Hypothesis / Correction History
+      ↓
+Semantic Normalization
+      ↓
+Source → EVO Crosswalk
+      ↓
+Loss Ledger
+      ↓
+Enterprise Template
+      ↓
+Certification
+```
+
+这意味着旧系统中的表、字段、配置、表达式、规则、Form、FormView、List、ListView、WebMenu、Report、Calculation Relation、Policy、Account、Ledger、Cost、Matching、Settlement 等资产，不得因为 EVO 当前模型尚未表达它们就被静默丢弃。
+
+可以：
+
+```text
+保留
+归一化
+合并
+重新分类
+明确淘汰
+标记为 Instance Data
+暂时 unresolved
+```
+
+但必须留下来源和判断依据。
+
+## 48.5 Enterprise Template completeness 必须可证明
+
+Enterprise Template 的“完成”不能再定义为：
+
+> API 已经能返回一个 template JSON。
+
+更强的目标是：对所有可恢复 legacy definition assets，都能够给出明确处理状态，例如：
+
+```text
+PRESERVED_RAW
+INVENTORIED
+NORMALIZED
+SUPERSEDED_WITH_LINEAGE
+INSTANCE_DATA_EXCLUDED
+UNRESOLVED
+```
+
+因此 Template Certification 最终应能够回答：
+
+```text
+源系统发现了什么？
+哪些属于定义资产？
+每个资产去了哪里？
+哪些被归一化？
+哪些被合并？
+哪些被排除，为什么？
+还有哪些没有理解？
+最终模板是否存在不可解释的语义损失？
+```
+
+候选长期目标：
+
+> **Enterprise Template completeness is evidence-based and machine-verifiable.**
+
+这也是 Loss Ledger、Source→EVO Crosswalk 和 Certification 的存在理由。
+
+## 48.6 LLM-native 的定义进一步扩展
+
+LLM-native 不只意味着“LLM 可以生成 metadata”。
+
+本阶段更完整的候选定义是：
+
+```text
+LLM-native engineering
+=
+Explicit Semantics
++ Machine-readable Metadata
++ Immutable Evidence
++ Versioned Interpretation
++ Deterministic Execution
++ Explainable Lineage
++ Replayability
++ Certification
++ Preserved Reasoning Genealogy
+```
+
+其中最后一项非常重要。
+
+EVO 不仅要保存“最后采用了什么设计”，还应保存：
+
+```text
+为什么这样设计
+证据来自哪里
+曾经怎样理解
+后来发现了什么
+为什么修正
+哪些问题仍未解决
+什么条件会使当前决定再次变化
+```
+
+这样未来更换 LLM、开发团队或技术栈时，新的参与者能够恢复设计推理，而不是只看到最终 schema 后重新猜测历史原因。
+
+## 48.7 研发认知过程也是项目资产
+
+从本阶段开始，以下内容应视为 EVO 长期项目资产：
+
+```text
+Architecture Constitution
+Architecture Decisions
+Development Records
+Legacy Archaeology
+Calculation Genealogy
+Semantic Crosswalk
+Loss Ledger
+Open Questions
+Correction History
+Certification Evidence
+Migration History
+Compatibility Decisions
+```
+
+它们承担不同职责，不应全部压缩成一份“最终架构文档”。
+
+尤其：
+
+> **错误但曾经合理的理解，不应简单删除。**
+
+如果后续证据推翻旧判断，应记录：
+
+```text
+Previous Interpretation
+New Evidence
+Correction
+Architecture Consequence
+```
+
+这使项目本身具有可追踪的“认知 lineage”。
+
+## 48.8 Legacy implementation 与 legacy design intent 必须区分
+
+考古时必须分别保存：
+
+```text
+Implementation Mechanism
+Semantic Meaning
+Historical Design Intent
+Constraint at the Time
+Modern EVO Interpretation
+```
+
+例如 legacy 中的 differential balance/cost propagation 不能只因为实现依赖可变历史状态就被判定为应淘汰。
+
+其历史目标包括：
+
+```text
+Financial Trial Calculation
+Local Recalculation
+Avoiding Unnecessary Full-history Recalculation
+Reducing Multi-year Recalculation Cost
+```
+
+因此 EVO 应保存其设计意图，并把现代候选能力表达为：
+
+```text
+Change Impact Analysis
++
+Dependency-scoped / Incremental Recalculation
+```
+
+同时保持：
+
+> **Correctness must never depend on incremental recalculation; performance may.**
+
+Full deterministic replay 是 correctness/reference path。
+
+Incremental recalculation 是 performance path。
+
+理想验证关系：
+
+```text
+Digest(IncrementalRecalculation(changes))
+==
+Digest(FullReplay(all applicable facts))
+```
+
+在相同 facts、rules、versions、valuation policy 与 ordering boundary 下，两条路径应得到等价结果。
+
+如果未来硬件和执行架构使 full replay 足够便宜，则 incremental path 可以降级为非必要优化，而不能反过来让系统正确性依赖它。
+
+## 48.9 Semantic Normalization, Physical Denormalization
+
+Legacy 系统中的冗余字段、balance、balance_log、cost snapshot、match state 等不能因为“理论上可计算”就一律删除。
+
+EVO 应区分：
+
+```text
+Canonical Semantic State
+vs.
+Derived / Materialized Physical State
+```
+
+候选原则：
+
+> **Semantic Normalization, Physical Denormalization.**
+
+即：
+
+- 语义来源必须唯一、明确、可解释；
+- 为性能允许 materialization、cache、snapshot、projection、checkpoint 和可重建冗余；
+- 所有关键派生状态应知道自己的来源、版本与计算依据；
+- 可以重建的状态不应反过来成为不可替代的历史真相。
+
+## 48.10 当前开发方法的优先级调整
+
+Enterprise Template 当前不应继续以“快速增加更多 skeleton 字段”为主要目标。
+
+当前阶段优先顺序调整为：
+
+```text
+1. Preserve evidence
+2. Complete atomic inventory
+3. Reconstruct semantics
+4. Record uncertainty and corrections
+5. Establish genealogy
+6. Normalize into EVO concepts
+7. Build source-to-target crosswalk
+8. Build loss/completeness evidence
+9. Materialize Enterprise Template
+10. Certify
+```
+
+这不是要求所有工作串行完成。
+
+可以按 domain / subsystem / artifact family 分批推进，但每批都应尽可能形成闭环证据。
+
+## 48.11 不让 accounting archaeology 吞掉 Enterprise Template
+
+当前 Matching / Allocation / Cost / Balance / Replay archaeology 很重要，因为它正在暴露 EVO Economic Runtime 的深层语义。
+
+但必须明确：
+
+> **Enterprise Template 不等于 Accounting Template。**
+
+Asloop 中的以下资产仍必须在后续回收：
+
+```text
+Application
+Form
+FormView
+List
+ListView
+WebMenu
+Report
+Field / Component
+Data Source
+Transaction Type
+Workflow / Process-related metadata
+Permission / Role-related metadata
+Operational Rules
+Other enterprise definitions
+```
+
+bookkeeping 是 Asloop 后期抽取出来的 accounting/cost capability 线索之一，不能反向把完整企业模型缩减成 bookkeeping 的范围。
+
+## 48.12 新的项目连续性原则
+
+EVO 是长期项目，不能依赖某一个聊天窗口、某一个 LLM 或某一个人的短期记忆。
+
+因此新增候选原则：
+
+> **If a future LLM cannot reconstruct why EVO exists, what it is trying to become, how current architecture was derived, and which questions remain unresolved from repository evidence alone, the repository is not yet sufficiently LLM-native.**
+
+Repository 应逐渐成为主要长期记忆载体。
+
+聊天是研究和协作界面，不应成为唯一知识源。
+
+## 48.13 与前述 EVO-13 的关系
+
+本节不 supersede EVO-13 v0.2 前述内容。
+
+它的作用是：
+
+```text
+Preserve previous product convergence
++
+Add newly discovered development methodology
++
+Refine internal runtime semantics
++
+Strengthen Enterprise Template completeness requirements
++
+Formalize reasoning/evidence preservation
+```
+
+因此当前可以同时保持两种粒度：
+
+产品级主链：
+
+```text
+Enterprise Model
+→ Tool
+→ Command
+→ BusinessData
+→ Posting
+→ Ledger / Cost / Work
+→ Intelligence
+→ Replay / Scenario
+```
+
+内部经济语义链：
+
+```text
+Fact
+→ Movement / Measurement
+→ Matching / Allocation
+→ Cost Basis / Valuation
+→ Projection
+→ Materialized State
+→ Replay / Checkpoint
+```
+
+两者不是竞争关系。
+
+前者用于解释 EVO 整体产品。
+
+后者用于逐步建立正确、可解释、可重放的 Economic Runtime。
+
+---
+
+# 49. Incremental Architecture Invariants
+
+以下为本阶段新增候选不变量；在更多 legacy evidence 与实现验证完成前，先作为 Architecture Convergence Candidate 保存。
+
+### EO-19
+
+Legacy definition asset 不得因为当前 EVO schema 无对应对象而静默丢失。
+
+### EO-20
+
+Enterprise Template completeness 必须最终能够通过 source inventory、crosswalk、loss ledger 与 certification evidence 证明。
+
+### EO-21
+
+Business causality、allocation lineage、cost/valuation lineage、projection lineage 与 calculation dependency 不得在没有语义证明的情况下压缩成同一种关系。
+
+### EO-22
+
+Canonical fact/history 与 derived/materialized state 必须可区分。
+
+### EO-23
+
+Correctness 不得依赖 incremental recalculation；incremental recalculation 可以用于性能优化。
+
+### EO-24
+
+对同一事实、规则、版本和计算边界，incremental path 应能够与 full deterministic replay 进行等价性验证。
+
+### EO-25
+
+Legacy archaeology 必须区分 implementation mechanism、semantic meaning 与 historical design intent。
+
+### EO-26
+
+重要架构修正采用增加法记录：保留 previous interpretation、new evidence、correction 与 architecture consequence。
+
+### EO-27
+
+Repository 必须逐渐具备让新的 LLM 在不依赖聊天记忆的情况下恢复项目意图、架构推理、证据、未决问题和迁移历史的能力。
+
+### EO-28
+
+Enterprise Template 不得被 accounting/cost 子系统的深度研究缩减为 accounting template；企业应用、交互、流程、权限、报表及其他定义资产必须继续纳入完整性范围。
+
+---
+
+# 50. 本阶段后的开发方向
+
+在不破坏已有 v0.9/v1.0 路线的前提下，近期研究与实现应形成两个相互校验的工作面：
+
+```text
+A. Economic Runtime Archaeology
+   Asloop Matching / Calculation
+   ↓
+   bookkeeping Balance / Cost / Recalc
+   ↓
+   EVO Allocation / Valuation / Projection / Replay semantics
+
+B. Complete Enterprise Template Archaeology
+   Asloop enterprise metadata
+   ↓
+   atomic inventory
+   ↓
+   normalized enterprise definitions
+   ↓
+   crosswalk + loss ledger
+   ↓
+   certified Enterprise Template
+```
+
+二者最终在 Enterprise Template + deterministic runtime 汇合。
+
+本节之后仍继续采用：
+
+> **Evidence first, normalization second, implementation third.**
+
+但这里的 evidence-first 不意味着无限考古后才编码。
+
+当某个边界已经拥有足够证据、明确不变量和可验证 contract 时，可以实现；新的 evidence 若推翻旧理解，则通过 version / migration / correction genealogy 演化，而不是依赖记忆修补。
+
+---
+
+**End of 2026-09-18 Incremental Convergence Addendum**
