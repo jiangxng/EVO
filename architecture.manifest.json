@@ -247,7 +247,8 @@
         "economic",
         "allocation",
         "lineage",
-        "position"
+        "position",
+        "business-data"
       ]
     },
     "enterprise-package": {
