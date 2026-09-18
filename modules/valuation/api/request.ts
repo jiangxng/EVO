@@ -1,5 +1,6 @@
 import type { RateDatasetPin } from '../../economic/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { PositionDefinitionPin } from '../../position/api/contracts.js';
 
 export const VALUATION_REQUEST_BUSINESS_DATA_TYPE = 'valuation.requested';
 
@@ -21,6 +22,7 @@ export interface ValuationRequestPayload {
   readonly valuationKind: ValuationRequestKind;
   readonly valuationAt: string;
   readonly scope: ValuationScopeSelector;
+  readonly positionDefinition: PositionDefinitionPin;
   readonly rateDataset: RateDatasetPin;
   readonly policy: JsonObject;
 }
