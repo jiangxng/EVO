@@ -18,6 +18,7 @@ export class PostgresValuationStore implements ValuationStore {
   async startRun(input: StartValuationRunInput): Promise<string> {
     const row = await this.db.insertInto('valuation_run').values({
       enterprise_id: input.enterpriseId,
+      request_business_data_id: input.requestBusinessDataId ?? null,
       valuation_kind: input.valuationKind,
       effective_at: input.effectiveAt,
       input_digest: input.inputDigest,
