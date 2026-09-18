@@ -548,23 +548,33 @@ A new LLM should then:
 
 # 13. Immediate next action
 
+`AP-FX-001 — Foreign Currency / Settlement / Revaluation` is now **SEMANTIC GATE CLOSED**.
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-FX-001-FOREIGN-CURRENCY-SETTLEMENT.md`
+
+Closure commit:
+
+`0e003907e5d14839c8658ab6f9fb50694f18c422`
+
 The immediate next packet is:
 
-`AP-FX-001 — Foreign Currency / Settlement / Revaluation`
+`AP-MANUAL-ALLOC-001 — Manual vs Automatic Allocation`
 
 Entry sequence:
 
-`sys_foreign_exchange`
-` → trans_settlement_exchange`
-` → runtime callers`
-` → generated transaction type/code`
-` → foreign expressions/calculation fields`
-` → rate selection`
-` → settlement/revaluation result`
-` → lineage`
-` → EVO semantic classification`
+`MATCH_TYPE`
+` → MANUALLY_FIELD`
+` → manual verification/matching controller/service/UI path`
+` → persisted selected source references`
+` → correction/reallocation behavior`
+` → mixed manual+automatic behavior`
+` → provenance`
+` → replay classification`
+` → EVO persistence contract candidate`
 
-Do not start broad runtime refactoring before this evidence gate closes.
+Do not start broad runtime refactoring before the remaining semantic gates close.
 
 ---
 
@@ -581,3 +591,18 @@ This phase is complete when a different capable LLM, using the repository only, 
 ` → rebuild a complete Enterprise Template without semantic loss`
 
 > Repository continuity is part of the architecture, not project administration.
+
+
+---
+
+# 15. Progress ledger — 2026-09-18
+
+| Evidence gate | Status | Durable artifact |
+|---|---|---|
+| AP-FX-001 | **CLOSED** | `packets/AP-FX-001-FOREIGN-CURRENCY-SETTLEMENT.md` |
+| AP-MANUAL-ALLOC-001 | **IN PROGRESS / NEXT** | pending |
+| AP-COST-METHOD-001 | pending | pending |
+| AP-RECALC-001 | pending | pending |
+| Economic Runtime Freeze | blocked by remaining three gates | pending |
+
+FX closure established the distinction between foreign measurement, local carrying basis, settlement result and period-end valuation. It also strengthens the need to classify Allocation provenance before freezing canonical persistence.
