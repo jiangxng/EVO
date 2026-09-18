@@ -1,3 +1,4 @@
+import { sql } from 'kysely';
 import { createDatabase } from '../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../platform/runtime/src/config.js';
 import { PostgresEnterpriseTemplateService } from '../modules/enterprise-template/infrastructure/postgres-enterprise-template-service.js';
@@ -7,6 +8,9 @@ import { PostgresPositionDefinitionStore } from '../modules/position/infrastruct
 const config = loadRuntimeConfig();
 const database = createDatabase(config.databaseUrl);
 const db = database.db;
+
+const jsonArray = (value: readonly unknown[]) =>
+  sql<readonly unknown[]>`${JSON.stringify(value)}::jsonb`;
 
 async function one<T>(promise: Promise<T | undefined>, label: string): Promise<T> {
   const value = await promise;
@@ -225,7 +229,7 @@ try {
       application_definition_version_id: versionId,
       code, name,
       input_schema: { type: 'object' },
-      preconditions: [],
+      preconditions: jsonArray([]),
       execution_policy: {},
       resulting_business_data_type: resultType,
       config: {}
@@ -449,7 +453,7 @@ try {
       name,
       version: 1,
       status: 'PUBLISHED',
-      dimensions: ['warehouse','productId'],
+      dimensions: jsonArray(['warehouse','productId']),
       eligibility: code === 'fx_settlement_explicit'
         ? {
             sourceBusinessDataTypes: ['sales_order.approved'],
@@ -475,7 +479,7 @@ try {
     }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
       name,
       status: 'PUBLISHED',
-      dimensions: ['warehouse','productId'],
+      dimensions: jsonArray(['warehouse','productId']),
       source_ordering: sourceOrdering,
       eligibility: code === 'fx_settlement_explicit'
         ? {
