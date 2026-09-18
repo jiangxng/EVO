@@ -72,9 +72,34 @@ function selectorFingerprint(selector: AllocationSourceSelector): string {
 export class PostgresAllocationStore implements AllocationStore {
   constructor(private readonly db: Kysely<Database>) {}
 
+  private async assertBusinessDataEnterprise(
+    enterpriseId: string,
+    businessDataId: string,
+    label: string
+  ): Promise<void> {
+    const row = await this.db.selectFrom('business_data')
+      .select('id')
+      .where('id','=',businessDataId)
+      .where('enterprise_id','=',enterpriseId)
+      .executeTakeFirst();
+
+    if (row === undefined) {
+      fail(
+        'ALLOCATION_BUSINESS_DATA_ENTERPRISE_MISMATCH',
+        `${label} BusinessData ${businessDataId} does not belong to enterprise ${enterpriseId}.`
+      );
+    }
+  }
+
   async recordInstruction(
     input: RecordAllocationInstructionInput
   ): Promise<AllocationInstruction> {
+    await this.assertBusinessDataEnterprise(
+      input.enterpriseId,
+      input.consumerBusinessDataId,
+      'Consumer'
+    );
+
     const inserted = await this.db.insertInto('allocation_instruction').values({
       enterprise_id: input.enterpriseId,
       consumer_business_data_id: input.consumerBusinessDataId,
@@ -226,6 +251,19 @@ export class PostgresAllocationStore implements AllocationStore {
   }
 
   async recordRelation(input: RecordAllocationRelationInput): Promise<AllocationRelation> {
+    await this.assertBusinessDataEnterprise(
+      input.enterpriseId,
+      input.consumerBusinessDataId,
+      'Consumer'
+    );
+    if (input.sourceBusinessDataId !== undefined) {
+      await this.assertBusinessDataEnterprise(
+        input.enterpriseId,
+        input.sourceBusinessDataId,
+        'Source'
+      );
+    }
+
     const row = await this.db.insertInto('allocation_relation').values({
       enterprise_id: input.enterpriseId,
       allocation_run_id: input.allocationRunId,
