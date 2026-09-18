@@ -436,11 +436,16 @@ try {
   if (!coverage.dependencyGraphComplete) {
     throw new Error('Expected all dependency producer families to certify inside the replay boundary.');
   }
-  if (coverage.derivedRuntimeReplayComplete) {
-    throw new Error('Derived runtime replay completeness must remain false until independently certified.');
+  if (!coverage.derivedRuntimeReplayComplete) {
+    throw new Error('Expected Full Replay to rebuild all canonical derived-runtime requests.');
   }
-  if (coverage.status !== 'DRAFT') {
-    throw new Error('Coverage certification must remain DRAFT while safety blockers remain.');
+  if (coverage.status !== 'CERTIFIED') {
+    throw new Error(`Expected replay coverage certification CERTIFIED, got ${coverage.status}.`);
+  }
+  if (coverage.blockers.length !== 0) {
+    throw new Error(
+      `Certified replay coverage must have no blockers, got: ${coverage.blockers.join(', ')}`
+    );
   }
 
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
