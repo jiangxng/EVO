@@ -80,7 +80,18 @@ try {
   await runtime.flow.projectCommand(shipment.commandExecutionId);
   await drainPosting(runtime, ids.enterpriseId);
 
-  const cost = await runtime.cost.recalculate(ids.enterpriseId, 'FIFO');
+  const fifoPolicy = await runtime.db.selectFrom('valuation_policy')
+    .select(['id','version'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('method','=','FIFO')
+    .where('status','=','ACTIVE')
+    .orderBy('version','desc')
+    .executeTakeFirstOrThrow();
+
+  const cost = await runtime.cost.recalculate(ids.enterpriseId, 'FIFO', {
+    valuationPolicyId: fifoPolicy.id,
+    valuationPolicyVersion: fifoPolicy.version
+  });
   if (cost.resultCount < 1 || cost.valuationPostingCount < 1) {
     throw new Error(`Expected cost + valuation posting, got ${JSON.stringify(cost)}`);
   }
