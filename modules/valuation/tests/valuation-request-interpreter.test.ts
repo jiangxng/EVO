@@ -5,7 +5,7 @@ import { DefaultValuationRequestInterpreter } from '../application/valuation-req
 
 describe('valuation request interpreter', () => {
   it('replays an accepted FX period-end request with pinned dataset', async () => {
-    let captured: FxPeriodEndRequest | null = null;
+    const captured: { request?: FxPeriodEndRequest } = {};
 
     const resolver: FxPositionResolver = {
       async resolve() {
@@ -21,7 +21,7 @@ describe('valuation request interpreter', () => {
 
     const fx: FxValuationService = {
       async revaluePeriodEnd(request) {
-        captured = request;
+        captured.request = request;
         return { valuationRunId: 'run-1', inputDigest: 'a'.repeat(64), results: [] };
       }
     };
@@ -43,8 +43,8 @@ describe('valuation request interpreter', () => {
       }
     });
 
-    expect(captured?.rateDataset.version).toBe(2);
-    expect(captured?.positions).toHaveLength(1);
+    expect(captured.request?.rateDataset.version).toBe(2);
+    expect(captured.request?.positions).toHaveLength(1);
   });
 
   it('rejects divergence between fact effective time and valuation time', async () => {
