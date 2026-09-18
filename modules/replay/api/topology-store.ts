@@ -1,18 +1,9 @@
-import type {
-  CalculationDependencyEdge,
-  ReplayCheckpointDescriptor
-} from './contracts.js';
+import type { CalculationDependencyStore } from '../../lineage/api/contracts.js';
+import type { ReplayCheckpointDescriptor } from './contracts.js';
 
-export interface ReplayTopologyStore {
-  recordDependency(edge: CalculationDependencyEdge): Promise<void>;
-  listDependents(
-    enterpriseId: string,
-    graphVersion: string,
-    fromKind: string,
-    fromId: string
-  ): Promise<readonly CalculationDependencyEdge[]>;
-
+export interface ReplayTopologyStore extends CalculationDependencyStore {
   saveCheckpoint(checkpoint: ReplayCheckpointDescriptor): Promise<void>;
+
   getLatestValidCheckpoint(
     enterpriseId: string,
     consistencyDomain: string,
