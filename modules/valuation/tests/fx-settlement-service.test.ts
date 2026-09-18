@@ -137,4 +137,47 @@ describe('FX settlement service', () => {
     expect(allocations.completed).toEqual(['allocation-run-1']);
     expect(valuations.completed).toEqual(['valuation-run-1']);
   });
+
+  it('rejects partial closure before creating allocation or valuation runs', async () => {
+    const allocations = new FakeAllocationStore();
+    const valuations = new FakeValuationStore();
+    const service = new DefaultFxSettlementService(allocations, valuations);
+
+    await expect(service.closePosition({
+      enterpriseId: 'enterprise-1',
+      settledAt: new Date('2026-09-18T01:00:00Z'),
+      settlementBusinessDataId: 'payment-1',
+      position: {
+        positionKey: 'AR:C1:USD',
+        sourceBusinessDataIds: ['invoice-1'],
+        dimensions: { customer: 'C1' },
+        foreign: {
+          value: '100',
+          unit: 'USD',
+          role: 'RESOURCE_QUANTITY'
+        },
+        carrying: {
+          value: '700',
+          unit: 'CNY',
+          role: 'VALUATION_AMOUNT'
+        }
+      },
+      settlementForeign: {
+        value: '60',
+        unit: 'USD',
+        role: 'SETTLEMENT_QUANTITY'
+      },
+      settlementLocal: {
+        value: '425',
+        unit: 'CNY',
+        role: 'DIRECT_BUSINESS_AMOUNT'
+      },
+      allocationPolicyId: 'allocation-policy-1',
+      allocationPolicyVersion: 1
+    })).rejects.toThrow(/exact remaining foreign position/);
+
+    expect(allocations.runs).toHaveLength(0);
+    expect(valuations.runs).toHaveLength(0);
+  });
+
 });
