@@ -495,6 +495,52 @@ try {
     throw new Error('Incremental plan must select the explicitly promoted checkpoint.');
   }
 
+  const activeRuntimeDataset = await runtime.runtimeDatasets.getActive(
+    ids.enterpriseId,
+    consistencyDomain
+  );
+  const candidateRuntimeDataset = await runtime.runtimeDatasets.createCandidate({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    parentDatasetId: activeRuntimeDataset.id,
+    sourceCheckpointId: checkpoint.id,
+    sourcePromotionId: promotion.id,
+    incrementalPlanDigest: incrementalPlan.planDigest,
+    startSequence: checkpoint.boundarySequence + 1n,
+    boundarySequence: checkpoint.boundarySequence + 1n
+  });
+  if (candidateRuntimeDataset.status !== 'BUILDING') {
+    throw new Error('New economic runtime candidate dataset must start in BUILDING status.');
+  }
+  if (candidateRuntimeDataset.parentDatasetId !== activeRuntimeDataset.id) {
+    throw new Error('Economic runtime candidate must bind the current ACTIVE parent dataset.');
+  }
+
+  const verifiedRuntimeDataset = await runtime.runtimeDatasets.markVerified(
+    candidateRuntimeDataset.id,
+    after
+  );
+  if (verifiedRuntimeDataset.status !== 'VERIFIED') {
+    throw new Error('Economic runtime candidate must become VERIFIED before activation.');
+  }
+
+  const activatedRuntimeDataset = await runtime.runtimeDatasets.activateVerified(
+    verifiedRuntimeDataset.id
+  );
+  if (
+    activatedRuntimeDataset.status !== 'ACTIVE' ||
+    activatedRuntimeDataset.kind !== 'CURRENT'
+  ) {
+    throw new Error('Verified economic runtime candidate must atomically become CURRENT/ACTIVE.');
+  }
+  const archivedParent = await runtime.db.selectFrom('economic_runtime_dataset')
+    .select(['kind','status'])
+    .where('id','=',activeRuntimeDataset.id)
+    .executeTakeFirstOrThrow();
+  if (archivedParent.kind !== 'ARCHIVED' || archivedParent.status !== 'ARCHIVED') {
+    throw new Error('Previous economic runtime CURRENT dataset must be archived on activation.');
+  }
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -553,6 +599,16 @@ try {
       incrementalPlannerFallback: incrementalPlan.fallbackToFullReplay,
       incrementalPlannerCheckpointId: incrementalPlan.checkpoint?.id ?? null,
       planDigest: incrementalPlan.planDigest
+    },
+    economicRuntimeDataset: {
+      previousDatasetId: activeRuntimeDataset.id,
+      candidateDatasetId: candidateRuntimeDataset.id,
+      activatedDatasetId: activatedRuntimeDataset.id,
+      candidateInitialStatus: candidateRuntimeDataset.status,
+      verifiedStatus: verifiedRuntimeDataset.status,
+      activatedKind: activatedRuntimeDataset.kind,
+      activatedStatus: activatedRuntimeDataset.status,
+      previousDatasetFinalStatus: archivedParent.status
     },
     fxCoverage: {
       periodEndDelta: replayedPeriod.delta_amount,
