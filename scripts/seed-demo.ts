@@ -2,6 +2,7 @@ import { createDatabase } from '../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../platform/runtime/src/config.js';
 import { PostgresEnterpriseTemplateService } from '../modules/enterprise-template/infrastructure/postgres-enterprise-template-service.js';
 import { enterpriseCoreV1 } from '../modules/enterprise-template/reference/enterprise-core-v1.js';
+import { PostgresPositionDefinitionStore } from '../modules/position/infrastructure/postgres-position-definition-store.js';
 
 const config = loadRuntimeConfig();
 const database = createDatabase(config.databaseUrl);
@@ -54,6 +55,7 @@ try {
   const salesDomain = await domain('sales', 'Sales');
   const productionDomain = await domain('production', 'Production');
   const inventoryDomain = await domain('inventory', 'Inventory');
+  const valuationDomain = await domain('valuation', 'Valuation');
 
   async function txType(domainId: string, code: string, name: string) {
     return one(
@@ -66,6 +68,7 @@ try {
   const salesType = await txType(salesDomain.id, 'sales_order', 'Sales Order');
   const productionType = await txType(productionDomain.id, 'production_completion', 'Production Completion');
   const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
+  const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
 
   async function app(code: string, name: string, typeId: string) {
     return one(
@@ -78,6 +81,7 @@ try {
   const salesApp = await app('sales_order', 'Sales Order', salesType.id);
   const productionApp = await app('production_completion', 'Production Completion', productionType.id);
   const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
+  const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
 
   async function version(appId: string) {
     const existing = await db.selectFrom('application_definition_version')
@@ -98,6 +102,7 @@ try {
   const salesVersion = await version(salesApp.id);
   const productionVersion = await version(productionApp.id);
   const inventoryVersion = await version(inventoryApp.id);
+  const valuationVersion = await version(valuationApp.id);
 
   async function instance(appId: string, code: string, name: string) {
     return one(
@@ -116,6 +121,7 @@ try {
   await instance(salesApp.id, 'sales', 'Sales');
   await instance(productionApp.id, 'production', 'Production');
   await instance(inventoryApp.id, 'inventory', 'Inventory');
+  await instance(valuationApp.id, 'valuation', 'Valuation');
 
   await db.insertInto('item_definition').values({
     enterprise_id: enterprise.id,
@@ -230,6 +236,7 @@ try {
   }
   await command(salesVersion.id, 'approve-sales-order', 'Approve Sales Order', 'sales_order.approved');
   await command(salesVersion.id, 'record-customer-payment', 'Record Customer Payment', 'customer_payment.received');
+  await command(valuationVersion.id, 'request-valuation', 'Request Valuation', 'valuation.requested');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
@@ -354,6 +361,36 @@ try {
       'enterprise_id','actor_type','actor_id','permission_code'
     ]).doNothing()).execute();
   }
+
+  const positionDefinitions = new PostgresPositionDefinitionStore(db);
+  await positionDefinitions.publish({
+    enterpriseId: enterprise.id,
+    code: 'fx_receivable',
+    name: 'FX Receivable Position',
+    version: 1,
+    dimensions: [
+      { code: 'order_no', field: 'orderNo' },
+      { code: 'customer', field: 'customer' }
+    ],
+    sourceRules: [{
+      businessDataType: 'sales_order.approved',
+      direction: 'INCREASE',
+      foreign: {
+        valueField: 'totalAmount',
+        unitField: 'currency',
+        role: 'RESOURCE_QUANTITY'
+      },
+      carrying: {
+        valueField: 'localCarryingAmount',
+        unitField: 'localCurrency',
+        role: 'VALUATION_AMOUNT'
+      }
+    }],
+    config: {
+      semantic: 'OPEN_FX_RECEIVABLE',
+      settlementBusinessDataType: 'customer_payment.received'
+    }
+  });
 
   await db.insertInto('feature_flag').values({
     code: 'v10_reference_flow',
