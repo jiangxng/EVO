@@ -52,21 +52,12 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
     replayRunId: string,
     enterpriseId: string
   ): Promise<ReplayCheckpointDescriptor> {
-    const existing = await this.db.selectFrom('replay_checkpoint')
-      .selectAll()
-      .where('source_replay_run_id','=',replayRunId)
-      .executeTakeFirst();
-
-    if (existing !== undefined) {
-      const loaded = await this.topology.getLatestValidCheckpoint(
-        enterpriseId,
-        existing.consistency_domain,
-        asBigInt(existing.boundary_sequence)
-      );
-      if (loaded !== null && loaded.id === existing.id) {
-        return loaded;
+    const existing = await this.topology.getCheckpointBySourceReplayRun(replayRunId);
+    if (existing !== null) {
+      if (existing.enterpriseId !== enterpriseId) {
+        throw new Error('Replay checkpoint source run belongs to a different enterprise.');
       }
-      throw new Error('Replay checkpoint source run already exists but could not be loaded consistently.');
+      return existing;
     }
 
     const run = await this.db.selectFrom('replay_run')
