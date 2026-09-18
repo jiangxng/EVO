@@ -22,6 +22,8 @@ import { PostgresAllocationStore } from '../../../modules/allocation/infrastruct
 import { PostgresRateDatasetStore } from '../../../modules/economic/infrastructure/postgres-rate-dataset-store.js';
 import { PostgresReplayTopologyStore } from '../../../modules/replay/infrastructure/postgres-replay-topology-store.js';
 import { PostgresValuationInputReader } from '../../../modules/cost/infrastructure/postgres-valuation-input-reader.js';
+import { PostgresValuationStore } from '../../../modules/valuation/infrastructure/postgres-valuation-store.js';
+import { DefaultFxValuationService } from '../../../modules/valuation/application/fx-valuation-service.js';
 
 export function createEvoRuntime(database: DatabaseHandle) {
   const db = database.db;
@@ -31,9 +33,12 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const state = new PostgresPostingStateStore(db);
   const posting = new PostingService(state,state,new PostgresBusinessDataReader(db),new PostgresPostingMetadataReader(db),new PostgresLedgerWriter(),createTransactionRunner(db));
   const valuation = new PostgresValuationPostingService(db);
+  const valuationStore = new PostgresValuationStore(db);
   const allocation = new PostgresAllocationStore(db);
+  const rates = new PostgresRateDatasetStore(db);
   const valuationInputs = new PostgresValuationInputReader(db);
-  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology:new PostgresReplayTopologyStore(db), valuation, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs), allocation, rates:new PostgresRateDatasetStore(db), query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  const fxValuation = new DefaultFxValuationService(rates,valuationStore);
+  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology:new PostgresReplayTopologyStore(db), valuation, valuationStore, fxValuation, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs), allocation, rates, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
