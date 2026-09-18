@@ -627,3 +627,22 @@ The next active packet is:
 `AP-COST-METHOD-001 — FIFO / LIFO / Average / Specific Identification genealogy`
 
 Do not reopen the manual-allocation source family unless new evidence is needed to resolve `U-MANUAL-001` or certification requires stronger provenance proof.
+
+
+---
+
+# 17. Cost method closure — 2026-09-18
+
+`AP-COST-METHOD-001` is now **SEMANTIC GATE CLOSED**.
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-COST-METHOD-001.md`
+
+Closure commit:
+
+`77356fa5f6a21fe1cf880d87631a033b494ebf29`
+
+The next and final semantic blocker before the Economic Runtime Architecture Freeze Gate is:
+
+`AP-RECALC-001 — Change Impact / Local Recalculation vs Full Replay`.
