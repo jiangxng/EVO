@@ -1785,3 +1785,55 @@ must complete green with:
 - ReplayCoverageCertification status = CERTIFIED.
 
 Checkpoint `safeForIncremental` must still remain false until a separate explicit promotion step.
+
+
+---
+
+# 34. CORRECTED — CI certification scope
+
+Correction date: 2026-09-18
+
+Earlier continuation notes described several successful GitHub CI runs as if the workflow had executed:
+
+`migrate → typecheck → build → test → seed:demo → validate:demo`.
+
+That description was inaccurate.
+
+Direct inspection of:
+
+`.github/workflows/ci.yml`
+
+showed that the workflow at those checkpoints actually executed only:
+
+`migrate → typecheck → build → test`.
+
+Therefore:
+
+- those green runs remain valid compile/unit-test evidence;
+- they are **not** accepted as end-to-end reference-enterprise certification evidence;
+- prior architecture conclusions are not reverted, but their CI evidence level is corrected.
+
+Correction commit:
+
+`a8235baaa4c7a39c7e4e659663acb8e046186cb1`
+
+The CI workflow now explicitly includes:
+
+`npm run seed:demo`
+`npm run validate:demo`
+
+after unit tests.
+
+From this correction forward:
+
+> A work packet that claims reference-enterprise or replay integration certification is CLOSED only when the GitHub workflow including seed:demo + validate:demo is green.
+
+## ER-C05B3.2B current status after correction
+
+Status remains:
+
+`IN PROGRESS / AWAITING TRUE END-TO-END CI`
+
+Do not mark canonical FX settlement Full Replay CLOSED based solely on the previous unit-test-only green runs.
+
+The next accepted evidence must be a GitHub CI run produced after commit `a8235baa...` with both reference-enterprise steps successful.
