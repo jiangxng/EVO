@@ -374,9 +374,58 @@ try {
     inboundBusinessDataTypes: ['production.completed','inventory.received'],
     outboundBusinessDataTypes: ['sales_shipment.created'],
     quantityField: 'quantity',
+    quantityUnit: 'EA',
     basisAmountField: 'totalCost',
     specificIdentityField: 'lot'
   };
+
+  const allocationPolicies = [
+    ['inventory_fifo','Inventory FIFO Allocation','OLDEST_FIRST'],
+    ['inventory_lifo','Inventory LIFO Allocation','NEWEST_FIRST'],
+    ['inventory_specific','Inventory Specific Identification','EXPLICIT_ONLY']
+  ] as const;
+  for (const [code,name,sourceOrdering] of allocationPolicies) {
+    await db.insertInto('allocation_policy').values({
+      enterprise_id: enterprise.id,
+      code,
+      name,
+      version: 1,
+      status: 'PUBLISHED',
+      dimensions: ['warehouse','productId'],
+      eligibility: {
+        inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
+        outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
+      },
+      source_ordering: sourceOrdering,
+      allow_partial_allocation: true,
+      negative_position_policy: 'REJECT',
+      precision_policy: {
+        quantityScale: 6,
+        amountScale: 6,
+        roundingMode: 'HALF_UP',
+        residualRecipient: 'FINAL_SOURCE'
+      },
+      config: {
+        specificIdentityField: costRuntimeConfig.specificIdentityField
+      },
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name,
+      status: 'PUBLISHED',
+      dimensions: ['warehouse','productId'],
+      source_ordering: sourceOrdering,
+      eligibility: {
+        inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
+        outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
+      },
+      precision_policy: {
+        quantityScale: 6,
+        amountScale: 6,
+        roundingMode: 'HALF_UP',
+        residualRecipient: 'FINAL_SOURCE'
+      }
+    })).execute();
+  }
   for (const method of ['FIFO','LIFO','MOVING_AVERAGE','SPECIFIC_IDENTIFICATION'] as const) {
     await db.insertInto('valuation_policy').values({
       enterprise_id: enterprise.id,
