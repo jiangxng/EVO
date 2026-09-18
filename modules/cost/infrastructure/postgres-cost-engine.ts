@@ -4,6 +4,7 @@ import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
 import type { ValuationPostingService } from '../../valuation/api/contracts.js';
+import { addToMovingAverage, consumeMovingAverage } from '../domain/moving-average.js';
 import type {
   CostEngine,
   CostMethod,
@@ -215,8 +216,13 @@ export class PostgresCostEngine implements CostEngine {
           const basisAmount = decimalField(payload, runtime.basisAmountField, 'basis amount');
 
           if (method === 'MOVING_AVERAGE') {
-            state.averageQuantity = state.averageQuantity.plus(quantity);
-            state.averageAmount = state.averageAmount.plus(basisAmount);
+            const next = addToMovingAverage(
+              { quantity: state.averageQuantity, amount: state.averageAmount },
+              quantity,
+              basisAmount
+            );
+            state.averageQuantity = next.quantity;
+            state.averageAmount = next.amount;
           } else {
             const layer: Layer = {
               businessDataId: movement.id,
@@ -241,17 +247,20 @@ export class PostgresCostEngine implements CostEngine {
         let total = new Decimal(0);
 
         if (method === 'MOVING_AVERAGE') {
-          if (state.averageQuantity.lt(quantity)) {
-            fail('COST_NEGATIVE_POSITION', `Negative inventory for cost pool ${key}.`);
+          try {
+            const consumed = consumeMovingAverage(
+              { quantity: state.averageQuantity, amount: state.averageAmount },
+              quantity
+            );
+            total = consumed.totalCost;
+            state.averageQuantity = consumed.next.quantity;
+            state.averageAmount = consumed.next.amount;
+          } catch (error) {
+            fail(
+              state.averageQuantity.isZero() ? 'COST_EMPTY_POOL' : 'COST_NEGATIVE_POSITION',
+              `Cannot consume moving-average cost pool ${key}: ${error instanceof Error ? error.message : String(error)}`
+            );
           }
-          if (state.averageQuantity.isZero()) {
-            fail('COST_EMPTY_POOL', `Cannot value outbound movement from empty cost pool ${key}.`);
-          }
-          const average = state.averageAmount.div(state.averageQuantity);
-          total = quantity.times(average);
-          state.averageQuantity = state.averageQuantity.minus(quantity);
-          state.averageAmount = state.averageAmount.minus(total);
-          if (state.averageQuantity.isZero()) state.averageAmount = new Decimal(0);
         } else {
           let remaining = quantity;
           const ordered = method === 'LIFO' ? [...state.layers].reverse() : state.layers;
