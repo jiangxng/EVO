@@ -20,8 +20,13 @@ export interface CalculationDependencyEdge {
   readonly lineage: JsonObject;
 }
 
+export interface RecordCalculationDependencyInput
+  extends Omit<CalculationDependencyEdge, 'id'> {}
+
 export interface CalculationDependencyStore {
-  recordDependency(edge: CalculationDependencyEdge): Promise<void>;
+  recordDependency(
+    edge: RecordCalculationDependencyInput
+  ): Promise<CalculationDependencyEdge>;
 
   listDependents(
     enterpriseId: string,
