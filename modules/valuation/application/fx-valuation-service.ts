@@ -2,6 +2,11 @@ import { createHash } from 'node:crypto';
 import type { RateObservation } from '../../economic/api/contracts.js';
 import type { RateDatasetStore } from '../../economic/api/rate-store.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { CalculationDependencyStore } from '../../lineage/api/contracts.js';
+import {
+  ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+  versionedDependencyNodeId
+} from '../../lineage/domain/node-identity.js';
 import type {
   FxPeriodEndRequest,
   FxPeriodEndRunResult,
@@ -79,7 +84,8 @@ function selectRate(
 export class DefaultFxValuationService implements FxValuationService {
   constructor(
     private readonly rates: RateDatasetStore,
-    private readonly valuations: ValuationStore
+    private readonly valuations: ValuationStore,
+    private readonly dependencies: CalculationDependencyStore
   ) {}
 
   async revaluePeriodEnd(request: FxPeriodEndRequest): Promise<FxPeriodEndRunResult> {
@@ -132,6 +138,42 @@ export class DefaultFxValuationService implements FxValuationService {
           request.valuationAt
         );
         const result = revalueFxPosition(position, rate, request.policy);
+
+        for (const sourceBusinessDataId of [...position.sourceBusinessDataIds].sort()) {
+          await this.dependencies.recordDependency({
+            enterpriseId: request.enterpriseId,
+            graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+            fromKind: 'BUSINESS_FACT',
+            fromId: sourceBusinessDataId,
+            toKind: 'POSITION',
+            toId: position.positionKey,
+            edgeKind: 'VALUATION',
+            effectiveFrom: request.valuationAt,
+            lineage: {
+              semantic: 'FX_POSITION_SOURCE_DEPENDENCY',
+              valuationRunId: runId
+            }
+          });
+        }
+
+        await this.dependencies.recordDependency({
+          enterpriseId: request.enterpriseId,
+          graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+          fromKind: 'REFERENCE_DATASET',
+          fromId: versionedDependencyNodeId(
+            request.rateDataset.datasetId,
+            request.rateDataset.version
+          ),
+          toKind: 'POSITION',
+          toId: position.positionKey,
+          edgeKind: 'VALUATION',
+          effectiveFrom: request.valuationAt,
+          lineage: {
+            semantic: 'FX_PERIOD_END_RATE_DEPENDENCY',
+            valuationRunId: runId,
+            rateObservationId: rate.id
+          }
+        });
 
         await this.valuations.recordResult({
           enterpriseId: request.enterpriseId,
