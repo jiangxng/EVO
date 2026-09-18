@@ -774,3 +774,47 @@ Next:
 3. persist AllocationRelation from cost/settlement paths where appropriate;
 4. add normalized valuation input adapter;
 5. complete CI and integration certification.
+
+
+---
+
+# 21. Stable implementation checkpoint — 2026-09-18
+
+Latest verified implementation checkpoint:
+
+`0191f55e29416a68d52772e1eb7124f33d72260a`
+
+GitHub CI:
+
+`SUCCESS`
+
+Verified pipeline:
+- migrations;
+- TypeScript typecheck;
+- build;
+- tests.
+
+This checkpoint includes:
+- Economic Runtime schema v8;
+- economic/allocation public contracts;
+- AllocationStore runtime persistence;
+- RateDataset contracts/store;
+- ReplayTopology contracts/store;
+- pinned valuation policy/rule enforcement;
+- semantic cost ordering;
+- policy-driven cost input mapping;
+- corrected Moving Average quantity+amount pool;
+- exact final residual closure invariant.
+
+Subsequent documentation-only commits do not invalidate this verified code checkpoint.
+
+## Next active work
+
+Continue ER-C04 in this order:
+
+1. expose and certify RateDatasetStore / ReplayTopologyStore through runtime;
+2. add DB-backed tests for Allocation idempotency and published-policy enforcement;
+3. persist AllocationRelation from FIFO/LIFO/Specific Identification cost runs;
+4. introduce normalized valuation input adapter so cost engine no longer reads BusinessData payload directly;
+5. add FX settlement/revaluation runtime on the same Allocation + Valuation substrate;
+6. then enter ER-C05 incremental replay planning/equivalence.
