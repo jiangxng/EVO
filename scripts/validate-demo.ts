@@ -481,8 +481,7 @@ try {
     runtimeSemanticVersion: checkpoint.runtimeSemanticVersion,
     impactRoots: [{
       kind: 'BUSINESS_FACT',
-      id: orderBusiness.id,
-      effectiveAt: order.effectiveAt
+      id: orderBusiness.id
     }],
     earliestAffectedSequence: checkpoint.boundarySequence + 1n,
     dependencyGraphComplete: coverage.dependencyGraphComplete
