@@ -6,13 +6,6 @@ import type {
   FxRevaluationResult
 } from '../api/fx.js';
 
-function roundingMode(policy: FxRevaluationPolicy): number {
-  switch (policy.roundingMode) {
-    case 'HALF_UP':
-      return Decimal.ROUND_HALF_UP;
-  }
-}
-
 export function revalueFxPosition(
   position: FxPositionSnapshot,
   rate: RateObservation,
@@ -42,7 +35,7 @@ export function revalueFxPosition(
   const carryingBefore = new Decimal(position.carrying.value);
   const carryingAfter = foreignAmount
     .times(new Decimal(rate.rate))
-    .toDecimalPlaces(policy.amountScale, roundingMode(policy));
+    .toDecimalPlaces(policy.amountScale, Decimal.ROUND_HALF_UP);
   const delta = carryingAfter.minus(carryingBefore);
 
   return {
