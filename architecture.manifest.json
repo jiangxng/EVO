@@ -245,7 +245,8 @@
         "dimensions",
         "economic",
         "allocation",
-        "lineage"
+        "lineage",
+        "position"
       ]
     },
     "enterprise-package": {
@@ -307,10 +308,23 @@
       "mayDependOn": [
         "metadata"
       ]
+    },
+    "position": {
+      "owns": [
+        "position_definition",
+        "versioned position semantics",
+        "position resolution contracts"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "allocation",
+        "economic"
+      ]
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 11,
+  "dbSchemaVersion": 12,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
