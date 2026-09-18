@@ -332,3 +332,37 @@ Next required gate:
 `AP-MANUAL-ALLOC-001 — Manual vs Automatic Allocation`
 
 FX itself demonstrates why this distinction matters: a settlement relation may be an explicit human/business decision or a deterministic source-selection result, and those require different persistence and replay semantics.
+
+
+---
+
+## 19. 2026-09-18 implementation promotion note
+
+The semantic distinctions proven by this archaeology packet are now implemented in EVO runtime.
+
+### ER-FX-001 — period-end revaluation
+
+Verified checkpoint:
+
+`7d3c3f845efc1072f0e9d2e069d99b87c3c3d940`
+
+- pinned immutable RateDataset;
+- `FX_PERIOD_END` ValuationRun/Result;
+- foreign measurement preserved;
+- carrying value reinterpreted;
+- rate observation/dataset lineage persisted.
+
+### ER-FX-002 — realized settlement closure
+
+Verified checkpoint:
+
+`bfdc65e4c9b177ced0f91ca11607b2a7d43fe2e6`
+
+- canonical settlement BusinessData drives closure;
+- AllocationRun/Relation consumes the exact remaining foreign position;
+- realized difference derives from actual settlement local value vs exact remaining carrying basis;
+- no period-end market-rate lookup is used for actual settlement value;
+- Allocation and Valuation share a deterministic input digest;
+- derived settlement allocation/valuation state is replayable.
+
+Current first implementation intentionally certifies full closure only. Partial settlement remains an extension over the same Allocation substrate, not a new semantic model.
