@@ -1301,3 +1301,128 @@ Execution order:
 4. bind the reference enterprise to a versioned Enterprise Template;
 5. define objective promotion criteria for `safeForIncremental=true`;
 6. keep incremental mutation disabled until every promotion criterion is machine-verifiable.
+
+
+---
+
+# 29. ER-C05B3 — Checkpoint Coverage Closure — IN PROGRESS
+
+Started machine-verifiable coverage certification.
+
+Implementation commits:
+
+- `404c744bd0822d10c4272685f1539764ef98455a`
+  - public ReplayCoverageCertification contract;
+- `3241a41997da0aad04849273d58266ca328450a4`
+  - conservative PostgreSQL coverage evaluator;
+- `607192d62935ff349cc45d2c54a3bfd09e0669de`
+  - EVO runtime exposure;
+- `a60048432caa394ddd8ba2f5db45b175764500d4`
+  - reference validation executes real coverage evaluation.
+
+## Machine-verifiable certification rule
+
+A replay coverage certification may become `CERTIFIED` only when all five conditions are objectively true:
+
+1. dependency graph complete;
+2. materialization digest complete;
+3. derived runtime full-replay coverage complete;
+4. reference dataset pins complete;
+5. Enterprise Template binding complete.
+
+No service is allowed to promote incremental safety merely because Full Replay matched.
+
+## Current conservative evidence model
+
+The evaluator currently proves from database state:
+
+### Materialization digest coverage
+
+The checkpoint must originate from:
+
+`FULL + COMPLETED + validation_status=MATCH`
+
+and the checkpoint materialization digest must equal the source replay `after_digest`.
+
+The checkpoint must explicitly cover the current Economic Runtime materialization families:
+
+- ledger_entry;
+- ledger_balance;
+- cost_result;
+- allocation_relation;
+- valuation_position;
+- valuation_result;
+- work_item.
+
+### Enterprise Template binding
+
+The checkpoint template identity must equal the current bound:
+
+`<templateCode>@v<version>:<semanticDigest>`.
+
+The reference seed already publishes and binds:
+
+`enterprise-core@v1`
+
+to `EVO_DEMO`.
+
+### Reference dataset pins
+
+All completed valuation runs that used a RateDataset must have an exact:
+
+`datasetId + version + digest`
+
+match in the checkpoint reference-dataset pins.
+
+A scenario with no used rate dataset is complete only when both expected and checkpoint pin sets are empty.
+
+## Intentionally still false
+
+The evaluator currently keeps these false regardless of partial evidence:
+
+- `dependencyGraphComplete`;
+- `derivedRuntimeReplayComplete`.
+
+Reason:
+
+Partial dependency edges do not prove full producer-family coverage.
+
+A successful Full Replay does not prove that every Allocation / Cost / FX / Projection family was independently rebuilt and verified.
+
+These two items require separate certification packets.
+
+## Expected reference-scenario state
+
+After `seed:demo → validate:demo`:
+
+Expected true:
+- materializationDigestComplete;
+- templateBindingComplete;
+- referenceDatasetPinsComplete.
+
+Expected false:
+- dependencyGraphComplete;
+- derivedRuntimeReplayComplete.
+
+Therefore overall certification status must remain:
+
+`DRAFT`
+
+and incremental mutation remains disabled.
+
+## Next active work
+
+`ER-C05B3.1 — Dependency Graph Coverage Certification`
+
+Define the producer families that must emit dependency edges and certify each family from real runtime evidence.
+
+Initial required families:
+
+1. Posting / Projection;
+2. Allocation;
+3. Cost / Valuation;
+4. FX period-end valuation;
+5. FX realized settlement;
+6. materialization dependency where impact propagation requires it.
+
+Do not change `dependencyGraphComplete=true` until all required families have machine-verifiable evidence.
