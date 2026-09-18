@@ -52,6 +52,16 @@ class FakeTopology implements ReplayTopologyStore {
     return this.checkpoint;
   }
 
+  async getLatestIncrementalSafeCheckpoint(
+    _enterpriseId: string,
+    _consistencyDomain: string,
+    _atOrBeforeSequence: bigint
+  ): Promise<ReplayCheckpointDescriptor | null> {
+    return this.checkpoint?.validity.safeForIncremental === true
+      ? this.checkpoint
+      : null;
+  }
+
   async invalidateCheckpoint(): Promise<void> {
     throw new Error('not used');
   }
@@ -212,6 +222,23 @@ describe('incremental replay planner', () => {
     expect(plan.fallbackToFullReplay).toBe(true);
     expect(plan.fallbackReasons)
       .toContain('DEPENDENCY_GRAPH_NOT_PROVEN_COMPLETE');
+  });
+
+  it('falls back when a checkpoint exists but has not been promoted', async () => {
+    const planner = new DefaultIncrementalReplayPlanner(
+      new FakeTopology([], checkpoint({
+        validity: { safeForIncremental: false }
+      }))
+    );
+
+    const plan = await planner.plan({
+      ...baseRequest,
+      impactRoots: [{ kind: 'BUSINESS_FACT', id: 'A' }]
+    });
+
+    expect(plan.fallbackToFullReplay).toBe(true);
+    expect(plan.fallbackReasons)
+      .toContain('NO_INCREMENTAL_SAFE_CHECKPOINT_BEFORE_AFFECTED_BOUNDARY');
   });
 
   it('requires a checkpoint strictly before the affected sequence', async () => {
