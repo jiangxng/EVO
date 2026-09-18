@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { CalculationDependencyEdge, CalculationDependencyStore, RecordCalculationDependencyInput } from '../../lineage/api/contracts.js';
 import type {
   AllocationInstruction,
   AllocationRelation,
@@ -75,11 +76,28 @@ class FakeValuationStore implements ValuationStore {
   }
 }
 
+class FakeDependencyStore implements CalculationDependencyStore {
+  readonly edges: CalculationDependencyEdge[] = [];
+
+  async recordDependency(
+    input: RecordCalculationDependencyInput
+  ): Promise<CalculationDependencyEdge> {
+    const edge = { id: `edge-${this.edges.length + 1}`, ...input };
+    this.edges.push(edge);
+    return edge;
+  }
+
+  async listDependents(): Promise<readonly CalculationDependencyEdge[]> {
+    return [];
+  }
+}
+
 describe('FX settlement service', () => {
   it('persists allocation closure and realized valuation with the same semantic input digest', async () => {
     const allocations = new FakeAllocationStore();
     const valuations = new FakeValuationStore();
-    const service = new DefaultFxSettlementService(allocations, valuations);
+    const dependencies = new FakeDependencyStore();
+    const service = new DefaultFxSettlementService(allocations, valuations, dependencies);
 
     const result = await service.closePosition({
       enterpriseId: 'enterprise-1',
@@ -136,6 +154,12 @@ describe('FX settlement service', () => {
 
     expect(allocations.completed).toEqual(['allocation-run-1']);
     expect(valuations.completed).toEqual(['valuation-run-1']);
+    expect(dependencies.edges.map((edge) => [edge.fromKind, edge.toKind, edge.edgeKind]))
+      .toEqual([
+        ['POSITION','BUSINESS_FACT','VALUATION'],
+        ['BUSINESS_FACT','BUSINESS_FACT','VALUATION'],
+        ['POLICY_VERSION','BUSINESS_FACT','ALLOCATION']
+      ]);
   });
 
   it('rejects partial closure before creating allocation or valuation runs', async () => {
