@@ -12,6 +12,7 @@ import type {
 } from '../api/contracts.js';
 import type { ReplayCheckpointService } from '../api/checkpoint-service.js';
 import type { ReplayTopologyStore } from '../api/topology-store.js';
+import { computeReplayInputDigest } from './postgres-replay-digest.js';
 
 function canonical(value: JsonValue): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -80,46 +81,15 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
 
     const boundarySequence = asBigInt(run.boundary_sequence);
 
-    const orderedRows = await this.db.selectFrom('posting_input as p')
-      .innerJoin('business_data as b','b.id','p.business_data_id')
-      .select([
-        'p.posting_sequence',
-        'p.posting_priority',
-        'p.metadata_version as posting_metadata_version',
-        'p.application_instance_id',
-        'p.effective_at as posting_effective_at',
-        'b.id as business_data_id',
-        'b.business_data_type',
-        'b.business_object_key',
-        'b.business_object_version',
-        'b.metadata_version as business_metadata_version',
-        'b.payload',
-        'b.effective_at as business_effective_at'
-      ])
-      .where('p.enterprise_id','=',enterpriseId)
-      .where('p.consistency_domain','=',run.consistency_domain)
-      .where('p.posting_sequence','<=',boundarySequence)
-      .orderBy('p.posting_sequence')
-      .orderBy('b.id')
-      .execute();
+    const inputDigest = await computeReplayInputDigest(
+      this.db,
+      enterpriseId,
+      run.consistency_domain,
+      boundarySequence
+    );
 
-    const orderedInput: JsonValue = orderedRows.map((row) => ({
-      postingSequence: asBigInt(row.posting_sequence).toString(),
-      postingPriority: row.posting_priority,
-      postingMetadataVersion: row.posting_metadata_version,
-      applicationInstanceId: row.application_instance_id,
-      postingEffectiveAt: iso(row.posting_effective_at),
-      businessDataId: row.business_data_id,
-      businessDataType: row.business_data_type,
-      businessObjectKey: row.business_object_key,
-      businessObjectVersion: asBigInt(row.business_object_version).toString(),
-      businessMetadataVersion: row.business_metadata_version,
-      businessEffectiveAt: iso(row.business_effective_at),
-      payload: row.payload as JsonObject
-    }));
-
-    const orderedInputDigest = digest(orderedInput);
-    const lastIncludedFactId = orderedRows.at(-1)?.business_data_id;
+    const orderedInputDigest = inputDigest.digest;
+    const lastIncludedFactId = inputDigest.lastIncludedFactId;
 
     const template = await this.db.selectFrom('enterprise_template_binding as b')
       .innerJoin('enterprise_template as t','t.id','b.enterprise_template_id')
@@ -134,7 +104,6 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
 
     const blockers = new Set<string>([
       'DEPENDENCY_GRAPH_COVERAGE_NOT_CERTIFIED',
-      'MATERIALIZATION_DIGEST_LEDGER_ONLY',
       'FULL_REPLAY_DERIVED_RUNTIME_COVERAGE_NOT_CERTIFIED',
       'REFERENCE_DATASET_PIN_COVERAGE_NOT_CERTIFIED'
     ]);
@@ -274,8 +243,16 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
       blockers: sortedBlockers,
       sourceReplayRunId: replayRunId,
       replayValidationStatus: 'MATCH',
-      orderedInputCount: orderedRows.length,
-      materializationDigestScope: ['ledger_balance'],
+      orderedInputCount: inputDigest.count,
+      materializationDigestScope: [
+        'ledger_entry',
+        'ledger_balance',
+        'cost_result',
+        'allocation_relation',
+        'valuation_position',
+        'valuation_result',
+        'work_item'
+      ],
       checkpointPolicyVersion: 1
     };
 
