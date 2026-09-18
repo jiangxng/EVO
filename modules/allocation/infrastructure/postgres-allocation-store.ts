@@ -1,7 +1,7 @@
 import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
-import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { JsonObject } from '../../metadata/api/contracts.js';
 import type {
   AllocationInstruction,
   AllocationRelation,
@@ -270,7 +270,7 @@ export class PostgresAllocationStore implements AllocationStore {
       source_business_data_id: input.sourceBusinessDataId ?? null,
       source_position_key: input.sourcePositionKey ?? null,
       consumer_business_data_id: input.consumerBusinessDataId,
-      measurements: sql<JsonValue>`${JSON.stringify(input.measurements)}::jsonb`,
+      measurements: sql<readonly unknown[]>`${JSON.stringify(input.measurements)}::jsonb`,
       allocation_sequence: input.sequence,
       instruction_id: input.instructionId ?? null,
       allocation_policy_id: input.allocationPolicyId,
