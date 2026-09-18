@@ -1242,3 +1242,62 @@ Primary targets:
 4. bind Enterprise Template in the reference enterprise scenario;
 5. define objective promotion rules from unsafe checkpoint to incrementally-safe checkpoint;
 6. keep incremental execution disabled until every promotion condition is proved.
+
+
+---
+
+# 28. ER-C05B2 — Full Replay Checkpoint Production — CLOSED
+
+Certified PR-head checkpoint:
+
+`2f752e798723ae03b1deb73c536e23f6b338ae39`
+
+GitHub Actions:
+
+`CI run 35324891541 — SUCCESS`
+
+Certified pipeline:
+
+`migrate → typecheck → build → test → seed:demo → validate:demo`
+
+This is the first checkpoint where the CI pipeline validates both structural correctness and the full EVO reference runtime scenario.
+
+## Certified behavior
+
+- Full Replay must complete with `validation_status=MATCH` before checkpoint creation;
+- replay checkpoint creation is idempotent per `source_replay_run_id`;
+- schema v11 enforces at most one checkpoint per source replay run;
+- ordered input digest is computed from deterministic posting sequence + canonical BusinessData evidence;
+- materialization digest is captured from verified replay output;
+- template/policy/reference pins are persisted only when provable;
+- economic runtime semantic version and dependency graph version are pinned;
+- parent checkpoint lineage is preserved;
+- checkpoint remains `safeForIncremental=false` by default;
+- explicit safety blockers are persisted.
+
+## Safety status
+
+Incremental replay execution remains DISABLED.
+
+Current certified blocker family:
+
+- `DEPENDENCY_GRAPH_COVERAGE_NOT_CERTIFIED`;
+- `MATERIALIZATION_DIGEST_LEDGER_ONLY`;
+- `FULL_REPLAY_DERIVED_RUNTIME_COVERAGE_NOT_CERTIFIED`;
+- `REFERENCE_DATASET_PIN_COVERAGE_NOT_CERTIFIED`;
+- template binding blocker when the enterprise is unbound.
+
+A successful Full Replay does not remove these blockers automatically.
+
+## Next active packet
+
+`ER-C05B3 — Checkpoint Coverage Closure`
+
+Execution order:
+
+1. expand materialization digest beyond ledger-only state;
+2. define and certify dependency-graph coverage by runtime family;
+3. certify reference-dataset pin completeness;
+4. bind the reference enterprise to a versioned Enterprise Template;
+5. define objective promotion criteria for `safeForIncremental=true`;
+6. keep incremental mutation disabled until every promotion criterion is machine-verifiable.
