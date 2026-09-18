@@ -169,3 +169,52 @@ Required work:
 10. only then remove reference-dataset/replay-coverage blockers.
 
 No incremental mutation work may begin before this closes.
+
+
+## 9. 2026-09-18 refinement — PositionDefinition must also be pinned
+
+During ER-C05B3A contract implementation, a second determinism dependency became explicit.
+
+Pinning only the RateDataset is insufficient.
+
+The same historical facts can produce different open-position sets if any of these semantics change:
+
+- which BusinessData types contribute to a position;
+- increase/decrease direction;
+- foreign/resource measurement field mapping;
+- local carrying-basis field mapping;
+- dimension grouping;
+- position-key construction;
+- inclusion/exclusion filters;
+- negative/open-position policy.
+
+Therefore the canonical ValuationRequest must also bind the **PositionDefinition semantics** used to resolve its scope.
+
+Required conceptual pin:
+
+`PositionDefinitionPin = definition identity + version + semantic digest`
+
+Expected deterministic chain becomes:
+
+`ValuationRequest BusinessData`
+` + PositionDefinitionPin`
+` + RateDatasetPin`
+` + ValuationPolicyPin/config`
+` → deterministic Position resolution`
+` → ValuationRun / Result`.
+
+Do not derive historical positions using an unversioned current template definition.
+
+### Implementation consequence
+
+Before period-end FX replay can be certified:
+
+1. create/persist versioned PositionDefinition semantics;
+2. add PositionDefinition pin to canonical valuation request;
+3. resolve positions only from the pinned definition;
+4. include the pin in replay-input/checkpoint provenance;
+5. add reference Enterprise Template position definitions;
+6. certify that template/position-definition changes cannot silently alter historical valuation replay.
+
+This refinement strengthens, rather than changes, the Economic Runtime Freeze:
+Position remains derived; PositionDefinition is a versioned template semantic.
