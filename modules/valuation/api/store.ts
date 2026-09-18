@@ -6,6 +6,7 @@ import type { JsonObject } from '../../metadata/api/contracts.js';
 
 export interface StartValuationRunInput {
   readonly enterpriseId: string;
+  readonly requestBusinessDataId?: string;
   readonly valuationKind: string;
   readonly effectiveAt: Date;
   readonly inputDigest: string;
