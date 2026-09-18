@@ -448,6 +448,54 @@ try {
     );
   }
 
+  const promotion = await runtime.replayPromotion.promote({
+    checkpointId: checkpoint.id,
+    certificationId: coverage.id,
+    promotedBy: 'validate-demo',
+    reason: 'Reference enterprise E2E certification authorizes this boundary for incremental planning.'
+  });
+
+  if (checkpoint.validity.safeForIncremental !== false) {
+    throw new Error('Promotion must not mutate the original checkpoint validity snapshot.');
+  }
+
+  const promotedCheckpoint = await runtime.replayTopology.getLatestIncrementalSafeCheckpoint(
+    ids.enterpriseId,
+    consistencyDomain,
+    checkpoint.boundarySequence
+  );
+  if (promotedCheckpoint === null || promotedCheckpoint.id !== checkpoint.id) {
+    throw new Error('Expected promoted checkpoint to become the incremental-safe starting point.');
+  }
+  if (promotedCheckpoint.validity.safeForIncremental !== true) {
+    throw new Error('Promoted checkpoint view must be explicitly safe for incremental replay.');
+  }
+  if (promotedCheckpoint.validity.promotionId !== promotion.id) {
+    throw new Error('Promoted checkpoint must expose the governing promotion evidence.');
+  }
+
+  const incrementalPlan = await runtime.incrementalReplayPlanner.plan({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    graphVersion: checkpoint.dependencyGraphVersion,
+    runtimeSemanticVersion: checkpoint.runtimeSemanticVersion,
+    impactRoots: [{
+      kind: 'BUSINESS_FACT',
+      id: orderBusiness.id,
+      effectiveAt: order.effectiveAt
+    }],
+    earliestAffectedSequence: checkpoint.boundarySequence + 1n,
+    dependencyGraphComplete: coverage.dependencyGraphComplete
+  });
+  if (incrementalPlan.fallbackToFullReplay) {
+    throw new Error(
+      `Promoted checkpoint should be eligible for incremental planning, fallback: ${incrementalPlan.fallbackReasons.join(', ')}`
+    );
+  }
+  if (incrementalPlan.checkpoint?.id !== checkpoint.id) {
+    throw new Error('Incremental plan must select the explicitly promoted checkpoint.');
+  }
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -496,6 +544,16 @@ try {
       derivedRuntimeReplayComplete: coverage.derivedRuntimeReplayComplete,
       blockers: coverage.blockers,
       familyCounts: graphCoverage.familyCounts
+    },
+    replayCheckpointPromotion: {
+      id: promotion.id,
+      status: promotion.status,
+      certificationId: promotion.certificationId,
+      originalCheckpointSafeForIncremental: checkpoint.validity.safeForIncremental,
+      promotedViewSafeForIncremental: promotedCheckpoint.validity.safeForIncremental,
+      incrementalPlannerFallback: incrementalPlan.fallbackToFullReplay,
+      incrementalPlannerCheckpointId: incrementalPlan.checkpoint?.id ?? null,
+      planDigest: incrementalPlan.planDigest
     },
     fxCoverage: {
       periodEndDelta: replayedPeriod.delta_amount,
