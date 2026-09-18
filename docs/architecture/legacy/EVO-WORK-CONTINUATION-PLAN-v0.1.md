@@ -1457,3 +1457,95 @@ Design refinement:
 Calculation dependency edges are derived/rebuildable indexes.
 
 For Posting / Work Projection families, prefer rebuilding dependency edges from committed authoritative projection/materialization rows rather than coupling dependency-index writes into the canonical posting transaction. A missing/rebuildable dependency index must never make BusinessData or LedgerEntry non-canonical.
+
+
+---
+
+# 30. ER-C05B3.1 — Dependency Graph Coverage Certification — IMPLEMENTED / CI PENDING
+
+Implementation commits:
+
+- `95b1bd7dde900c75141b0db3a707776424b207a6`
+  - dependency graph rebuilder contract;
+- `d3a8aac04a5560b96ba73b7fc33a0609d9d395f5`
+  - explicit producer-family split, including separate FX period-end and FX realized settlement families;
+- `ee03db111901476da20c89197c335b54cf8e368d`
+  - rebuild dependency graph from committed runtime state;
+- `f0f5946eada3ae05ee3ec8855f34da7581eb9130`
+  - ReplayCoverageCertification derives graph completeness from real family evidence;
+- `c6afab2740647da1c7b9b8f3d9941e358bcd7a49`
+  - dependency graph rebuilder exposed through EVO runtime;
+- `a1f6f030fa9f8afb9ed6240f4ad72af1deb3aa5d`
+  - reference enterprise gains canonical customer-payment command and explicit FX settlement AllocationPolicy;
+- `1fa7a9f2034f1d428c63603e3bf0c85e0f646e1f`
+  - reference validation exercises FX period-end + realized settlement after the verified Full Replay checkpoint.
+
+## Producer families
+
+Dependency graph completeness now requires all of:
+
+1. `POSTING_PROJECTION`
+2. `ALLOCATION`
+3. `COST_VALUATION`
+4. `FX_PERIOD_END`
+5. `FX_REALIZED_SETTLEMENT`
+6. `WORK_PROJECTION`
+
+The rebuilder reconstructs these edges from committed canonical/derived runtime rows.
+
+Important design rule:
+
+> CalculationDependencyEdge is a rebuildable impact/provenance index. It must not become a prerequisite for committing BusinessData or LedgerEntry.
+
+## Reference FX coverage scenario
+
+The reference validation now performs the following **after** the already-verified Full Replay checkpoint:
+
+1. publish immutable USD→CNY period-end RateDataset;
+2. interpret the sales-order receivable as a foreign open position;
+3. run period-end revaluation:
+   - USD 1000,
+   - carrying CNY 7000,
+   - period-end rate 7.2,
+   - delta = CNY 200;
+4. create canonical `customer_payment.received` BusinessData through Command;
+5. preserve explicit source-selection intent with AllocationInstruction;
+6. close the position using:
+   - settlement foreign = USD 1000,
+   - post-revaluation carrying = CNY 7200,
+   - settlement local = CNY 7300,
+   - realized FX delta = CNY 100;
+7. rebuild dependency graph;
+8. require every producer family count > 0.
+
+The FX scenario intentionally runs after the verified replay checkpoint.
+
+Reason:
+
+The current Full Replay orchestrator does not yet rebuild generic FX valuation/settlement derived state.
+
+Running FX before the checkpoint would correctly expose a replay digest mismatch and would break the already-certified B2 checkpoint.
+
+Therefore B3.1 producer coverage and B3.2 derived-runtime replay coverage remain separate certification gates.
+
+## Current CI status
+
+Commit under certification:
+
+`1fa7a9f2034f1d428c63603e3bf0c85e0f646e1f`
+
+GitHub Actions:
+
+`CI run 35331926544 — IN PROGRESS`
+
+Do not mark B3.1 CLOSED until this run is green.
+
+## Next after green
+
+`ER-C05B3.2 — Derived Runtime Full-Replay Coverage`
+
+Primary architecture problem:
+
+Full Replay currently rebuilds Posting and pinned Cost, but generic FX period-end / FX settlement execution inputs are not yet represented as deterministic replay instructions that can be automatically re-executed.
+
+The next packet must decide and implement how derived interpretation runs are replayable without replaying Commands or treating derived rows as canonical truth.
