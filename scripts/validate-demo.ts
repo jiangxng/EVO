@@ -2,6 +2,7 @@ import { Decimal } from 'decimal.js';
 import { createDatabase } from '../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../platform/runtime/src/config.js';
 import { createEvoRuntime, demoIds, drainPosting } from '../apps/api/src/evo-runtime.js';
+import { computeEconomicRuntimeDigest } from '../modules/replay/infrastructure/postgres-replay-digest.js';
 
 const config = loadRuntimeConfig();
 const database = createDatabase(config.databaseUrl);
@@ -160,13 +161,32 @@ try {
     throw new Error(`COGS expected 20, got ${cogs.amount}`);
   }
 
-  const before = await runtime.query.balanceDigest(ids.enterpriseId);
+  const consistencyDomain = (await runtime.db.selectFrom('enterprise_runtime_state')
+    .select('consistency_domain')
+    .where('enterprise_id','=',ids.enterpriseId)
+    .executeTakeFirstOrThrow()).consistency_domain;
+  const boundaryBeforeReplay = BigInt((await runtime.db.selectFrom('enterprise_runtime_state')
+    .select('next_posting_sequence')
+    .where('enterprise_id','=',ids.enterpriseId)
+    .executeTakeFirstOrThrow()).next_posting_sequence) - 1n;
+
+  const before = await computeEconomicRuntimeDigest(
+    runtime.db,
+    ids.enterpriseId,
+    consistencyDomain,
+    boundaryBeforeReplay
+  );
   const replay = await runtime.replay.prepareFullReplay(ids.enterpriseId);
   await drainPosting(runtime, ids.enterpriseId);
   if (replay.costMethod !== null) {
     await runtime.cost.recalculate(ids.enterpriseId, replay.costMethod, replay.costPins ?? undefined);
   }
-  const after = await runtime.query.balanceDigest(ids.enterpriseId);
+  const after = await computeEconomicRuntimeDigest(
+    runtime.db,
+    ids.enterpriseId,
+    consistencyDomain,
+    replay.boundarySequence
+  );
   await runtime.replay.completeFullReplay(replay.replayRunId, ids.enterpriseId, after);
 
   if (before !== after || replay.beforeDigest !== before) {
