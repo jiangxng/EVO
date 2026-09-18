@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../metadata/api/contracts.js';
 import type { FxPositionResolver } from '../api/position-resolver.js';
 import type {
   AcceptedValuationRequest,
@@ -52,7 +53,7 @@ implements ValuationRequestInterpreter {
           valuationAt,
           scope: request.payload.scope,
           requestBusinessDataId: request.businessDataId,
-          requestPayload: request.payload as unknown as Readonly<Record<string, unknown>>
+          requestPayload: request.payload as unknown as JsonObject
         });
 
         if (positions.length === 0) {
