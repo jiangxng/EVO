@@ -37,3 +37,15 @@ export interface AcceptedValuationRequest {
 export interface ValuationRequestInterpreter {
   replayAcceptedRequest(request: AcceptedValuationRequest): Promise<void>;
 }
+
+export interface ValuationRequestReplayResult {
+  readonly replayedRequestCount: number;
+}
+
+export interface ValuationRequestReplayService {
+  replayAcceptedRequests(
+    enterpriseId: string,
+    consistencyDomain: string,
+    boundarySequence: bigint
+  ): Promise<ValuationRequestReplayResult>;
+}
