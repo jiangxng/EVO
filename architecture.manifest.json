@@ -100,7 +100,8 @@
         "cost_layer",
         "cost_match",
         "cost_result",
-        "cost_run"
+        "cost_run",
+        "cost/allocation policy pin lineage"
       ],
       "mayDependOn": [
         "metadata",
@@ -114,7 +115,8 @@
       "owns": [
         "replay_run",
         "replay_checkpoint",
-        "calculation_dependency_edge"
+        "calculation_dependency_edge",
+        "replay preservation of allocation policy pins"
       ],
       "mayDependOn": [
         "metadata",
@@ -289,7 +291,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 8,
+  "dbSchemaVersion": 9,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
