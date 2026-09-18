@@ -292,3 +292,39 @@ Required closure distinctions:
 - Residual Position Projection.
 
 Only after this gate should the Allocation persistence contract be frozen.
+
+
+# 13. 2026-09-18 packet ledger update — AP-MANUAL-ALLOC-001
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-MANUAL-ALLOC-001.md`
+
+Status:
+
+`SEMANTIC GATE CLOSED`
+
+Primary recovered conclusions:
+
+- manual matching target comes from business transaction input;
+- `TRANS_MATCHED_CODE / MANUALLY_FIELD` acts as source-selection instruction/constraint;
+- automatic source choice is a deterministic interpretation result under pinned policy/order/open state;
+- generated match lineage and WaterBal/TbMatched are rebuildable calculation state;
+- revoke restores calculation state without erasing the business-side manual selection instruction;
+- mixed manual→automatic semantics are valid conceptually, but current legacy mode-3 initialization has an implementation inconsistency that must not be copied.
+
+Current first unresolved gate:
+
+`AP-COST-METHOD-001 — FIFO / LIFO / Average / Specific Identification genealogy`
+
+Entry order:
+
+`bookkeeping moving-average evidence`
+` → Asloop ordered candidate selection`
+` → lastStockOut implementation`
+` → source ordering variants`
+` → explicit lot/source selection`
+` → negative inventory interaction`
+` → transfer/return basis carry-over`
+` → backdated behavior`
+` → unified CostMethodPolicy model`
