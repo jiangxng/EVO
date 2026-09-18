@@ -165,7 +165,8 @@ describe('FX settlement service', () => {
   it('rejects partial closure before creating allocation or valuation runs', async () => {
     const allocations = new FakeAllocationStore();
     const valuations = new FakeValuationStore();
-    const service = new DefaultFxSettlementService(allocations, valuations);
+    const dependencies = new FakeDependencyStore();
+    const service = new DefaultFxSettlementService(allocations, valuations, dependencies);
 
     await expect(service.closePosition({
       enterpriseId: 'enterprise-1',
