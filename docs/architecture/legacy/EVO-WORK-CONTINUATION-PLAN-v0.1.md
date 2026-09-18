@@ -1987,3 +1987,33 @@ Authoritative sources used:
 Maintenance rule:
 
 When table/field structure materially changes, create/update a newer database-design snapshot version and preserve the previous stage as genealogy. Do not silently rewrite the meaning of the current-stage snapshot.
+
+
+---
+
+# 38. Progress reporting now requires business + technical views
+
+New current-stage status document:
+
+`docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md`
+
+Commit:
+
+`e559fa41971c51ea4b7d12d71a68a8c3e5eb936d`
+
+From this point forward, major EVO progress reports must not consist only of work-packet names, commits, CI runs and architectural terminology.
+
+Every important progress update must include:
+
+1. **业务问题** — what enterprise problem is being solved;
+2. **业务能力** — what the enterprise gains when the packet is complete;
+3. **技术路线** — how EVO represents/implements the capability;
+4. **验证等级** — distinguish implemented / unit verified / E2E verified / certified;
+5. **当前还差什么** — do not equate code-complete with capability-complete;
+6. **下一步及业务原因** — explain why the next technical task matters to enterprise operation.
+
+Current one-line project state in business language:
+
+EVO has completed the current core Economic Runtime semantic archaeology and architecture freeze and is now certifying the new TypeScript/PostgreSQL runtime end-to-end. The active proof is whether a foreign-currency receivable can be period-end revalued, explicitly settled against its source, and then have all derived allocation/valuation/projection state deleted and reconstructed from canonical business facts, explicit settlement intent and pinned policies/reference data with an identical Economic Runtime digest.
+
+After this gate closes, the main line moves from Full Replay correctness to safe Checkpoint Promotion / Incremental Replay so backdated corrections and rule changes can be recalculated efficiently in long-running enterprises.
