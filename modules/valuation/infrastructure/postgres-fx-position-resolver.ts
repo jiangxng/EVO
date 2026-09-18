@@ -179,26 +179,73 @@ export class PostgresFxPositionResolver implements FxPositionResolver {
       }
     }
 
-    return [...aggregates.values()]
+    const selected = [...aggregates.values()]
       .filter((aggregate) =>
         (!aggregate.foreign.isZero() || !aggregate.carrying.isZero()) &&
         scopeMatches(aggregate.positionKey,aggregate.dimensions,request)
       )
-      .sort((a,b) => a.positionKey.localeCompare(b.positionKey))
-      .map((aggregate) => ({
-        positionKey: aggregate.positionKey,
-        sourceBusinessDataIds: [...aggregate.sourceBusinessDataIds].sort(),
-        dimensions: aggregate.dimensions,
-        foreign: {
-          value: aggregate.foreign.toString(),
-          unit: aggregate.foreignUnit,
-          role: aggregate.foreignRole
-        },
-        carrying: {
-          value: aggregate.carrying.toString(),
-          unit: aggregate.carryingUnit,
-          role: aggregate.carryingRole
+      .sort((a,b) => a.positionKey.localeCompare(b.positionKey));
+
+    if (selected.length > 0) {
+      const priorResults = await this.db.selectFrom('valuation_result as r')
+        .innerJoin('valuation_run as v','v.id','r.valuation_run_id')
+        .select([
+          'r.position_key',
+          'r.target_measurements',
+          'v.effective_at',
+          'v.completed_at'
+        ])
+        .where('r.enterprise_id','=',request.enterpriseId)
+        .where('r.result_kind','=','FX_PERIOD_END')
+        .where('r.position_key','in',selected.map((item) => item.positionKey))
+        .where('v.status','=','COMPLETED')
+        .where('v.effective_at','<',request.valuationAt)
+        .orderBy('v.effective_at','desc')
+        .orderBy('v.completed_at','desc')
+        .execute();
+
+      const applied = new Set<string>();
+      for (const row of priorResults) {
+        if (applied.has(row.position_key)) continue;
+        const aggregate = selected.find((item) => item.positionKey === row.position_key);
+        if (aggregate === undefined || !Array.isArray(row.target_measurements)) continue;
+        const carryingAfter = row.target_measurements[0];
+        if (
+          carryingAfter === null ||
+          typeof carryingAfter !== 'object' ||
+          Array.isArray(carryingAfter)
+        ) {
+          continue;
         }
-      }));
+        const measurement = carryingAfter as Record<string,unknown>;
+        if (
+          measurement.role !== 'VALUATION_AMOUNT' ||
+          measurement.unit !== aggregate.carryingUnit ||
+          (typeof measurement.value !== 'string' && typeof measurement.value !== 'number')
+        ) {
+          continue;
+        }
+        const value = new Decimal(String(measurement.value));
+        if (!value.isFinite()) continue;
+        aggregate.carrying = value;
+        applied.add(row.position_key);
+      }
+    }
+
+    return selected.map((aggregate) => ({
+      positionKey: aggregate.positionKey,
+      sourceBusinessDataIds: [...aggregate.sourceBusinessDataIds].sort(),
+      dimensions: aggregate.dimensions,
+      foreign: {
+        value: aggregate.foreign.toString(),
+        unit: aggregate.foreignUnit,
+        role: aggregate.foreignRole
+      },
+      carrying: {
+        value: aggregate.carrying.toString(),
+        unit: aggregate.carryingUnit,
+        role: aggregate.carryingRole
+      }
+    }));
   }
 }
