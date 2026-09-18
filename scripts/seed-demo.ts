@@ -229,6 +229,7 @@ try {
     })).execute();
   }
   await command(salesVersion.id, 'approve-sales-order', 'Approve Sales Order', 'sales_order.approved');
+  await command(salesVersion.id, 'record-customer-payment', 'Record Customer Payment', 'customer_payment.received');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
@@ -401,7 +402,8 @@ try {
   const allocationPolicies = [
     ['inventory_fifo','Inventory FIFO Allocation','OLDEST_FIRST'],
     ['inventory_lifo','Inventory LIFO Allocation','NEWEST_FIRST'],
-    ['inventory_specific','Inventory Specific Identification','EXPLICIT_ONLY']
+    ['inventory_specific','Inventory Specific Identification','EXPLICIT_ONLY'],
+    ['fx_settlement_explicit','FX Settlement Explicit Allocation','EXPLICIT_ONLY']
   ] as const;
   for (const [code,name,sourceOrdering] of allocationPolicies) {
     await db.insertInto('allocation_policy').values({
@@ -411,10 +413,15 @@ try {
       version: 1,
       status: 'PUBLISHED',
       dimensions: ['warehouse','productId'],
-      eligibility: {
-        inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
-        outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
-      },
+      eligibility: code === 'fx_settlement_explicit'
+        ? {
+            sourceBusinessDataTypes: ['sales_order.approved'],
+            consumerBusinessDataTypes: ['customer_payment.received']
+          }
+        : {
+            inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
+            outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
+          },
       source_ordering: sourceOrdering,
       allow_partial_allocation: true,
       negative_position_policy: 'REJECT',
@@ -433,10 +440,15 @@ try {
       status: 'PUBLISHED',
       dimensions: ['warehouse','productId'],
       source_ordering: sourceOrdering,
-      eligibility: {
-        inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
-        outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
-      },
+      eligibility: code === 'fx_settlement_explicit'
+        ? {
+            sourceBusinessDataTypes: ['sales_order.approved'],
+            consumerBusinessDataTypes: ['customer_payment.received']
+          }
+        : {
+            inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
+            outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
+          },
       precision_policy: {
         quantityScale: 6,
         amountScale: 6,
