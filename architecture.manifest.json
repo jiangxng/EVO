@@ -108,7 +108,8 @@
         "ledger",
         "valuation",
         "allocation",
-        "economic"
+        "economic",
+        "lineage"
       ]
     },
     "replay": {
@@ -126,7 +127,8 @@
         "cost",
         "valuation",
         "allocation",
-        "economic"
+        "economic",
+        "lineage"
       ]
     },
     "workflow": {
@@ -242,7 +244,8 @@
         "posting",
         "dimensions",
         "economic",
-        "allocation"
+        "allocation",
+        "lineage"
       ]
     },
     "enterprise-package": {
@@ -292,7 +295,17 @@
       "mayDependOn": [
         "metadata",
         "economic",
-        "business-data"
+        "business-data",
+        "lineage"
+      ]
+    },
+    "lineage": {
+      "owns": [
+        "calculation dependency semantic contracts",
+        "calculation dependency emission/query port"
+      ],
+      "mayDependOn": [
+        "metadata"
       ]
     }
   },
