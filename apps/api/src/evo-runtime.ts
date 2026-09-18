@@ -18,6 +18,7 @@ import { PostgresEnterpriseQuery } from '../../../modules/query/infrastructure/p
 import { PostgresAiCapabilityCatalog } from '../../../modules/ai/infrastructure/postgres-ai-capability-catalog.js';
 import { PostgresFlowProjection } from '../../../modules/flow/infrastructure/postgres-flow-projection.js';
 import { PostgresEnterpriseTemplateService } from '../../../modules/enterprise-template/infrastructure/postgres-enterprise-template-service.js';
+import { PostgresAllocationStore } from '../../../modules/allocation/infrastructure/postgres-allocation-store.js';
 
 export function createEvoRuntime(database: DatabaseHandle) {
   const db = database.db;
@@ -27,7 +28,7 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const state = new PostgresPostingStateStore(db);
   const posting = new PostingService(state,state,new PostgresBusinessDataReader(db),new PostgresPostingMetadataReader(db),new PostgresLedgerWriter(),createTransactionRunner(db));
   const valuation = new PostgresValuationPostingService(db);
-  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), valuation, cost:new PostgresCostEngine(db,valuation), query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), valuation, cost:new PostgresCostEngine(db,valuation), allocation:new PostgresAllocationStore(db), query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
