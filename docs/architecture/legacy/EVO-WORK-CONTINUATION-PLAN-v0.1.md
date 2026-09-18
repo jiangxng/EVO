@@ -1604,3 +1604,80 @@ How should deterministic derived interpretations such as Cost, FX period-end val
 - relying on mutable “latest policy/rate” lookup?
 
 The next step is to evaluate the existing valuation-request abstraction before introducing any new persistence model.
+
+
+---
+
+# 32. ER-C05B3.2A — Canonical FX Period-End Replay — CLOSED
+
+Verified implementation checkpoint:
+
+`bf706e15f39ef67ef2ac64eae21d24a296038122`
+
+GitHub Actions:
+
+`CI run 35332507393 — SUCCESS`
+
+Certified architecture:
+
+`Command (decision time only)`
+` → canonical BusinessData: valuation.requested`
+` → pinned PositionDefinition + RateDataset + Policy`
+` → ValuationRequestInterpreter`
+` → derived FX valuation_run / valuation_result`
+
+During Full Replay:
+
+- Command is **not** re-executed;
+- canonical `valuation.requested` BusinessData survives;
+- previous FX valuation derived state is deleted;
+- Posting is rebuilt to the same replay boundary;
+- pinned Cost is rebuilt;
+- canonical valuation requests are scanned in `posting_sequence` order;
+- the request is re-interpreted;
+- FX period-end valuation result is rebuilt;
+- Economic Runtime digest remains MATCH.
+
+## New durable components
+
+- `PostgresFxPositionResolver`
+  - reconstructs FX position input from canonical BusinessData + pinned PositionDefinition;
+- `ValuationRequestReplayService`
+  - scans canonical `valuation.requested` BusinessData inside replay boundary;
+  - invokes the deterministic interpreter;
+- reference `fx_receivable` PositionDefinition;
+- dedicated `valuation` application and `request-valuation` Command in the reference enterprise.
+
+Reference period-end result remains:
+
+- foreign open position: USD 1000;
+- canonical carrying basis: CNY 7000;
+- pinned period-end rate: 7.2;
+- rebuilt carrying value: CNY 7200;
+- delta: CNY 200.
+
+## Important architectural result
+
+A derived interpretation run is replayable when its **request is canonical and fully pinned**.
+
+The durable input is not the old `valuation_run` or `valuation_result`.
+
+The model is:
+
+`Canonical interpretation request + canonical facts + pinned definitions/datasets/policies → derived run/result`.
+
+This is now proven for FX period-end valuation.
+
+## Next active sub-packet
+
+`ER-C05B3.2B — Canonical FX Realized Settlement Replay`
+
+Required proof:
+
+- canonical payment BusinessData;
+- canonical AllocationInstruction;
+- canonical valuation.requested settlement instruction;
+- pinned PositionDefinition + AllocationPolicy;
+- position resolver uses previously rebuilt period-end carrying value;
+- Full Replay regenerates allocation relation + realized FX valuation result;
+- replay digest remains MATCH.
