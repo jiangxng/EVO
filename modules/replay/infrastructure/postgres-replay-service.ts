@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
 import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
+import { computeEconomicRuntimeDigest } from './postgres-replay-digest.js';
 import type {
   ReplayResult,
   ReplayService
@@ -20,24 +20,17 @@ export class PostgresReplayService implements ReplayService {
 
       const boundary = BigInt(runtime.next_posting_sequence) - 1n;
 
-      const balances = await trx
-        .selectFrom('ledger_balance as b')
-        .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
-        .select(['d.code as ledger','b.dimension_hash','b.quantity','b.amount'])
-        .where('b.enterprise_id', '=', enterpriseId)
-        .orderBy('d.code')
-        .orderBy('b.dimension_hash')
-        .execute();
+      const beforeDigest = await computeEconomicRuntimeDigest(
+        trx,
+        enterpriseId,
+        runtime.consistency_domain,
+        boundary
+      );
 
-      const beforeSnapshot = balances.map((row) => ({
-        ledger: row.ledger,
-        dimension_hash: row.dimension_hash,
-        quantity: row.quantity,
-        amount: row.amount
-      }));
-      const beforeDigest = createHash('sha256')
-        .update(JSON.stringify(beforeSnapshot))
-        .digest('hex');
+      const beforeSnapshot = {
+        digestScope: 'economic-runtime-v0.1',
+        digest: beforeDigest
+      };
 
       const latestCostRun = await trx.selectFrom('cost_run')
         .select(['id','method','valuation_policy_id','valuation_policy_version','allocation_policy_id','allocation_policy_version'])
