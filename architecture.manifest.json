@@ -233,14 +233,16 @@
         "valuation posting execution",
         "valuation_run",
         "valuation_result",
-        "FX period-end valuation runtime"
+        "FX period-end valuation runtime",
+        "FX realized settlement valuation runtime"
       ],
       "mayDependOn": [
         "metadata",
         "ledger",
         "posting",
         "dimensions",
-        "economic"
+        "economic",
+        "allocation"
       ]
     },
     "enterprise-package": {
