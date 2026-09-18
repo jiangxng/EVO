@@ -224,3 +224,36 @@ No legacy atomic definition should move to a hidden/implicit `discarded` state.
 ## 12. Rule for future LLMs
 
 Do not clean this document by deleting wrong turns. Archaeology is evidence accumulation. When a conclusion changes, append the correction, status the old conclusion, and preserve why it once appeared plausible. The repository, not chat memory, is the durable development memory.
+
+## 13. 2026-09-18 archaeology continuity protocol
+
+A dedicated operating protocol now exists at:
+
+`docs/architecture/legacy/LEGACY-ARCHAEOLOGY-WORK-METHOD-v0.1.md`
+
+Future LLMs MUST consult that file before reopening large legacy sources. It contains the Analysis Ledger mapping already-inspected source files/code objects to conclusions, evidence status, known gaps, and re-analysis conditions.
+
+The operating rule is now:
+
+```text
+Repository index
+→ current packet
+→ named evidence gap
+→ minimal raw source
+→ analysis
+→ immediate durable summary
+→ inventory/genealogy update
+→ commit
+```
+
+Do not repeatedly reread `计算初始化脚本.sql`, `1499252611845.sql`, bookkeeping balance/cost SQL, or already-recorded code objects merely to reconstruct chat context.
+
+Re-analysis is justified only when at least one is true:
+
+- a new source/ref/version has been discovered;
+- an exact raw record is missing from the atomic inventory;
+- current evidence contradicts an earlier interpretation;
+- an unresolved caller/state transition requires surrounding implementation;
+- certification requires stronger source-level proof.
+
+The next named packet is `AP-WB-001`: reconstruct the Water Balance / To-Be-Matched state machine and persist a collector/state-transition matrix before proceeding to broader matching generalization.
