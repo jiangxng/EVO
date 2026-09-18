@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { DependencyGraphRebuilder } from '../../lineage/api/rebuilder.js';
 import type {
   ReplayCoverageCertification,
   ReplayCoverageCertificationService
@@ -45,7 +46,10 @@ function stringArray(value: JsonValue | undefined): readonly string[] {
 
 export class PostgresReplayCoverageCertificationService
 implements ReplayCoverageCertificationService {
-  constructor(private readonly db: Kysely<Database>) {}
+  constructor(
+    private readonly db: Kysely<Database>,
+    private readonly dependencyGraph: DependencyGraphRebuilder
+  ) {}
 
   async evaluate(
     checkpointId: string,
@@ -138,9 +142,16 @@ implements ReplayCoverageCertificationService {
       expectedRatePins.size === actualRatePins.size &&
       [...expectedRatePins].every(([key,value]) => actualRatePins.get(key) === value);
 
-    // Conservative by design. These two conditions require independent coverage
-    // certification packets; presence of some edges or a successful replay is not enough.
-    const dependencyGraphComplete = false;
+    const dependencyGraphEvidence = await this.dependencyGraph.rebuildEnterprise(
+      checkpoint.enterprise_id
+    );
+    const dependencyGraphComplete =
+      dependencyGraphEvidence.graphVersion === checkpoint.dependency_graph_version &&
+      dependencyGraphEvidence.missingFamilies.length === 0;
+
+    // Conservative by design. A successful Full Replay plus complete dependency index
+    // still does not prove that every derived runtime family was rebuilt by the replay
+    // orchestrator. This remains false until ER-C05B3.2 certifies replay-family execution.
     const derivedRuntimeReplayComplete = false;
 
     const blockers = [
@@ -177,6 +188,12 @@ implements ReplayCoverageCertificationService {
         checkpoint: [...actualRatePins.entries()]
           .sort(([a],[b]) => a.localeCompare(b))
           .map(([nodeId,rowDigest]) => ({ nodeId, digest: rowDigest }))
+      },
+      dependencyGraph: {
+        graphVersion: dependencyGraphEvidence.graphVersion,
+        familyCounts: dependencyGraphEvidence.familyCounts,
+        missingFamilies: dependencyGraphEvidence.missingFamilies,
+        totalEdgesObserved: dependencyGraphEvidence.totalEdgesObserved
       },
       blockers
     };
