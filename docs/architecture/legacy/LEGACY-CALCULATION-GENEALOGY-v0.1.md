@@ -310,3 +310,55 @@ The key question is whether a source-consumption relation is:
 - or a residual/materialized projection.
 
 Do not freeze Allocation persistence contracts before this gate closes.
+
+
+## 15. 2026-09-18 AP-MANUAL-ALLOC-001 closure
+
+Packet:
+
+`docs/architecture/legacy/packets/AP-MANUAL-ALLOC-001.md`
+
+Commit:
+
+`c2df7e74d366d5b8159679db9d4d2da09e37ad47`
+
+### Evidence-backed distinction
+
+Legacy matching explicitly separates:
+
+- `AUTO_MATCH(1)`;
+- `MANUAL_MATCH(2)`;
+- `MANUAL_TO_AUTO_MATCH(3)`.
+
+Manual target identity originates from the current business transaction, normally `TRANS_MATCHED_CODE` or another `MANUALLY_FIELD` mapping. That value constrains the candidate-source query.
+
+Generated `PARENT_ID / TRANS_MATCHED_DETAIL_ID / ORIGIN_ID / TRANS_MATCHED_SEQ / WaterBal / TbMatched` state is calculation output and is reverted/restored by calculation-level revoke logic.
+
+Current normalized distinction:
+
+`Allocation Fact`
+` / Allocation Instruction or Constraint`
+` / Allocation Interpretation Result`
+` / Residual Position Projection`
+
+Key rule:
+
+> Preserve explicit business source-selection intent canonically; rebuild deterministic allocation edges and residual positions from pinned facts, instructions and policies.
+
+### Legacy inconsistency preserved
+
+`CostMatchStrategy` implements intended `MANUAL_TO_AUTO_MATCH(3)` behavior, but the inspected `MatchedConfiguration.buildDefaultMatch()` initializes the manual target only for strict `MANUAL_MATCH(2)`.
+
+No second target-population path was recovered in the inspected source set.
+
+Status:
+
+`U-MANUAL-001 — legacy mixed-mode implementation inconsistency`
+
+Do not copy this inconsistency into EVO.
+
+### Next gate
+
+`AP-COST-METHOD-001 — FIFO / LIFO / Average / Specific Identification genealogy`
+
+Goal: prove that required costing methods can be expressed as policies over the same Allocation + Valuation substrate.
