@@ -1948,3 +1948,42 @@ The next accepted evidence is a GitHub workflow against the latest fixes where:
 - validate:demo passes;
 - Full Replay digest MATCH;
 - ReplayCoverageCertification = CERTIFIED.
+
+
+---
+
+# 37. Current database design dictionary — SAVED
+
+New learning/engineering reference document:
+
+`docs/architecture/database/EVO-CURRENT-DATABASE-DESIGN-v0.1.md`
+
+Commit:
+
+`1eec9f1e299af98ef3a5e80745abccde6d19ecf5`
+
+Purpose:
+
+- explain the current physical PostgreSQL design in Chinese;
+- make the database understandable to the project owner and future LLMs;
+- explicitly distinguish canonical facts, canonical instructions/bindings, versioned definitions/policies, execution/audit records, derived results/projections and materializations/indexes;
+- provide a versioned snapshot instead of pretending the current schema is final.
+
+Current verified code-side counts:
+
+- PostgreSQL tables: **60**
+- fields: **635**
+- migration infrastructure table: **1** (`schema_migrations`)
+- EVO system/business/runtime tables: **59**
+- schema migration SQL files: **15**
+- declared DB schema version: **13**
+
+Authoritative sources used:
+
+- `platform/database/src/types.ts`
+- `migrations/schema/*.sql`
+- `scripts/migrate.ts`
+
+Maintenance rule:
+
+When table/field structure materially changes, create/update a newer database-design snapshot version and preserve the previous stage as genealogy. Do not silently rewrite the meaning of the current-stage snapshot.
