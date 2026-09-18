@@ -600,9 +600,30 @@ This phase is complete when a different capable LLM, using the repository only, 
 | Evidence gate | Status | Durable artifact |
 |---|---|---|
 | AP-FX-001 | **CLOSED** | `packets/AP-FX-001-FOREIGN-CURRENCY-SETTLEMENT.md` |
-| AP-MANUAL-ALLOC-001 | **IN PROGRESS / NEXT** | pending |
-| AP-COST-METHOD-001 | pending | pending |
+| AP-MANUAL-ALLOC-001 | **CLOSED** | `packets/AP-MANUAL-ALLOC-001.md` |
+| AP-COST-METHOD-001 | **IN PROGRESS / NEXT** | pending |
 | AP-RECALC-001 | pending | pending |
 | Economic Runtime Freeze | blocked by remaining three gates | pending |
 
 FX closure established the distinction between foreign measurement, local carrying basis, settlement result and period-end valuation. It also strengthens the need to classify Allocation provenance before freezing canonical persistence.
+
+
+---
+
+# 16. Manual allocation closure — 2026-09-18
+
+`AP-MANUAL-ALLOC-001` is now **SEMANTIC GATE CLOSED**.
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-MANUAL-ALLOC-001.md`
+
+Closure commit:
+
+`c2df7e74d366d5b8159679db9d4d2da09e37ad47`
+
+The next active packet is:
+
+`AP-COST-METHOD-001 — FIFO / LIFO / Average / Specific Identification genealogy`
+
+Do not reopen the manual-allocation source family unless new evidence is needed to resolve `U-MANUAL-001` or certification requires stronger provenance proof.
