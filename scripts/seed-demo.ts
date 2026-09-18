@@ -1,5 +1,7 @@
 import { createDatabase } from '../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../platform/runtime/src/config.js';
+import { PostgresEnterpriseTemplateService } from '../modules/enterprise-template/infrastructure/postgres-enterprise-template-service.js';
+import { enterpriseCoreV1 } from '../modules/enterprise-template/reference/enterprise-core-v1.js';
 
 const config = loadRuntimeConfig();
 const database = createDatabase(config.databaseUrl);
@@ -23,6 +25,22 @@ try {
       .onConflict((oc) => oc.column('code').doUpdateSet({ name: 'EVO Demo Enterprise' }))
       .returning(['id']).executeTakeFirst(),
     'enterprise'
+  );
+
+  const enterpriseTemplates = new PostgresEnterpriseTemplateService(db);
+  await enterpriseTemplates.publish({
+    templateCode: 'enterprise-core',
+    templateName: 'EVO Enterprise Core',
+    description: 'Cross-industry reference enterprise template for EVO deterministic runtime certification.',
+    version: 1,
+    definition: enterpriseCoreV1
+  });
+  await enterpriseTemplates.bindEnterprise(
+    'EVO_DEMO',
+    'enterprise-core',
+    1,
+    'seed-demo',
+    'Reference enterprise deterministic runtime certification'
   );
 
   async function domain(code: string, name: string) {
