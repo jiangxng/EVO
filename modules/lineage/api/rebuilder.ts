@@ -2,7 +2,8 @@ export type DependencyProducerFamily =
   | 'POSTING_PROJECTION'
   | 'ALLOCATION'
   | 'COST_VALUATION'
-  | 'GENERIC_VALUATION'
+  | 'FX_PERIOD_END'
+  | 'FX_REALIZED_SETTLEMENT'
   | 'WORK_PROJECTION';
 
 export interface DependencyGraphRebuildResult {
