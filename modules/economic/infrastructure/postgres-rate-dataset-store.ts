@@ -168,6 +168,14 @@ export class PostgresRateDatasetStore implements RateDatasetStore {
     return row === undefined ? null : datasetFromRow(row);
   }
 
+  async getById(datasetId: string): Promise<RateDataset | null> {
+    const row = await this.db.selectFrom('rate_dataset')
+      .selectAll()
+      .where('id','=',datasetId)
+      .executeTakeFirst();
+    return row === undefined ? null : datasetFromRow(row);
+  }
+
   async listObservations(datasetId: string): Promise<readonly RateObservation[]> {
     const dataset = await this.db.selectFrom('rate_dataset')
       .select(['id','version','semantic_digest'])
