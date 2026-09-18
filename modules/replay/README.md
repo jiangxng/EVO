@@ -62,3 +62,22 @@ Conservative v0.1 safety rules force full replay when:
 A cycle in the dependency graph is traversal-safe but does not weaken these fallback rules.
 
 Incremental execution remains disabled until candidate rebuild output can be compared with the full replay oracle.
+
+
+## Full Replay Checkpoint certification — 2026-09-18
+
+Certified behavior:
+- a ReplayCheckpoint may only originate from a completed FULL replay with digest MATCH;
+- source replay run identity is first-class and unique;
+- checkpoint production is idempotent;
+- initial checkpoints are always unsafe for incremental activation;
+- missing coverage is persisted as blocker reason codes;
+- Full Replay success is necessary but not sufficient for incremental safety.
+
+Certified end-to-end pipeline:
+`migrate → typecheck → build → test → seed:demo → validate:demo`
+
+PR-head certification:
+`2f752e798723ae03b1deb73c536e23f6b338ae39`
+CI run:
+`35324891541 — SUCCESS`
