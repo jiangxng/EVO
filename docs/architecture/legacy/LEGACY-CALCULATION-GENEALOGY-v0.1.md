@@ -257,3 +257,56 @@ Re-analysis is justified only when at least one is true:
 - certification requires stronger source-level proof.
 
 The next named packet is `AP-WB-001`: reconstruct the Water Balance / To-Be-Matched state machine and persist a collector/state-transition matrix before proceeding to broader matching generalization.
+
+
+## 14. 2026-09-18 AP-FX-001 closure
+
+Packet:
+
+`docs/architecture/legacy/packets/AP-FX-001-FOREIGN-CURRENCY-SETTLEMENT.md`
+
+Commit:
+
+`0e003907e5d14839c8658ab6f9fb50694f18c422`
+
+### Correction to Section 8
+
+The earlier statement that FX transaction versus period-end settlement/revaluation was not fully proven is now **SUPERSEDED**.
+
+Observed legacy behavior now proves:
+
+- `9005 外币往来` and `2004 外币资金` carry foreign/resource measurement semantics;
+- `9001 往来余额` and `2003 货币资金` carry local-currency carrying-value semantics;
+- `ForeignExchangeSettlementFunction` realizes residual local carrying value when foreign settlement closes an open position;
+- `YW205 汇兑损益` performs month-end revaluation without changing the foreign quantity/resource position;
+- month-end valuation uses open foreign residual × `EXCHANGE_RATE_END` minus current local carrying amount;
+- exchange-rate semantic roles must be explicit and versioned in EVO;
+- period-close governance is distinct from settlement and valuation calculation.
+
+Current normalized distinction:
+
+`Economic Fact → Foreign Measurement → Position → Allocation/Settlement → Carrying Basis / Valuation → FX Result → Projection`
+
+Realized settlement difference and period-end revaluation difference are separate derived results.
+
+Residual legacy genealogy gaps remain:
+
+- exact provider/population chain for transaction-level `rates`;
+- exact current service/controller caller enforcing `trans_settlement_exchange` duplicate/reversal governance.
+
+These no longer block Economic Runtime semantic modeling.
+
+### Next gate
+
+The next unresolved semantic blocker is:
+
+`AP-MANUAL-ALLOC-001 — Manual vs Automatic Allocation`
+
+The key question is whether a source-consumption relation is:
+
+- explicit business/human evidence;
+- a constraint/instruction that pins an algorithm;
+- a deterministic interpretation result;
+- or a residual/materialized projection.
+
+Do not freeze Allocation persistence contracts before this gate closes.
