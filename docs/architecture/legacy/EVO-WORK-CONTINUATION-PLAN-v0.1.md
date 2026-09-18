@@ -897,3 +897,62 @@ The first implementation will cover period-end revaluation before realized settl
 After ER-FX-001:
 - ER-FX-002 — realized settlement/closure;
 - ER-C05 — dependency-scoped incremental replay/equivalence.
+
+
+---
+
+# 23. ER-FX-001 — Period-End FX Revaluation Runtime — COMPLETED
+
+Verified implementation checkpoint:
+
+`7d3c3f845efc1072f0e9d2e069d99b87c3c3d940`
+
+GitHub CI:
+
+`SUCCESS`
+
+Database schema baseline:
+
+`v10`
+
+Delivered:
+
+- generic `valuation_run` / `valuation_result` persistence;
+- `FxPositionSnapshot`, `FxPeriodEndRequest`, `FxRevaluationResult` contracts;
+- pinned immutable `RateDataset` validation;
+- `PERIOD_END_VALUATION` rate selection by role/currency/effective time;
+- period-end valuation formula:
+  `foreign quantity × pinned period-end rate → carryingAfter`;
+- `delta = carryingAfter - carryingBefore`;
+- original foreign measurement remains unchanged;
+- result lineage records rate observation + dataset id/version/digest;
+- FX valuation runtime is exposed through `createEvoRuntime()`;
+- executable tests cover currency mismatch, amount precision and foreign-measure immutability.
+
+The implementation follows AP-FX-001:
+
+`open foreign position + period-end rate dataset → derived valuation result`
+
+and does not model period close as a settlement event.
+
+## Next active runtime packet
+
+`ER-FX-002 — Realized FX Settlement / Position Closure`
+
+First implementation boundary:
+
+`Open Foreign Position Snapshot`
+` + canonical Settlement BusinessData`
+` + explicit settlement measurements`
+` + Allocation/closure evidence`
+` → realized settlement valuation result`.
+
+Initial scope is deliberate:
+
+- settlement must fully close the selected foreign position;
+- allocated carrying basis uses the exact remaining carrying amount on final closure;
+- realized delta is derived from actual local settlement value versus remaining carrying basis;
+- the foreign quantity is consumed through Allocation semantics, not changed by valuation;
+- accounting projection remains a later deterministic projection from the realized result.
+
+Partial settlement/general multi-source settlement can extend the same substrate after the closure path is certified.
