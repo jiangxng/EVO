@@ -37,19 +37,13 @@ export class PostgresValuationStore implements ValuationStore {
       enterprise_id: input.enterpriseId,
       valuation_run_id: input.valuationRunId,
       result_kind: input.resultKind,
-      position_key: input.position.positionKey,
-      source_business_data_ids: input.position.sourceBusinessDataIds,
-      dimensions: input.position.dimensions,
-      source_measurements: [
-        input.position.foreign,
-        input.position.carrying
-      ],
-      target_measurements: [
-        input.result.carryingAfter,
-        input.result.delta
-      ],
-      delta_amount: input.result.delta.value,
-      delta_unit: input.result.delta.unit,
+      position_key: input.positionKey,
+      source_business_data_ids: input.sourceBusinessDataIds,
+      dimensions: input.dimensions,
+      source_measurements: input.sourceMeasurements,
+      target_measurements: input.targetMeasurements,
+      delta_amount: input.delta.value,
+      delta_unit: input.delta.unit,
       lineage: input.lineage
     }).returning('id').executeTakeFirstOrThrow();
     return row.id;
