@@ -426,8 +426,7 @@ try {
     settledAt: new Date(),
     settlementBusinessDataId: paymentBusiness.id,
     position: {
-      ...fxOpenPosition,
-      carrying: fxPeriodResult.carryingAfter
+      ...fxOpenPosition
     },
     settlementForeign: {
       value: '1000',
@@ -512,7 +511,7 @@ try {
       }
     },
     fxCoverage: {
-      periodEndDelta: fxPeriodResult.delta.value,
+      periodEndDelta: replayedFxResult.delta_amount,
       realizedSettlementDelta: fxSettlement.result.realizedDelta.value,
       rateDatasetId: replayRateDataset.id,
       allocationInstructionId: fxInstruction.id
