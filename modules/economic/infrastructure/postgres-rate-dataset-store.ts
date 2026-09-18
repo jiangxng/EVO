@@ -71,7 +71,7 @@ function datasetFromRow(row: {
   status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
   provider: string;
   semantic_digest: string;
-  config: JsonObject;
+  config: Record<string, unknown>;
 }): RateDataset {
   return {
     id: row.id,
@@ -81,7 +81,7 @@ function datasetFromRow(row: {
     status: row.status,
     provider: row.provider,
     digest: row.semantic_digest,
-    config: row.config
+    config: row.config as JsonObject
   };
 }
 
