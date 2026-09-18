@@ -240,3 +240,55 @@ Different LLM + Repository only
 ```
 
 > **大量 token 用在发现新知识，而不是重新发现已经发现过的知识。**
+
+
+# 12. 2026-09-18 packet ledger update — AP-FX-001
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-FX-001-FOREIGN-CURRENCY-SETTLEMENT.md`
+
+Status:
+
+`SEMANTIC GATE CLOSED`
+
+Primary recovered conclusions:
+
+- foreign measurement and local carrying value are separate channels;
+- settlement closure and period-end revaluation are separate runtime semantics;
+- realized FX difference is generated at foreign-position closure;
+- period-end FX difference is a valuation result over still-open foreign positions;
+- period-end revaluation changes local value/projection, not the foreign amount;
+- `EXCHANGE_RATE_END` is directly evidenced as period-end rate;
+- rate role/source/version must be explicit in EVO;
+- period-close registry/governance is not the economic position.
+
+Do not broadly re-open FX source files unless:
+
+- transaction-level `rates` population is required for certification;
+- close-registry enforcement is needed for migration compatibility;
+- new source contradicts AP-FX-001.
+
+## Current first unresolved gate
+
+`AP-MANUAL-ALLOC-001 — Manual vs Automatic Allocation`
+
+Minimal-source entry order:
+
+`MATCH_TYPE`
+` → MANUALLY_FIELD`
+` → manual verification/matching controller/service/UI path`
+` → persisted selected source references`
+` → correction/reallocation path`
+` → mixed manual+automatic behavior`
+` → actor/mode/reason provenance`
+` → replay classification`
+
+Required closure distinctions:
+
+- Allocation Fact;
+- Allocation Instruction / Constraint;
+- Allocation Interpretation Result;
+- Residual Position Projection.
+
+Only after this gate should the Allocation persistence contract be frozen.
