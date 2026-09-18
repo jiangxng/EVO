@@ -704,3 +704,73 @@ Execution order:
 11. resume complete Enterprise Template archaeology by non-economic definition families.
 
 Implementation MUST preserve existing working assets and use additive convergence rather than repository replacement.
+
+
+---
+
+# 20. Economic Runtime Contract Convergence progress — 2026-09-18
+
+## ER-C01 — Semantic contracts
+
+Status: **COMPLETE**
+
+Delivered:
+- `modules/economic/api/contracts.ts`
+- `modules/allocation/api/contracts.ts`
+- CostMethodPolicy expansion
+- replay impact/checkpoint/equivalence contracts
+- module ownership in `architecture.manifest.json`
+
+## ER-C02 — Invariants / certification
+
+Status: **IN PROGRESS**
+
+Delivered:
+- economic semantic ordering invariant;
+- explicit → automatic allocation phase invariant;
+- moving-average pool conservation/residual tests;
+- authoritative cost policy pin requirement;
+- valuation-rule pin requirement.
+
+## ER-C03 — Additive schema
+
+Status: **COMPLETE**
+
+Migration:
+
+`migrations/schema/202609180010_economic_runtime_v01.sql`
+
+Adds:
+- `allocation_policy`
+- `allocation_instruction`
+- `allocation_run`
+- `allocation_relation`
+- `rate_dataset`
+- `rate_observation`
+- `calculation_dependency_edge`
+- `replay_checkpoint`
+
+No legacy table was dropped.
+
+Database schema version advances to **8**.
+
+## ER-C04 — Runtime adaptation
+
+Status: **IN PROGRESS**
+
+Completed so far:
+- `PostgresAllocationStore` for durable explicit instructions/runs/relations;
+- Allocation store exposed through EVO runtime;
+- Cost Engine no longer resolves latest ACTIVE valuation policy internally;
+- authoritative CostRun requires explicit policy id/version;
+- authoritative outbound valuation requires explicit valuation-rule pin;
+- cost ordering now uses `effective_at + posting_sequence + stable business_data id`;
+- business-data types, quantity field, basis field, specific identity field and pool dimensions are policy-driven;
+- Moving Average is now a true quantity+amount pool rather than fake layer consumption.
+
+Next:
+1. complete RateDatasetStore;
+2. add ReplayCheckpoint/DependencyGraph store;
+3. persist AllocationRelation from cost/settlement paths where appropriate;
+4. add normalized valuation input adapter;
+5. complete CI and integration certification.
