@@ -37,6 +37,7 @@ function inputDigest(request: FxPeriodEndRequest): string {
 
   const semantic: JsonObject = {
     enterpriseId: request.enterpriseId,
+    requestBusinessDataId: request.requestBusinessDataId ?? null,
     valuationAt: request.valuationAt.toISOString(),
     rateDataset: {
       datasetId: request.rateDataset.datasetId,
@@ -116,6 +117,9 @@ export class DefaultFxValuationService implements FxValuationService {
 
     const runId = await this.valuations.startRun({
       enterpriseId: request.enterpriseId,
+      ...(request.requestBusinessDataId !== undefined
+        ? { requestBusinessDataId: request.requestBusinessDataId }
+        : {}),
       valuationKind: 'FX_PERIOD_END',
       effectiveAt: request.valuationAt,
       inputDigest: digest,
