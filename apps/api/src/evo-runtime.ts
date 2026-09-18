@@ -22,6 +22,7 @@ import { PostgresAllocationStore } from '../../../modules/allocation/infrastruct
 import { PostgresRateDatasetStore } from '../../../modules/economic/infrastructure/postgres-rate-dataset-store.js';
 import { PostgresReplayTopologyStore } from '../../../modules/replay/infrastructure/postgres-replay-topology-store.js';
 import { PostgresReplayCheckpointService } from '../../../modules/replay/infrastructure/postgres-replay-checkpoint-service.js';
+import { PostgresReplayCoverageCertificationService } from '../../../modules/replay/infrastructure/postgres-replay-coverage-certification-service.js';
 import { DefaultIncrementalReplayPlanner } from '../../../modules/replay/application/incremental-replay-planner.js';
 import { PostgresValuationInputReader } from '../../../modules/cost/infrastructure/postgres-valuation-input-reader.js';
 import { PostgresValuationStore } from '../../../modules/valuation/infrastructure/postgres-valuation-store.js';
@@ -44,10 +45,11 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const valuationInputs = new PostgresValuationInputReader(db);
   const replayTopology = new PostgresReplayTopologyStore(db);
   const replayCheckpoint = new PostgresReplayCheckpointService(db,replayTopology);
+  const replayCoverage = new PostgresReplayCoverageCertificationService(db);
   const fxValuation = new DefaultFxValuationService(rates,valuationStore,replayTopology);
   const fxSettlement = new DefaultFxSettlementService(allocation,valuationStore,replayTopology);
   const incrementalReplayPlanner = new DefaultIncrementalReplayPlanner(replayTopology);
-  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, replayCheckpoint, incrementalReplayPlanner, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, replayCheckpoint, replayCoverage, incrementalReplayPlanner, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
