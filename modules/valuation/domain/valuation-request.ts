@@ -38,6 +38,12 @@ export function parseValuationRequestPayload(
     throw new Error(`Unsupported valuation scope kind ${scopeKind}.`);
   }
 
+  const positionDefinition = object(payload.positionDefinition,'positionDefinition');
+  const positionDefinitionVersion = positionDefinition.version;
+  if (!Number.isInteger(positionDefinitionVersion) || Number(positionDefinitionVersion) < 1) {
+    throw new Error('positionDefinition.version must be a positive integer.');
+  }
+
   const rateDataset = object(payload.rateDataset,'rateDataset');
   const version = rateDataset.version;
   if (!Number.isInteger(version) || Number(version) < 1) {
@@ -62,6 +68,11 @@ export function parseValuationRequestPayload(
     valuationKind,
     valuationAt: string(payload.valuationAt,'valuationAt'),
     scope: parsedScope,
+    positionDefinition: {
+      definitionId: string(positionDefinition.definitionId,'positionDefinition.definitionId'),
+      version: Number(positionDefinitionVersion),
+      digest: string(positionDefinition.digest,'positionDefinition.digest')
+    },
     rateDataset: {
       datasetId: string(rateDataset.datasetId,'rateDataset.datasetId'),
       version: Number(version),
