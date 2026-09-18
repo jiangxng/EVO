@@ -394,3 +394,34 @@ Current unified candidate:
 Next and final semantic blocker before Economic Runtime freeze:
 
 `AP-RECALC-001 — Change Impact / Local Recalculation vs Full Replay`
+
+
+## 17. 2026-09-18 AP-RECALC-001 closure
+
+Packet:
+
+`docs/architecture/legacy/packets/AP-RECALC-001.md`
+
+Commit:
+
+`1a28aafcd9fcb8006f37dbe6a70e2b401196e44e`
+
+Key conclusions:
+
+- legacy recalculation used multiple optimization paths: checkpoint-like prior-state restore, dependency/path-scoped cost recompute, direct diff materialization updates, and broader existing-data replay;
+- `cost_mwa.path` and cost-source references are dependency/provenance evidence;
+- backdated facts can invalidate downstream valuation references;
+- direct diff updates are materialization maintenance, not canonical truth;
+- full replay is the correctness oracle;
+- incremental replay is an optimization that must produce an equivalent result under the same pinned facts, definitions, policies, reference datasets and ordering contract;
+- replay/checkpoint semantics must be explicit and versioned.
+
+Candidate normalized flow:
+
+`Change → ImpactRoot → DependencyClosure → EarliestAffectedBoundary → ValidCheckpoint? → DeterministicRecompute → MaterializationBuild → EquivalenceVerification → AtomicActivation`
+
+All four semantic blockers are now closed.
+
+Next action:
+
+`Economic Runtime Architecture Freeze Gate`.
