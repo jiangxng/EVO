@@ -3,16 +3,18 @@ import { Decimal } from 'decimal.js';
 import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
-import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
 import type { AllocationStore } from '../../allocation/api/store.js';
+import type { JsonObject } from '../../metadata/api/contracts.js';
 import type { ValuationPostingService } from '../../valuation/api/contracts.js';
-import { addToMovingAverage, consumeMovingAverage } from '../domain/moving-average.js';
+import type { ValuationInputReader } from '../api/valuation-input.js';
 import type {
   CostEngine,
   CostMethod,
   CostRecalculationResult,
   CostReplayPins
 } from '../api/contracts.js';
+import { addToMovingAverage, consumeMovingAverage } from '../domain/moving-average.js';
+import { valuationInputDefinition } from '../domain/valuation-input-definition.js';
 
 interface Layer {
   businessDataId: string;
@@ -27,16 +29,6 @@ interface PoolState {
   averageAmount: Decimal;
 }
 
-interface RuntimeCostConfig {
-  readonly inboundBusinessDataTypes: readonly string[];
-  readonly outboundBusinessDataTypes: readonly string[];
-  readonly quantityField: string;
-  readonly quantityUnit: string;
-  readonly basisAmountField: string;
-  readonly specificIdentityField?: string;
-  readonly poolDimensions: readonly string[];
-}
-
 function fail(code: string, message: string, details?: JsonObject): never {
   throw new AppError({
     code,
@@ -47,81 +39,12 @@ function fail(code: string, message: string, details?: JsonObject): never {
   });
 }
 
-function stringArray(value: JsonValue | undefined, label: string): readonly string[] {
-  if (!Array.isArray(value) || value.length === 0 || value.some((item) => typeof item !== 'string' || item.length === 0)) {
-    fail('COST_POLICY_RUNTIME_CONFIG_INVALID', `${label} must be a non-empty string array.`);
-  }
-  return value as readonly string[];
-}
-
-function requiredString(value: JsonValue | undefined, label: string): string {
-  if (typeof value !== 'string' || value.length === 0) {
-    fail('COST_POLICY_RUNTIME_CONFIG_INVALID', `${label} must be a non-empty string.`);
-  }
-  return value;
-}
-
-function optionalString(value: JsonValue | undefined): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
-function policyConfig(config: JsonObject, poolDimensionSchema: JsonObject): RuntimeCostConfig {
-  return {
-    inboundBusinessDataTypes: stringArray(config.inboundBusinessDataTypes, 'inboundBusinessDataTypes'),
-    outboundBusinessDataTypes: stringArray(config.outboundBusinessDataTypes, 'outboundBusinessDataTypes'),
-    quantityField: requiredString(config.quantityField, 'quantityField'),
-    basisAmountField: requiredString(config.basisAmountField, 'basisAmountField'),
-    ...(optionalString(config.specificIdentityField) !== undefined
-      ? { specificIdentityField: optionalString(config.specificIdentityField)! }
-      : {}),
-    poolDimensions: stringArray(poolDimensionSchema.keys, 'pool_dimension_schema.keys')
-  };
-}
-
-function payloadValue(payload: JsonObject, path: string): JsonValue | undefined {
-  const parts = path.split('.');
-  let current: JsonValue = payload;
-  for (const part of parts) {
-    if (current === null || typeof current !== 'object' || Array.isArray(current)) return undefined;
-    const object = current as JsonObject;
-    current = object[part] ?? null;
-  }
-  return current;
-}
-
-function decimalField(payload: JsonObject, path: string, label: string): Decimal {
-  const value = payloadValue(payload, path);
-  if (value === null || value === undefined || (typeof value !== 'string' && typeof value !== 'number')) {
-    fail('COST_INPUT_FIELD_MISSING', `${label} field ${path} must contain a numeric value.`);
-  }
-  const decimal = new Decimal(String(value));
-  if (!decimal.isFinite()) {
-    fail('COST_INPUT_FIELD_INVALID', `${label} field ${path} is not finite.`);
-  }
-  return decimal;
-}
-
-function stringField(payload: JsonObject, path: string): string {
-  const value = payloadValue(payload, path);
-  return value === null || value === undefined ? '' : String(value);
-}
-
-function poolKey(payload: JsonObject, dimensions: readonly string[]): string {
-  const parts = dimensions.map((dimension) => {
-    const value = payloadValue(payload, dimension);
-    if (value === null || value === undefined || value === '') {
-      fail('COST_POOL_DIMENSION_MISSING', `Cost pool dimension ${dimension} is required.`);
-    }
-    return `${dimension}=${String(value)}`;
-  });
-  return parts.join('|');
-}
-
 export class PostgresCostEngine implements CostEngine {
   constructor(
     private readonly db: Kysely<Database>,
     private readonly valuation: ValuationPostingService,
-    private readonly allocation: AllocationStore
+    private readonly allocation: AllocationStore,
+    private readonly inputs: ValuationInputReader
   ) {}
 
   async recalculate(
@@ -151,12 +74,20 @@ export class PostgresCostEngine implements CostEngine {
       );
     }
 
-    const runtime = policyConfig(
-      policy.config as JsonObject,
-      policy.pool_dimension_schema as JsonObject
-    );
+    let inputDefinition;
+    try {
+      inputDefinition = valuationInputDefinition(
+        policy.config as JsonObject,
+        policy.pool_dimension_schema as JsonObject
+      );
+    } catch (error) {
+      fail(
+        'COST_POLICY_RUNTIME_CONFIG_INVALID',
+        error instanceof Error ? error.message : String(error)
+      );
+    }
 
-    if (method === 'SPECIFIC_IDENTIFICATION' && runtime.specificIdentityField === undefined) {
+    if (method === 'SPECIFIC_IDENTIFICATION' && inputDefinition.specificIdentityField === undefined) {
       fail(
         'COST_POLICY_RUNTIME_CONFIG_INVALID',
         'SPECIFIC_IDENTIFICATION requires specificIdentityField.'
@@ -216,7 +147,7 @@ export class PostgresCostEngine implements CostEngine {
         valuation_policy_version: policy.version,
         allocation_policy_id: allocationPolicy?.id ?? null,
         allocation_policy_version: allocationPolicy?.version ?? null,
-        cost_engine_version: '4'
+        cost_engine_version: '5'
       })
       .returning('id')
       .executeTakeFirstOrThrow();
@@ -224,27 +155,7 @@ export class PostgresCostEngine implements CostEngine {
     let allocationRunId: string | undefined;
 
     try {
-      const movementTypes = [...new Set([
-        ...runtime.inboundBusinessDataTypes,
-        ...runtime.outboundBusinessDataTypes
-      ])];
-
-      const movements = await this.db
-        .selectFrom('business_data as b')
-        .innerJoin('posting_input as p','p.business_data_id','b.id')
-        .select([
-          'b.id',
-          'b.business_data_type',
-          'b.payload',
-          'b.effective_at',
-          'p.posting_sequence'
-        ])
-        .where('b.enterprise_id', '=', enterpriseId)
-        .where('b.business_data_type', 'in', movementTypes)
-        .orderBy('b.effective_at')
-        .orderBy('p.posting_sequence')
-        .orderBy('b.id')
-        .execute();
+      const movements = await this.inputs.list(enterpriseId, inputDefinition);
 
       if (allocationPolicy !== undefined) {
         const inputDigest = createHash('sha256').update(JSON.stringify({
@@ -253,10 +164,16 @@ export class PostgresCostEngine implements CostEngine {
           valuationPolicy: { id: policy.id, version: policy.version },
           allocationPolicy: { id: allocationPolicy.id, version: allocationPolicy.version },
           movements: movements.map((movement) => ({
-            id: movement.id,
-            type: movement.business_data_type,
-            effectiveAt: String(movement.effective_at),
-            postingSequence: String(movement.posting_sequence)
+            id: movement.businessDataId,
+            type: movement.businessDataType,
+            direction: movement.direction,
+            effectiveAt: movement.order.effectiveAt.toISOString(),
+            semanticSequence: movement.order.semanticSequence.toString(),
+            stableTieBreaker: movement.order.stableTieBreaker,
+            poolKey: movement.poolKey,
+            quantity: movement.quantity,
+            basis: movement.basis ?? null,
+            specificIdentity: movement.specificIdentity ?? null
           }))
         })).digest('hex');
 
@@ -274,9 +191,8 @@ export class PostgresCostEngine implements CostEngine {
       let valuationPostingCount = 0;
 
       for (const movement of movements) {
-        const payload = movement.payload as JsonObject;
-        const key = poolKey(payload, runtime.poolDimensions);
-        const quantity = decimalField(payload, runtime.quantityField, 'quantity');
+        const key = movement.poolKey;
+        const quantity = new Decimal(movement.quantity.value);
         const state = pools.get(key) ?? {
           layers: [],
           averageQuantity: new Decimal(0),
@@ -284,9 +200,12 @@ export class PostgresCostEngine implements CostEngine {
         };
         pools.set(key, state);
 
-        if (runtime.inboundBusinessDataTypes.includes(movement.business_data_type)) {
+        if (movement.direction === 'INBOUND') {
           if (quantity.lte(0)) fail('COST_INBOUND_QUANTITY_INVALID', 'Inbound quantity must be positive.');
-          const basisAmount = decimalField(payload, runtime.basisAmountField, 'basis amount');
+          if (movement.basis === undefined) {
+            fail('COST_BASIS_MISSING', `Inbound valuation input ${movement.businessDataId} requires basis measurement.`);
+          }
+          const basisAmount = new Decimal(movement.basis.value);
 
           if (method === 'MOVING_AVERAGE') {
             const next = addToMovingAverage(
@@ -298,20 +217,15 @@ export class PostgresCostEngine implements CostEngine {
             state.averageAmount = next.amount;
           } else {
             const layer: Layer = {
-              businessDataId: movement.id,
+              businessDataId: movement.businessDataId,
               quantity,
-              unitCost: basisAmount.div(quantity)
+              unitCost: basisAmount.div(quantity),
+              ...(movement.specificIdentity !== undefined
+                ? { specificIdentity: movement.specificIdentity }
+                : {})
             };
-            if (runtime.specificIdentityField !== undefined) {
-              const identity = stringField(payload, runtime.specificIdentityField);
-              if (identity) layer.specificIdentity = identity;
-            }
             state.layers.push(layer);
           }
-          continue;
-        }
-
-        if (!runtime.outboundBusinessDataTypes.includes(movement.business_data_type)) {
           continue;
         }
 
@@ -338,12 +252,16 @@ export class PostgresCostEngine implements CostEngine {
           let remaining = quantity;
           const ordered = method === 'LIFO' ? [...state.layers].reverse() : state.layers;
           let allocationSequence = 0;
-          const specificIdentity = method === 'SPECIFIC_IDENTIFICATION'
-            ? stringField(payload, runtime.specificIdentityField!)
-            : '';
+          const specificIdentity =
+            method === 'SPECIFIC_IDENTIFICATION'
+              ? movement.specificIdentity ?? ''
+              : '';
 
           if (method === 'SPECIFIC_IDENTIFICATION' && !specificIdentity) {
-            fail('COST_SPECIFIC_IDENTITY_REQUIRED', `Field ${runtime.specificIdentityField} is required.`);
+            fail(
+              'COST_SPECIFIC_IDENTITY_REQUIRED',
+              `Valuation input ${movement.businessDataId} requires a specific source identity.`
+            );
           }
 
           for (const layer of ordered) {
@@ -351,6 +269,7 @@ export class PostgresCostEngine implements CostEngine {
             if (specificIdentity && layer.specificIdentity !== specificIdentity) continue;
             const take = Decimal.min(layer.quantity, remaining);
             if (take.lte(0)) continue;
+
             const allocatedCost = take.times(layer.unitCost);
             total = total.plus(allocatedCost);
 
@@ -363,10 +282,10 @@ export class PostgresCostEngine implements CostEngine {
               enterpriseId,
               allocationRunId,
               sourceBusinessDataId: layer.businessDataId,
-              consumerBusinessDataId: movement.id,
+              consumerBusinessDataId: movement.businessDataId,
               measurements: [{
                 value: take.toString(),
-                unit: runtime.quantityUnit,
+                unit: movement.quantity.unit,
                 role: 'RESOURCE_QUANTITY'
               }],
               sequence: allocationSequence,
@@ -392,11 +311,11 @@ export class PostgresCostEngine implements CostEngine {
         }
 
         const unitCost = total.div(quantity);
-        const pinnedRule = pins.valuationRules?.[movement.business_data_type];
+        const pinnedRule = pins.valuationRules?.[movement.businessDataType];
         if (pinnedRule === undefined) {
           fail(
             'VALUATION_RULE_PIN_REQUIRED',
-            `Authoritative cost calculation requires a pinned valuation rule for ${movement.business_data_type}.`
+            `Authoritative cost calculation requires a pinned valuation rule for ${movement.businessDataType}.`
           );
         }
 
@@ -404,13 +323,13 @@ export class PostgresCostEngine implements CostEngine {
           .select(['id','version'])
           .where('id','=',pinnedRule.id)
           .where('version','=',pinnedRule.version)
-          .where('source_business_data_type','=',movement.business_data_type)
+          .where('source_business_data_type','=',movement.businessDataType)
           .executeTakeFirst();
 
         if (valuationRule === undefined) {
           fail(
             'VALUATION_RULE_PIN_NOT_FOUND',
-            `Pinned valuation rule ${pinnedRule.id} v${pinnedRule.version} is invalid for ${movement.business_data_type}.`
+            `Pinned valuation rule ${pinnedRule.id} v${pinnedRule.version} is invalid for ${movement.businessDataType}.`
           );
         }
 
@@ -419,7 +338,7 @@ export class PostgresCostEngine implements CostEngine {
           .values({
             enterprise_id: enterpriseId,
             cost_run_id: run.id,
-            business_data_id: movement.id,
+            business_data_id: movement.businessDataId,
             pool_key: key,
             method,
             quantity: quantity.toString(),
