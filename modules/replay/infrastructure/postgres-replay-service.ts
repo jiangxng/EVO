@@ -126,6 +126,22 @@ export class PostgresReplayService implements ReplayService {
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('valuation_posting_run')
         .where('enterprise_id', '=', enterpriseId).execute();
+
+      // Generic valuation runs/results (including FX period-end and realized settlement)
+      // are derived interpretation state. Canonical BusinessData and RateDataset survive replay.
+      const valuationRunIds = await trx.selectFrom('valuation_run')
+        .select('id')
+        .where('enterprise_id','=',enterpriseId)
+        .execute();
+      const derivedValuationRunIds = valuationRunIds.map((row) => row.id);
+      if (derivedValuationRunIds.length > 0) {
+        await trx.deleteFrom('valuation_result')
+          .where('valuation_run_id','in',derivedValuationRunIds)
+          .execute();
+        await trx.deleteFrom('valuation_run')
+          .where('id','in',derivedValuationRunIds)
+          .execute();
+      }
       await trx.deleteFrom('cost_result')
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('cost_run')
