@@ -88,6 +88,14 @@ try {
     .orderBy('version','desc')
     .executeTakeFirstOrThrow();
 
+  const fifoAllocationPolicy = await runtime.db.selectFrom('allocation_policy')
+    .select(['id','version'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('code','=','inventory_fifo')
+    .where('status','=','PUBLISHED')
+    .orderBy('version','desc')
+    .executeTakeFirstOrThrow();
+
   const shipmentValuationRule = await runtime.db.selectFrom('valuation_rule')
     .select(['id','version'])
     .where('enterprise_id','=',ids.enterpriseId)
@@ -99,6 +107,8 @@ try {
   const cost = await runtime.cost.recalculate(ids.enterpriseId, 'FIFO', {
     valuationPolicyId: fifoPolicy.id,
     valuationPolicyVersion: fifoPolicy.version,
+    allocationPolicyId: fifoAllocationPolicy.id,
+    allocationPolicyVersion: fifoAllocationPolicy.version,
     valuationRules: {
       'sales_shipment.created': {
         id: shipmentValuationRule.id,
@@ -108,6 +118,30 @@ try {
   });
   if (cost.resultCount < 1 || cost.valuationPostingCount < 1) {
     throw new Error(`Expected cost + valuation posting, got ${JSON.stringify(cost)}`);
+  }
+
+  const shipmentBusiness = await runtime.db.selectFrom('business_data')
+    .select('id')
+    .where('command_execution_id','=',shipment.commandExecutionId)
+    .executeTakeFirstOrThrow();
+
+  const allocationEdges = await runtime.db.selectFrom('allocation_relation')
+    .select(['source_business_data_id','consumer_business_data_id','measurements','lineage'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('consumer_business_data_id','=',shipmentBusiness.id)
+    .execute();
+
+  if (allocationEdges.length < 1) {
+    throw new Error('Expected FIFO cost run to persist at least one allocation relation.');
+  }
+
+  const productionBusiness = await runtime.db.selectFrom('business_data')
+    .select('id')
+    .where('command_execution_id','=',production.commandExecutionId)
+    .executeTakeFirstOrThrow();
+
+  if (!allocationEdges.some((edge) => edge.source_business_data_id === productionBusiness.id)) {
+    throw new Error('Expected shipment allocation lineage to point to production completion source.');
   }
 
   const balances = await runtime.db.selectFrom('ledger_balance as b')
@@ -146,6 +180,7 @@ try {
     fifo: { producedQuantity: 10, producedValue: 100, shippedQuantity: 2, inventoryQuantity: 8, inventoryValue: 80, cogs: 20 },
     explicitDimensions: { project, department: 'SALES', profitCenter: 'PC-PROJECT', costCenter: 'CC-SALES' },
     valuationPostingCount: cost.valuationPostingCount,
+    allocationRelationCount: allocationEdges.length,
     replayDeterministic: true,
     beforeDigest: before,
     afterDigest: after,
