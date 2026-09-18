@@ -282,7 +282,7 @@ export async function computeEconomicRuntimeDigest(
       sourceBusinessDataId: row.source_business_data_id,
       sourcePositionKey: row.source_position_key,
       consumerBusinessDataId: row.consumer_business_data_id,
-      measurements: row.measurements,
+      measurements: row.measurements as unknown as JsonValue,
       sequence: row.allocation_sequence,
       instructionId: row.instruction_id,
       allocationPolicyId: row.allocation_policy_id,
@@ -297,10 +297,10 @@ export async function computeEconomicRuntimeDigest(
     valuationResults: valuationResults.map((row) => ({
       resultKind: row.result_kind,
       positionKey: row.position_key,
-      sourceBusinessDataIds: row.source_business_data_ids,
-      dimensions: row.dimensions,
-      sourceMeasurements: row.source_measurements,
-      targetMeasurements: row.target_measurements,
+      sourceBusinessDataIds: row.source_business_data_ids as unknown as JsonValue,
+      dimensions: row.dimensions as JsonObject,
+      sourceMeasurements: row.source_measurements as unknown as JsonValue,
+      targetMeasurements: row.target_measurements as unknown as JsonValue,
       deltaAmount: row.delta_amount,
       deltaUnit: row.delta_unit
     })),
