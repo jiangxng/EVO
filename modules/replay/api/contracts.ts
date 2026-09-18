@@ -1,5 +1,7 @@
 import type { CostMethod, CostReplayPins } from '../../cost/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { CalculationDependencyEdge } from '../../lineage/api/contracts.js';
+export type { CalculationDependencyEdge, DependencyEdgeKind } from '../../lineage/api/contracts.js';
 
 export type ReplayMode =
   | 'FULL'
@@ -26,26 +28,6 @@ export interface ImpactRoot {
   readonly id: string;
   readonly effectiveAt?: Date;
   readonly metadata?: JsonObject;
-}
-
-export type DependencyEdgeKind =
-  | 'ALLOCATION'
-  | 'VALUATION'
-  | 'PROJECTION'
-  | 'MATERIALIZATION'
-  | 'CALCULATION';
-
-export interface CalculationDependencyEdge {
-  readonly id: string;
-  readonly enterpriseId: string;
-  readonly graphVersion: string;
-  readonly fromKind: string;
-  readonly fromId: string;
-  readonly toKind: string;
-  readonly toId: string;
-  readonly edgeKind: DependencyEdgeKind;
-  readonly effectiveFrom?: Date;
-  readonly lineage: JsonObject;
 }
 
 export interface ReplayCheckpointDescriptor {
