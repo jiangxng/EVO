@@ -105,8 +105,8 @@ export class PostgresPositionDefinitionStore implements PositionDefinitionStore 
         version: input.version,
         status: 'PUBLISHED',
         semantic_digest: digest,
-        dimensions: input.dimensions,
-        source_rules: input.sourceRules,
+        dimensions: sql<JsonValue>`${JSON.stringify(input.dimensions)}::jsonb`,
+        source_rules: sql<JsonValue>`${JSON.stringify(input.sourceRules)}::jsonb`,
         config: input.config ?? {},
         published_at: sql`now()`
       }).returningAll().executeTakeFirstOrThrow();
