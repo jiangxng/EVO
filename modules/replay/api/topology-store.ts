@@ -4,6 +4,10 @@ import type { ReplayCheckpointDescriptor } from './contracts.js';
 export interface ReplayTopologyStore extends CalculationDependencyStore {
   saveCheckpoint(checkpoint: ReplayCheckpointDescriptor): Promise<void>;
 
+  getCheckpointBySourceReplayRun(
+    replayRunId: string
+  ): Promise<ReplayCheckpointDescriptor | null>;
+
   getLatestValidCheckpoint(
     enterpriseId: string,
     consistencyDomain: string,
