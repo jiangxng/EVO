@@ -38,7 +38,12 @@ describe('valuation request interpreter', () => {
         valuationKind: 'FX_PERIOD_END',
         valuationAt: effectiveAt.toISOString(),
         scope: { kind: 'EXPLICIT_POSITIONS', positionKeys: ['dealer:USD:ACME'] },
-        rateDataset: { datasetId: 'rates-1', version: 2, digest: 'b'.repeat(64) },
+        positionDefinition: {
+        definitionId: 'position-def-1',
+        version: 1,
+        digest: 'c'.repeat(64)
+      },
+      rateDataset: { datasetId: 'rates-1', version: 2, digest: 'b'.repeat(64) },
         policy: { amountScale: 2, roundingMode: 'HALF_UP' }
       }
     });
@@ -62,7 +67,12 @@ describe('valuation request interpreter', () => {
         valuationKind: 'FX_PERIOD_END',
         valuationAt: '2026-09-30T23:59:59.000Z',
         scope: { kind: 'DIMENSION_QUERY', dimensions: {} },
-        rateDataset: { datasetId: 'rates-1', version: 1, digest: 'b'.repeat(64) },
+        positionDefinition: {
+        definitionId: 'position-def-1',
+        version: 1,
+        digest: 'c'.repeat(64)
+      },
+      rateDataset: { datasetId: 'rates-1', version: 1, digest: 'b'.repeat(64) },
         policy: { amountScale: 2, roundingMode: 'HALF_UP' }
       }
     })).rejects.toThrow('effectiveAt');
