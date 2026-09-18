@@ -197,7 +197,7 @@ export class DefaultIncrementalReplayPlanner implements IncrementalReplayPlanner
     if (request.earliestAffectedSequence === 0n) {
       fallbackReasons.add('NO_CHECKPOINT_CAN_PRECEDE_SEQUENCE_ZERO');
     } else {
-      checkpoint = await this.topology.getLatestValidCheckpoint(
+      checkpoint = await this.topology.getLatestIncrementalSafeCheckpoint(
         request.enterpriseId,
         request.consistencyDomain,
         request.earliestAffectedSequence - 1n
