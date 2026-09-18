@@ -19,6 +19,7 @@ export interface FxRevaluationPolicy {
 
 export interface FxPeriodEndRequest {
   readonly enterpriseId: string;
+  readonly requestBusinessDataId?: string;
   readonly valuationAt: Date;
   readonly rateDataset: RateDatasetPin;
   readonly policy: FxRevaluationPolicy;
@@ -48,6 +49,7 @@ export interface FxValuationService {
 
 export interface FxSettlementClosureRequest {
   readonly enterpriseId: string;
+  readonly requestBusinessDataId?: string;
   readonly settledAt: Date;
   readonly settlementBusinessDataId: string;
   readonly position: FxPositionSnapshot;
