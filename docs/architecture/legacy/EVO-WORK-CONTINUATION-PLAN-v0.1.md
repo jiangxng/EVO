@@ -818,3 +818,82 @@ Continue ER-C04 in this order:
 4. introduce normalized valuation input adapter so cost engine no longer reads BusinessData payload directly;
 5. add FX settlement/revaluation runtime on the same Allocation + Valuation substrate;
 6. then enter ER-C05 incremental replay planning/equivalence.
+
+
+---
+
+# 22. Stable implementation checkpoint — Allocation lineage + ValuationInput — 2026-09-18
+
+Verified code checkpoint:
+
+`32feed18fd214bfe8d45fcd6e5a02b8666921ad6`
+
+GitHub CI:
+
+`SUCCESS`
+
+All preceding Economic Runtime commits in this batch are confirmed ancestors of the current branch HEAD.
+
+## Delivered in this checkpoint
+
+### Allocation policy / lineage
+
+- reference inventory AllocationPolicies are published explicitly;
+- CostRun persists allocation policy id/version;
+- ReplayRun preserves and restores the same allocation pin;
+- FIFO/LIFO/Specific Identification require a compatible published AllocationPolicy pin;
+- layer consumption produces durable derived `allocation_relation` rows;
+- full replay removes/rebuilds AllocationRun/AllocationRelation;
+- canonical `allocation_instruction` survives replay.
+
+### Cost input normalization
+
+Cost Engine no longer parses application BusinessData payload fields directly.
+
+Pipeline:
+
+`BusinessData + posting sequence + pinned valuation-policy mapping`
+` → PostgresValuationInputReader`
+` → ValuationInput`
+` → Cost/Allocation algorithm`.
+
+ValuationInput now carries:
+- inbound/outbound direction;
+- EconomicOrderKey;
+- pool key/dimensions;
+- quantity Measurement;
+- optional basis Measurement;
+- optional specific identity.
+
+Reference template explicitly declares:
+- quantity field/unit;
+- basis field/unit;
+- pool dimensions;
+- input business-data types;
+- specific identity field.
+
+### Deterministic replay refinement
+
+A layer-based cost replay now pins both:
+- ValuationPolicy;
+- AllocationPolicy.
+
+This is required for allocation lineage to be replayable, not merely cost totals.
+
+## Next active runtime packet
+
+`ER-FX-001 — FX Period-End Revaluation Runtime`
+
+Implementation target:
+
+`Pinned RateDataset`
+` + open foreign Position input`
+` + carrying-value basis`
+` → FX ValuationResult`
+` → deterministic accounting projection`.
+
+The first implementation will cover period-end revaluation before realized settlement because it has no business-source allocation ambiguity.
+
+After ER-FX-001:
+- ER-FX-002 — realized settlement/closure;
+- ER-C05 — dependency-scoped incremental replay/equivalence.
