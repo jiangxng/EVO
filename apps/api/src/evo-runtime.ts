@@ -21,6 +21,7 @@ import { PostgresEnterpriseTemplateService } from '../../../modules/enterprise-t
 import { PostgresAllocationStore } from '../../../modules/allocation/infrastructure/postgres-allocation-store.js';
 import { PostgresRateDatasetStore } from '../../../modules/economic/infrastructure/postgres-rate-dataset-store.js';
 import { PostgresReplayTopologyStore } from '../../../modules/replay/infrastructure/postgres-replay-topology-store.js';
+import { DefaultIncrementalReplayPlanner } from '../../../modules/replay/application/incremental-replay-planner.js';
 import { PostgresValuationInputReader } from '../../../modules/cost/infrastructure/postgres-valuation-input-reader.js';
 import { PostgresValuationStore } from '../../../modules/valuation/infrastructure/postgres-valuation-store.js';
 import { DefaultFxValuationService } from '../../../modules/valuation/application/fx-valuation-service.js';
@@ -40,7 +41,9 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const valuationInputs = new PostgresValuationInputReader(db);
   const fxValuation = new DefaultFxValuationService(rates,valuationStore);
   const fxSettlement = new DefaultFxSettlementService(allocation,valuationStore);
-  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology:new PostgresReplayTopologyStore(db), valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs), allocation, rates, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  const replayTopology = new PostgresReplayTopologyStore(db);
+  const incrementalReplayPlanner = new DefaultIncrementalReplayPlanner(replayTopology);
+  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, incrementalReplayPlanner, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs), allocation, rates, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
