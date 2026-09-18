@@ -1142,3 +1142,103 @@ Initial checkpoint policy:
 - set `safeForIncremental=false` by default;
 - persist explicit blocker reasons for any incomplete pin/graph/replay coverage;
 - never infer safety merely because Full Replay itself matched.
+
+
+---
+
+# 27. ER-C05B2 — Full Replay Checkpoint Production — IMPLEMENTED / CERTIFICATION PENDING
+
+Implementation commits in this packet include:
+
+- `bdcccf2665be111d9fd2b4b70e708a98784adaa0`
+  - frozen economic runtime semantic version constant;
+- `1a3482d4340312fd281e33e7c976502886d055d3`
+  - conservative `PostgresReplayCheckpointService`;
+- `96ebbabde06bf91ff0ea3c2eb57ef4a6f725a9c9`
+  - runtime exposure;
+- `4bb4132b1cac250faf989d4928b181728150e95b`
+  - demo validation path creates checkpoint only after verified Full Replay;
+- `9a6e971460c87e897602aea04087dae357608ed5`
+  - schema v11: explicit `source_replay_run_id` and one-checkpoint-per-source-replay uniqueness;
+- `0cdf5d72a008a5341a36cc9c56a15384cedd0876`
+  - checkpoint contract exposes source replay run identity;
+- `60e9e3b7dc5a48e6abe9f2414c1327fbe22efc6c`
+  - exact checkpoint lookup by source replay run;
+- `80cc001940d331c72bc212bffa9f8f2d3f73197e`
+  - idempotency certification in demo validation;
+- `bf798f880cda0238934ae9d71319a385266b2d99`
+  - CI now includes `seed:demo` + `validate:demo` after migrate/typecheck/build/test.
+
+## Checkpoint safety policy
+
+A checkpoint can only be produced from:
+
+`FULL replay + COMPLETED + validation_status=MATCH`.
+
+Initial checkpoint policy is intentionally conservative:
+
+`safeForIncremental = false`.
+
+The checkpoint persists explicit blocker reasons instead of inferring safety.
+
+Current mandatory blockers include:
+
+- `DEPENDENCY_GRAPH_COVERAGE_NOT_CERTIFIED`;
+- `MATERIALIZATION_DIGEST_LEDGER_ONLY`;
+- `FULL_REPLAY_DERIVED_RUNTIME_COVERAGE_NOT_CERTIFIED`;
+- `REFERENCE_DATASET_PIN_COVERAGE_NOT_CERTIFIED`;
+- `ENTERPRISE_TEMPLATE_BINDING_MISSING` when no binding exists.
+
+## Durable checkpoint inputs
+
+Checkpoint currently records or binds:
+
+- semantic posting boundary;
+- ordered canonical BusinessData/posting input digest;
+- last included fact identity;
+- Enterprise Template binding/version/digest when present;
+- posting rule/schema metadata pins provable from rebuilt ledger entries;
+- cost valuation-policy pin;
+- allocation-policy pin;
+- valuation-rule pins;
+- rate-dataset pins observable from completed valuation runs;
+- economic runtime semantic version;
+- dependency graph version;
+- materialization digest from verified Full Replay;
+- parent checkpoint lineage;
+- source replay run identity.
+
+## Important correctness rule
+
+A successful Full Replay is necessary but **not sufficient** for incremental safety.
+
+Checkpoint promotion to `safeForIncremental=true` requires independent closure of:
+
+1. dependency graph coverage completeness;
+2. materialization digest coverage beyond ledger-only state;
+3. replay coverage for Allocation / Cost / FX / other derived runtime families;
+4. reference dataset pin completeness;
+5. template/policy pin completeness.
+
+## Current certification state
+
+Implementation is complete enough for end-to-end certification.
+
+Certification is **pending** until the updated CI path successfully runs:
+
+`migrate → typecheck → build → test → seed:demo → validate:demo`.
+
+Do not mark ER-C05B2 CLOSED until that pipeline is green.
+
+## Next after green certification
+
+`ER-C05B3 — Checkpoint Coverage Closure`
+
+Primary targets:
+
+1. expand materialization digest coverage;
+2. certify real dependency-graph coverage families;
+3. certify reference-dataset pin coverage;
+4. bind Enterprise Template in the reference enterprise scenario;
+5. define objective promotion rules from unsafe checkpoint to incrementally-safe checkpoint;
+6. keep incremental execution disabled until every promotion condition is proved.
