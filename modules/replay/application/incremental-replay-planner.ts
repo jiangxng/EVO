@@ -204,7 +204,7 @@ export class DefaultIncrementalReplayPlanner implements IncrementalReplayPlanner
       );
 
       if (checkpoint === null) {
-        fallbackReasons.add('NO_VALID_CHECKPOINT_BEFORE_AFFECTED_BOUNDARY');
+        fallbackReasons.add('NO_INCREMENTAL_SAFE_CHECKPOINT_BEFORE_AFFECTED_BOUNDARY');
       } else {
         for (const reason of checkpointSafe(checkpoint,request)) {
           fallbackReasons.add(reason);
