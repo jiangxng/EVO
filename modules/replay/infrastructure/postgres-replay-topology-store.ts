@@ -194,6 +194,71 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
     });
   }
 
+  async getLatestIncrementalSafeCheckpoint(
+    enterpriseId: string,
+    consistencyDomain: string,
+    atOrBeforeSequence: bigint
+  ): Promise<ReplayCheckpointDescriptor | null> {
+    const row = await this.db.selectFrom('replay_checkpoint as c')
+      .innerJoin('replay_checkpoint_promotion as p','p.checkpoint_id','c.id')
+      .select([
+        'c.id',
+        'c.enterprise_id',
+        'c.consistency_domain',
+        'c.boundary_sequence',
+        'c.ordered_input_digest',
+        'c.last_included_business_data_id',
+        'c.template_version',
+        'c.posting_policy_pins',
+        'c.allocation_policy_pins',
+        'c.valuation_policy_pins',
+        'c.reference_dataset_pins',
+        'c.runtime_semantic_version',
+        'c.dependency_graph_version',
+        'c.materialization_digest',
+        'c.validity',
+        'c.source_replay_run_id',
+        'c.parent_checkpoint_id',
+        'p.id as promotion_id',
+        'p.certification_id',
+        'p.certification_version',
+        'p.certification_semantic_digest',
+        'p.promotion_digest'
+      ])
+      .where('c.enterprise_id','=',enterpriseId)
+      .where('c.consistency_domain','=',consistencyDomain)
+      .where('c.status','=','ACTIVE')
+      .where('p.status','=','ACTIVE')
+      .where('c.boundary_sequence','<=',atOrBeforeSequence)
+      .orderBy('c.boundary_sequence','desc')
+      .orderBy('p.promoted_at','desc')
+      .executeTakeFirst();
+
+    if (row === undefined) return null;
+
+    const base = checkpointFromRow({
+      ...row,
+      posting_policy_pins: row.posting_policy_pins as JsonObject,
+      allocation_policy_pins: row.allocation_policy_pins as JsonObject,
+      valuation_policy_pins: row.valuation_policy_pins as JsonObject,
+      reference_dataset_pins: row.reference_dataset_pins as JsonObject,
+      validity: row.validity as JsonObject
+    });
+
+    return {
+      ...base,
+      validity: {
+        ...base.validity,
+        safeForIncremental: true,
+        promotionId: row.promotion_id,
+        certificationId: row.certification_id,
+        certificationVersion: row.certification_version,
+        certificationSemanticDigest: row.certification_semantic_digest,
+        promotionDigest: row.promotion_digest
+      }
+    };
+  }
+
   async invalidateCheckpoint(checkpointId: string, reason: string): Promise<void> {
     await this.db.updateTable('replay_checkpoint').set({
       status: 'INVALIDATED',
