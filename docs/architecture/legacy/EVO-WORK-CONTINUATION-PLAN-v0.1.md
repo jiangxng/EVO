@@ -1549,3 +1549,58 @@ Primary architecture problem:
 Full Replay currently rebuilds Posting and pinned Cost, but generic FX period-end / FX settlement execution inputs are not yet represented as deterministic replay instructions that can be automatically re-executed.
 
 The next packet must decide and implement how derived interpretation runs are replayable without replaying Commands or treating derived rows as canonical truth.
+
+
+---
+
+# 31. ER-C05B3.1 — Dependency Graph Coverage Certification — CLOSED
+
+Certified implementation checkpoint:
+
+`1fa7a9f2034f1d428c63603e3bf0c85e0f646e1f`
+
+GitHub Actions:
+
+`CI run 35331926544 — SUCCESS`
+
+Certified behavior:
+
+- dependency graph is rebuildable from committed runtime state;
+- producer-family coverage is explicit and machine-verifiable;
+- reference scenario exercises all six required producer families:
+  - POSTING_PROJECTION;
+  - ALLOCATION;
+  - COST_VALUATION;
+  - FX_PERIOD_END;
+  - FX_REALIZED_SETTLEMENT;
+  - WORK_PROJECTION;
+- FX period-end reference result:
+  - USD 1000;
+  - carrying CNY 7000;
+  - period-end rate 7.2;
+  - revaluation delta CNY 200;
+- canonical customer-payment BusinessData is created through Command;
+- explicit FX settlement source intent is preserved through AllocationInstruction;
+- realized settlement reference result:
+  - post-revaluation carrying CNY 7200;
+  - settlement local CNY 7300;
+  - realized FX delta CNY 100;
+- dependencyGraphComplete becomes true only after all producer families are actually exercised.
+
+Incremental replay remains disabled.
+
+The pre-FX checkpoint correctly becomes insufficient for later FX RateDataset pins, proving that dependency-graph completeness alone does not imply checkpoint safety.
+
+## Next active packet
+
+`ER-C05B3.2 — Derived Runtime Full-Replay Coverage`
+
+Question:
+
+How should deterministic derived interpretations such as Cost, FX period-end valuation and FX realized settlement be represented as replayable instructions so Full Replay can reconstruct them without:
+
+- re-executing Commands;
+- treating prior derived result rows as canonical truth;
+- relying on mutable “latest policy/rate” lookup?
+
+The next step is to evaluate the existing valuation-request abstraction before introducing any new persistence model.
