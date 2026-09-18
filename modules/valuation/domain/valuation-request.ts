@@ -1,7 +1,8 @@
 import type { JsonObject } from '../../metadata/api/contracts.js';
 import {
   VALUATION_REQUEST_BUSINESS_DATA_TYPE,
-  type ValuationRequestPayload
+  type ValuationRequestPayload,
+  type ValuationScopeSelector
 } from '../api/request.js';
 
 function object(value: unknown, label: string): JsonObject {
@@ -43,16 +44,16 @@ export function parseValuationRequestPayload(
     throw new Error('rateDataset.version must be a positive integer.');
   }
 
-  const parsedScope =
+  const parsedScope: ValuationScopeSelector =
     scopeKind === 'EXPLICIT_POSITIONS'
       ? {
-          kind: scopeKind,
+          kind: 'EXPLICIT_POSITIONS',
           positionKeys: Array.isArray(scope.positionKeys)
             ? scope.positionKeys.map((value) => string(value,'scope.positionKeys[]'))
             : []
         }
       : {
-          kind: scopeKind,
+          kind: 'DIMENSION_QUERY',
           dimensions: object(scope.dimensions ?? {},'scope.dimensions')
         };
 
