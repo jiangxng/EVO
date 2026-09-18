@@ -1,4 +1,5 @@
 import { sql, type Kysely } from 'kysely';
+import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
 import type {
@@ -55,6 +56,19 @@ function errorJson(error: unknown): JsonObject {
   return { message: String(error) };
 }
 
+
+function fail(code: string, message: string): never {
+  throw new AppError({ code, message, module: 'allocation', operation: 'store' });
+}
+
+function selectorFingerprint(selector: AllocationSourceSelector): string {
+  const value = sourceSelectorJson(selector);
+  return JSON.stringify(Object.keys(value).sort().reduce<Record<string, unknown>>((result, key) => {
+    result[key] = value[key];
+    return result;
+  }, {}));
+}
+
 export class PostgresAllocationStore implements AllocationStore {
   constructor(private readonly db: Kysely<Database>) {}
 
@@ -97,6 +111,26 @@ export class PostgresAllocationStore implements AllocationStore {
       .where('consumer_business_data_id','=',input.consumerBusinessDataId)
       .where('idempotency_key','=',input.idempotencyKey)
       .executeTakeFirstOrThrow();
+
+    if (inserted === undefined) {
+      const same =
+        row.mode === input.mode &&
+        selectorFingerprint(parseSourceSelector(row.source_selector as JsonObject)) === selectorFingerprint(input.sourceSelector) &&
+        row.actor_type === input.actorType &&
+        row.actor_id === input.actorId &&
+        asDate(row.effective_at).getTime() === input.effectiveAt.getTime() &&
+        row.reason === (input.reason ?? null) &&
+        row.allocation_policy_id === input.allocationPolicyId &&
+        row.allocation_policy_version === input.allocationPolicyVersion &&
+        row.supersedes_instruction_id === (input.supersedesInstructionId ?? null);
+
+      if (!same) {
+        fail(
+          'ALLOCATION_INSTRUCTION_IDEMPOTENCY_CONFLICT',
+          'The allocation idempotency key already exists with different semantic input.'
+        );
+      }
+    }
 
     return {
       id: row.id,
@@ -152,6 +186,20 @@ export class PostgresAllocationStore implements AllocationStore {
   }
 
   async startRun(input: StartAllocationRunInput): Promise<AllocationRun> {
+    const policy = await this.db.selectFrom('allocation_policy')
+      .select('id')
+      .where('id','=',input.allocationPolicyId)
+      .where('version','=',input.allocationPolicyVersion)
+      .where('status','=','PUBLISHED')
+      .executeTakeFirst();
+
+    if (policy === undefined) {
+      fail(
+        'ALLOCATION_POLICY_PIN_NOT_PUBLISHED',
+        'Allocation run requires an explicitly pinned published allocation policy.'
+      );
+    }
+
     const row = await this.db.insertInto('allocation_run').values({
       enterprise_id: input.enterpriseId,
       allocation_policy_id: input.allocationPolicyId,
