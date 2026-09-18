@@ -369,3 +369,22 @@ Continue evidence collection before promoting the hypotheses above into authorit
 - build the first standalone Legacy Calculation Genealogy and semantic/performance evidence matrix.
 
 The next repository update should either (a) close the generalized Allocation/Matching hypothesis with evidence, or (b) record where the legacy systems materially diverge and therefore require separate EVO primitives.
+
+
+---
+
+## 2026-09-18 Promotion / Freeze Note
+
+The semantic evidence gates identified by this development record have now been closed.
+
+Authoritative freeze decision:
+
+`docs/architecture/decisions/2026-09-18-economic-runtime-architecture-freeze-v0.1.md`
+
+Freeze commit:
+
+`5907e36faac787400f57980757357d77b3b38ee0`
+
+This file remains a development/genealogy record and MUST NOT be deleted or rewritten into a clean final architecture document.
+
+Where this record contains earlier candidate/unresolved language that is explicitly decided by the 2026-09-18 freeze ADR, the freeze ADR takes precedence.
