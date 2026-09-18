@@ -32,9 +32,12 @@ export function consumeMovingAverage(
   if (state.quantity.isZero()) throw new Error('Moving-average pool is empty.');
 
   const unitCost = state.amount.div(state.quantity);
-  const totalCost = quantity.times(unitCost);
+  const consumesAll = quantity.eq(state.quantity);
+  const totalCost = consumesAll
+    ? state.amount
+    : quantity.times(unitCost);
   const nextQuantity = state.quantity.minus(quantity);
-  const nextAmount = nextQuantity.isZero()
+  const nextAmount = consumesAll
     ? new Decimal(0)
     : state.amount.minus(totalCost);
 
