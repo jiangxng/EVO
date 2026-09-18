@@ -52,6 +52,7 @@ implements ValuationRequestInterpreter {
           enterpriseId: request.enterpriseId,
           valuationAt,
           scope: request.payload.scope,
+          positionDefinition: request.payload.positionDefinition,
           requestBusinessDataId: request.businessDataId,
           requestPayload: request.payload as unknown as JsonObject
         });
