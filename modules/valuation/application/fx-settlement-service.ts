@@ -27,11 +27,11 @@ function digest(request: FxSettlementClosureRequest): string {
       positionKey: request.position.positionKey,
       sourceBusinessDataIds: [...request.position.sourceBusinessDataIds].sort(),
       dimensions: request.position.dimensions,
-      foreign: request.position.foreign,
-      carrying: request.position.carrying
-    },
-    settlementForeign: request.settlementForeign,
-    settlementLocal: request.settlementLocal,
+      foreign: request.position.foreign as unknown as JsonValue,
+      carrying: request.position.carrying as unknown as JsonValue
+    } as unknown as JsonValue,
+    settlementForeign: request.settlementForeign as unknown as JsonValue,
+    settlementLocal: request.settlementLocal as unknown as JsonValue,
     allocationPolicyId: request.allocationPolicyId,
     allocationPolicyVersion: request.allocationPolicyVersion,
     instructionId: request.instructionId ?? null
@@ -81,8 +81,8 @@ export class DefaultFxSettlementService implements FxSettlementService {
         lineage: {
           semantic: 'FX_SETTLEMENT_CLOSURE',
           sourceBusinessDataIds: request.position.sourceBusinessDataIds,
-          carryingBasis: request.position.carrying,
-          settlementLocal: request.settlementLocal
+          carryingBasis: request.position.carrying as unknown as JsonValue,
+          settlementLocal: request.settlementLocal as unknown as JsonValue
         }
       });
 
