@@ -22,6 +22,7 @@ function edgeFromRow(row: {
   return {
     id: row.id,
     enterpriseId: row.enterprise_id,
+    graphVersion: row.graph_version,
     fromKind: row.from_kind,
     fromId: row.from_id,
     toKind: row.to_kind,
@@ -70,9 +71,7 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
     await this.db.insertInto('calculation_dependency_edge').values({
       id: edge.id,
       enterprise_id: edge.enterpriseId,
-      graph_version: edge.lineage.graphVersion === undefined
-        ? '1'
-        : String(edge.lineage.graphVersion),
+      graph_version: edge.graphVersion,
       from_kind: edge.fromKind,
       from_id: edge.fromId,
       to_kind: edge.toKind,
