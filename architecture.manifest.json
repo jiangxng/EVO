@@ -119,7 +119,9 @@
         "calculation_dependency_edge",
         "replay preservation of allocation policy pins",
         "replay_checkpoint_promotion",
-        "governed incremental-safe checkpoint promotion"
+        "governed incremental-safe checkpoint promotion",
+        "economic_runtime_dataset",
+        "economic runtime materialization generation lifecycle"
       ],
       "mayDependOn": [
         "metadata",
@@ -328,7 +330,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 14,
+  "dbSchemaVersion": 15,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
