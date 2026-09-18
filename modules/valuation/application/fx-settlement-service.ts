@@ -26,6 +26,7 @@ function canonical(value: JsonValue): string {
 function digest(request: FxSettlementClosureRequest): string {
   const semantic: JsonObject = {
     enterpriseId: request.enterpriseId,
+    requestBusinessDataId: request.requestBusinessDataId ?? null,
     settledAt: request.settledAt.toISOString(),
     settlementBusinessDataId: request.settlementBusinessDataId,
     position: {
@@ -144,6 +145,9 @@ export class DefaultFxSettlementService implements FxSettlementService {
 
       valuationRunId = await this.valuations.startRun({
         enterpriseId: request.enterpriseId,
+        ...(request.requestBusinessDataId !== undefined
+          ? { requestBusinessDataId: request.requestBusinessDataId }
+          : {}),
         valuationKind: 'FX_REALIZED_SETTLEMENT',
         effectiveAt: request.settledAt,
         inputDigest,
