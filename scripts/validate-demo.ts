@@ -88,9 +88,23 @@ try {
     .orderBy('version','desc')
     .executeTakeFirstOrThrow();
 
+  const shipmentValuationRule = await runtime.db.selectFrom('valuation_rule')
+    .select(['id','version'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('source_business_data_type','=','sales_shipment.created')
+    .where('status','=','PUBLISHED')
+    .orderBy('version','desc')
+    .executeTakeFirstOrThrow();
+
   const cost = await runtime.cost.recalculate(ids.enterpriseId, 'FIFO', {
     valuationPolicyId: fifoPolicy.id,
-    valuationPolicyVersion: fifoPolicy.version
+    valuationPolicyVersion: fifoPolicy.version,
+    valuationRules: {
+      'sales_shipment.created': {
+        id: shipmentValuationRule.id,
+        version: shipmentValuationRule.version
+      }
+    }
   });
   if (cost.resultCount < 1 || cost.valuationPostingCount < 1) {
     throw new Error(`Expected cost + valuation posting, got ${JSON.stringify(cost)}`);
