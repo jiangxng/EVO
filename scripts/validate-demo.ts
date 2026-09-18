@@ -177,6 +177,13 @@ try {
     replay.replayRunId,
     ids.enterpriseId
   );
+  const checkpointAgain = await runtime.replayCheckpoint.createFromVerifiedFullReplay(
+    replay.replayRunId,
+    ids.enterpriseId
+  );
+  if (checkpointAgain.id !== checkpoint.id) {
+    throw new Error('Replay checkpoint creation must be idempotent per source replay run.');
+  }
   if (checkpoint.validity.safeForIncremental !== false) {
     throw new Error('Fresh checkpoint must remain unsafe for incremental replay until coverage is certified.');
   }
