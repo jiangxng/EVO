@@ -46,6 +46,7 @@ export interface ReplayCheckpointDescriptor {
   readonly dependencyGraphVersion: string;
   readonly materializationDigest: string;
   readonly validity: JsonObject;
+  readonly sourceReplayRunId?: string;
   readonly parentCheckpointId?: string;
 }
 
