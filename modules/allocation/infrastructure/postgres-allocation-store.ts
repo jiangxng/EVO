@@ -39,8 +39,13 @@ function parseSourceSelector(value: JsonObject): AllocationSourceSelector {
   };
 }
 
-function asDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
+function asDate(value: unknown): Date {
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+  throw new Error('Database returned an invalid allocation timestamp.');
 }
 
 function errorJson(error: unknown): JsonObject {
