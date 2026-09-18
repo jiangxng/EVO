@@ -3,6 +3,8 @@ import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
 import type { DependencyGraphRebuilder } from '../../lineage/api/rebuilder.js';
+import { VALUATION_REQUEST_BUSINESS_DATA_TYPE } from '../../valuation/api/request.js';
+import { parseValuationRequestPayload } from '../../valuation/domain/valuation-request.js';
 import type {
   ReplayCoverageCertification,
   ReplayCoverageCertificationService
@@ -149,10 +151,105 @@ implements ReplayCoverageCertificationService {
       dependencyGraphEvidence.graphVersion === checkpoint.dependency_graph_version &&
       dependencyGraphEvidence.missingFamilies.length === 0;
 
-    // Conservative by design. A successful Full Replay plus complete dependency index
-    // still does not prove that every derived runtime family was rebuilt by the replay
-    // orchestrator. This remains false until ER-C05B3.2 certifies replay-family execution.
-    const derivedRuntimeReplayComplete = false;
+    if (replay.completed_at === null) {
+      throw new Error('Completed Full Replay is missing completed_at.');
+    }
+
+    const valuationRequests = await this.db.selectFrom('posting_input as p')
+      .innerJoin('business_data as b','b.id','p.business_data_id')
+      .select([
+        'b.id',
+        'b.business_data_type',
+        'b.payload'
+      ])
+      .where('p.enterprise_id','=',checkpoint.enterprise_id)
+      .where('p.consistency_domain','=',checkpoint.consistency_domain)
+      .where('p.posting_sequence','<=',checkpoint.boundary_sequence)
+      .where('b.business_data_type','=',VALUATION_REQUEST_BUSINESS_DATA_TYPE)
+      .orderBy('p.posting_sequence')
+      .orderBy('b.id')
+      .execute();
+
+    const derivedRequestEvidence: JsonObject[] = [];
+    let valuationRequestsComplete = true;
+
+    for (const requestRow of valuationRequests) {
+      const payload = parseValuationRequestPayload(
+        requestRow.business_data_type,
+        requestRow.payload as JsonObject
+      );
+
+      const runs = await this.db.selectFrom('valuation_run')
+        .select(['id','valuation_kind','status','started_at','completed_at'])
+        .where('enterprise_id','=',checkpoint.enterprise_id)
+        .where('request_business_data_id','=',requestRow.id)
+        .where('status','=','COMPLETED')
+        .where('started_at','>=',replay.started_at)
+        .where('completed_at','<=',replay.completed_at)
+        .execute();
+
+      const matchingRuns = runs.filter((run) => run.valuation_kind === payload.valuationKind);
+      let settlementAllocationComplete = true;
+
+      if (payload.valuationKind === 'FX_REALIZED_SETTLEMENT') {
+        const relation = await this.db.selectFrom('allocation_relation as r')
+          .innerJoin('allocation_run as a','a.id','r.allocation_run_id')
+          .select('r.id')
+          .where('r.enterprise_id','=',checkpoint.enterprise_id)
+          .where('r.consumer_business_data_id','=',payload.settlementBusinessDataId)
+          .where('r.instruction_id','=',payload.instructionId)
+          .where('r.allocation_policy_id','=',payload.allocationPolicy.id)
+          .where('r.allocation_policy_version','=',payload.allocationPolicy.version)
+          .where('a.status','=','COMPLETED')
+          .where('a.started_at','>=',replay.started_at)
+          .where('a.completed_at','<=',replay.completed_at)
+          .executeTakeFirst();
+        settlementAllocationComplete = relation !== undefined;
+      }
+
+      const complete = matchingRuns.length === 1 && settlementAllocationComplete;
+      valuationRequestsComplete = valuationRequestsComplete && complete;
+      derivedRequestEvidence.push({
+        requestBusinessDataId: requestRow.id,
+        valuationKind: payload.valuationKind,
+        matchingRunCount: matchingRuns.length,
+        settlementAllocationComplete,
+        complete
+      });
+    }
+
+    let costReplayComplete = true;
+    if (replay.cost_method !== null) {
+      const costRun = await this.db.selectFrom('cost_run')
+        .select('id')
+        .where('enterprise_id','=',checkpoint.enterprise_id)
+        .where('method','=',replay.cost_method)
+        .where('status','=','COMPLETED')
+        .where('started_at','>=',replay.started_at)
+        .where('completed_at','<=',replay.completed_at)
+        .where((eb) => replay.valuation_policy_id === null
+          ? eb('valuation_policy_id','is',null)
+          : eb('valuation_policy_id','=',replay.valuation_policy_id))
+        .where((eb) => replay.valuation_policy_version === null
+          ? eb('valuation_policy_version','is',null)
+          : eb('valuation_policy_version','=',replay.valuation_policy_version))
+        .where((eb) => replay.allocation_policy_id === null
+          ? eb('allocation_policy_id','is',null)
+          : eb('allocation_policy_id','=',replay.allocation_policy_id))
+        .where((eb) => replay.allocation_policy_version === null
+          ? eb('allocation_policy_version','is',null)
+          : eb('allocation_policy_version','=',replay.allocation_policy_version))
+        .executeTakeFirst();
+      costReplayComplete = costRun !== undefined;
+    }
+
+    const derivedRuntimeReplayComplete =
+      replay.mode === 'FULL' &&
+      replay.status === 'COMPLETED' &&
+      replay.validation_status === 'MATCH' &&
+      valuationRequests.length > 0 &&
+      valuationRequestsComplete &&
+      costReplayComplete;
 
     const blockers = [
       ...(dependencyGraphComplete ? [] : ['DEPENDENCY_GRAPH_COVERAGE_NOT_CERTIFIED']),
@@ -194,6 +291,12 @@ implements ReplayCoverageCertificationService {
         familyCounts: dependencyGraphEvidence.familyCounts,
         missingFamilies: dependencyGraphEvidence.missingFamilies,
         totalEdgesObserved: dependencyGraphEvidence.totalEdgesObserved
+      },
+      derivedRuntimeReplay: {
+        canonicalValuationRequestCount: valuationRequests.length,
+        valuationRequestsComplete,
+        costReplayComplete,
+        requests: derivedRequestEvidence
       },
       blockers
     };
