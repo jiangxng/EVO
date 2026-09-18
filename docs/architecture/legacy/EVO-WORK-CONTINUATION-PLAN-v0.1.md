@@ -1681,3 +1681,107 @@ Required proof:
 - position resolver uses previously rebuilt period-end carrying value;
 - Full Replay regenerates allocation relation + realized FX valuation result;
 - replay digest remains MATCH.
+
+
+---
+
+# 33. ER-C05B3.2B — Canonical FX Realized Settlement Replay — IN PROGRESS
+
+Durable implementation completed so far:
+
+- `dd43e27dde65938b4c9cf9edaba735719b689a4a`
+  - valuation_run now carries `request_business_data_id` lineage to canonical valuation.requested;
+- `b6b89a5fe26db71a445a276f2bcd54e845d20dbf`
+  - valuation.requested is now a discriminated union:
+    - FX_PERIOD_END;
+    - FX_REALIZED_SETTLEMENT;
+- `77f2ebf17a0df76d4cd6347d2c787189fedb8506`
+  - strong parser for canonical settlement request pins;
+- `f9e60af6c8bff347a6066dc34b32b3beebc2f44c`
+  - FX PositionResolver carries forward prior rebuilt period-end carrying value;
+- `9d9fc80f1a1abf70bdd81650e392578f4e49fe53`
+  - settlement interpreter verifies canonical payment fact + AllocationInstruction + AllocationPolicy and maps payment measurements;
+- `386183da431c92666e68bb0e7fceeed9b5a09145`
+  - settlement interpreter wired into EVO runtime;
+- `1e727db2e0465cf52deb78382b3fe7bd748e00ef`
+  - reference sales-order posting is isolated from payment facts by explicit eventKind;
+- `1246fa50929dfcaa0bb63269d33aa0b614c53a03`
+  - reference scenario places payment + settlement request inside Full Replay boundary;
+- `ce3aa5b13c12b4de1515faf2ff5553681289b0d7`
+  - ReplayCoverageCertification now verifies derived-runtime execution inside the source Full Replay time window rather than hard-coding false;
+- `09d9290beffacbee78e849da60caba4a798fec5d`
+  - architecture manifest explicitly declares valuation → business-data dependency.
+
+## Frozen canonical settlement request
+
+`valuation.requested / FX_REALIZED_SETTLEMENT` now pins:
+
+- valuation effective time;
+- PositionDefinition id/version/digest;
+- position scope;
+- canonical settlement BusinessData id;
+- AllocationPolicy id/version;
+- AllocationInstruction id;
+- field mapping for:
+  - settlement foreign value/unit;
+  - settlement local value/unit.
+
+The request does **not** copy prior valuation results or mutable open balances.
+
+## Replay sequence
+
+Within one Full Replay boundary:
+
+1. canonical sales-order fact rebuilds base FX receivable position;
+2. canonical FX_PERIOD_END valuation.requested rebuilds period-end carrying value;
+3. canonical payment fact remains business truth;
+4. canonical AllocationInstruction preserves explicit source-selection intent;
+5. canonical FX_REALIZED_SETTLEMENT valuation.requested resolves the same position;
+6. PositionResolver overlays the already-rebuilt prior period-end carrying basis;
+7. settlement interpreter rebuilds AllocationRelation + realized FX valuation result.
+
+Reference expected values:
+
+- initial carrying: CNY 7000;
+- period-end rate: 7.2;
+- rebuilt carrying after period-end: CNY 7200;
+- actual settlement local amount: CNY 7300;
+- realized FX delta: CNY 100.
+
+## Machine certification rule added
+
+`derivedRuntimeReplayComplete` may become true only when:
+
+- source replay is FULL / COMPLETED / MATCH;
+- every canonical valuation.requested inside the replay boundary has exactly one matching COMPLETED valuation_run;
+- that valuation_run is linked by `request_business_data_id`;
+- the matching run started/completed inside the source Full Replay execution window;
+- FX settlement requests also regenerate a COMPLETED AllocationRelation matching:
+  - settlement BusinessData;
+  - instruction id;
+  - allocation policy id/version;
+- pinned CostRun is also regenerated inside the same Full Replay window when cost_method is present.
+
+No prior derived result row is accepted as replay input.
+
+## Current certification state
+
+Implementation is complete enough for end-to-end CI, but **B3.2B is not closed yet**.
+
+Pending proof:
+
+`migrate → typecheck → build → tests → seed:demo → validate:demo`
+
+must complete green with:
+
+- period-end delta = 200;
+- realized settlement delta = 100;
+- Full Replay digest MATCH;
+- dependencyGraphComplete = true;
+- derivedRuntimeReplayComplete = true;
+- materializationDigestComplete = true;
+- referenceDatasetPinsComplete = true;
+- templateBindingComplete = true;
+- ReplayCoverageCertification status = CERTIFIED.
+
+Checkpoint `safeForIncremental` must still remain false until a separate explicit promotion step.
