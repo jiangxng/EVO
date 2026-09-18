@@ -173,6 +173,20 @@ try {
     throw new Error(`Replay digest mismatch: query=${before}, replay=${replay.beforeDigest}, after=${after}`);
   }
 
+  const checkpoint = await runtime.replayCheckpoint.createFromVerifiedFullReplay(
+    replay.replayRunId,
+    ids.enterpriseId
+  );
+  if (checkpoint.validity.safeForIncremental !== false) {
+    throw new Error('Fresh checkpoint must remain unsafe for incremental replay until coverage is certified.');
+  }
+  const blockers = Array.isArray(checkpoint.validity.blockers)
+    ? checkpoint.validity.blockers
+    : [];
+  if (blockers.length < 1) {
+    throw new Error('Expected conservative replay checkpoint blockers.');
+  }
+
   console.log(JSON.stringify({
     status: 'PASS',
     alpha2: 'dimensions+valuation-posting',
@@ -182,6 +196,11 @@ try {
     valuationPostingCount: cost.valuationPostingCount,
     allocationRelationCount: allocationEdges.length,
     replayDeterministic: true,
+    replayCheckpoint: {
+      id: checkpoint.id,
+      safeForIncremental: checkpoint.validity.safeForIncremental,
+      blockers
+    },
     beforeDigest: before,
     afterDigest: after,
     contextContractVersion: '1.1'
