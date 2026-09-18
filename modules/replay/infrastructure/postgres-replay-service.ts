@@ -40,7 +40,7 @@ export class PostgresReplayService implements ReplayService {
         .digest('hex');
 
       const latestCostRun = await trx.selectFrom('cost_run')
-        .select(['id','method','valuation_policy_id','valuation_policy_version'])
+        .select(['id','method','valuation_policy_id','valuation_policy_version','allocation_policy_id','allocation_policy_version'])
         .where('enterprise_id','=',enterpriseId)
         .where('status','=','COMPLETED')
         .orderBy('started_at','desc')
@@ -87,6 +87,8 @@ export class PostgresReplayService implements ReplayService {
           cost_method: latestCostRun?.method ?? null,
           valuation_policy_id: latestCostRun?.valuation_policy_id ?? null,
           valuation_policy_version: latestCostRun?.valuation_policy_version ?? null,
+          allocation_policy_id: latestCostRun?.allocation_policy_id ?? null,
+          allocation_policy_version: latestCostRun?.allocation_policy_version ?? null,
           valuation_rule_pins: sql`${valuationRulePinsJson}::jsonb`
         })
         .returning('id')
@@ -161,6 +163,9 @@ export class PostgresReplayService implements ReplayService {
         costPins: latestCostRun === undefined ? null : {
           ...(latestCostRun.valuation_policy_id !== null && latestCostRun.valuation_policy_version !== null
             ? { valuationPolicyId: latestCostRun.valuation_policy_id, valuationPolicyVersion: latestCostRun.valuation_policy_version }
+            : {}),
+          ...(latestCostRun.allocation_policy_id !== null && latestCostRun.allocation_policy_version !== null
+            ? { allocationPolicyId: latestCostRun.allocation_policy_id, allocationPolicyVersion: latestCostRun.allocation_policy_version }
             : {}),
           valuationRules: valuationRulePins
         }
