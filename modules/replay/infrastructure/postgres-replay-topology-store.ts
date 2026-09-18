@@ -67,9 +67,10 @@ function checkpointFromRow(row: {
 export class PostgresReplayTopologyStore implements ReplayTopologyStore {
   constructor(private readonly db: Kysely<Database>) {}
 
-  async recordDependency(edge: CalculationDependencyEdge): Promise<void> {
-    await this.db.insertInto('calculation_dependency_edge').values({
-      id: edge.id,
+  async recordDependency(
+    edge: Omit<CalculationDependencyEdge, 'id'>
+  ): Promise<CalculationDependencyEdge> {
+    const inserted = await this.db.insertInto('calculation_dependency_edge').values({
       enterprise_id: edge.enterpriseId,
       graph_version: edge.graphVersion,
       from_kind: edge.fromKind,
@@ -81,7 +82,25 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
       lineage: edge.lineage
     }).onConflict((oc) => oc.columns([
       'enterprise_id','graph_version','from_kind','from_id','to_kind','to_id','edge_kind'
-    ]).doNothing()).execute();
+    ]).doNothing())
+      .returningAll()
+      .executeTakeFirst();
+
+    const row = inserted ?? await this.db.selectFrom('calculation_dependency_edge')
+      .selectAll()
+      .where('enterprise_id','=',edge.enterpriseId)
+      .where('graph_version','=',edge.graphVersion)
+      .where('from_kind','=',edge.fromKind)
+      .where('from_id','=',edge.fromId)
+      .where('to_kind','=',edge.toKind)
+      .where('to_id','=',edge.toId)
+      .where('edge_kind','=',edge.edgeKind)
+      .executeTakeFirstOrThrow();
+
+    return edgeFromRow({
+      ...row,
+      lineage: row.lineage as JsonObject
+    });
   }
 
   async listDependents(
