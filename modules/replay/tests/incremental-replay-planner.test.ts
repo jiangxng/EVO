@@ -13,8 +13,10 @@ class FakeTopology implements ReplayTopologyStore {
     private readonly reverseOrder = false
   ) {}
 
-  async recordDependency(): Promise<void> {
-    throw new Error('not used');
+  async recordDependency(
+    edge: Omit<CalculationDependencyEdge,'id'>
+  ): Promise<CalculationDependencyEdge> {
+    return { id: 'recorded-edge', ...edge };
   }
 
   async listDependents(
