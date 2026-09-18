@@ -42,7 +42,7 @@ function inputDigest(request: FxPeriodEndRequest): string {
       amountScale: request.policy.amountScale,
       roundingMode: request.policy.roundingMode
     },
-    positions
+    positions: positions as unknown as JsonValue
   };
 
   return createHash('sha256').update(canonical(semantic)).digest('hex');
