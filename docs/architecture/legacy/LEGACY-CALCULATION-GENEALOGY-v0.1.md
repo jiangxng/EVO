@@ -362,3 +362,35 @@ Do not copy this inconsistency into EVO.
 `AP-COST-METHOD-001 — FIFO / LIFO / Average / Specific Identification genealogy`
 
 Goal: prove that required costing methods can be expressed as policies over the same Allocation + Valuation substrate.
+
+
+## 16. 2026-09-18 AP-COST-METHOD-001 closure
+
+Packet:
+
+`docs/architecture/legacy/packets/AP-COST-METHOD-001.md`
+
+Commit:
+
+`77356fa5f6a21fe1cf880d87631a033b494ebf29`
+
+Key conclusions:
+
+- bookkeeping moving average is a valuation-pool model: `price = amount / quantity`;
+- Asloop ordered matching provides a reusable layer-allocation substrate;
+- `LastStockInFunction` is **latest-in price**, not strict LIFO;
+- strict legacy LIFO was not evidenced and must not be invented;
+- `StockOutCostFunction` and source-referenced return costing provide strong specific-identification evidence;
+- transfer costing carries source basis forward;
+- FIFO and LIFO differ by source ordering over the same allocation substrate;
+- Specific Identification uses an explicit selector/constraint;
+- Moving Average changes valuation scope from layer basis to pool basis;
+- all methods share conservation, lineage, precision and replay requirements.
+
+Current unified candidate:
+
+`CostMethodPolicy = method + valuationScope + sourceEligibility + sourceOrdering + selectorMode + allocationUnit + basisCarryForward + returnRestoration + negativePositionPolicy + precision/residual policy + effectiveOrderingContract + version`
+
+Next and final semantic blocker before Economic Runtime freeze:
+
+`AP-RECALC-001 — Change Impact / Local Recalculation vs Full Replay`
