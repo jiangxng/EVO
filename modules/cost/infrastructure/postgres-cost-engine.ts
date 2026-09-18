@@ -2,7 +2,7 @@ import { Decimal } from 'decimal.js';
 import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
-import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
 import type { ValuationPostingService } from '../../valuation/api/contracts.js';
 import type {
   CostEngine,
@@ -15,7 +15,101 @@ interface Layer {
   businessDataId: string;
   quantity: Decimal;
   unitCost: Decimal;
-  lot?: string;
+  specificIdentity?: string;
+}
+
+interface PoolState {
+  readonly layers: Layer[];
+  averageQuantity: Decimal;
+  averageAmount: Decimal;
+}
+
+interface RuntimeCostConfig {
+  readonly inboundBusinessDataTypes: readonly string[];
+  readonly outboundBusinessDataTypes: readonly string[];
+  readonly quantityField: string;
+  readonly basisAmountField: string;
+  readonly specificIdentityField?: string;
+  readonly poolDimensions: readonly string[];
+}
+
+function fail(code: string, message: string, details?: JsonObject): never {
+  throw new AppError({
+    code,
+    message,
+    module: 'cost',
+    operation: 'recalculate',
+    ...(details !== undefined ? { details } : {})
+  });
+}
+
+function stringArray(value: JsonValue | undefined, label: string): readonly string[] {
+  if (!Array.isArray(value) || value.length === 0 || value.some((item) => typeof item !== 'string' || item.length === 0)) {
+    fail('COST_POLICY_RUNTIME_CONFIG_INVALID', `${label} must be a non-empty string array.`);
+  }
+  return value as readonly string[];
+}
+
+function requiredString(value: JsonValue | undefined, label: string): string {
+  if (typeof value !== 'string' || value.length === 0) {
+    fail('COST_POLICY_RUNTIME_CONFIG_INVALID', `${label} must be a non-empty string.`);
+  }
+  return value;
+}
+
+function optionalString(value: JsonValue | undefined): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function policyConfig(config: JsonObject, poolDimensionSchema: JsonObject): RuntimeCostConfig {
+  return {
+    inboundBusinessDataTypes: stringArray(config.inboundBusinessDataTypes, 'inboundBusinessDataTypes'),
+    outboundBusinessDataTypes: stringArray(config.outboundBusinessDataTypes, 'outboundBusinessDataTypes'),
+    quantityField: requiredString(config.quantityField, 'quantityField'),
+    basisAmountField: requiredString(config.basisAmountField, 'basisAmountField'),
+    ...(optionalString(config.specificIdentityField) !== undefined
+      ? { specificIdentityField: optionalString(config.specificIdentityField)! }
+      : {}),
+    poolDimensions: stringArray(poolDimensionSchema.keys, 'pool_dimension_schema.keys')
+  };
+}
+
+function payloadValue(payload: JsonObject, path: string): JsonValue | undefined {
+  const parts = path.split('.');
+  let current: JsonValue = payload;
+  for (const part of parts) {
+    if (current === null || typeof current !== 'object' || Array.isArray(current)) return undefined;
+    current = current[part] ?? null;
+  }
+  return current;
+}
+
+function decimalField(payload: JsonObject, path: string, label: string): Decimal {
+  const value = payloadValue(payload, path);
+  if (value === null || value === undefined || (typeof value !== 'string' && typeof value !== 'number')) {
+    fail('COST_INPUT_FIELD_MISSING', `${label} field ${path} must contain a numeric value.`);
+  }
+  const decimal = new Decimal(String(value));
+  if (!decimal.isFinite()) {
+    fail('COST_INPUT_FIELD_INVALID', `${label} field ${path} is not finite.`);
+  }
+  return decimal;
+}
+
+function stringField(payload: JsonObject, path: string): string {
+  const value = payloadValue(payload, path);
+  return value === null || value === undefined ? '' : String(value);
+}
+
+function poolKey(payload: JsonObject, dimensions: readonly string[]): string {
+  const parts = dimensions.map((dimension) => {
+    const value = payloadValue(payload, dimension);
+    if (value === null || value === undefined || value === '') {
+      fail('COST_POOL_DIMENSION_MISSING', `Cost pool dimension ${dimension} is required.`);
+    }
+    return `${dimension}=${String(value)}`;
+  });
+  return parts.join('|');
 }
 
 export class PostgresCostEngine implements CostEngine {
@@ -30,29 +124,37 @@ export class PostgresCostEngine implements CostEngine {
     pins?: CostReplayPins
   ): Promise<CostRecalculationResult> {
     if (pins?.valuationPolicyId === undefined || pins.valuationPolicyVersion === undefined) {
-      throw new AppError({
-        code: 'COST_VALUATION_POLICY_PIN_REQUIRED',
-        message: 'Authoritative cost calculation requires an explicit valuation policy id and version.',
-        module: 'cost',
-        operation: 'recalculate',
-        details: { enterpriseId, method }
-      });
+      fail(
+        'COST_VALUATION_POLICY_PIN_REQUIRED',
+        'Authoritative cost calculation requires an explicit valuation policy id and version.',
+        { enterpriseId, method }
+      );
     }
 
     const policy = await this.db.selectFrom('valuation_policy')
-      .select(['id','version'])
+      .select(['id','version','config','pool_dimension_schema'])
       .where('id','=',pins.valuationPolicyId)
       .where('version','=',pins.valuationPolicyVersion)
       .where('method','=',method)
       .executeTakeFirst();
 
     if (policy === undefined) {
-      throw new AppError({
-        code: 'COST_VALUATION_POLICY_PIN_NOT_FOUND',
-        message: `Pinned valuation policy ${pins.valuationPolicyId} v${pins.valuationPolicyVersion} does not exist for method ${method}.`,
-        module: 'cost',
-        operation: 'recalculate'
-      });
+      fail(
+        'COST_VALUATION_POLICY_PIN_NOT_FOUND',
+        `Pinned valuation policy ${pins.valuationPolicyId} v${pins.valuationPolicyVersion} does not exist for method ${method}.`
+      );
+    }
+
+    const runtime = policyConfig(
+      policy.config as JsonObject,
+      policy.pool_dimension_schema as JsonObject
+    );
+
+    if (method === 'SPECIFIC_IDENTIFICATION' && runtime.specificIdentityField === undefined) {
+      fail(
+        'COST_POLICY_RUNTIME_CONFIG_INVALID',
+        'SPECIFIC_IDENTIFICATION requires specificIdentityField.'
+      );
     }
 
     const run = await this.db
@@ -65,12 +167,17 @@ export class PostgresCostEngine implements CostEngine {
         error: null,
         valuation_policy_id: policy.id,
         valuation_policy_version: policy.version,
-        cost_engine_version: '2'
+        cost_engine_version: '3'
       })
       .returning('id')
       .executeTakeFirstOrThrow();
 
     try {
+      const movementTypes = [...new Set([
+        ...runtime.inboundBusinessDataTypes,
+        ...runtime.outboundBusinessDataTypes
+      ])];
+
       const movements = await this.db
         .selectFrom('business_data as b')
         .innerJoin('posting_input as p','p.business_data_id','b.id')
@@ -82,124 +189,116 @@ export class PostgresCostEngine implements CostEngine {
           'p.posting_sequence'
         ])
         .where('b.enterprise_id', '=', enterpriseId)
-        .where('b.business_data_type', 'in', ['production.completed','inventory.received','sales_shipment.created'])
+        .where('b.business_data_type', 'in', movementTypes)
         .orderBy('b.effective_at')
         .orderBy('p.posting_sequence')
         .orderBy('b.id')
         .execute();
 
-      const pools = new Map<string, Layer[]>();
+      const pools = new Map<string, PoolState>();
       let resultCount = 0;
       let valuationPostingCount = 0;
 
       for (const movement of movements) {
         const payload = movement.payload as JsonObject;
-        const productId = String(payload.productId ?? '');
-        const warehouse = String(payload.warehouse ?? '');
-        const poolKey = `${warehouse}:${productId}`;
-        if (!productId || !warehouse) {
-          throw new AppError({
-            code: 'COST_POOL_DIMENSION_MISSING',
-            message: 'Inventory movement requires productId and warehouse.',
-            module: 'cost',
-            operation: 'recalculate'
-          });
-        }
+        const key = poolKey(payload, runtime.poolDimensions);
+        const quantity = decimalField(payload, runtime.quantityField, 'quantity');
+        const state = pools.get(key) ?? {
+          layers: [],
+          averageQuantity: new Decimal(0),
+          averageAmount: new Decimal(0)
+        };
+        pools.set(key, state);
 
-        const quantity = new Decimal(String(payload.quantity ?? '0'));
-        const layers = pools.get(poolKey) ?? [];
-        pools.set(poolKey, layers);
+        if (runtime.inboundBusinessDataTypes.includes(movement.business_data_type)) {
+          if (quantity.lte(0)) fail('COST_INBOUND_QUANTITY_INVALID', 'Inbound quantity must be positive.');
+          const basisAmount = decimalField(payload, runtime.basisAmountField, 'basis amount');
 
-        if (movement.business_data_type === 'production.completed' || movement.business_data_type === 'inventory.received') {
-          const totalCost = new Decimal(String(payload.totalCost ?? '0'));
-          if (quantity.lte(0)) throw new Error('Receipt quantity must be positive.');
-          const layer: Layer = {
-            businessDataId: movement.id,
-            quantity,
-            unitCost: totalCost.div(quantity)
-          };
-          if (payload.lot !== undefined) {
-            layer.lot = String(payload.lot);
+          if (method === 'MOVING_AVERAGE') {
+            state.averageQuantity = state.averageQuantity.plus(quantity);
+            state.averageAmount = state.averageAmount.plus(basisAmount);
+          } else {
+            const layer: Layer = {
+              businessDataId: movement.id,
+              quantity,
+              unitCost: basisAmount.div(quantity)
+            };
+            if (runtime.specificIdentityField !== undefined) {
+              const identity = stringField(payload, runtime.specificIdentityField);
+              if (identity) layer.specificIdentity = identity;
+            }
+            state.layers.push(layer);
           }
-          layers.push(layer);
           continue;
         }
 
-        let remaining = quantity;
-        if (remaining.lte(0)) throw new Error('Shipment quantity must be positive.');
+        if (!runtime.outboundBusinessDataTypes.includes(movement.business_data_type)) {
+          continue;
+        }
+
+        if (quantity.lte(0)) fail('COST_OUTBOUND_QUANTITY_INVALID', 'Outbound quantity must be positive.');
 
         let total = new Decimal(0);
 
         if (method === 'MOVING_AVERAGE') {
-          const totalQty = layers.reduce((a,l) => a.plus(l.quantity), new Decimal(0));
-          const totalValue = layers.reduce((a,l) => a.plus(l.quantity.times(l.unitCost)), new Decimal(0));
-          if (totalQty.lt(remaining)) throw new Error(`Negative inventory for ${poolKey}.`);
-          const avg = totalValue.div(totalQty);
-          total = remaining.times(avg);
-          let consume = remaining;
-          for (const layer of layers) {
-            if (consume.lte(0)) break;
-            const take = Decimal.min(layer.quantity, consume);
-            layer.quantity = layer.quantity.minus(take);
-            consume = consume.minus(take);
+          if (state.averageQuantity.lt(quantity)) {
+            fail('COST_NEGATIVE_POSITION', `Negative inventory for cost pool ${key}.`);
           }
+          if (state.averageQuantity.isZero()) {
+            fail('COST_EMPTY_POOL', `Cannot value outbound movement from empty cost pool ${key}.`);
+          }
+          const average = state.averageAmount.div(state.averageQuantity);
+          total = quantity.times(average);
+          state.averageQuantity = state.averageQuantity.minus(quantity);
+          state.averageAmount = state.averageAmount.minus(total);
+          if (state.averageQuantity.isZero()) state.averageAmount = new Decimal(0);
         } else {
-          const ordered =
-            method === 'LIFO' ? [...layers].reverse() : layers;
-          let specificLot =
-            method === 'SPECIFIC_IDENTIFICATION'
-              ? String(payload.lot ?? '')
-              : '';
+          let remaining = quantity;
+          const ordered = method === 'LIFO' ? [...state.layers].reverse() : state.layers;
+          const specificIdentity = method === 'SPECIFIC_IDENTIFICATION'
+            ? stringField(payload, runtime.specificIdentityField!)
+            : '';
 
-          if (method === 'SPECIFIC_IDENTIFICATION' && !specificLot) {
-            throw new Error('SPECIFIC_IDENTIFICATION requires payload.lot.');
+          if (method === 'SPECIFIC_IDENTIFICATION' && !specificIdentity) {
+            fail('COST_SPECIFIC_IDENTITY_REQUIRED', `Field ${runtime.specificIdentityField} is required.`);
           }
 
           for (const layer of ordered) {
             if (remaining.lte(0)) break;
-            if (specificLot && layer.lot !== specificLot) continue;
+            if (specificIdentity && layer.specificIdentity !== specificIdentity) continue;
             const take = Decimal.min(layer.quantity, remaining);
-            if (take.gt(0)) {
-              total = total.plus(take.times(layer.unitCost));
-              layer.quantity = layer.quantity.minus(take);
-              remaining = remaining.minus(take);
-            }
+            if (take.lte(0)) continue;
+            total = total.plus(take.times(layer.unitCost));
+            layer.quantity = layer.quantity.minus(take);
+            remaining = remaining.minus(take);
           }
-          if (remaining.gt(0)) throw new Error(`Negative inventory for ${poolKey}.`);
+
+          if (remaining.gt(0)) {
+            fail('COST_NEGATIVE_POSITION', `Negative inventory for cost pool ${key}.`);
+          }
         }
 
         const unitCost = total.div(quantity);
-
-        const pinnedRule = pins?.valuationRules?.[movement.business_data_type];
-        let valuationRule: { id: string; version: number } | undefined;
-        if (pinnedRule !== undefined) {
-          valuationRule = await this.db.selectFrom('valuation_rule')
-            .select(['id','version'])
-            .where('id','=',pinnedRule.id)
-            .where('version','=',pinnedRule.version)
-            .executeTakeFirst();
-        } else {
-          valuationRule = await this.db.selectFrom('valuation_rule')
-            .select(['id','version'])
-            .where('enterprise_id','=',enterpriseId)
-            .where('source_business_data_type','=',movement.business_data_type)
-            .where('status','=','PUBLISHED')
-            .orderBy('version','desc')
-            .executeTakeFirst();
-          valuationRule ??= await this.db.selectFrom('valuation_rule')
-            .select(['id','version'])
-            .where('enterprise_id','is',null)
-            .where('source_business_data_type','=',movement.business_data_type)
-            .where('status','=','PUBLISHED')
-            .orderBy('version','desc')
-            .executeTakeFirst();
+        const pinnedRule = pins.valuationRules?.[movement.business_data_type];
+        if (pinnedRule === undefined) {
+          fail(
+            'VALUATION_RULE_PIN_REQUIRED',
+            `Authoritative cost calculation requires a pinned valuation rule for ${movement.business_data_type}.`
+          );
         }
+
+        const valuationRule = await this.db.selectFrom('valuation_rule')
+          .select(['id','version'])
+          .where('id','=',pinnedRule.id)
+          .where('version','=',pinnedRule.version)
+          .where('source_business_data_type','=',movement.business_data_type)
+          .executeTakeFirst();
+
         if (valuationRule === undefined) {
-          throw new AppError({
-            code: 'VALUATION_RULE_NOT_FOUND',
-            message: `No published valuation rule for ${movement.business_data_type}.`,
-            module: 'cost', operation: 'recalculate'
-          });
+          fail(
+            'VALUATION_RULE_PIN_NOT_FOUND',
+            `Pinned valuation rule ${pinnedRule.id} v${pinnedRule.version} is invalid for ${movement.business_data_type}.`
+          );
         }
 
         const result = await this.db
@@ -208,7 +307,7 @@ export class PostgresCostEngine implements CostEngine {
             enterprise_id: enterpriseId,
             cost_run_id: run.id,
             business_data_id: movement.id,
-            pool_key: poolKey,
+            pool_key: key,
             method,
             quantity: quantity.toString(),
             unit_cost: unitCost.toString(),
@@ -218,6 +317,7 @@ export class PostgresCostEngine implements CostEngine {
           })
           .returning('id')
           .executeTakeFirstOrThrow();
+
         resultCount += 1;
         const valuation = await this.valuation.postCostResult(result.id);
         if (valuation.status === 'POSTED') valuationPostingCount += 1;
