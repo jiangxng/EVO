@@ -669,3 +669,38 @@ Current active stage:
 `Economic Runtime Architecture Freeze Gate`
 
 No broad runtime refactor should begin until the freeze document classifies canonical truth, module contracts, derived results and materializations.
+
+
+---
+
+# 19. Economic Runtime Architecture Freeze — COMPLETED
+
+The Economic Runtime Architecture Freeze Gate is now **CLOSED**.
+
+Authoritative decision:
+
+`docs/architecture/decisions/2026-09-18-economic-runtime-architecture-freeze-v0.1.md`
+
+Commit:
+
+`5907e36faac787400f57980757357d77b3b38ee0`
+
+## Current active phase
+
+`Economic Runtime Contract Convergence & Implementation`
+
+Execution order:
+
+1. inventory current public contracts/schema against the freeze classification;
+2. introduce additive Allocation contracts;
+3. introduce Measurement / Basis / Rate dataset contracts where needed;
+4. extend lineage so business causality, allocation, valuation and projection are distinguishable;
+5. align Cost contracts to the unified `CostMethodPolicy`;
+6. extend Replay contracts with dependency impact/checkpoint semantics while keeping full replay as oracle;
+7. add invariants/certification tests before replacing implementation;
+8. migrate physical schema additively;
+9. adapt existing cost/valuation/replay infrastructure;
+10. re-certify existing reference scenarios;
+11. resume complete Enterprise Template archaeology by non-economic definition families.
+
+Implementation MUST preserve existing working assets and use additive convergence rather than repository replacement.
