@@ -46,6 +46,17 @@ export interface RateDatasetPin {
   readonly digest: string;
 }
 
+export interface RateDataset {
+  readonly id: string;
+  readonly enterpriseId?: string;
+  readonly code: string;
+  readonly version: number;
+  readonly status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
+  readonly provider: string;
+  readonly digest: string;
+  readonly config: JsonObject;
+}
+
 export interface RateObservation {
   readonly id: string;
   readonly dataset: RateDatasetPin;
