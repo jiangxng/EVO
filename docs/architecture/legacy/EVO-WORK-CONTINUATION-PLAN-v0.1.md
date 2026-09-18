@@ -1837,3 +1837,57 @@ Status remains:
 Do not mark canonical FX settlement Full Replay CLOSED based solely on the previous unit-test-only green runs.
 
 The next accepted evidence must be a GitHub CI run produced after commit `a8235baa...` with both reference-enterprise steps successful.
+
+
+---
+
+# 35. True E2E CI defect #1 — PositionDefinition JSONB array encoding
+
+First corrected end-to-end workflow:
+
+`CI run 35333389052`
+
+Verified before failure:
+
+- migrate — PASS;
+- typecheck — PASS;
+- build — PASS;
+- unit tests — PASS.
+
+First real reference-enterprise failure:
+
+`seed:demo — FAIL`
+
+PostgreSQL error:
+
+`22P02 invalid input syntax for type json`
+
+Root cause:
+
+`PostgresPositionDefinitionStore.publish()` passed object arrays directly for the JSONB columns:
+
+- `dimensions`;
+- `source_rules`.
+
+The PostgreSQL driver encoded those JavaScript arrays as PostgreSQL array literals rather than JSON text, so JSONB parsing failed.
+
+This defect had not been exercised by unit tests and was discovered only after `seed:demo` became a mandatory CI step.
+
+Fix:
+
+`8f7dc807909a0ab73b5d9731cbc85e06b17e65c8`
+
+The store now explicitly serializes those arrays as JSON and casts them to JSONB at the persistence boundary.
+
+New true E2E run:
+
+`35401050549`
+
+Status at this checkpoint:
+
+`IN PROGRESS`
+
+Do not close ER-C05B3.2B until this or a later workflow passes both:
+
+`seed:demo`
+`validate:demo`.
