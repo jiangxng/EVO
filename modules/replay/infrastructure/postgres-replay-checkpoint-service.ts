@@ -52,6 +52,23 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
     replayRunId: string,
     enterpriseId: string
   ): Promise<ReplayCheckpointDescriptor> {
+    const existing = await this.db.selectFrom('replay_checkpoint')
+      .selectAll()
+      .where('source_replay_run_id','=',replayRunId)
+      .executeTakeFirst();
+
+    if (existing !== undefined) {
+      const loaded = await this.topology.getLatestValidCheckpoint(
+        enterpriseId,
+        existing.consistency_domain,
+        asBigInt(existing.boundary_sequence)
+      );
+      if (loaded !== null && loaded.id === existing.id) {
+        return loaded;
+      }
+      throw new Error('Replay checkpoint source run already exists but could not be loaded consistently.');
+    }
+
     const run = await this.db.selectFrom('replay_run')
       .selectAll()
       .where('id','=',replayRunId)
@@ -287,6 +304,7 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
       dependencyGraphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
       materializationDigest: run.after_digest,
       validity,
+      sourceReplayRunId: replayRunId,
       ...(parent !== null ? { parentCheckpointId: parent.id } : {})
     };
 
