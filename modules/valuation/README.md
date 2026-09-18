@@ -37,3 +37,12 @@ Initial certified scope:
 - the accounting projection is downstream of the realized result.
 
 Do not collapse period-end revaluation and realized settlement into one operation.
+
+
+## PostgreSQL persistence boundary
+
+Array-valued JSONB payloads must be explicitly serialized as JSON at the PostgreSQL boundary.
+
+Do not pass arrays of measurements/source ids directly to the pg driver and assume JSONB encoding. Use explicit JSON serialization/cast so an array cannot be interpreted as a PostgreSQL array literal.
+
+This applies to valuation result source ids and source/target measurement arrays.
