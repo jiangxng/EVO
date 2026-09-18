@@ -1019,3 +1019,65 @@ Implementation sequence:
 7. compare candidate digest against full replay before enabling activation.
 
 Generic valuation-result accounting projection remains a separate downstream packet and must not block replay correctness work.
+
+
+---
+
+# 25. ER-C05A — Incremental Replay Planner — COMPLETED
+
+Verified planner checkpoint:
+
+`9fcce1b3a1dbeb806d5ebb3cc34da1ad1d9e8436`
+
+GitHub CI:
+
+`SUCCESS`
+
+Runtime wiring:
+
+`f988bbc4471f88deb88a8c99537c79bac9665003`
+
+The current runtime exposes `incrementalReplayPlanner` as a read-only planning capability. It does **not** execute incremental mutations.
+
+Delivered:
+
+- deterministic transitive dependency closure;
+- cycle-safe graph traversal;
+- deterministic edge/root ordering;
+- latest checkpoint selection strictly before the earliest affected sequence;
+- checkpoint graph-version compatibility;
+- checkpoint runtime-semantic-version compatibility;
+- explicit `safeForIncremental=true` requirement;
+- conservative fallback for incomplete dependency graphs;
+- forced full replay for runtime-semantic changes;
+- conservative full-replay fallback for retroactive/unknown template and policy changes;
+- stable fallback reason codes;
+- SHA-256 `planDigest`;
+- tests proving plan digest is independent of dependency-store return ordering.
+
+Current normalized decision:
+
+`ImpactRoot(s)`
+` → DependencyClosure`
+` → EarliestAffectedSequence`
+` → Checkpoint Safety Evaluation`
+` → IncrementalReplayPlan`
+
+If any required safety proof is missing:
+
+`fallbackToFullReplay = true`.
+
+## Next active packet
+
+`ER-C05B — Dependency Lineage Production + Checkpoint Certification`
+
+Before incremental execution exists, the runtime must prove that it can produce sufficient dependency edges and valid checkpoints from real Cost / Allocation / FX / Projection runs.
+
+Execution order:
+
+1. emit CalculationDependencyEdge from Cost/Allocation/Valuation runtime;
+2. generate a ReplayCheckpoint from a verified full replay;
+3. mark checkpoint `safeForIncremental=true` only after its pins/digests are complete;
+4. run planner against real dependency/checkpoint data;
+5. add integration tests for backdated fact and valuation-policy/rate-dataset impact;
+6. only then design candidate incremental rebuild execution.
