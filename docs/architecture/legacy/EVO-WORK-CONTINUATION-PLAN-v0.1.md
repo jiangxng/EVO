@@ -1891,3 +1891,60 @@ Do not close ER-C05B3.2B until this or a later workflow passes both:
 
 `seed:demo`
 `validate:demo`.
+
+
+---
+
+# 36. PostgreSQL JSONB array persistence invariant
+
+True E2E execution exposed a driver-boundary rule that must be preserved.
+
+## Problem
+
+Passing a JavaScript array of objects directly through the PostgreSQL/Kysely driver to a `jsonb` column can be encoded as a PostgreSQL array literal instead of JSON text.
+
+Observed failure:
+
+`22P02 invalid input syntax for type json`
+
+## Correct persistence rule
+
+For JSONB columns whose runtime value is an array:
+
+`JSON.stringify(value) → ::jsonb`
+
+must be explicit at the PostgreSQL persistence boundary.
+
+Object-valued JSONB fields may continue using the normal object path when the driver serializes them correctly.
+
+## Corrected stores
+
+- `PostgresPositionDefinitionStore`
+  - dimensions;
+  - source_rules;
+  - fix: `8f7dc807909a0ab73b5d9731cbc85e06b17e65c8`
+
+- `PostgresAllocationStore`
+  - allocation_relation.measurements;
+  - fix: `86bf5c32225c623d98f3d9eb7df8ef0f9f42fdc2`
+
+- `PostgresValuationStore`
+  - valuation_result.source_business_data_ids;
+  - valuation_result.source_measurements;
+  - valuation_result.target_measurements;
+  - fix: `dff7fb0cdcf6c7d7de5c70550c4e85d110bc0669`
+
+This is a persistence implementation invariant, not an Economic Runtime semantic rule.
+
+## Current ER-C05B3.2B status
+
+Still:
+
+`IN PROGRESS / TRUE E2E REQUIRED`
+
+The next accepted evidence is a GitHub workflow against the latest fixes where:
+
+- seed:demo passes;
+- validate:demo passes;
+- Full Replay digest MATCH;
+- ReplayCoverageCertification = CERTIFIED.
