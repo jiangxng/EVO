@@ -370,6 +370,13 @@ try {
     status: 'PUBLISHED'
   })).execute();
 
+  const costRuntimeConfig = {
+    inboundBusinessDataTypes: ['production.completed','inventory.received'],
+    outboundBusinessDataTypes: ['sales_shipment.created'],
+    quantityField: 'quantity',
+    basisAmountField: 'totalCost',
+    specificIdentityField: 'lot'
+  };
   for (const method of ['FIFO','LIFO','MOVING_AVERAGE','SPECIFIC_IDENTIFICATION'] as const) {
     await db.insertInto('valuation_policy').values({
       enterprise_id: enterprise.id,
@@ -378,10 +385,14 @@ try {
       method,
       negative_inventory_policy: 'DISALLOW_NEGATIVE',
       pool_dimension_schema: { keys: ['warehouse','productId'] },
-      config: { alpha2: true },
+      config: costRuntimeConfig,
       version: 1,
       status: 'ACTIVE'
-    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({ status: 'ACTIVE' })).execute();
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      status: 'ACTIVE',
+      pool_dimension_schema: { keys: ['warehouse','productId'] },
+      config: costRuntimeConfig
+    })).execute();
   }
 
   console.log(JSON.stringify({
