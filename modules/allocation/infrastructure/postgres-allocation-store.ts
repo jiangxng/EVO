@@ -230,7 +230,7 @@ export class PostgresAllocationStore implements AllocationStore {
       enterprise_id: input.enterpriseId,
       allocation_run_id: input.allocationRunId,
       source_business_data_id: input.sourceBusinessDataId ?? null,
-      source_position_key: input.sourcePositionId ?? null,
+      source_position_key: input.sourcePositionKey ?? null,
       consumer_business_data_id: input.consumerBusinessDataId,
       measurements: input.measurements,
       allocation_sequence: input.sequence,
