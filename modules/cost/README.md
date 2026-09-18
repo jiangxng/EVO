@@ -37,3 +37,34 @@ Residual closure invariant:
 - when a final consumption exhausts a quantity/value pool, the consuming result takes the exact remaining amount;
 - do not recompute the final amount as rounded unit-cost × quantity;
 - this prevents ghost residual value and must hold under deterministic replay.
+
+
+## Normalized valuation input boundary
+
+Cost algorithms do not parse application-specific BusinessData payloads directly.
+
+The runtime pipeline is:
+
+`BusinessData + posting sequence + pinned valuation policy mapping`
+` → ValuationInputReader`
+` → normalized ValuationInput`
+` → cost/allocation algorithm`.
+
+ValuationInput carries:
+- inbound/outbound direction;
+- semantic order;
+- pool key/dimensions;
+- quantity Measurement;
+- optional basis Measurement;
+- optional specific identity.
+
+This keeps application field names and business-data-type mapping in policy/adapter boundaries rather than in generic cost algorithms.
+
+## Allocation lineage from cost methods
+
+FIFO, LIFO and Specific Identification create durable derived `allocation_relation` rows for each source-layer consumption.
+
+- `allocation_instruction` remains canonical explicit business intent when present.
+- `allocation_relation` is a rebuildable interpretation result.
+- Moving Average does not fabricate receipt-layer allocation edges; it remains a pool valuation model.
+- Cost runs pin the AllocationPolicy that generated layer-consumption lineage.
