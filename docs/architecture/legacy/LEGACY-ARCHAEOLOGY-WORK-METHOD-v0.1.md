@@ -364,3 +364,38 @@ Entry order:
 ` → incremental stop condition`
 ` → equivalence against full replay`
 ` → checkpoint contract`
+
+
+# 15. 2026-09-18 packet ledger update — AP-RECALC-001
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-RECALC-001.md`
+
+Status:
+
+`SEMANTIC GATE CLOSED`
+
+The current blocker sequence is complete:
+
+- AP-FX-001 — CLOSED
+- AP-MANUAL-ALLOC-001 — CLOSED
+- AP-COST-METHOD-001 — CLOSED
+- AP-RECALC-001 — CLOSED
+
+The active task is no longer archaeology.
+
+Next:
+
+`Economic Runtime Architecture Freeze Gate`
+
+Read the four closed packets plus the current economic-flow ADR and classify every candidate concept as:
+
+- CORE CANONICAL;
+- MODULE CONTRACT;
+- DERIVED RESULT;
+- MATERIALIZATION;
+- REFERENCE / TEMPLATE SEMANTIC;
+- REJECTED / NOT NEEDED.
+
+Do not reopen legacy source families unless the freeze review discovers a genuine evidence contradiction.
