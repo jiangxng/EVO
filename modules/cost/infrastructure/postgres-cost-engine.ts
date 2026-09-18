@@ -5,6 +5,11 @@ import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { AllocationStore } from '../../allocation/api/store.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { CalculationDependencyStore } from '../../lineage/api/contracts.js';
+import {
+  ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+  versionedDependencyNodeId
+} from '../../lineage/domain/node-identity.js';
 import type { ValuationPostingService } from '../../valuation/api/contracts.js';
 import type { ValuationInputReader } from '../api/valuation-input.js';
 import type {
@@ -25,6 +30,7 @@ interface Layer {
 
 interface PoolState {
   readonly layers: Layer[];
+  readonly averageContributors: Set<string>;
   averageQuantity: Decimal;
   averageAmount: Decimal;
 }
@@ -44,7 +50,8 @@ export class PostgresCostEngine implements CostEngine {
     private readonly db: Kysely<Database>,
     private readonly valuation: ValuationPostingService,
     private readonly allocation: AllocationStore,
-    private readonly inputs: ValuationInputReader
+    private readonly inputs: ValuationInputReader,
+    private readonly dependencies: CalculationDependencyStore
   ) {}
 
   async recalculate(
@@ -195,6 +202,7 @@ export class PostgresCostEngine implements CostEngine {
         const quantity = new Decimal(movement.quantity.value);
         const state = pools.get(key) ?? {
           layers: [],
+          averageContributors: new Set<string>(),
           averageQuantity: new Decimal(0),
           averageAmount: new Decimal(0)
         };
@@ -208,6 +216,7 @@ export class PostgresCostEngine implements CostEngine {
           const basisAmount = new Decimal(movement.basis.value);
 
           if (method === 'MOVING_AVERAGE') {
+            state.averageContributors.add(movement.businessDataId);
             const next = addToMovingAverage(
               { quantity: state.averageQuantity, amount: state.averageAmount },
               quantity,
@@ -235,6 +244,24 @@ export class PostgresCostEngine implements CostEngine {
 
         if (method === 'MOVING_AVERAGE') {
           try {
+            for (const sourceBusinessDataId of [...state.averageContributors].sort()) {
+              await this.dependencies.recordDependency({
+                enterpriseId,
+                graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+                fromKind: 'BUSINESS_FACT',
+                fromId: sourceBusinessDataId,
+                toKind: 'BUSINESS_FACT',
+                toId: movement.businessDataId,
+                edgeKind: 'VALUATION',
+                effectiveFrom: movement.order.effectiveAt,
+                lineage: {
+                  semantic: 'MOVING_AVERAGE_BASIS_DEPENDENCY',
+                  poolKey: key,
+                  costRunId: run.id
+                }
+              });
+            }
+
             const consumed = consumeMovingAverage(
               { quantity: state.averageQuantity, amount: state.averageAmount },
               quantity
@@ -242,6 +269,9 @@ export class PostgresCostEngine implements CostEngine {
             total = consumed.totalCost;
             state.averageQuantity = consumed.next.quantity;
             state.averageAmount = consumed.next.amount;
+            if (state.averageQuantity.isZero()) {
+              state.averageContributors.clear();
+            }
           } catch (error) {
             fail(
               state.averageQuantity.isZero() ? 'COST_EMPTY_POOL' : 'COST_NEGATIVE_POSITION',
@@ -278,7 +308,7 @@ export class PostgresCostEngine implements CostEngine {
             }
 
             allocationSequence += 1;
-            await this.allocation.recordRelation({
+            const relation = await this.allocation.recordRelation({
               enterpriseId,
               allocationRunId,
               sourceBusinessDataId: layer.businessDataId,
@@ -301,6 +331,24 @@ export class PostgresCostEngine implements CostEngine {
               }
             });
 
+            await this.dependencies.recordDependency({
+              enterpriseId,
+              graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+              fromKind: 'BUSINESS_FACT',
+              fromId: layer.businessDataId,
+              toKind: 'BUSINESS_FACT',
+              toId: movement.businessDataId,
+              edgeKind: 'VALUATION',
+              effectiveFrom: movement.order.effectiveAt,
+              lineage: {
+                semantic: 'LAYER_COST_SOURCE_DEPENDENCY',
+                allocationRelationId: relation.id,
+                costRunId: run.id,
+                method,
+                poolKey: key
+              }
+            });
+
             layer.quantity = layer.quantity.minus(take);
             remaining = remaining.minus(take);
           }
@@ -311,6 +359,40 @@ export class PostgresCostEngine implements CostEngine {
         }
 
         const unitCost = total.div(quantity);
+        await this.dependencies.recordDependency({
+          enterpriseId,
+          graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+          fromKind: 'POLICY_VERSION',
+          fromId: versionedDependencyNodeId(policy.id,policy.version),
+          toKind: 'BUSINESS_FACT',
+          toId: movement.businessDataId,
+          edgeKind: 'VALUATION',
+          effectiveFrom: movement.order.effectiveAt,
+          lineage: {
+            semantic: 'VALUATION_POLICY_DEPENDENCY',
+            costRunId: run.id,
+            method
+          }
+        });
+
+        if (allocationPolicy !== undefined) {
+          await this.dependencies.recordDependency({
+            enterpriseId,
+            graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+            fromKind: 'POLICY_VERSION',
+            fromId: versionedDependencyNodeId(allocationPolicy.id,allocationPolicy.version),
+            toKind: 'BUSINESS_FACT',
+            toId: movement.businessDataId,
+            edgeKind: 'ALLOCATION',
+            effectiveFrom: movement.order.effectiveAt,
+            lineage: {
+              semantic: 'ALLOCATION_POLICY_DEPENDENCY',
+              costRunId: run.id,
+              method
+            }
+          });
+        }
+
         const pinnedRule = pins.valuationRules?.[movement.businessDataType];
         if (pinnedRule === undefined) {
           fail(
