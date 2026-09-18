@@ -2017,3 +2017,88 @@ Current one-line project state in business language:
 EVO has completed the current core Economic Runtime semantic archaeology and architecture freeze and is now certifying the new TypeScript/PostgreSQL runtime end-to-end. The active proof is whether a foreign-currency receivable can be period-end revalued, explicitly settled against its source, and then have all derived allocation/valuation/projection state deleted and reconstructed from canonical business facts, explicit settlement intent and pinned policies/reference data with an identical Economic Runtime digest.
 
 After this gate closes, the main line moves from Full Replay correctness to safe Checkpoint Promotion / Incremental Replay so backdated corrections and rule changes can be recalculated efficiently in long-running enterprises.
+
+
+---
+
+# 39. Cross-chat continuity + bilingual database documentation — SAVED
+
+## 39.1 Cross-chat context protocol
+
+New additive protocol:
+
+`docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.1.md`
+
+Commit:
+
+`de01318254956bf5ef4f0d1ebbd1fa578da61aaa`
+
+Purpose:
+
+- make repository-backed context authoritative over chat memory;
+- require a Context Handshake in every future EVO chat window;
+- preserve Stage 0→1→2→3 genealogy without rereading all original chats;
+- require business + technical state to travel together;
+- create additive Context Checkpoints before/when changing long chat windows;
+- support future LLM/model replacement without relying on hidden memory.
+
+Core rule:
+
+`Repository reality > chat memory.`
+
+## 39.2 First durable Context Checkpoint
+
+New additive checkpoint:
+
+`docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-19-v0.1.md`
+
+Commit:
+
+`3629a5fc6da65e8d52a54c5f320bfdc42f44456a`
+
+It records:
+
+- current business objective;
+- current technical architecture;
+- closed gates;
+- active packet ER-C05B3.2B;
+- true E2E validation standard;
+- current typecheck blocker after JSONB-array persistence correction;
+- exact next execution order;
+- minimum document set for a new-chat Context Handshake.
+
+This checkpoint must never be overwritten. Future handoffs create new checkpoint versions/files.
+
+## 39.3 Database bilingual snapshot v0.2
+
+Chinese-only current-stage snapshot remains unchanged:
+
+`docs/architecture/database/EVO-CURRENT-DATABASE-DESIGN-v0.1.md`
+
+New additive bilingual snapshot:
+
+`docs/architecture/database/EVO-CURRENT-DATABASE-DESIGN-BILINGUAL-v0.2.md`
+
+Commit:
+
+`e5144a7bfa7f1d35c93552926934d0f06a5f36a0`
+
+Coverage:
+
+- 60 tables;
+- 635 fields;
+- Chinese + English table explanations;
+- Chinese + English field explanations;
+- bilingual semantic-role and maintenance guidance.
+
+Documentation genealogy:
+
+```text
+v0.1 Chinese snapshot
+      ↓ additive
+v0.2 Chinese-English bilingual snapshot
+      ↓
+future v0.3 / v0.4 ...
+```
+
+No existing database-design or continuity document was overwritten for this work.
