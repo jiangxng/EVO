@@ -67,7 +67,7 @@ export interface AllocationRelation {
   readonly enterpriseId: string;
   readonly allocationRunId: string;
   readonly sourceBusinessDataId?: string;
-  readonly sourcePositionId?: string;
+  readonly sourcePositionKey?: string;
   readonly consumerBusinessDataId: string;
   readonly measurements: readonly Measurement[];
   readonly sequence: number;
