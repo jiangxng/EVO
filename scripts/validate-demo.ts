@@ -23,7 +23,7 @@ try {
     requestId: `${orderNo}:approve`, correlationId,
     idempotencyKey: `${orderNo}:approve`,
     input: {
-      orderNo, customer: 'Validation', productId: 'P-100', quantity: 10,
+      eventKind: 'ORDER', orderNo, customer: 'Validation', productId: 'P-100', quantity: 10,
       unitPrice: '100.00', totalAmount: '1000.00', currency: 'USD',
       localCarryingAmount: '7000.00', localCurrency: 'CNY',
       fulfillmentMode: 'MAKE', project, department: 'SALES',
@@ -220,6 +220,112 @@ try {
   });
   await drainPosting(runtime, ids.enterpriseId);
 
+  const settlementAt = new Date('2026-09-19T01:00:00.000Z');
+  const payment = await runtime.command.execute({
+    enterpriseId: ids.enterpriseId,
+    applicationInstanceId: ids.salesAppId,
+    commandCode: 'record-customer-payment',
+    actor: { type: 'AUTOMATION', id: 'demo-automation' },
+    requestId: `${orderNo}:payment`,
+    correlationId,
+    causationId: orderBusiness.id,
+    idempotencyKey: `${orderNo}:payment`,
+    input: {
+      eventKind: 'PAYMENT',
+      orderNo,
+      customer: 'Validation',
+      foreignAmount: '1000',
+      foreignCurrency: 'USD',
+      localAmount: '7300',
+      localCurrency: 'CNY',
+      project,
+      department: 'SALES',
+      profitCenter: 'PC-PROJECT',
+      costCenter: 'CC-SALES'
+    },
+    effectiveAt: settlementAt,
+    businessObjectKey: `PAY:${orderNo}`,
+    lineage: {
+      flowDefinitionId: ids.flowDefinitionId,
+      flowInstanceKey: orderNo,
+      stepCode: 'customer-payment-recorded',
+      parentBusinessDataId: orderBusiness.id,
+      relationType: 'FULFILLS'
+    }
+  });
+  await runtime.flow.projectCommand(payment.commandExecutionId);
+  await drainPosting(runtime, ids.enterpriseId);
+
+  const paymentBusiness = await runtime.db.selectFrom('business_data')
+    .select('id')
+    .where('command_execution_id','=',payment.commandExecutionId)
+    .executeTakeFirstOrThrow();
+
+  const fxAllocationPolicy = await runtime.db.selectFrom('allocation_policy')
+    .select(['id','version'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('code','=','fx_settlement_explicit')
+    .where('status','=','PUBLISHED')
+    .where('version','=',1)
+    .executeTakeFirstOrThrow();
+
+  const fxInstruction = await runtime.allocation.recordInstruction({
+    enterpriseId: ids.enterpriseId,
+    consumerBusinessDataId: paymentBusiness.id,
+    mode: 'EXPLICIT',
+    sourceSelector: {
+      kind: 'BUSINESS_DATA',
+      businessDataId: orderBusiness.id
+    },
+    actorType: 'AUTOMATION',
+    actorId: 'demo-automation',
+    effectiveAt: settlementAt,
+    reason: 'Reference FX settlement closes the sales-order foreign receivable.',
+    allocationPolicyId: fxAllocationPolicy.id,
+    allocationPolicyVersion: fxAllocationPolicy.version,
+    idempotencyKey: `${orderNo}:fx-settlement`
+  });
+
+  const settlementRequest = await runtime.command.execute({
+    enterpriseId: ids.enterpriseId,
+    applicationInstanceId: ids.valuationAppId,
+    commandCode: 'request-valuation',
+    actor: { type: 'AUTOMATION', id: 'demo-automation' },
+    requestId: `${orderNo}:fx-settlement-request`,
+    correlationId,
+    causationId: paymentBusiness.id,
+    idempotencyKey: `${orderNo}:fx-settlement-request`,
+    input: {
+      requestCode: `FX-SETTLE-${orderNo}`,
+      valuationKind: 'FX_REALIZED_SETTLEMENT',
+      valuationAt: settlementAt.toISOString(),
+      scope: {
+        kind: 'DIMENSION_QUERY',
+        dimensions: { order_no: orderNo, customer: 'Validation' }
+      },
+      positionDefinition: {
+        definitionId: fxPositionDefinition.id,
+        version: fxPositionDefinition.version,
+        digest: fxPositionDefinition.semantic_digest
+      },
+      settlementBusinessDataId: paymentBusiness.id,
+      allocationPolicy: {
+        id: fxAllocationPolicy.id,
+        version: fxAllocationPolicy.version
+      },
+      instructionId: fxInstruction.id,
+      settlementMapping: {
+        foreignValueField: 'foreignAmount',
+        foreignUnitField: 'foreignCurrency',
+        localValueField: 'localAmount',
+        localUnitField: 'localCurrency'
+      }
+    },
+    effectiveAt: settlementAt,
+    businessObjectKey: `FX-SETTLE-REQ:${orderNo}`
+  });
+  await drainPosting(runtime, ids.enterpriseId);
+
   const preReplayBoundary = BigInt((await runtime.db.selectFrom('enterprise_runtime_state')
     .select('next_posting_sequence')
     .where('enterprise_id','=',ids.enterpriseId)
@@ -229,8 +335,8 @@ try {
     'enterprise',
     preReplayBoundary
   );
-  if (valuationInitial.replayedRequestCount !== 1) {
-    throw new Error(`Expected one canonical valuation request, got ${valuationInitial.replayedRequestCount}.`);
+  if (valuationInitial.replayedRequestCount !== 2) {
+    throw new Error(`Expected two canonical valuation requests, got ${valuationInitial.replayedRequestCount}.`);
   }
   const initialFxResult = await runtime.db.selectFrom('valuation_result')
     .select(['result_kind','delta_amount'])
@@ -239,6 +345,16 @@ try {
     .executeTakeFirstOrThrow();
   if (!new Decimal(initialFxResult.delta_amount).eq(200)) {
     throw new Error(`Expected canonical FX period-end delta 200, got ${initialFxResult.delta_amount}.`);
+  }
+  const initialSettlementResult = await runtime.db.selectFrom('valuation_result')
+    .select('delta_amount')
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('result_kind','=','FX_REALIZED_SETTLEMENT')
+    .executeTakeFirstOrThrow();
+  if (!new Decimal(initialSettlementResult.delta_amount).eq(100)) {
+    throw new Error(
+      `Expected canonical FX realized settlement delta 100, got ${initialSettlementResult.delta_amount}.`
+    );
   }
 
   const consistencyDomain = (await runtime.db.selectFrom('enterprise_runtime_state')
@@ -266,9 +382,9 @@ try {
     consistencyDomain,
     replay.boundarySequence
   );
-  if (valuationReplayResult.replayedRequestCount !== 1) {
+  if (valuationReplayResult.replayedRequestCount !== 2) {
     throw new Error(
-      `Expected Full Replay to rebuild one canonical valuation request, got ${valuationReplayResult.replayedRequestCount}.`
+      `Expected Full Replay to rebuild two canonical valuation requests, got ${valuationReplayResult.replayedRequestCount}.`
     );
   }
   const after = await computeEconomicRuntimeDigest(
@@ -317,8 +433,8 @@ try {
   if (!coverage.referenceDatasetPinsComplete) {
     throw new Error('Expected reference dataset pin coverage to certify for the current scenario.');
   }
-  if (coverage.dependencyGraphComplete) {
-    throw new Error('Dependency graph completeness must remain false until coverage families are certified.');
+  if (!coverage.dependencyGraphComplete) {
+    throw new Error('Expected all dependency producer families to certify inside the replay boundary.');
   }
   if (coverage.derivedRuntimeReplayComplete) {
     throw new Error('Derived runtime replay completeness must remain false until independently certified.');
@@ -327,152 +443,28 @@ try {
     throw new Error('Coverage certification must remain DRAFT while safety blockers remain.');
   }
 
-  // FX period-end is now a replayed canonical valuation request.
-  // The post-checkpoint scenario only adds realized settlement producer coverage.
-  const replayedFxResult = await runtime.db.selectFrom('valuation_result as r')
-    .innerJoin('valuation_run as v','v.id','r.valuation_run_id')
-    .select(['r.delta_amount','r.target_measurements'])
-    .where('r.enterprise_id','=',ids.enterpriseId)
-    .where('r.result_kind','=','FX_PERIOD_END')
-    .where('v.status','=','COMPLETED')
-    .orderBy('v.completed_at','desc')
-    .executeTakeFirstOrThrow();
-  if (!new Decimal(replayedFxResult.delta_amount).eq(200)) {
-    throw new Error(`Expected replayed FX period-end delta 200, got ${replayedFxResult.delta_amount}.`);
-  }
-
-  const fxOpenPosition = {
-    positionKey: 'reference-fx-position',
-    sourceBusinessDataIds: [orderBusiness.id],
-    dimensions: { order_no: orderNo, customer: 'Validation' },
-    foreign: {
-      value: '1000',
-      unit: 'USD',
-      role: 'RESOURCE_QUANTITY' as const
-    },
-    carrying: {
-      value: '7200',
-      unit: 'CNY',
-      role: 'VALUATION_AMOUNT' as const
-    }
-  };
-
-  const payment = await runtime.command.execute({
-    enterpriseId: ids.enterpriseId,
-    applicationInstanceId: ids.salesAppId,
-    commandCode: 'record-customer-payment',
-    actor: { type: 'AUTOMATION', id: 'demo-automation' },
-    requestId: `${orderNo}:payment`,
-    correlationId,
-    causationId: orderBusiness.id,
-    idempotencyKey: `${orderNo}:payment`,
-    input: {
-      orderNo,
-      customer: 'Validation',
-      foreignAmount: '1000',
-      foreignCurrency: 'USD',
-      localAmount: '7300',
-      localCurrency: 'CNY',
-      project,
-      department: 'SALES',
-      profitCenter: 'PC-PROJECT',
-      costCenter: 'CC-SALES'
-    },
-    effectiveAt: new Date(),
-    businessObjectKey: `PAY:${orderNo}`,
-    lineage: {
-      flowDefinitionId: ids.flowDefinitionId,
-      flowInstanceKey: orderNo,
-      stepCode: 'customer-payment-recorded',
-      parentBusinessDataId: orderBusiness.id,
-      relationType: 'FULFILLS'
-    }
-  });
-  await runtime.flow.projectCommand(payment.commandExecutionId);
-  await drainPosting(runtime, ids.enterpriseId);
-
-  const paymentBusiness = await runtime.db.selectFrom('business_data')
-    .select('id')
-    .where('command_execution_id','=',payment.commandExecutionId)
-    .executeTakeFirstOrThrow();
-
-  const fxAllocationPolicy = await runtime.db.selectFrom('allocation_policy')
-    .select(['id','version'])
-    .where('enterprise_id','=',ids.enterpriseId)
-    .where('code','=','fx_settlement_explicit')
-    .where('status','=','PUBLISHED')
-    .where('version','=',1)
-    .executeTakeFirstOrThrow();
-
-  const fxInstruction = await runtime.allocation.recordInstruction({
-    enterpriseId: ids.enterpriseId,
-    consumerBusinessDataId: paymentBusiness.id,
-    mode: 'EXPLICIT',
-    sourceSelector: {
-      kind: 'BUSINESS_DATA',
-      businessDataId: orderBusiness.id
-    },
-    actorType: 'AUTOMATION',
-    actorId: 'demo-automation',
-    effectiveAt: new Date(),
-    reason: 'Reference FX settlement closes the sales-order foreign receivable.',
-    allocationPolicyId: fxAllocationPolicy.id,
-    allocationPolicyVersion: fxAllocationPolicy.version,
-    idempotencyKey: `${orderNo}:fx-settlement`
-  });
-
-  const fxSettlement = await runtime.fxSettlement.closePosition({
-    enterpriseId: ids.enterpriseId,
-    settledAt: new Date(),
-    settlementBusinessDataId: paymentBusiness.id,
-    position: {
-      ...fxOpenPosition
-    },
-    settlementForeign: {
-      value: '1000',
-      unit: 'USD',
-      role: 'SETTLEMENT_QUANTITY'
-    },
-    settlementLocal: {
-      value: '7300',
-      unit: 'CNY',
-      role: 'DIRECT_BUSINESS_AMOUNT'
-    },
-    allocationPolicyId: fxAllocationPolicy.id,
-    allocationPolicyVersion: fxAllocationPolicy.version,
-    instructionId: fxInstruction.id
-  });
-
-  if (fxSettlement.result.realizedDelta.value !== '100') {
-    throw new Error(
-      `Expected realized FX settlement delta 100 after period-end revaluation, got ${fxSettlement.result.realizedDelta.value}.`
-    );
-  }
-
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
-      `Expected all dependency producer families to be exercised, missing: ${graphCoverage.missingFamilies.join(', ')}`
+      `Expected all dependency producer families to remain complete, missing: ${graphCoverage.missingFamilies.join(', ')}`
     );
   }
 
-  const coverageAfterFx = await runtime.replayCoverage.evaluate(
-    checkpoint.id,
-    'validate-demo'
-  );
-  if (!coverageAfterFx.dependencyGraphComplete) {
-    throw new Error('Expected dependency graph producer-family coverage to certify after FX scenario.');
-  }
-  if (coverageAfterFx.referenceDatasetPinsComplete) {
-    throw new Error(
-      'The pre-FX checkpoint must not claim rate-dataset pin completeness for later FX valuation state.'
-    );
-  }
-  if (coverageAfterFx.derivedRuntimeReplayComplete) {
-    throw new Error('Derived runtime replay completeness must remain false.');
-  }
-  if (coverageAfterFx.status !== 'DRAFT') {
-    throw new Error('Incremental replay certification must remain DRAFT.');
+  const replayedFxResults = await runtime.db.selectFrom('valuation_result')
+    .select(['result_kind','delta_amount'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('result_kind','in',['FX_PERIOD_END','FX_REALIZED_SETTLEMENT'])
+    .orderBy('result_kind')
+    .execute();
+  const replayedPeriod = replayedFxResults.find((row) => row.result_kind === 'FX_PERIOD_END');
+  const replayedSettlement = replayedFxResults.find((row) => row.result_kind === 'FX_REALIZED_SETTLEMENT');
+  if (
+    replayedPeriod === undefined ||
+    !new Decimal(replayedPeriod.delta_amount).eq(200) ||
+    replayedSettlement === undefined ||
+    !new Decimal(replayedSettlement.delta_amount).eq(100)
+  ) {
+    throw new Error('Full Replay did not rebuild the expected FX period-end/settlement results.');
   }
 
   console.log(JSON.stringify({
@@ -490,31 +482,23 @@ try {
       blockers
     },
     replayCoverageCertification: {
-      beforeFxCoverage: {
-        id: coverage.id,
-        status: coverage.status,
-        materializationDigestComplete: coverage.materializationDigestComplete,
-        templateBindingComplete: coverage.templateBindingComplete,
-        referenceDatasetPinsComplete: coverage.referenceDatasetPinsComplete,
-        dependencyGraphComplete: coverage.dependencyGraphComplete,
-        derivedRuntimeReplayComplete: coverage.derivedRuntimeReplayComplete,
-        blockers: coverage.blockers
-      },
-      afterFxProducerCoverage: {
-        id: coverageAfterFx.id,
-        status: coverageAfterFx.status,
-        dependencyGraphComplete: coverageAfterFx.dependencyGraphComplete,
-        referenceDatasetPinsComplete: coverageAfterFx.referenceDatasetPinsComplete,
-        derivedRuntimeReplayComplete: coverageAfterFx.derivedRuntimeReplayComplete,
-        blockers: coverageAfterFx.blockers,
-        familyCounts: graphCoverage.familyCounts
-      }
+      id: coverage.id,
+      status: coverage.status,
+      materializationDigestComplete: coverage.materializationDigestComplete,
+      templateBindingComplete: coverage.templateBindingComplete,
+      referenceDatasetPinsComplete: coverage.referenceDatasetPinsComplete,
+      dependencyGraphComplete: coverage.dependencyGraphComplete,
+      derivedRuntimeReplayComplete: coverage.derivedRuntimeReplayComplete,
+      blockers: coverage.blockers,
+      familyCounts: graphCoverage.familyCounts
     },
     fxCoverage: {
-      periodEndDelta: replayedFxResult.delta_amount,
-      realizedSettlementDelta: fxSettlement.result.realizedDelta.value,
+      periodEndDelta: replayedPeriod.delta_amount,
+      realizedSettlementDelta: replayedSettlement.delta_amount,
       rateDatasetId: replayRateDataset.id,
-      allocationInstructionId: fxInstruction.id
+      allocationInstructionId: fxInstruction.id,
+      periodEndRequestBusinessDataId: valuationRequest.businessDataId,
+      settlementRequestBusinessDataId: settlementRequest.businessDataId
     },
     beforeDigest: before,
     afterDigest: after,
