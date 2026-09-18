@@ -6,11 +6,15 @@ export const VALUATION_REQUEST_BUSINESS_DATA_TYPE = 'valuation.requested';
 export type ValuationRequestKind =
   | 'FX_PERIOD_END';
 
-export interface ValuationScopeSelector {
-  readonly kind: 'EXPLICIT_POSITIONS' | 'DIMENSION_QUERY';
-  readonly positionKeys?: readonly string[];
-  readonly dimensions?: JsonObject;
-}
+export type ValuationScopeSelector =
+  | {
+      readonly kind: 'EXPLICIT_POSITIONS';
+      readonly positionKeys: readonly string[];
+    }
+  | {
+      readonly kind: 'DIMENSION_QUERY';
+      readonly dimensions: JsonObject;
+    };
 
 export interface ValuationRequestPayload {
   readonly requestCode: string;
