@@ -29,35 +29,29 @@ export class PostgresCostEngine implements CostEngine {
     method: CostMethod,
     pins?: CostReplayPins
   ): Promise<CostRecalculationResult> {
-    let policy: { id: string; version: number } | undefined;
-    if (pins?.valuationPolicyId !== undefined && pins.valuationPolicyVersion !== undefined) {
-      policy = await this.db.selectFrom('valuation_policy')
-        .select(['id','version'])
-        .where('id','=',pins.valuationPolicyId)
-        .where('version','=',pins.valuationPolicyVersion)
-        .where('method','=',method)
-        .executeTakeFirst();
-    } else {
-      policy = await this.db.selectFrom('valuation_policy')
-        .select(['id','version'])
-        .where('enterprise_id','=',enterpriseId)
-        .where('method','=',method)
-        .where('status','=','ACTIVE')
-        .orderBy('version','desc')
-        .executeTakeFirst();
-      policy ??= await this.db.selectFrom('valuation_policy')
-        .select(['id','version'])
-        .where('enterprise_id','is',null)
-        .where('method','=',method)
-        .where('status','=','ACTIVE')
-        .orderBy('version','desc')
-        .executeTakeFirst();
+    if (pins?.valuationPolicyId === undefined || pins.valuationPolicyVersion === undefined) {
+      throw new AppError({
+        code: 'COST_VALUATION_POLICY_PIN_REQUIRED',
+        message: 'Authoritative cost calculation requires an explicit valuation policy id and version.',
+        module: 'cost',
+        operation: 'recalculate',
+        details: { enterpriseId, method }
+      });
     }
+
+    const policy = await this.db.selectFrom('valuation_policy')
+      .select(['id','version'])
+      .where('id','=',pins.valuationPolicyId)
+      .where('version','=',pins.valuationPolicyVersion)
+      .where('method','=',method)
+      .executeTakeFirst();
+
     if (policy === undefined) {
       throw new AppError({
-        code: 'COST_VALUATION_POLICY_NOT_FOUND',
-        message: `No active valuation policy for method ${method}.`,
-        module: 'cost', operation: 'recalculate'
+        code: 'COST_VALUATION_POLICY_PIN_NOT_FOUND',
+        message: `Pinned valuation policy ${pins.valuationPolicyId} v${pins.valuationPolicyVersion} does not exist for method ${method}.`,
+        module: 'cost',
+        operation: 'recalculate'
       });
     }
 
