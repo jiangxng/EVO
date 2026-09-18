@@ -310,7 +310,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 10,
+  "dbSchemaVersion": 11,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
