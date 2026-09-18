@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
 import type { AllocationStore } from '../../allocation/api/store.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { CalculationDependencyStore } from '../../lineage/api/contracts.js';
+import {
+  ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+  versionedDependencyNodeId
+} from '../../lineage/domain/node-identity.js';
 import type {
   FxSettlementClosureRequest,
   FxSettlementRunResult,
@@ -43,7 +48,8 @@ function digest(request: FxSettlementClosureRequest): string {
 export class DefaultFxSettlementService implements FxSettlementService {
   constructor(
     private readonly allocations: AllocationStore,
-    private readonly valuations: ValuationStore
+    private readonly valuations: ValuationStore,
+    private readonly dependencies: CalculationDependencyStore
   ) {}
 
   async closePosition(
@@ -83,6 +89,56 @@ export class DefaultFxSettlementService implements FxSettlementService {
           sourceBusinessDataIds: request.position.sourceBusinessDataIds,
           carryingBasis: request.position.carrying as unknown as JsonValue,
           settlementLocal: request.settlementLocal as unknown as JsonValue
+        }
+      });
+
+      await this.dependencies.recordDependency({
+        enterpriseId: request.enterpriseId,
+        graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+        fromKind: 'POSITION',
+        fromId: request.position.positionKey,
+        toKind: 'BUSINESS_FACT',
+        toId: request.settlementBusinessDataId,
+        edgeKind: 'VALUATION',
+        effectiveFrom: request.settledAt,
+        lineage: {
+          semantic: 'FX_SETTLEMENT_POSITION_DEPENDENCY',
+          allocationRunId: allocationRun.id
+        }
+      });
+
+      for (const sourceBusinessDataId of [...request.position.sourceBusinessDataIds].sort()) {
+        await this.dependencies.recordDependency({
+          enterpriseId: request.enterpriseId,
+          graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+          fromKind: 'BUSINESS_FACT',
+          fromId: sourceBusinessDataId,
+          toKind: 'BUSINESS_FACT',
+          toId: request.settlementBusinessDataId,
+          edgeKind: 'VALUATION',
+          effectiveFrom: request.settledAt,
+          lineage: {
+            semantic: 'FX_SETTLEMENT_SOURCE_DEPENDENCY',
+            allocationRunId: allocationRun.id
+          }
+        });
+      }
+
+      await this.dependencies.recordDependency({
+        enterpriseId: request.enterpriseId,
+        graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
+        fromKind: 'POLICY_VERSION',
+        fromId: versionedDependencyNodeId(
+          request.allocationPolicyId,
+          request.allocationPolicyVersion
+        ),
+        toKind: 'BUSINESS_FACT',
+        toId: request.settlementBusinessDataId,
+        edgeKind: 'ALLOCATION',
+        effectiveFrom: request.settledAt,
+        lineage: {
+          semantic: 'FX_SETTLEMENT_ALLOCATION_POLICY_DEPENDENCY',
+          allocationRunId: allocationRun.id
         }
       });
 
