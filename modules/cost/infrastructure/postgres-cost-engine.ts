@@ -80,7 +80,8 @@ function payloadValue(payload: JsonObject, path: string): JsonValue | undefined 
   let current: JsonValue = payload;
   for (const part of parts) {
     if (current === null || typeof current !== 'object' || Array.isArray(current)) return undefined;
-    current = current[part] ?? null;
+    const object = current as JsonObject;
+    current = object[part] ?? null;
   }
   return current;
 }
