@@ -38,7 +38,7 @@ function checkpointFromRow(row: {
   ordered_input_digest:string; last_included_business_data_id:string|null; template_version:string;
   posting_policy_pins:JsonObject; allocation_policy_pins:JsonObject; valuation_policy_pins:JsonObject;
   reference_dataset_pins:JsonObject; runtime_semantic_version:string; dependency_graph_version:string;
-  materialization_digest:string; validity:JsonObject; parent_checkpoint_id:string|null;
+  materialization_digest:string; validity:JsonObject; source_replay_run_id:string|null; parent_checkpoint_id:string|null;
 }): ReplayCheckpointDescriptor {
   return {
     id: row.id,
@@ -58,6 +58,7 @@ function checkpointFromRow(row: {
     dependencyGraphVersion: row.dependency_graph_version,
     materializationDigest: row.materialization_digest,
     validity: row.validity,
+    ...(row.source_replay_run_id !== null ? { sourceReplayRunId: row.source_replay_run_id } : {}),
     ...(row.parent_checkpoint_id !== null
       ? { parentCheckpointId: row.parent_checkpoint_id }
       : {})
@@ -143,6 +144,7 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
       materialization_digest: checkpoint.materializationDigest,
       validity: checkpoint.validity,
       status: 'ACTIVE',
+      source_replay_run_id: checkpoint.sourceReplayRunId ?? null,
       parent_checkpoint_id: checkpoint.parentCheckpointId ?? null,
       invalidated_at: null,
       invalidation_reason: null
