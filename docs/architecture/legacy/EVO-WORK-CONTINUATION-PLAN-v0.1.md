@@ -646,3 +646,26 @@ Closure commit:
 The next and final semantic blocker before the Economic Runtime Architecture Freeze Gate is:
 
 `AP-RECALC-001 — Change Impact / Local Recalculation vs Full Replay`.
+
+
+---
+
+# 18. Recalculation closure and freeze entry — 2026-09-18
+
+`AP-RECALC-001` is now **SEMANTIC GATE CLOSED**.
+
+Completed packet:
+
+`docs/architecture/legacy/packets/AP-RECALC-001.md`
+
+Closure commit:
+
+`1a28aafcd9fcb8006f37dbe6a70e2b401196e44e`
+
+The four required semantic blockers are now closed.
+
+Current active stage:
+
+`Economic Runtime Architecture Freeze Gate`
+
+No broad runtime refactor should begin until the freeze document classifies canonical truth, module contracts, derived results and materializations.
