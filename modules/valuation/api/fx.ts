@@ -44,3 +44,37 @@ export interface FxPeriodEndRunResult {
 export interface FxValuationService {
   revaluePeriodEnd(request: FxPeriodEndRequest): Promise<FxPeriodEndRunResult>;
 }
+
+
+export interface FxSettlementClosureRequest {
+  readonly enterpriseId: string;
+  readonly settledAt: Date;
+  readonly settlementBusinessDataId: string;
+  readonly position: FxPositionSnapshot;
+  readonly settlementForeign: Measurement;
+  readonly settlementLocal: Measurement;
+  readonly allocationPolicyId: string;
+  readonly allocationPolicyVersion: number;
+  readonly instructionId?: string;
+}
+
+export interface FxSettlementClosureResult {
+  readonly positionKey: string;
+  readonly foreignConsumed: Measurement;
+  readonly carryingBasis: Measurement;
+  readonly settlementLocal: Measurement;
+  readonly realizedDelta: Measurement;
+}
+
+export interface FxSettlementRunResult {
+  readonly valuationRunId: string;
+  readonly allocationRunId: string;
+  readonly inputDigest: string;
+  readonly result: FxSettlementClosureResult;
+}
+
+export interface FxSettlementService {
+  closePosition(
+    request: FxSettlementClosureRequest
+  ): Promise<FxSettlementRunResult>;
+}
