@@ -1426,3 +1426,34 @@ Initial required families:
 6. materialization dependency where impact propagation requires it.
 
 Do not change `dependencyGraphComplete=true` until all required families have machine-verifiable evidence.
+
+
+## ER-C05B3 certification checkpoint
+
+Commit:
+
+`a60048432caa394ddd8ba2f5db45b175764500d4`
+
+GitHub Actions:
+
+`CI run 35331385514 — SUCCESS`
+
+Certified pipeline includes:
+
+`migrate → typecheck → build → test → seed:demo → validate:demo`
+
+Machine-verifiable result for the reference scenario:
+
+- materialization digest coverage: certified by runtime evidence;
+- Enterprise Template binding: certified by bound `enterprise-core@v1`;
+- reference dataset pin coverage: certified for datasets actually used by completed valuation runs;
+- dependency graph completeness: intentionally not certified yet;
+- derived-runtime Full Replay coverage: intentionally not certified yet.
+
+Overall ReplayCoverageCertification therefore remains `DRAFT`.
+
+Design refinement:
+
+Calculation dependency edges are derived/rebuildable indexes.
+
+For Posting / Work Projection families, prefer rebuilding dependency edges from committed authoritative projection/materialization rows rather than coupling dependency-index writes into the canonical posting transaction. A missing/rebuildable dependency index must never make BusinessData or LedgerEntry non-canonical.
