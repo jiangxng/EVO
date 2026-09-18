@@ -151,6 +151,24 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
     }).onConflict((oc) => oc.column('id').doNothing()).execute();
   }
 
+  async getCheckpointBySourceReplayRun(
+    replayRunId: string
+  ): Promise<ReplayCheckpointDescriptor | null> {
+    const row = await this.db.selectFrom('replay_checkpoint')
+      .selectAll()
+      .where('source_replay_run_id','=',replayRunId)
+      .executeTakeFirst();
+
+    return row === undefined ? null : checkpointFromRow({
+      ...row,
+      posting_policy_pins: row.posting_policy_pins as JsonObject,
+      allocation_policy_pins: row.allocation_policy_pins as JsonObject,
+      valuation_policy_pins: row.valuation_policy_pins as JsonObject,
+      reference_dataset_pins: row.reference_dataset_pins as JsonObject,
+      validity: row.validity as JsonObject
+    });
+  }
+
   async getLatestValidCheckpoint(
     enterpriseId: string,
     consistencyDomain: string,
