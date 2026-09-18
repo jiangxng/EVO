@@ -72,12 +72,20 @@ export class PostgresCostEngine implements CostEngine {
 
     try {
       const movements = await this.db
-        .selectFrom('business_data')
-        .select(['id','business_data_type','payload','effective_at','created_at'])
-        .where('enterprise_id', '=', enterpriseId)
-        .where('business_data_type', 'in', ['production.completed','inventory.received','sales_shipment.created'])
-        .orderBy('effective_at')
-        .orderBy('created_at')
+        .selectFrom('business_data as b')
+        .innerJoin('posting_input as p','p.business_data_id','b.id')
+        .select([
+          'b.id',
+          'b.business_data_type',
+          'b.payload',
+          'b.effective_at',
+          'p.posting_sequence'
+        ])
+        .where('b.enterprise_id', '=', enterpriseId)
+        .where('b.business_data_type', 'in', ['production.completed','inventory.received','sales_shipment.created'])
+        .orderBy('b.effective_at')
+        .orderBy('p.posting_sequence')
+        .orderBy('b.id')
         .execute();
 
       const pools = new Map<string, Layer[]>();
