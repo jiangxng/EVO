@@ -214,6 +214,29 @@ try {
     throw new Error('Expected conservative replay checkpoint blockers.');
   }
 
+  const coverage = await runtime.replayCoverage.evaluate(
+    checkpoint.id,
+    'validate-demo'
+  );
+  if (!coverage.materializationDigestComplete) {
+    throw new Error('Expected Economic Runtime materialization digest coverage to certify.');
+  }
+  if (!coverage.templateBindingComplete) {
+    throw new Error('Expected reference enterprise template binding to certify.');
+  }
+  if (!coverage.referenceDatasetPinsComplete) {
+    throw new Error('Expected reference dataset pin coverage to certify for the current scenario.');
+  }
+  if (coverage.dependencyGraphComplete) {
+    throw new Error('Dependency graph completeness must remain false until coverage families are certified.');
+  }
+  if (coverage.derivedRuntimeReplayComplete) {
+    throw new Error('Derived runtime replay completeness must remain false until independently certified.');
+  }
+  if (coverage.status !== 'DRAFT') {
+    throw new Error('Coverage certification must remain DRAFT while safety blockers remain.');
+  }
+
   console.log(JSON.stringify({
     status: 'PASS',
     alpha2: 'dimensions+valuation-posting',
@@ -227,6 +250,16 @@ try {
       id: checkpoint.id,
       safeForIncremental: checkpoint.validity.safeForIncremental,
       blockers
+    },
+    replayCoverageCertification: {
+      id: coverage.id,
+      status: coverage.status,
+      materializationDigestComplete: coverage.materializationDigestComplete,
+      templateBindingComplete: coverage.templateBindingComplete,
+      referenceDatasetPinsComplete: coverage.referenceDatasetPinsComplete,
+      dependencyGraphComplete: coverage.dependencyGraphComplete,
+      derivedRuntimeReplayComplete: coverage.derivedRuntimeReplayComplete,
+      blockers: coverage.blockers
     },
     beforeDigest: before,
     afterDigest: after,
