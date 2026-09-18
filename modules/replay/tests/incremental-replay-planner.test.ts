@@ -38,6 +38,12 @@ class FakeTopology implements ReplayTopologyStore {
     throw new Error('not used');
   }
 
+  async getCheckpointBySourceReplayRun(
+    _replayRunId: string
+  ): Promise<ReplayCheckpointDescriptor | null> {
+    return null;
+  }
+
   async getLatestValidCheckpoint(
     _enterpriseId: string,
     _consistencyDomain: string,
