@@ -1,6 +1,8 @@
-import type { RateDatasetPin } from '../../economic/api/contracts.js';
+import type {
+  Measurement,
+  RateDatasetPin
+} from '../../economic/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
-import type { FxPositionSnapshot, FxRevaluationResult } from './fx.js';
 
 export interface StartValuationRunInput {
   readonly enterpriseId: string;
@@ -15,8 +17,12 @@ export interface RecordValuationResultInput {
   readonly enterpriseId: string;
   readonly valuationRunId: string;
   readonly resultKind: string;
-  readonly position: FxPositionSnapshot;
-  readonly result: FxRevaluationResult;
+  readonly positionKey: string;
+  readonly sourceBusinessDataIds: readonly string[];
+  readonly dimensions: JsonObject;
+  readonly sourceMeasurements: readonly Measurement[];
+  readonly targetMeasurements: readonly Measurement[];
+  readonly delta: Measurement;
   readonly lineage: JsonObject;
 }
 
