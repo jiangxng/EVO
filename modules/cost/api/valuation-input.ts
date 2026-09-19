@@ -26,9 +26,15 @@ export interface ValuationInput {
   readonly specificIdentity?: string;
 }
 
+export interface ValuationInputRange {
+  readonly afterSequence?: bigint;
+  readonly atOrBeforeSequence?: bigint;
+}
+
 export interface ValuationInputReader {
   list(
     enterpriseId: string,
-    definition: ValuationInputDefinition
+    definition: ValuationInputDefinition,
+    range?: ValuationInputRange
   ): Promise<readonly ValuationInput[]>;
 }
