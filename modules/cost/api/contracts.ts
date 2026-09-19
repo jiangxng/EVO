@@ -5,6 +5,7 @@ import type {
 } from '../../allocation/api/contracts.js';
 import type { RateDatasetPin } from '../../economic/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 
 export type CostMethod =
   | 'FIFO'
@@ -67,6 +68,7 @@ export interface AuthoritativeCostRequest {
 
 export interface CostRecalculationResult {
   readonly costRunId: string;
+  readonly runtimeDatasetId?: string;
   readonly method: CostMethod;
   readonly resultCount: number;
   readonly valuationPostingCount: number;
@@ -76,6 +78,7 @@ export interface CostEngine {
   recalculate(
     enterpriseId: string,
     method: CostMethod,
-    pins?: CostReplayPins
+    pins?: CostReplayPins,
+    materialization?: MaterializationContext
   ): Promise<CostRecalculationResult>;
 }
