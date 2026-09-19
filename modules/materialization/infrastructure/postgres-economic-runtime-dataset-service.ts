@@ -2,6 +2,7 @@ import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import type {
   CreateCandidateRuntimeDatasetRequest,
+  CreateOracleRuntimeDatasetRequest,
   EconomicRuntimeDataset,
   EconomicRuntimeDatasetService
 } from '../api/runtime-dataset.js';
@@ -26,11 +27,12 @@ function mapRow(row: {
   id:string;
   enterprise_id:string;
   consistency_domain:string;
-  kind:'CURRENT'|'CANDIDATE'|'ARCHIVED';
+  kind:'CURRENT'|'CANDIDATE'|'ORACLE'|'ARCHIVED';
   status:'BUILDING'|'ACTIVE'|'VERIFIED'|'FAILED'|'ARCHIVED';
   parent_dataset_id:string|null;
   source_checkpoint_id:string|null;
   source_promotion_id:string|null;
+  oracle_of_dataset_id:string|null;
   incremental_plan_digest:string|null;
   start_sequence:unknown|null;
   boundary_sequence:unknown|null;
@@ -48,6 +50,7 @@ function mapRow(row: {
     ...(row.parent_dataset_id !== null ? { parentDatasetId: row.parent_dataset_id } : {}),
     ...(row.source_checkpoint_id !== null ? { sourceCheckpointId: row.source_checkpoint_id } : {}),
     ...(row.source_promotion_id !== null ? { sourcePromotionId: row.source_promotion_id } : {}),
+    ...(row.oracle_of_dataset_id !== null ? { oracleOfDatasetId: row.oracle_of_dataset_id } : {}),
     ...(row.incremental_plan_digest !== null ? { incrementalPlanDigest: row.incremental_plan_digest } : {}),
     ...(row.start_sequence !== null ? { startSequence: asBigInt(row.start_sequence) } : {}),
     ...(row.boundary_sequence !== null ? { boundarySequence: asBigInt(row.boundary_sequence) } : {}),
@@ -84,6 +87,7 @@ implements EconomicRuntimeDatasetService {
         parent_dataset_id: null,
         source_checkpoint_id: null,
         source_promotion_id: null,
+        oracle_of_dataset_id: null,
         incremental_plan_digest: null,
         start_sequence: null,
         boundary_sequence: null,
@@ -175,8 +179,84 @@ implements EconomicRuntimeDatasetService {
           parent_dataset_id: parent.id,
           source_checkpoint_id: request.sourceCheckpointId,
           source_promotion_id: request.sourcePromotionId,
+          oracle_of_dataset_id: null,
           incremental_plan_digest: request.incrementalPlanDigest,
           start_sequence: request.startSequence,
+          boundary_sequence: request.boundarySequence,
+          semantic_digest: null,
+          failure_reason: null,
+          verified_at: null,
+          activated_at: null
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+
+      return mapRow(row);
+    });
+  }
+
+  async createOracle(
+    request: CreateOracleRuntimeDatasetRequest
+  ): Promise<EconomicRuntimeDataset> {
+    if (request.boundarySequence <= 0n) {
+      throw new Error('Oracle runtime dataset requires a positive boundary sequence.');
+    }
+
+    return this.db.transaction().execute(async (trx) => {
+      const parent = await trx.selectFrom('economic_runtime_dataset')
+        .selectAll()
+        .where('id','=',request.parentDatasetId)
+        .where('enterprise_id','=',request.enterpriseId)
+        .where('consistency_domain','=',request.consistencyDomain)
+        .where('status','=','ACTIVE')
+        .forUpdate()
+        .executeTakeFirst();
+
+      if (parent === undefined) {
+        throw new Error('Oracle runtime dataset requires the current ACTIVE parent dataset.');
+      }
+
+      const candidate = await trx.selectFrom('economic_runtime_dataset')
+        .selectAll()
+        .where('id','=',request.oracleOfDatasetId)
+        .where('enterprise_id','=',request.enterpriseId)
+        .where('consistency_domain','=',request.consistencyDomain)
+        .where('kind','=','CANDIDATE')
+        .where('status','in',['BUILDING','VERIFIED'])
+        .executeTakeFirst();
+
+      if (
+        candidate === undefined ||
+        candidate.parent_dataset_id !== parent.id ||
+        candidate.boundary_sequence === null ||
+        asBigInt(candidate.boundary_sequence) !== request.boundarySequence
+      ) {
+        throw new Error(
+          'Oracle runtime dataset must bind an intact candidate with the same ACTIVE parent and boundary.'
+        );
+      }
+
+      const existing = await trx.selectFrom('economic_runtime_dataset')
+        .selectAll()
+        .where('oracle_of_dataset_id','=',candidate.id)
+        .where('kind','=','ORACLE')
+        .where('status','in',['BUILDING','VERIFIED'])
+        .executeTakeFirst();
+
+      if (existing !== undefined) return mapRow(existing);
+
+      const row = await trx.insertInto('economic_runtime_dataset')
+        .values({
+          enterprise_id: request.enterpriseId,
+          consistency_domain: request.consistencyDomain,
+          kind: 'ORACLE',
+          status: 'BUILDING',
+          parent_dataset_id: parent.id,
+          source_checkpoint_id: candidate.source_checkpoint_id,
+          source_promotion_id: candidate.source_promotion_id,
+          oracle_of_dataset_id: candidate.id,
+          incremental_plan_digest: candidate.incremental_plan_digest,
+          start_sequence: 1n,
           boundary_sequence: request.boundarySequence,
           semantic_digest: null,
           failure_reason: null,
@@ -206,7 +286,7 @@ implements EconomicRuntimeDatasetService {
         failure_reason: null
       })
       .where('id','=',datasetId)
-      .where('kind','=','CANDIDATE')
+      .where('kind','in',['CANDIDATE','ORACLE'])
       .where('status','=','BUILDING')
       .returningAll()
       .executeTakeFirstOrThrow();
@@ -275,7 +355,7 @@ implements EconomicRuntimeDatasetService {
         failure_reason: reason
       })
       .where('id','=',datasetId)
-      .where('kind','=','CANDIDATE')
+      .where('kind','in',['CANDIDATE','ORACLE'])
       .where('status','in',['BUILDING','VERIFIED'])
       .execute();
   }
