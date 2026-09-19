@@ -2249,3 +2249,57 @@ Next engineering packet:
    - valuation carrying state;
 5. build isolated candidate suffix;
 6. only then compare candidate digest to independent Full Replay digest.
+
+
+---
+
+# 41. Authoritative high-level goals and stage roadmap — SAVED
+
+New additive high-level orientation document:
+
+`docs/architecture/status/EVO-PROJECT-GOALS-STAGE-ROADMAP-v0.1.md`
+
+Commit:
+
+`a75224a69f820674f039e6edaf0fbb19e1cb8b5c`
+
+Purpose:
+
+- preserve EVO's final project objective;
+- preserve the current major-stage objective;
+- define the acceptance conditions for Production-Safe Incremental Replay;
+- prevent local work packets, CI defects, schema changes or module tasks from becoming mistaken for the project goal;
+- define the major roadmap after the current Replay foundation closes.
+
+Three-level orientation:
+
+```text
+Highest:
+AI-Native Enterprise Operating System
+— why EVO exists
+
+Middle:
+Economic Runtime
+— how enterprise facts become trustworthy economic state
+
+Current stage:
+Production-Safe Incremental Replay
+— how historical changes can be recalculated efficiently, correctly and audibly
+```
+
+Current-stage final acceptance remains:
+
+```text
+true affected-suffix incremental execution
++ isolated candidate generation
++ complete required prefix-state restoration
++ candidate Economic Runtime digest
++ independent Full Replay oracle digest
++ exact MATCH
++ governed atomic activation
++ safe fallback
+```
+
+Only after this gate closes should Replay infrastructure stop being the dominant engineering focus and the main line shift toward complete enterprise economic loops and productization.
+
+Future EVO chat Context Handshake should read this document before interpreting low-level active work packets.
