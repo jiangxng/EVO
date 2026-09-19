@@ -79,7 +79,8 @@
       "mayDependOn": [
         "metadata",
         "business-data",
-        "ledger"
+        "ledger",
+        "materialization"
       ]
     },
     "ledger": {
@@ -91,7 +92,8 @@
       ],
       "mayDependOn": [
         "metadata",
-        "dimensions"
+        "dimensions",
+        "materialization"
       ]
     },
     "cost": {
