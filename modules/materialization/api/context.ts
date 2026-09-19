@@ -1,4 +1,4 @@
-export type MaterializationWriteMode = 'CURRENT' | 'CANDIDATE';
+export type MaterializationWriteMode = 'CURRENT' | 'CANDIDATE' | 'ORACLE';
 
 export interface MaterializationContext {
   readonly runtimeDatasetId: string;
@@ -12,6 +12,12 @@ export interface MaterializationContextResolver {
   ): Promise<MaterializationContext>;
 
   candidate(
+    runtimeDatasetId: string,
+    enterpriseId: string,
+    consistencyDomain: string
+  ): Promise<MaterializationContext>;
+
+  oracle(
     runtimeDatasetId: string,
     enterpriseId: string,
     consistencyDomain: string
