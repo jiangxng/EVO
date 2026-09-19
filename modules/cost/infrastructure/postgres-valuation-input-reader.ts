@@ -4,6 +4,7 @@ import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
 import type {
   ValuationInput,
   ValuationInputDefinition,
+  ValuationInputRange,
   ValuationInputReader
 } from '../api/valuation-input.js';
 
@@ -77,14 +78,15 @@ export class PostgresValuationInputReader implements ValuationInputReader {
 
   async list(
     enterpriseId: string,
-    definition: ValuationInputDefinition
+    definition: ValuationInputDefinition,
+    range?: ValuationInputRange
   ): Promise<readonly ValuationInput[]> {
     const types = [...new Set([
       ...definition.inboundBusinessDataTypes,
       ...definition.outboundBusinessDataTypes
     ])];
 
-    const rows = await this.db
+    let query = this.db
       .selectFrom('business_data as b')
       .innerJoin('posting_input as p','p.business_data_id','b.id')
       .select([
@@ -95,7 +97,16 @@ export class PostgresValuationInputReader implements ValuationInputReader {
         'p.posting_sequence'
       ])
       .where('b.enterprise_id','=',enterpriseId)
-      .where('b.business_data_type','in',types)
+      .where('b.business_data_type','in',types);
+
+    if (range?.afterSequence !== undefined) {
+      query = query.where('p.posting_sequence','>',range.afterSequence);
+    }
+    if (range?.atOrBeforeSequence !== undefined) {
+      query = query.where('p.posting_sequence','<=',range.atOrBeforeSequence);
+    }
+
+    const rows = await query
       .orderBy('b.effective_at')
       .orderBy('p.posting_sequence')
       .orderBy('b.id')
