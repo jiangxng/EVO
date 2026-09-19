@@ -27,8 +27,8 @@ implements CandidatePostingReplayService {
     atOrBeforeSequence: bigint,
     materialization: MaterializationContext
   ): Promise<CandidatePostingReplayResult> {
-    if (materialization.mode !== 'CANDIDATE') {
-      throw new Error('Candidate posting replay requires a CANDIDATE materialization context.');
+    if (materialization.mode === 'CURRENT') {
+      throw new Error('Isolated posting replay requires a CANDIDATE or ORACLE materialization context.');
     }
     if (atOrBeforeSequence <= afterSequence) {
       throw new Error('Candidate posting replay requires a non-empty sequence range.');
