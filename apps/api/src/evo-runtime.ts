@@ -8,6 +8,7 @@ import { PostgresPostingMetadataReader } from '../../../modules/metadata/infrast
 import { PostgresBusinessDataReader } from '../../../modules/business-data/infrastructure/postgres-business-data-reader.js';
 import { PostgresPostingStateStore } from '../../../modules/posting/infrastructure/postgres-posting-state-store.js';
 import { PostingService } from '../../../modules/posting/application/posting-service.js';
+import { PostgresCandidatePostingReplayService } from '../../../modules/posting/infrastructure/postgres-candidate-posting-replay-service.js';
 import { PostgresLedgerWriter } from '../../../modules/ledger/infrastructure/postgres-ledger-writer.js';
 import { PostgresWorkProjection } from '../../../modules/workflow/infrastructure/postgres-work-projection.js';
 import { PostgresAuthorizationService } from '../../../modules/identity/infrastructure/postgres-authorization-service.js';
@@ -47,7 +48,24 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const command = new CommandService(capabilities,new PostgresCommandTransaction(db));
   const state = new PostgresPostingStateStore(db);
   const businessData = new PostgresBusinessDataReader(db);
-  const posting = new PostingService(state,state,businessData,new PostgresPostingMetadataReader(db),new PostgresLedgerWriter(),createTransactionRunner(db));
+  const postingMetadata = new PostgresPostingMetadataReader(db);
+  const ledgerWriter = new PostgresLedgerWriter();
+  const transactions = createTransactionRunner(db);
+  const posting = new PostingService(
+    state,
+    state,
+    businessData,
+    postingMetadata,
+    ledgerWriter,
+    transactions
+  );
+  const candidatePostingReplay = new PostgresCandidatePostingReplayService(
+    db,
+    businessData,
+    postingMetadata,
+    ledgerWriter,
+    transactions
+  );
   const valuation = new PostgresValuationPostingService(db);
   const valuationStore = new PostgresValuationStore(db);
   const allocation = new PostgresAllocationStore(db);
@@ -86,7 +104,7 @@ export function createEvoRuntime(database: DatabaseHandle) {
   );
   const valuationReplay = new PostgresValuationRequestReplayService(db,valuationRequests);
   const incrementalReplayPlanner = new DefaultIncrementalReplayPlanner(replayTopology);
-  return { db, command, posting, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, replayCoverage, replayPromotion, runtimeDatasets, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  return { db, command, posting, candidatePostingReplay, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, replayCoverage, replayPromotion, runtimeDatasets, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
