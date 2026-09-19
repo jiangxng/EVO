@@ -124,7 +124,7 @@ export class PostgresValuationPostingService implements ValuationPostingService 
     consistencyDomain: string,
     materialization?: MaterializationContext
   ): Promise<string> {
-    if (materialization?.mode === 'CANDIDATE') {
+    if (materialization !== undefined && materialization.mode !== 'CURRENT') {
       const existing = await trx.selectFrom('ledger_dataset')
         .select('id')
         .where('enterprise_id','=',enterpriseId)
