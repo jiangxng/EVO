@@ -302,7 +302,8 @@
         "metadata",
         "economic",
         "business-data",
-        "lineage"
+        "lineage",
+        "materialization"
       ]
     },
     "lineage": {
@@ -340,7 +341,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 15,
+  "dbSchemaVersion": 16,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
