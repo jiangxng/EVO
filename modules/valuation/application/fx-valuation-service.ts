@@ -127,7 +127,10 @@ export class DefaultFxValuationService implements FxValuationService {
       policy: {
         amountScale: request.policy.amountScale,
         roundingMode: request.policy.roundingMode
-      }
+      },
+      ...(request.materialization !== undefined
+        ? { materialization: request.materialization }
+        : {})
     });
 
     const results = [];
