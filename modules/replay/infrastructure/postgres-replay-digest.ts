@@ -16,6 +16,12 @@ function digest(value: JsonValue): string {
   return createHash('sha256').update(canonical(value)).digest('hex');
 }
 
+export function digestEconomicRuntimeSemantic(
+  semantic: JsonObject
+): string {
+  return digestEconomicRuntimeSemantic(semantic);
+}
+
 function asBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') return value;
   if (typeof value === 'number' && Number.isInteger(value)) return BigInt(value);
