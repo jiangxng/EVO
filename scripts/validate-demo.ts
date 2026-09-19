@@ -724,6 +724,8 @@ try {
     .executeTakeFirstOrThrow();
 
   if (
+    incrementalCostResult.unit_cost === null ||
+    incrementalCostResult.total_cost === null ||
     incrementalCostResult.business_data_id !== incrementalShipmentBusiness.id ||
     !new Decimal(incrementalCostResult.quantity).eq(1) ||
     !new Decimal(incrementalCostResult.unit_cost).eq(10) ||
