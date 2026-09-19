@@ -343,7 +343,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 16,
+  "dbSchemaVersion": 17,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
