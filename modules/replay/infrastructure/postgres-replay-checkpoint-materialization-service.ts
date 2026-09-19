@@ -6,8 +6,12 @@ import type { CostMethod } from '../../cost/api/contracts.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
 import type {
   CheckpointCostPoolMaterialization,
-  ReplayCheckpointMaterializationService
+  CheckpointLedgerBalanceMaterialization,
+  CheckpointLedgerBalanceState,
+  ReplayCheckpointMaterializationService,
+  RestoredLedgerPrefix
 } from '../api/checkpoint-materialization.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 
 function canonical(value: JsonValue): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -43,6 +47,29 @@ function isCostMethod(value: string | null): value is CostMethod {
     value === 'LIFO' ||
     value === 'MOVING_AVERAGE' ||
     value === 'SPECIFIC_IDENTIFICATION';
+}
+
+function mapLedgerRow(row: {
+  id:string;
+  checkpoint_id:string;
+  payload:JsonObject;
+  semantic_digest:string;
+  created_at:unknown;
+}): CheckpointLedgerBalanceMaterialization {
+  const actual = digest(row.payload as JsonValue);
+  if (actual !== row.semantic_digest) {
+    throw new Error(
+      `Checkpoint ledger materialization ${row.id} digest mismatch; stored prefix state is not trustworthy.`
+    );
+  }
+
+  return {
+    id: row.id,
+    checkpointId: row.checkpoint_id,
+    state: row.payload as unknown as CheckpointLedgerBalanceState,
+    semanticDigest: row.semantic_digest,
+    createdAt: asDate(row.created_at)
+  };
 }
 
 function mapRow(row: {
@@ -177,5 +204,217 @@ implements ReplayCheckpointMaterializationService {
       ...row,
       payload: row.payload as JsonObject
     }));
+  }
+
+  async captureLedgerBalances(
+    checkpointId: string
+  ): Promise<readonly CheckpointLedgerBalanceMaterialization[]> {
+    const checkpoint = await this.db.selectFrom('replay_checkpoint')
+      .select(['id','enterprise_id','consistency_domain','boundary_sequence','status'])
+      .where('id','=',checkpointId)
+      .where('status','=','ACTIVE')
+      .executeTakeFirstOrThrow();
+
+    const boundarySequence = asBigInt(checkpoint.boundary_sequence);
+
+    const rows = await this.db.selectFrom('ledger_balance as b')
+      .innerJoin('ledger_dataset as ds','ds.id','b.ledger_dataset_id')
+      .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
+      .select([
+        'd.code as ledger_code',
+        'b.dimension_hash',
+        'b.dimensions',
+        'b.quantity',
+        'b.amount',
+        'b.last_effective_at',
+        'b.last_posting_priority',
+        'b.last_posting_sequence'
+      ])
+      .where('b.enterprise_id','=',checkpoint.enterprise_id)
+      .where('b.consistency_domain','=',checkpoint.consistency_domain)
+      .where('ds.status','=','ACTIVE')
+      .orderBy('d.code')
+      .orderBy('b.dimension_hash')
+      .execute();
+
+    for (const row of rows) {
+      const lastSequence = asBigInt(row.last_posting_sequence);
+      if (lastSequence > boundarySequence) {
+        throw new Error(
+          `Active ledger balance ${row.ledger_code}/${row.dimension_hash} advanced beyond checkpoint boundary; create a new checkpoint.`
+        );
+      }
+
+      const state: CheckpointLedgerBalanceState = {
+        schemaVersion: 1,
+        ledgerCode: row.ledger_code,
+        dimensionHash: row.dimension_hash,
+        dimensions: row.dimensions as JsonObject,
+        quantity: row.quantity,
+        amount: row.amount,
+        lastEffectiveAt: asDate(row.last_effective_at).toISOString(),
+        lastPostingPriority: row.last_posting_priority,
+        lastPostingSequence: lastSequence.toString()
+      };
+      const payload = state as unknown as JsonObject;
+      const semanticDigest = digest(payload as JsonValue);
+      const scopeKey = `${state.ledgerCode}:${state.dimensionHash}`;
+
+      const existing = await this.db.selectFrom('replay_checkpoint_materialization')
+        .select(['id','semantic_digest'])
+        .where('checkpoint_id','=',checkpoint.id)
+        .where('family','=','LEDGER_BALANCE')
+        .where('scope_key','=',scopeKey)
+        .where('schema_version','=',state.schemaVersion)
+        .executeTakeFirst();
+
+      if (existing !== undefined) {
+        if (existing.semantic_digest !== semanticDigest) {
+          throw new Error(
+            `Checkpoint LEDGER_BALANCE ${scopeKey} drifted after capture; create a new checkpoint.`
+          );
+        }
+        continue;
+      }
+
+      await this.db.insertInto('replay_checkpoint_materialization')
+        .values({
+          enterprise_id: checkpoint.enterprise_id,
+          checkpoint_id: checkpoint.id,
+          family: 'LEDGER_BALANCE',
+          scope_key: scopeKey,
+          schema_version: state.schemaVersion,
+          payload,
+          semantic_digest: semanticDigest
+        })
+        .execute();
+    }
+
+    return this.loadLedgerBalances(checkpoint.id);
+  }
+
+  async loadLedgerBalances(
+    checkpointId: string
+  ): Promise<readonly CheckpointLedgerBalanceMaterialization[]> {
+    const rows = await this.db.selectFrom('replay_checkpoint_materialization')
+      .select(['id','checkpoint_id','payload','semantic_digest','created_at'])
+      .where('checkpoint_id','=',checkpointId)
+      .where('family','=','LEDGER_BALANCE')
+      .where('schema_version','=',1)
+      .orderBy('scope_key')
+      .execute();
+
+    return rows.map((row)=>mapLedgerRow({
+      ...row,
+      payload: row.payload as JsonObject
+    }));
+  }
+
+  async restoreLedgerBalances(
+    checkpointId: string,
+    materialization: MaterializationContext
+  ): Promise<RestoredLedgerPrefix> {
+    if (materialization.mode !== 'CANDIDATE') {
+      throw new Error('Ledger prefix restore requires a CANDIDATE materialization context.');
+    }
+
+    const checkpoint = await this.db.selectFrom('replay_checkpoint')
+      .select(['id','enterprise_id','consistency_domain','boundary_sequence','status'])
+      .where('id','=',checkpointId)
+      .where('status','=','ACTIVE')
+      .executeTakeFirstOrThrow();
+
+    const runtimeDataset = await this.db.selectFrom('economic_runtime_dataset')
+      .select(['id','enterprise_id','consistency_domain','kind','status','source_checkpoint_id'])
+      .where('id','=',materialization.runtimeDatasetId)
+      .executeTakeFirstOrThrow();
+
+    if (
+      runtimeDataset.enterprise_id !== checkpoint.enterprise_id ||
+      runtimeDataset.consistency_domain !== checkpoint.consistency_domain ||
+      runtimeDataset.kind !== 'CANDIDATE' ||
+      runtimeDataset.status !== 'BUILDING' ||
+      runtimeDataset.source_checkpoint_id !== checkpoint.id
+    ) {
+      throw new Error(
+        'Ledger prefix restore requires a BUILDING candidate bound to the exact checkpoint.'
+      );
+    }
+
+    const snapshots = await this.loadLedgerBalances(checkpoint.id);
+    if (snapshots.length === 0) {
+      throw new Error('Checkpoint does not contain LEDGER_BALANCE prefix state.');
+    }
+
+    return this.db.transaction().execute(async (trx) => {
+      let dataset = await trx.selectFrom('ledger_dataset')
+        .select(['id'])
+        .where('enterprise_id','=',checkpoint.enterprise_id)
+        .where('consistency_domain','=',checkpoint.consistency_domain)
+        .where('economic_runtime_dataset_id','=',runtimeDataset.id)
+        .where('kind','=','CANDIDATE')
+        .where('status','=','BUILDING')
+        .forUpdate()
+        .executeTakeFirst();
+
+      if (dataset !== undefined) {
+        const [entryCount,balanceCount] = await Promise.all([
+          trx.selectFrom('ledger_entry')
+            .select(({fn})=>fn.countAll<number>().as('count'))
+            .where('ledger_dataset_id','=',dataset.id)
+            .executeTakeFirstOrThrow(),
+          trx.selectFrom('ledger_balance')
+            .select(({fn})=>fn.countAll<number>().as('count'))
+            .where('ledger_dataset_id','=',dataset.id)
+            .executeTakeFirstOrThrow()
+        ]);
+        if (Number(entryCount.count) > 0 || Number(balanceCount.count) > 0) {
+          throw new Error(
+            'Candidate ledger prefix can only be restored before suffix ledger writes begin.'
+          );
+        }
+      } else {
+        dataset = await trx.insertInto('ledger_dataset')
+          .values({
+            enterprise_id: checkpoint.enterprise_id,
+            consistency_domain: checkpoint.consistency_domain,
+            economic_runtime_dataset_id: runtimeDataset.id,
+            kind: 'CANDIDATE',
+            status: 'BUILDING',
+            posting_boundary_sequence: asBigInt(checkpoint.boundary_sequence),
+            activated_at: null
+          })
+          .returning(['id'])
+          .executeTakeFirstOrThrow();
+      }
+
+      for (const snapshot of snapshots) {
+        const ledger = await trx.selectFrom('ledger_definition')
+          .select('id')
+          .where('code','=',snapshot.state.ledgerCode)
+          .executeTakeFirstOrThrow();
+
+        await trx.insertInto('ledger_balance')
+          .values({
+            enterprise_id: checkpoint.enterprise_id,
+            consistency_domain: checkpoint.consistency_domain,
+            ledger_dataset_id: dataset.id,
+            ledger_definition_id: ledger.id,
+            dimension_hash: snapshot.state.dimensionHash,
+            dimensions: snapshot.state.dimensions,
+            quantity: snapshot.state.quantity,
+            amount: snapshot.state.amount,
+            last_effective_at: new Date(snapshot.state.lastEffectiveAt),
+            last_posting_priority: snapshot.state.lastPostingPriority,
+            last_posting_sequence: BigInt(snapshot.state.lastPostingSequence)
+          })
+          .execute();
+      }
+
+      return {
+        ledgerDatasetId: dataset.id,
+        balanceCount: snapshots.length
+      };
+    });
   }
 }
