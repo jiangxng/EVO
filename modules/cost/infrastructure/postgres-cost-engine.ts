@@ -5,6 +5,7 @@ import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { AllocationStore } from '../../allocation/api/store.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 import type { CalculationDependencyStore } from '../../lineage/api/contracts.js';
 import {
   ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
@@ -57,7 +58,8 @@ export class PostgresCostEngine implements CostEngine {
   async recalculate(
     enterpriseId: string,
     method: CostMethod,
-    pins?: CostReplayPins
+    pins?: CostReplayPins,
+    materialization?: MaterializationContext
   ): Promise<CostRecalculationResult> {
     if (pins?.valuationPolicyId === undefined || pins.valuationPolicyVersion === undefined) {
       fail(
@@ -146,6 +148,7 @@ export class PostgresCostEngine implements CostEngine {
       .insertInto('cost_run')
       .values({
         enterprise_id: enterpriseId,
+        economic_runtime_dataset_id: materialization?.runtimeDatasetId ?? null,
         method,
         status: 'PROCESSING',
         completed_at: null,
@@ -188,7 +191,8 @@ export class PostgresCostEngine implements CostEngine {
           enterpriseId,
           allocationPolicyId: allocationPolicy.id,
           allocationPolicyVersion: allocationPolicy.version,
-          inputDigest
+          inputDigest,
+          ...(materialization !== undefined ? { materialization } : {})
         });
         allocationRunId = allocationRun.id;
       }
@@ -445,7 +449,15 @@ export class PostgresCostEngine implements CostEngine {
         .set({ status: 'COMPLETED', completed_at: sql`now()` })
         .where('id', '=', run.id).execute();
 
-      return { costRunId: run.id, method, resultCount, valuationPostingCount };
+      return {
+        costRunId: run.id,
+        ...(materialization !== undefined
+          ? { runtimeDatasetId: materialization.runtimeDatasetId }
+          : {}),
+        method,
+        resultCount,
+        valuationPostingCount
+      };
     } catch (error) {
       if (allocationRunId !== undefined) {
         await this.allocation.failRun(allocationRunId, error);
