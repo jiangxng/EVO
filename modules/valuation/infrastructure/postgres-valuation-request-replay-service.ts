@@ -1,6 +1,7 @@
 import type { Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 import {
   VALUATION_REQUEST_BUSINESS_DATA_TYPE,
   type ValuationRequestInterpreter,
@@ -28,7 +29,8 @@ implements ValuationRequestReplayService {
   async replayAcceptedRequests(
     enterpriseId: string,
     consistencyDomain: string,
-    boundarySequence: bigint
+    boundarySequence: bigint,
+    materialization?: MaterializationContext
   ): Promise<ValuationRequestReplayResult> {
     const rows = await this.db.selectFrom('posting_input as p')
       .innerJoin('business_data as b','b.id','p.business_data_id')
@@ -56,7 +58,8 @@ implements ValuationRequestReplayService {
         payload: parseValuationRequestPayload(
           row.business_data_type,
           row.payload as JsonObject
-        )
+        ),
+        ...(materialization !== undefined ? { materialization } : {})
       });
     }
 
