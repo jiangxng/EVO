@@ -187,7 +187,7 @@ export class PostgresFxPositionResolver implements FxPositionResolver {
       .sort((a,b) => a.positionKey.localeCompare(b.positionKey));
 
     if (selected.length > 0) {
-      const priorResults = await this.db.selectFrom('valuation_result as r')
+      let priorResultsQuery = this.db.selectFrom('valuation_result as r')
         .innerJoin('valuation_run as v','v.id','r.valuation_run_id')
         .select([
           'r.position_key',
@@ -199,7 +199,16 @@ export class PostgresFxPositionResolver implements FxPositionResolver {
         .where('r.result_kind','=','FX_PERIOD_END')
         .where('r.position_key','in',selected.map((item) => item.positionKey))
         .where('v.status','=','COMPLETED')
-        .where('v.effective_at','<',request.valuationAt)
+        .where('v.effective_at','<',request.valuationAt);
+
+      if (request.materialization !== undefined) {
+        priorResultsQuery = priorResultsQuery.where(
+          'v.economic_runtime_dataset_id','=',
+          request.materialization.runtimeDatasetId
+        );
+      }
+
+      const priorResults = await priorResultsQuery
         .orderBy('v.effective_at','desc')
         .orderBy('v.completed_at','desc')
         .execute();
