@@ -120,7 +120,9 @@
         "calculation_dependency_edge",
         "replay preservation of allocation policy pins",
         "replay_checkpoint_promotion",
-        "governed incremental-safe checkpoint promotion"
+        "governed incremental-safe checkpoint promotion",
+        "replay_checkpoint_materialization",
+        "checkpoint prefix-state capture and restore orchestration"
       ],
       "mayDependOn": [
         "metadata",
@@ -343,7 +345,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 17,
+  "dbSchemaVersion": 18,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
