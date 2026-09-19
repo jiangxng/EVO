@@ -1,3 +1,4 @@
+import type { MaterializationContext } from '../../materialization/api/context.js';
 import type {
   AllocationInstruction,
   AllocationRelation,
@@ -12,6 +13,7 @@ export interface StartAllocationRunInput {
   readonly allocationPolicyId: string;
   readonly allocationPolicyVersion: number;
   readonly inputDigest: string;
+  readonly materialization?: MaterializationContext;
 }
 
 export interface RecordAllocationRelationInput
