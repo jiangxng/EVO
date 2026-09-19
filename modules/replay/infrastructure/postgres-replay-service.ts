@@ -160,6 +160,13 @@ export class PostgresReplayService implements ReplayService {
       await trx.deleteFrom('posting_failure')
         .where('enterprise_id', '=', enterpriseId).execute();
 
+      // WorkItems are derived operational materialization. They must not survive
+      // a Full Replay as stale CURRENT/CANDIDATE state; rebuild them from the
+      // reconstructed ledger balances after replay.
+      await trx.deleteFrom('work_item')
+        .where('enterprise_id', '=', enterpriseId)
+        .execute();
+
       await trx
         .updateTable('posting_input')
         .set({
