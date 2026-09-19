@@ -80,6 +80,7 @@ export interface AllocationRelation {
 export interface AllocationRun {
   readonly id: string;
   readonly enterpriseId: string;
+  readonly runtimeDatasetId?: string;
   readonly allocationPolicyId: string;
   readonly allocationPolicyVersion: number;
   readonly status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
