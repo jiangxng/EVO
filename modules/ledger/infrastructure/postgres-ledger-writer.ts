@@ -130,7 +130,7 @@ export class PostgresLedgerWriter implements LedgerWriter {
     consistencyDomain: string,
     materialization?: MaterializationContext
   ): Promise<string> {
-    if (materialization?.mode === 'CANDIDATE') {
+    if (materialization !== undefined && materialization.mode !== 'CURRENT') {
       const existing = await trx
         .selectFrom('ledger_dataset')
         .select('id')
