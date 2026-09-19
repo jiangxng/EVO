@@ -881,6 +881,63 @@ try {
     throw new Error('Candidate Economic Runtime digest must be a deterministic SHA-256 digest.');
   }
 
+  // Independent oracle: after freezing the candidate semantic digest, rebuild the
+  // entire updated canonical history from the beginning. This intentionally destroys
+  // candidate derived state and is certification-harness behavior, not production activation.
+  const oracleReplay = await runtime.replay.prepareFullReplay(ids.enterpriseId);
+  if (oracleReplay.boundarySequence !== incrementalTargetBoundary) {
+    throw new Error(
+      `Full Replay oracle boundary ${oracleReplay.boundarySequence} does not match incremental target ${incrementalTargetBoundary}.`
+    );
+  }
+
+  await drainPosting(runtime,ids.enterpriseId);
+
+  if (oracleReplay.costMethod !== null) {
+    await runtime.cost.recalculate(
+      ids.enterpriseId,
+      oracleReplay.costMethod,
+      oracleReplay.costPins ?? undefined
+    );
+  }
+
+  const oracleValuationReplay = await runtime.valuationReplay.replayAcceptedRequests(
+    ids.enterpriseId,
+    consistencyDomain,
+    oracleReplay.boundarySequence
+  );
+  if (oracleValuationReplay.replayedRequestCount !== 2) {
+    throw new Error(
+      `Independent Full Replay oracle expected two valuation requests, got ${oracleValuationReplay.replayedRequestCount}.`
+    );
+  }
+
+  await runtime.work.refresh(ids.enterpriseId);
+
+  const oracleDigest = await computeEconomicRuntimeDigest(
+    runtime.db,
+    ids.enterpriseId,
+    consistencyDomain,
+    oracleReplay.boundarySequence
+  );
+
+  await runtime.replay.completeFullReplay(
+    oracleReplay.replayRunId,
+    ids.enterpriseId,
+    oracleDigest
+  );
+
+  if (candidateDigest.digest !== oracleDigest) {
+    throw new Error(
+      `Incremental equivalence mismatch: candidate=${candidateDigest.digest}, oracle=${oracleDigest}`
+    );
+  }
+
+  const oracleRunRecord = await runtime.db.selectFrom('replay_run')
+    .select(['validation_status','before_digest','after_digest'])
+    .where('id','=',oracleReplay.replayRunId)
+    .executeTakeFirstOrThrow();
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -980,6 +1037,11 @@ try {
       pendingShipmentQuantity: candidatePendingShipment.quantity,
       candidateEconomicRuntimeDigest: candidateDigest.digest,
       candidateDigestFamilyCounts: candidateDigest.familyCounts,
+      fullReplayOracleDigest: oracleDigest,
+      incrementalEqualsFullReplay: candidateDigest.digest === oracleDigest,
+      oracleReplayValidationStatus: oracleRunRecord.validation_status,
+      oracleReplayBeforeDigest: oracleRunRecord.before_digest,
+      oracleReplayAfterDigest: oracleRunRecord.after_digest,
       plannerFallback: suffixPlan.fallbackToFullReplay
     },
     fxCoverage: {
