@@ -10,6 +10,7 @@ export type DependencyEdgeKind =
 export interface CalculationDependencyEdge {
   readonly id: string;
   readonly enterpriseId: string;
+  readonly runtimeDatasetId?: string;
   readonly graphVersion: string;
   readonly fromKind: string;
   readonly fromId: string;
