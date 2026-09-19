@@ -467,6 +467,13 @@ try {
     );
   }
 
+  const ledgerBalanceSnapshots = await runtime.replayCheckpointMaterialization.captureLedgerBalances(
+    checkpoint.id
+  );
+  if (ledgerBalanceSnapshots.length < 1) {
+    throw new Error('Expected ReplayCheckpoint to capture LEDGER_BALANCE prefix state.');
+  }
+
   const coverage = await runtime.replayCoverage.evaluate(
     checkpoint.id,
     'validate-demo'
@@ -625,14 +632,13 @@ try {
     }
   });
   await runtime.flow.projectCommand(incrementalShipment.commandExecutionId);
-  await drainPosting(runtime,ids.enterpriseId);
 
   const incrementalShipmentBusiness = await runtime.db.selectFrom('business_data')
     .select('id')
     .where('command_execution_id','=',incrementalShipment.commandExecutionId)
     .executeTakeFirstOrThrow();
   const incrementalShipmentPosting = await runtime.db.selectFrom('posting_input')
-    .select('posting_sequence')
+    .select(['posting_sequence','status'])
     .where('business_data_id','=',incrementalShipmentBusiness.id)
     .executeTakeFirstOrThrow();
   const incrementalTargetBoundary = BigInt(incrementalShipmentPosting.posting_sequence);
@@ -678,6 +684,38 @@ try {
     ids.enterpriseId,
     consistencyDomain
   );
+
+  if (incrementalShipmentPosting.status !== 'QUEUED') {
+    throw new Error('Incremental suffix posting input must remain QUEUED before candidate replay.');
+  }
+
+  const restoredLedgerPrefix = await runtime.replayCheckpointMaterialization.restoreLedgerBalances(
+    checkpoint.id,
+    candidateContext
+  );
+  if (restoredLedgerPrefix.balanceCount !== ledgerBalanceSnapshots.length) {
+    throw new Error('Candidate ledger prefix restore did not restore every checkpoint balance.');
+  }
+
+  const candidatePosting = await runtime.candidatePostingReplay.replayRange(
+    ids.enterpriseId,
+    checkpoint.boundarySequence,
+    incrementalTargetBoundary,
+    candidateContext
+  );
+  if (candidatePosting.postingInputCount !== 1) {
+    throw new Error(
+      `Candidate posting replay must process exactly one suffix input, got ${candidatePosting.postingInputCount}`
+    );
+  }
+
+  const postingStatusAfterCandidate = await runtime.db.selectFrom('posting_input')
+    .select('status')
+    .where('business_data_id','=',incrementalShipmentBusiness.id)
+    .executeTakeFirstOrThrow();
+  if (postingStatusAfterCandidate.status !== 'QUEUED') {
+    throw new Error('Candidate posting replay must not mutate canonical posting-input processing state.');
+  }
 
   const restoredCostPools = await runtime.replayCheckpointMaterialization.loadCostPools(
     checkpoint.id
@@ -778,6 +816,10 @@ try {
     .where('status','=','BUILDING')
     .executeTakeFirstOrThrow();
 
+  if (candidateLedgerDataset.id !== restoredLedgerPrefix.ledgerDatasetId) {
+    throw new Error('Candidate posting/cost must reuse the checkpoint-restored ledger dataset.');
+  }
+
   const candidateDependencyCount = await runtime.db.selectFrom('calculation_dependency_edge')
     .select(({ fn }) => fn.countAll<number>().as('count'))
     .where('enterprise_id','=',ids.enterpriseId)
@@ -871,6 +913,10 @@ try {
       targetBoundarySequence: incrementalTargetBoundary.toString(),
       candidateDatasetId: incrementalCandidate.id,
       candidateLedgerDatasetId: candidateLedgerDataset.id,
+      restoredLedgerBalanceCount: restoredLedgerPrefix.balanceCount,
+      candidatePostingInputCount: candidatePosting.postingInputCount,
+      candidatePostingLedgerEffectCount: candidatePosting.ledgerEffectCount,
+      postingInputStatusAfterCandidate: postingStatusAfterCandidate.status,
       processedSuffixResultCount: incrementalCost.resultCount,
       suffixBusinessDataId: incrementalShipmentBusiness.id,
       quantity: incrementalCostResult.quantity,
