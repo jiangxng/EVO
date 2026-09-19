@@ -19,7 +19,7 @@ function digest(value: JsonValue): string {
 export function digestEconomicRuntimeSemantic(
   semantic: JsonObject
 ): string {
-  return digestEconomicRuntimeSemantic(semantic);
+  return digest(semantic);
 }
 
 function asBigInt(value: unknown): bigint {
