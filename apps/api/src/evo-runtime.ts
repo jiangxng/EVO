@@ -33,6 +33,7 @@ import { PostgresValuationInputReader } from '../../../modules/cost/infrastructu
 import { DefaultCostCheckpointStateProjector } from '../../../modules/cost/application/default-checkpoint-state-projector.js';
 import { PostgresCostCheckpointStateBuilder } from '../../../modules/cost/infrastructure/postgres-cost-checkpoint-state-builder.js';
 import { PostgresReplayCheckpointMaterializationService } from '../../../modules/replay/infrastructure/postgres-replay-checkpoint-materialization-service.js';
+import { PostgresCandidateEconomicRuntimeDigestService } from '../../../modules/replay/infrastructure/postgres-candidate-economic-runtime-digest-service.js';
 import { PostgresValuationStore } from '../../../modules/valuation/infrastructure/postgres-valuation-store.js';
 import { DefaultFxValuationService } from '../../../modules/valuation/application/fx-valuation-service.js';
 import { DefaultFxSettlementService } from '../../../modules/valuation/application/fx-settlement-service.js';
@@ -86,6 +87,7 @@ export function createEvoRuntime(database: DatabaseHandle) {
     db,
     costCheckpointStates
   );
+  const candidateEconomicRuntimeDigest = new PostgresCandidateEconomicRuntimeDigestService(db);
   const replayCoverage = new PostgresReplayCoverageCertificationService(db,dependencyGraph);
   const replayPromotion = new PostgresReplayCheckpointPromotionService(db);
   const runtimeDatasets = new PostgresEconomicRuntimeDatasetService(db);
@@ -104,7 +106,7 @@ export function createEvoRuntime(database: DatabaseHandle) {
   );
   const valuationReplay = new PostgresValuationRequestReplayService(db,valuationRequests);
   const incrementalReplayPlanner = new DefaultIncrementalReplayPlanner(replayTopology);
-  return { db, command, posting, candidatePostingReplay, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, replayCoverage, replayPromotion, runtimeDatasets, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  return { db, command, posting, candidatePostingReplay, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, candidateEconomicRuntimeDigest, replayCoverage, replayPromotion, runtimeDatasets, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
