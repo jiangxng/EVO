@@ -2303,3 +2303,68 @@ true affected-suffix incremental execution
 Only after this gate closes should Replay infrastructure stop being the dominant engineering focus and the main line shift toward complete enterprise economic loops and productization.
 
 Future EVO chat Context Handshake should read this document before interpreting low-level active work packets.
+
+
+---
+
+# 42. B4.2C exact incremental/full-replay equivalence — CERTIFIED
+
+Certification:
+
+`docs/architecture/certification/ER-C05B4.2C-INCREMENTAL-FULL-REPLAY-EQUIVALENCE-v0.1.md`
+
+Context checkpoint:
+
+`docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-19-v0.7.md`
+
+Certified implementation head:
+
+`7ddc1f58143d835e1cfcd9485f1cbabd6845bd30`
+
+True E2E run:
+
+`35430987056 — SUCCESS`
+
+Reference proof:
+
+```text
+checkpoint FIFO prefix = 8 @ 10
+new canonical suffix shipment = 1
+
+Incremental Candidate:
+- restore ledger/cost prefix
+- replay only suffix PostingInput
+- suffix cost qty=1, unitCost=10, totalCost=10
+- pending shipment work state = 7
+- isolated generation-scoped derived state
+
+Candidate semantic digest:
+eda48c2c2b7a264babf0b975b850bda2f2060ee91ff932d61f0141126b144dbf
+
+Independent updated-history Full Replay oracle digest:
+eda48c2c2b7a264babf0b975b850bda2f2060ee91ff932d61f0141126b144dbf
+
+Incremental == Full Replay: TRUE
+```
+
+This is the first true semantic equivalence proof for suffix-only Incremental Replay.
+
+Important limitation:
+
+The current Full Replay oracle is destructive certification-harness behavior. Candidate digest is frozen before oracle rebuild; the oracle then destroys derived Candidate state while reconstructing the entire updated history.
+
+Therefore this proves correctness but does not yet prove production activation safety.
+
+Current active packet:
+
+`ER-C05B4.3 — Isolated Oracle Certification & Governed Candidate Activation`
+
+Required next:
+
+1. isolated ORACLE materialization generation;
+2. complete Full Replay into ORACLE without modifying CURRENT/CANDIDATE;
+3. same semantic digest schema for Candidate and Oracle;
+4. governed equivalence certification;
+5. only exact MATCH Candidate may become VERIFIED;
+6. atomic activation of the still-intact certified Candidate;
+7. mismatch keeps CURRENT untouched and Candidate non-activatable.
