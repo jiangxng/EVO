@@ -7,7 +7,7 @@ interface StoredLineage {
   flowInstanceKey: string;
   stepCode: string;
   parentBusinessDataId?: string;
-  relationType?: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'DERIVES_FROM' | 'REFERENCES';
+  relationType?: 'CAUSES' | 'FULFILLS' | 'REFERENCES';
 }
 
 export class PostgresFlowProjection implements FlowProjection {

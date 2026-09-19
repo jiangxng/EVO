@@ -9,637 +9,73 @@ export type GeneratedTimestamp = Generated<Timestamp>;
 export type JsonObject = JSONColumnType<Record<string, unknown>, Record<string, unknown>, Record<string, unknown>>;
 export type JsonArray = JSONColumnType<readonly unknown[], readonly unknown[], readonly unknown[]>;
 
-export interface SchemaMigrationTable {
-  version: string;
-  checksum: string;
-  applied_at: Timestamp;
-}
-
-export interface EvoRuntimeInfoTable {
-  singleton: boolean;
-  architecture_baseline: string;
-  db_schema_version: number;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface EnterpriseTable {
-  id: Generated<string>;
-  code: string;
-  name: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
-  default_timezone: string;
-  created_at: GeneratedTimestamp;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface DomainDefinitionTable {
-  id: Generated<string>;
-  code: string;
-  name: string;
-  description: string | null;
-  created_at: GeneratedTimestamp;
-}
-
-export interface TransactionTypeTable {
-  id: Generated<string>;
-  domain_id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  created_at: GeneratedTimestamp;
-}
-
-export interface ApplicationDefinitionTable {
-  id: Generated<string>;
-  transaction_type_id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  created_at: GeneratedTimestamp;
-}
-
-export interface ApplicationDefinitionVersionTable {
-  id: Generated<string>;
-  application_definition_id: string;
-  version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  schema_version: number;
-  base_config: JsonObject;
-  definition_hash: string | null;
-  published_at: Timestamp | null;
-  created_at: GeneratedTimestamp;
-}
-
-export interface FieldGroupDefinitionTable {
-  id: Generated<string>;
-  application_definition_version_id: string;
-  code: string;
-  label: string;
-  sort_order: number;
-  config: JsonObject;
-}
-
-export interface FieldDefinitionTable {
-  id: Generated<string>;
-  application_definition_version_id: string;
-  field_group_id: string | null;
-  code: string;
-  label: string;
-  data_type: string;
-  required: boolean;
-  reference_mode: 'REFERENCE' | 'SNAPSHOT' | null;
-  sort_order: number;
-  config: JsonObject;
-}
-
-export interface ApplicationInstanceTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  application_definition_id: string;
-  code: string;
-  name: string;
-  pinned_definition_version: number | null;
-  status: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
-  config: JsonObject;
-  created_at: GeneratedTimestamp;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface EnterpriseApplicationOverlayTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  application_instance_id: string;
-  base_definition_version: number;
-  overlay_version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  patch: JsonObject;
-  overlay_hash: string | null;
-  published_at: Timestamp | null;
-  created_at: GeneratedTimestamp;
-}
-
-export interface CommandDefinitionTable {
-  id: Generated<string>;
-  application_definition_version_id: string;
-  code: string;
-  name: string;
-  input_schema: JsonObject;
-  preconditions: JsonArray;
-  execution_policy: JsonObject;
-  resulting_business_data_type: string;
-  config: JsonObject;
-}
-
-export interface DimensionDefinitionTable {
-  id: Generated<string>;
-  enterprise_id: string | null;
-  code: string;
-  name: string;
-  data_type: string;
-  version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  config: JsonObject;
-  created_at: GeneratedTimestamp;
-  published_at: Timestamp | null;
-}
-
-export interface LedgerDefinitionTable {
-  id: Generated<string>;
-  code: string;
-  name: string;
-  quantity_semantics: string | null;
-  amount_semantics: string | null;
-  dimension_schema: JsonObject;
-  config: JsonObject;
-  created_at: GeneratedTimestamp;
-}
-
-export interface PostingRuleTable {
-  id: Generated<string>;
-  application_definition_version_id: string;
-  code: string;
-  priority: number;
-  condition_ast: JsonObject;
-  effect_ast: JsonObject;
-  rule_schema_version: number;
-  created_at: GeneratedTimestamp;
-}
-
-export interface ValuationRuleTable {
-  id: Generated<string>;
-  enterprise_id: string | null;
-  code: string;
-  name: string;
-  source_business_data_type: string;
-  inventory_ledger_code: string;
-  cogs_ledger_code: string;
-  dimension_mapping: JsonObject;
-  version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  created_at: GeneratedTimestamp;
-  published_at: Timestamp | null;
-}
-
-export interface ValuationPolicyTable {
-  id: Generated<string>;
-  enterprise_id: string | null;
-  code: string;
-  name: string;
-  method: 'FIFO' | 'LIFO' | 'MOVING_AVERAGE' | 'SPECIFIC_IDENTIFICATION';
-  negative_inventory_policy: 'DISALLOW_NEGATIVE';
-  pool_dimension_schema: JsonObject;
-  config: JsonObject;
-  version: number;
-  status: 'ACTIVE' | 'RETIRED';
-  created_at: GeneratedTimestamp;
-}
-
-
-
-export interface ItemDefinitionTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  code: string;
-  name: string;
-  item_type: 'MATERIAL' | 'SEMI_FINISHED' | 'FINISHED_GOOD' | 'MERCHANDISE' | 'CONSUMABLE' | 'SERVICE' | 'ASSET_ITEM';
-  track_inventory: boolean;
-  default_fulfillment_mode: 'MAKE' | 'BUY' | 'STOCK' | 'SERVICE' | null;
-  base_unit: string;
-  config: JsonObject;
-  created_at: GeneratedTimestamp;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface CapabilityDefinitionTable {
-  id: Generated<string>;
-  enterprise_id: string | null;
-  code: string;
-  name: string;
-  description: string | null;
-  version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  config: JsonObject;
-  created_at: GeneratedTimestamp;
-  published_at: Timestamp | null;
-}
-
-export interface FlowDefinitionTable {
-  id: Generated<string>;
-  enterprise_id: string | null;
-  code: string;
-  name: string;
-  description: string | null;
-  version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  definition: JsonObject;
-  created_at: GeneratedTimestamp;
-  published_at: Timestamp | null;
-}
-
-export interface FlowInstanceTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  flow_definition_id: string;
-  instance_key: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  started_at: GeneratedTimestamp;
-  completed_at: Timestamp | null;
-}
-
-export interface BusinessObjectLinkTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  from_business_data_id: string;
-  to_business_data_id: string;
-  relation_type: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'DERIVES_FROM' | 'REFERENCES';
-  metadata: JsonObject;
-  created_at: GeneratedTimestamp;
-}
-
-export interface FlowTraceTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  flow_definition_id: string;
-  flow_instance_id: string;
-  command_execution_id: string;
-  business_data_id: string;
-  step_code: string;
-  correlation_id: string;
-  causation_id: string | null;
-  created_at: GeneratedTimestamp;
-}
-
-export interface MetricDefinitionTable {
-  id: Generated<string>;
-  enterprise_id: string | null;
-  code: string;
-  name: string;
-  description: string | null;
-  version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  value_type: string;
-  definition: JsonObject;
-  lineage: JsonObject;
-  created_at: GeneratedTimestamp;
-  published_at: Timestamp | null;
-}
-
-export interface SopDefinitionTable {
-  id: Generated<string>;
-  enterprise_id: string | null;
-  code: string;
-  name: string;
-  description: string | null;
-  created_at: GeneratedTimestamp;
-}
-
-export interface SopVersionTable {
-  id: Generated<string>;
-  sop_definition_id: string;
-  version: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'RETIRED';
-  summary: string | null;
-  config: JsonObject;
-  created_at: GeneratedTimestamp;
-  published_at: Timestamp | null;
-}
-
-export interface SopStepTable {
-  id: Generated<string>;
-  sop_version_id: string;
-  step_no: number;
-  code: string;
-  title: string;
-  instruction: string;
-  evidence_requirement: JsonObject;
-  control: JsonObject;
-}
-
-export interface CommandExecutionTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  application_instance_id: string;
-  command_definition_id: string;
-  actor_type: 'HUMAN' | 'AI' | 'AUTOMATION' | 'EXTERNAL_SYSTEM';
-  actor_id: string;
-  request_id: string;
-  correlation_id: string;
-  causation_id: string | null;
-  idempotency_scope: string;
-  idempotency_key: string;
-  input: JsonObject;
-  lineage: JsonObject | null;
-  status: 'RECEIVED' | 'PENDING_APPROVAL' | 'PROCESSING' | 'COMPLETED' | 'REJECTED' | 'FAILED';
-  result: JsonObject | null;
-  error: JsonObject | null;
-  created_at: GeneratedTimestamp;
-  completed_at: Timestamp | null;
-}
-
-export interface BusinessDataTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  application_instance_id: string;
-  command_execution_id: string;
-  business_data_type: string;
-  business_object_key: string;
-  business_object_version: ColumnType<bigint, bigint | number | string, bigint | number | string>;
-  effective_at: Timestamp;
-  metadata_version: number;
-  payload: JsonObject;
-  created_at: GeneratedTimestamp;
-}
-
-export interface EnterpriseRuntimeStateTable {
-  enterprise_id: string;
-  consistency_domain: string;
-  posting_mode: 'NORMAL' | 'REPLAYING' | 'FAILED';
-  replay_required: boolean;
-  next_posting_sequence: ColumnType<bigint, bigint | number | string, bigint | number | string>;
-  last_posted_effective_at: Timestamp | null;
-  last_posted_priority: number | null;
-  last_posted_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
-  active_replay_run_id: string | null;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface PostingInputTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  consistency_domain: string;
-  business_data_id: string;
-  application_instance_id: string;
-  effective_at: Timestamp;
-  posting_priority: number;
-  posting_sequence: ColumnType<bigint, bigint | number | string, bigint | number | string>;
-  metadata_version: number;
-  status: 'QUEUED' | 'BLOCKED_REPLAY_REQUIRED' | 'PROCESSING' | 'POSTED' | 'FAILED';
-  retroactive: boolean;
-  created_at: GeneratedTimestamp;
-  posted_at: Timestamp | null;
-}
-
-export interface OutboxEventTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  event_type: string;
-  event_version: number;
-  aggregate_type: string;
-  aggregate_id: string;
-  correlation_id: string;
-  causation_id: string | null;
-  payload: JsonObject;
-  status: 'PENDING' | 'PUBLISHED' | 'FAILED';
-  attempts: number;
-  available_at: Timestamp;
-  created_at: GeneratedTimestamp;
-  published_at: Timestamp | null;
-}
-
-
-export type Numeric = ColumnType<string, string, string>;
-
-export interface LedgerDatasetTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  consistency_domain: string;
-  kind: 'CURRENT' | 'CANDIDATE' | 'ARCHIVED';
-  status: 'BUILDING' | 'ACTIVE' | 'FAILED' | 'ARCHIVED';
-  posting_boundary_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
-  created_at: GeneratedTimestamp;
-  activated_at: Timestamp | null;
-}
-
-export interface PostingRunTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  consistency_domain: string;
-  posting_input_id: string;
-  mode: 'NORMAL' | 'REPLAY';
-  metadata_version: number;
-  status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  started_at: GeneratedTimestamp;
-  completed_at: Timestamp | null;
-  error: JsonObject | null;
-}
-
-export interface ValuationPostingRunTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  cost_run_id: string;
-  cost_result_id: string;
-  business_data_id: string;
-  valuation_rule_id: string;
-  valuation_rule_version: number;
-  previous_total_cost: Numeric;
-  target_total_cost: Numeric;
-  delta_total_cost: Numeric;
-  status: 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'NO_CHANGE';
-  created_at: GeneratedTimestamp;
-  completed_at: Timestamp | null;
-  error: JsonObject | null;
-}
-
-export interface ValuationPositionTable {
-  enterprise_id: string;
-  business_data_id: string;
-  valuation_rule_id: string;
-  valuation_rule_version: number;
-  total_cost: Numeric;
-  last_cost_result_id: string;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface LedgerEntryTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  consistency_domain: string;
-  ledger_dataset_id: string;
-  ledger_definition_id: string;
-  posting_run_id: string | null;
-  posting_input_id: string | null;
-  business_data_id: string;
-  posting_rule_id: string | null;
-  posting_rule_schema_version: number;
-  effect_index: number;
-  quantity: Numeric | null;
-  amount: Numeric | null;
-  unit: string | null;
-  currency: string | null;
-  dimensions: JsonObject;
-  dimension_hash: string;
-  effective_at: Timestamp;
-  posting_priority: number;
-  posting_sequence: ColumnType<bigint, bigint | number | string, bigint | number | string>;
-  entry_source_kind: Generated<'POSTING' | 'VALUATION'>;
-  valuation_posting_run_id: Generated<string | null>;
-  cost_result_id: Generated<string | null>;
-  valuation_rule_id: Generated<string | null>;
-  valuation_rule_version: Generated<number | null>;
-  created_at: GeneratedTimestamp;
-}
-
-export interface LedgerBalanceTable {
-  enterprise_id: string;
-  consistency_domain: string;
-  ledger_dataset_id: string;
-  ledger_definition_id: string;
-  dimension_hash: string;
-  dimensions: JsonObject;
-  quantity: Numeric;
-  amount: Numeric;
-  last_effective_at: Timestamp;
-  last_posting_priority: number;
-  last_posting_sequence: ColumnType<bigint, bigint | number | string, bigint | number | string>;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface PostingFailureTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  posting_input_id: string;
-  error_code: string;
-  error_message: string;
-  error_context: JsonObject;
-  retryable: boolean;
-  created_at: GeneratedTimestamp;
-}
-
-
-export interface PermissionGrantTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  actor_type: 'HUMAN' | 'AI' | 'AUTOMATION' | 'EXTERNAL_SYSTEM';
-  actor_id: string;
-  permission_code: string;
-  resource_scope: JsonObject;
-  created_at: GeneratedTimestamp;
-}
-
-export interface FeatureFlagTable {
-  id: Generated<string>;
-  code: string;
-  enterprise_id: string | null;
-  enabled: boolean;
-  config: JsonObject;
-  owner: string;
-  introduced_in: string;
-  expires_at: Timestamp | null;
-  created_at: GeneratedTimestamp;
-  updated_at: GeneratedTimestamp;
-}
-
-export interface WorkItemTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  work_type: string;
-  title: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
-  priority: number;
-  source_ledger_code: string;
-  source_dimension_hash: string;
-  source_dimensions: JsonObject;
-  source_quantity: Numeric;
-  source_amount: Numeric;
-  assigned_actor_type: string | null;
-  assigned_actor_id: string | null;
-  created_at: GeneratedTimestamp;
-  updated_at: GeneratedTimestamp;
-  completed_at: Timestamp | null;
-}
-
-export interface ReplayRunTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  consistency_domain: string;
-  mode: 'FULL';
-  status: 'PREPARING' | 'REBUILDING' | 'VALIDATING' | 'COMPLETED' | 'FAILED';
-  boundary_sequence: ColumnType<bigint | null, bigint | number | string | null, bigint | number | string | null>;
-  before_digest: string | null;
-  before_snapshot: JsonArray | JsonObject | null;
-  after_digest: string | null;
-  validation_status: 'MATCH' | 'MISMATCH' | 'NOT_VALIDATED' | null;
-  started_at: GeneratedTimestamp;
-  completed_at: Timestamp | null;
-  error: JsonObject | null;
-  cost_method: 'FIFO' | 'LIFO' | 'MOVING_AVERAGE' | 'SPECIFIC_IDENTIFICATION' | null;
-  valuation_policy_id: string | null;
-  valuation_policy_version: number | null;
-  valuation_rule_pins: JsonObject;
-}
-
-export interface CostRunTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  method: 'FIFO' | 'LIFO' | 'MOVING_AVERAGE' | 'SPECIFIC_IDENTIFICATION';
-  status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  started_at: GeneratedTimestamp;
-  completed_at: Timestamp | null;
-  error: JsonObject | null;
-  valuation_policy_id: string | null;
-  valuation_policy_version: number | null;
-  cost_engine_version: string;
-}
-
-export interface CostResultTable {
-  id: Generated<string>;
-  enterprise_id: string;
-  cost_run_id: string;
-  business_data_id: string;
-  pool_key: string;
-  method: string;
-  quantity: Numeric;
-  unit_cost: Numeric | null;
-  total_cost: Numeric | null;
-  valuation_rule_id: string | null;
-  valuation_rule_version: number | null;
-  created_at: GeneratedTimestamp;
-}
+export interface SchemaMigrationTable { version: string; checksum: string; applied_at: Timestamp; }
+export interface EvoRuntimeInfoTable { singleton: boolean; architecture_baseline: string; db_schema_version: number; updated_at: GeneratedTimestamp; }
+export interface EnterpriseTable { id: Generated<string>; code: string; name: string; status: 'ACTIVE'|'SUSPENDED'|'ARCHIVED'; default_timezone: string; created_at: GeneratedTimestamp; updated_at: GeneratedTimestamp; }
+export interface EnterpriseTemplateTable { id: Generated<string>; code: string; name: string; description: string|null; created_at: GeneratedTimestamp; }
+export interface EnterpriseTemplateVersionTable { id: Generated<string>; enterprise_template_id: string; version: number; status: 'DRAFT'|'PUBLISHED'|'RETIRED'; definition: JsonObject; semantic_digest: string; created_at: GeneratedTimestamp; published_at: Timestamp|null; }
+export interface EnterpriseTemplateBindingTable { enterprise_id: string; enterprise_template_id: string; enterprise_template_version_id: string; bound_at: GeneratedTimestamp; bound_by: string; binding_reason: string|null; }
+export interface DomainDefinitionTable { id: Generated<string>; code: string; name: string; description: string|null; created_at: GeneratedTimestamp; }
+export interface TransactionTypeTable { id: Generated<string>; domain_id: string; code: string; name: string; description: string|null; created_at: GeneratedTimestamp; }
+export interface ApplicationDefinitionTable { id: Generated<string>; transaction_type_id: string; code: string; name: string; description: string|null; created_at: GeneratedTimestamp; }
+export interface ApplicationDefinitionVersionTable { id: Generated<string>; application_definition_id: string; version: number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; schema_version:number; base_config:JsonObject; definition_hash:string|null; published_at:Timestamp|null; created_at:GeneratedTimestamp; }
+export interface FieldGroupDefinitionTable { id:Generated<string>; application_definition_version_id:string; code:string; label:string; sort_order:number; config:JsonObject; }
+export interface FieldDefinitionTable { id:Generated<string>; application_definition_version_id:string; field_group_id:string|null; code:string; label:string; data_type:string; required:boolean; reference_mode:'REFERENCE'|'SNAPSHOT'|null; sort_order:number; config:JsonObject; }
+export interface ApplicationInstanceTable { id:Generated<string>; enterprise_id:string; application_definition_id:string; code:string; name:string; pinned_definition_version:number|null; status:'ACTIVE'|'DISABLED'|'ARCHIVED'; config:JsonObject; created_at:GeneratedTimestamp; updated_at:GeneratedTimestamp; }
+export interface EnterpriseApplicationOverlayTable { id:Generated<string>; enterprise_id:string; application_instance_id:string; base_definition_version:number; overlay_version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; patch:JsonObject; overlay_hash:string|null; published_at:Timestamp|null; created_at:GeneratedTimestamp; }
+export interface CommandDefinitionTable { id:Generated<string>; application_definition_version_id:string; code:string; name:string; input_schema:JsonObject; preconditions:JsonArray; execution_policy:JsonObject; resulting_business_data_type:string; config:JsonObject; }
+export interface DimensionDefinitionTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; data_type:string; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; config:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface LedgerDefinitionTable { id:Generated<string>; code:string; name:string; quantity_semantics:string|null; amount_semantics:string|null; dimension_schema:JsonObject; config:JsonObject; created_at:GeneratedTimestamp; }
+export interface PostingRuleTable { id:Generated<string>; application_definition_version_id:string; code:string; priority:number; condition_ast:JsonObject; effect_ast:JsonObject; rule_schema_version:number; created_at:GeneratedTimestamp; }
+export interface ValuationRuleTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; source_business_data_type:string; inventory_ledger_code:string; cogs_ledger_code:string; dimension_mapping:JsonObject; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface ValuationPolicyTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; method:'FIFO'|'LIFO'|'MOVING_AVERAGE'|'SPECIFIC_IDENTIFICATION'; negative_inventory_policy:'DISALLOW_NEGATIVE'; pool_dimension_schema:JsonObject; config:JsonObject; version:number; status:'ACTIVE'|'RETIRED'; created_at:GeneratedTimestamp; }
+export interface AllocationPolicyTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; dimensions:JsonArray; eligibility:JsonObject; source_ordering:'OLDEST_FIRST'|'NEWEST_FIRST'|'EXPLICIT_ONLY'|'POLICY_DEFINED'; allow_partial_allocation:boolean; negative_position_policy:'REJECT'|'ALLOW_PROVISIONAL'|'DEFER_VALUATION'|'POLICY_DEFINED'; precision_policy:JsonObject; config:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface AllocationInstructionTable { id:Generated<string>; enterprise_id:string; consumer_business_data_id:string; mode:'EXPLICIT'|'AUTOMATIC'|'EXPLICIT_THEN_AUTOMATIC'; source_selector:JsonObject; actor_type:'HUMAN'|'AI'|'AUTOMATION'|'EXTERNAL_SYSTEM'; actor_id:string; effective_at:Timestamp; recorded_at:GeneratedTimestamp; reason:string|null; allocation_policy_id:string; allocation_policy_version:number; supersedes_instruction_id:string|null; idempotency_key:string; metadata:JsonObject; }
+export interface AllocationRunTable { id:Generated<string>; enterprise_id:string; economic_runtime_dataset_id:string|null; allocation_policy_id:string; allocation_policy_version:number; input_digest:string; status:'PROCESSING'|'COMPLETED'|'FAILED'; started_at:GeneratedTimestamp; completed_at:Timestamp|null; error:JsonObject|null; }
+export interface AllocationRelationTable { id:Generated<string>; enterprise_id:string; allocation_run_id:string; source_business_data_id:string|null; source_position_key:string|null; consumer_business_data_id:string; measurements:JsonArray; allocation_sequence:number; instruction_id:string|null; allocation_policy_id:string; allocation_policy_version:number; lineage:JsonObject; created_at:GeneratedTimestamp; }
+export interface PositionDefinitionTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; semantic_digest:string; dimensions:JsonArray; source_rules:JsonArray; config:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface RateDatasetTable { id:Generated<string>; enterprise_id:string|null; code:string; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; provider:string; semantic_digest:string; config:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface RateObservationTable { id:Generated<string>; enterprise_id:string|null; rate_dataset_id:string; rate_dataset_version:number; role:'TRANSACTION_RECOGNITION'|'SETTLEMENT'|'PERIOD_END_VALUATION'|'REPORTING_CONVERSION'; source_unit:string; target_unit:string; convention:'TARGET_PER_SOURCE'; rate:Numeric; effective_at:Timestamp; provider:string; precision:number; metadata:JsonObject; created_at:GeneratedTimestamp; }
+export interface CalculationDependencyEdgeTable { id:Generated<string>; enterprise_id:string; economic_runtime_dataset_id:string|null; graph_version:string; from_kind:string; from_id:string; to_kind:string; to_id:string; edge_kind:'ALLOCATION'|'VALUATION'|'PROJECTION'|'MATERIALIZATION'|'CALCULATION'; effective_from:Timestamp|null; lineage:JsonObject; created_at:GeneratedTimestamp; }
+export interface ReplayCheckpointTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; boundary_sequence:ColumnType<bigint,bigint|number|string,bigint|number|string>; ordered_input_digest:string; last_included_business_data_id:string|null; template_version:string; posting_policy_pins:JsonObject; allocation_policy_pins:JsonObject; valuation_policy_pins:JsonObject; reference_dataset_pins:JsonObject; runtime_semantic_version:string; dependency_graph_version:string; materialization_digest:string; validity:JsonObject; status:'ACTIVE'|'INVALIDATED'|'ARCHIVED'; parent_checkpoint_id:string|null; source_replay_run_id:string|null; invalidated_at:Timestamp|null; invalidation_reason:string|null; created_at:GeneratedTimestamp; }
+export interface ReplayCoverageCertificationTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; runtime_semantic_version:string; dependency_graph_version:string; certification_version:number; status:'DRAFT'|'CERTIFIED'|'REVOKED'; dependency_graph_complete:boolean; materialization_digest_complete:boolean; derived_runtime_replay_complete:boolean; reference_dataset_pins_complete:boolean; template_binding_complete:boolean; evidence:JsonObject; semantic_digest:string; certified_by:string|null; certified_at:Timestamp|null; revoked_at:Timestamp|null; revoke_reason:string|null; created_at:GeneratedTimestamp; }
+export interface ReplayCheckpointPromotionTable { id:Generated<string>; enterprise_id:string; checkpoint_id:string; certification_id:string; certification_version:number; certification_semantic_digest:string; status:'ACTIVE'|'REVOKED'; promoted_by:string; reason:string; evidence:JsonObject; promotion_digest:string; promoted_at:GeneratedTimestamp; revoked_at:Timestamp|null; revoked_by:string|null; revoke_reason:string|null; created_at:GeneratedTimestamp; }
+export interface EconomicRuntimeDatasetTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; kind:'CURRENT'|'CANDIDATE'|'ORACLE'|'ARCHIVED'; status:'BUILDING'|'ACTIVE'|'VERIFIED'|'FAILED'|'ARCHIVED'; parent_dataset_id:string|null; source_checkpoint_id:string|null; source_promotion_id:string|null; oracle_of_dataset_id:string|null; incremental_plan_digest:string|null; start_sequence:ColumnType<bigint|null,bigint|number|string|null,bigint|number|string|null>; boundary_sequence:ColumnType<bigint|null,bigint|number|string|null,bigint|number|string|null>; semantic_digest:string|null; failure_reason:string|null; verified_at:Timestamp|null; activated_at:Timestamp|null; created_at:GeneratedTimestamp; }
+export interface ReplayCheckpointMaterializationTable { id:Generated<string>; enterprise_id:string; checkpoint_id:string; family:'COST_POOL'|'LEDGER_BALANCE'|'VALUATION_POSITION'|'POSITION_STATE'; scope_key:string; schema_version:number; payload:JsonObject; semantic_digest:string; created_at:GeneratedTimestamp; }
+export interface ItemDefinitionTable { id:Generated<string>; enterprise_id:string; code:string; name:string; item_type:'MATERIAL'|'SEMI_FINISHED'|'FINISHED_GOOD'|'MERCHANDISE'|'CONSUMABLE'|'SERVICE'|'ASSET_ITEM'; track_inventory:boolean; default_fulfillment_mode:'MAKE'|'BUY'|'STOCK'|'SERVICE'|null; base_unit:string; config:JsonObject; created_at:GeneratedTimestamp; updated_at:GeneratedTimestamp; }
+export interface CapabilityDefinitionTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; description:string|null; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; config:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface FlowDefinitionTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; description:string|null; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; definition:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface FlowInstanceTable { id:Generated<string>; enterprise_id:string; flow_definition_id:string; instance_key:string; status:'ACTIVE'|'COMPLETED'|'CANCELLED'; started_at:GeneratedTimestamp; completed_at:Timestamp|null; }
+export interface BusinessObjectLinkTable { id:Generated<string>; enterprise_id:string; from_business_data_id:string; to_business_data_id:string; relation_type:'CAUSES'|'FULFILLS'|'ALLOCATES_TO'|'DERIVES_FROM'|'REFERENCES'; metadata:JsonObject; created_at:GeneratedTimestamp; }
+export interface FlowTraceTable { id:Generated<string>; enterprise_id:string; flow_definition_id:string; flow_instance_id:string; command_execution_id:string; business_data_id:string; step_code:string; correlation_id:string; causation_id:string|null; created_at:GeneratedTimestamp; }
+export interface MetricDefinitionTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; description:string|null; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; value_type:string; definition:JsonObject; lineage:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface SopDefinitionTable { id:Generated<string>; enterprise_id:string|null; code:string; name:string; description:string|null; created_at:GeneratedTimestamp; }
+export interface SopVersionTable { id:Generated<string>; sop_definition_id:string; version:number; status:'DRAFT'|'PUBLISHED'|'RETIRED'; summary:string|null; config:JsonObject; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export interface SopStepTable { id:Generated<string>; sop_version_id:string; step_no:number; code:string; title:string; instruction:string; evidence_requirement:JsonObject; control:JsonObject; }
+export interface CommandExecutionTable { id:Generated<string>; enterprise_id:string; application_instance_id:string; command_definition_id:string; actor_type:'HUMAN'|'AI'|'AUTOMATION'|'EXTERNAL_SYSTEM'; actor_id:string; request_id:string; correlation_id:string; causation_id:string|null; idempotency_scope:string; idempotency_key:string; input:JsonObject; lineage:JsonObject|null; status:'RECEIVED'|'PENDING_APPROVAL'|'PROCESSING'|'COMPLETED'|'REJECTED'|'FAILED'; result:JsonObject|null; error:JsonObject|null; created_at:GeneratedTimestamp; completed_at:Timestamp|null; }
+export interface BusinessDataTable { id:Generated<string>; enterprise_id:string; application_instance_id:string; command_execution_id:string; business_data_type:string; business_object_key:string; business_object_version:ColumnType<bigint,bigint|number|string,bigint|number|string>; effective_at:Timestamp; metadata_version:number; payload:JsonObject; created_at:GeneratedTimestamp; }
+export interface EnterpriseRuntimeStateTable { enterprise_id:string; consistency_domain:string; posting_mode:'NORMAL'|'REPLAYING'|'FAILED'; replay_required:boolean; next_posting_sequence:ColumnType<bigint,bigint|number|string,bigint|number|string>; last_posted_effective_at:Timestamp|null; last_posted_priority:number|null; last_posted_sequence:ColumnType<bigint|null,bigint|number|string|null,bigint|number|string|null>; active_replay_run_id:string|null; updated_at:GeneratedTimestamp; }
+export interface PostingInputTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; business_data_id:string; application_instance_id:string; effective_at:Timestamp; posting_priority:number; posting_sequence:ColumnType<bigint,bigint|number|string,bigint|number|string>; metadata_version:number; status:'QUEUED'|'BLOCKED_REPLAY_REQUIRED'|'PROCESSING'|'POSTED'|'FAILED'; retroactive:boolean; created_at:GeneratedTimestamp; posted_at:Timestamp|null; }
+export interface OutboxEventTable { id:Generated<string>; enterprise_id:string; event_type:string; event_version:number; aggregate_type:string; aggregate_id:string; correlation_id:string; causation_id:string|null; payload:JsonObject; status:'PENDING'|'PUBLISHED'|'FAILED'; attempts:number; available_at:Timestamp; created_at:GeneratedTimestamp; published_at:Timestamp|null; }
+export type Numeric=ColumnType<string,string,string>;
+export interface LedgerDatasetTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; economic_runtime_dataset_id:string|null; kind:'CURRENT'|'CANDIDATE'|'ARCHIVED'; status:'BUILDING'|'ACTIVE'|'FAILED'|'ARCHIVED'; posting_boundary_sequence:ColumnType<bigint|null,bigint|number|string|null,bigint|number|string|null>; created_at:GeneratedTimestamp; activated_at:Timestamp|null; }
+export interface PostingRunTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; posting_input_id:string; economic_runtime_dataset_id:string|null; mode:'NORMAL'|'REPLAY'; metadata_version:number; status:'PROCESSING'|'COMPLETED'|'FAILED'; started_at:GeneratedTimestamp; completed_at:Timestamp|null; error:JsonObject|null; }
+export interface ValuationPostingRunTable { id:Generated<string>; enterprise_id:string; cost_run_id:string; cost_result_id:string; business_data_id:string; valuation_rule_id:string; valuation_rule_version:number; previous_total_cost:Numeric; target_total_cost:Numeric; delta_total_cost:Numeric; status:'PROCESSING'|'COMPLETED'|'FAILED'|'NO_CHANGE'; created_at:GeneratedTimestamp; completed_at:Timestamp|null; error:JsonObject|null; }
+export interface ValuationPositionTable { id:Generated<string>; enterprise_id:string; economic_runtime_dataset_id:string|null; business_data_id:string; valuation_rule_id:string; valuation_rule_version:number; total_cost:Numeric; last_cost_result_id:string; updated_at:GeneratedTimestamp; }
+export interface ValuationRunTable { id:Generated<string>; enterprise_id:string; economic_runtime_dataset_id:string|null; request_business_data_id:string|null; valuation_kind:string; effective_at:Timestamp; input_digest:string; rate_dataset_id:string|null; rate_dataset_version:number|null; rate_dataset_digest:string|null; policy:JsonObject; status:'PROCESSING'|'COMPLETED'|'FAILED'; started_at:GeneratedTimestamp; completed_at:Timestamp|null; error:JsonObject|null; }
+export interface ValuationResultTable { id:Generated<string>; enterprise_id:string; valuation_run_id:string; result_kind:string; position_key:string; source_business_data_ids:JsonArray; dimensions:JsonObject; source_measurements:JsonArray; target_measurements:JsonArray; delta_amount:Numeric; delta_unit:string; lineage:JsonObject; created_at:GeneratedTimestamp; }
+export interface LedgerEntryTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; ledger_dataset_id:string; ledger_definition_id:string; posting_run_id:string|null; posting_input_id:string|null; business_data_id:string; posting_rule_id:string|null; posting_rule_schema_version:number; effect_index:number; quantity:Numeric|null; amount:Numeric|null; unit:string|null; currency:string|null; dimensions:JsonObject; dimension_hash:string; effective_at:Timestamp; posting_priority:number; posting_sequence:ColumnType<bigint,bigint|number|string,bigint|number|string>; entry_source_kind:Generated<'POSTING'|'VALUATION'>; valuation_posting_run_id:Generated<string|null>; cost_result_id:Generated<string|null>; valuation_rule_id:Generated<string|null>; valuation_rule_version:Generated<number|null>; created_at:GeneratedTimestamp; }
+export interface LedgerBalanceTable { enterprise_id:string; consistency_domain:string; ledger_dataset_id:string; ledger_definition_id:string; dimension_hash:string; dimensions:JsonObject; quantity:Numeric; amount:Numeric; last_effective_at:Timestamp; last_posting_priority:number; last_posting_sequence:ColumnType<bigint,bigint|number|string,bigint|number|string>; updated_at:GeneratedTimestamp; }
+export interface PostingFailureTable { id:Generated<string>; enterprise_id:string; posting_input_id:string; error_code:string; error_message:string; error_context:JsonObject; retryable:boolean; created_at:GeneratedTimestamp; }
+export interface PermissionGrantTable { id:Generated<string>; enterprise_id:string; actor_type:'HUMAN'|'AI'|'AUTOMATION'|'EXTERNAL_SYSTEM'; actor_id:string; permission_code:string; resource_scope:JsonObject; created_at:GeneratedTimestamp; }
+export interface FeatureFlagTable { id:Generated<string>; code:string; enterprise_id:string|null; enabled:boolean; config:JsonObject; owner:string; introduced_in:string; expires_at:Timestamp|null; created_at:GeneratedTimestamp; updated_at:GeneratedTimestamp; }
+export interface WorkItemTable { id:Generated<string>; enterprise_id:string; economic_runtime_dataset_id:string|null; work_type:string; title:string; status:'OPEN'|'IN_PROGRESS'|'DONE'|'CANCELLED'; priority:number; source_ledger_code:string; source_dimension_hash:string; source_dimensions:JsonObject; source_quantity:Numeric; source_amount:Numeric; assigned_actor_type:string|null; assigned_actor_id:string|null; created_at:GeneratedTimestamp; updated_at:GeneratedTimestamp; completed_at:Timestamp|null; }
+export interface ReplayRunTable { id:Generated<string>; enterprise_id:string; consistency_domain:string; mode:'FULL'; status:'PREPARING'|'REBUILDING'|'VALIDATING'|'COMPLETED'|'FAILED'; boundary_sequence:ColumnType<bigint|null,bigint|number|string|null,bigint|number|string|null>; before_digest:string|null; before_snapshot:JsonArray|JsonObject|null; after_digest:string|null; validation_status:'MATCH'|'MISMATCH'|'NOT_VALIDATED'|null; started_at:GeneratedTimestamp; completed_at:Timestamp|null; error:JsonObject|null; cost_method:'FIFO'|'LIFO'|'MOVING_AVERAGE'|'SPECIFIC_IDENTIFICATION'|null; valuation_policy_id:string|null; valuation_policy_version:number|null; allocation_policy_id:string|null; allocation_policy_version:number|null; valuation_rule_pins:JsonObject; }
+export interface CostRunTable { id:Generated<string>; enterprise_id:string; economic_runtime_dataset_id:string|null; method:'FIFO'|'LIFO'|'MOVING_AVERAGE'|'SPECIFIC_IDENTIFICATION'; status:'PROCESSING'|'COMPLETED'|'FAILED'; started_at:GeneratedTimestamp; completed_at:Timestamp|null; error:JsonObject|null; valuation_policy_id:string|null; valuation_policy_version:number|null; allocation_policy_id:string|null; allocation_policy_version:number|null; cost_engine_version:string; }
+export interface CostResultTable { id:Generated<string>; enterprise_id:string; cost_run_id:string; business_data_id:string; pool_key:string; method:string; quantity:Numeric; unit_cost:Numeric|null; total_cost:Numeric|null; valuation_rule_id:string|null; valuation_rule_version:number|null; created_at:GeneratedTimestamp; }
 
 export interface Database {
-  schema_migrations: SchemaMigrationTable;
-  evo_runtime_info: EvoRuntimeInfoTable;
-  enterprise: EnterpriseTable;
-  domain_definition: DomainDefinitionTable;
-  transaction_type: TransactionTypeTable;
-  application_definition: ApplicationDefinitionTable;
-  application_definition_version: ApplicationDefinitionVersionTable;
-  field_group_definition: FieldGroupDefinitionTable;
-  field_definition: FieldDefinitionTable;
-  application_instance: ApplicationInstanceTable;
-  enterprise_application_overlay: EnterpriseApplicationOverlayTable;
-  command_definition: CommandDefinitionTable;
-  dimension_definition: DimensionDefinitionTable;
-  ledger_definition: LedgerDefinitionTable;
-  posting_rule: PostingRuleTable;
-  valuation_rule: ValuationRuleTable;
-  valuation_policy: ValuationPolicyTable;
-  command_execution: CommandExecutionTable;
-  business_data: BusinessDataTable;
-  enterprise_runtime_state: EnterpriseRuntimeStateTable;
-  posting_input: PostingInputTable;
-  outbox_event: OutboxEventTable;
-  ledger_dataset: LedgerDatasetTable;
-  posting_run: PostingRunTable;
-  ledger_entry: LedgerEntryTable;
-  valuation_posting_run: ValuationPostingRunTable;
-  valuation_position: ValuationPositionTable;
-  ledger_balance: LedgerBalanceTable;
-  posting_failure: PostingFailureTable;
-  permission_grant: PermissionGrantTable;
-  feature_flag: FeatureFlagTable;
-  work_item: WorkItemTable;
-  replay_run: ReplayRunTable;
-  cost_run: CostRunTable;
-  cost_result: CostResultTable;
-  item_definition: ItemDefinitionTable;
-  capability_definition: CapabilityDefinitionTable;
-  flow_definition: FlowDefinitionTable;
-  flow_instance: FlowInstanceTable;
-  business_object_link: BusinessObjectLinkTable;
-  flow_trace: FlowTraceTable;
-  metric_definition: MetricDefinitionTable;
-  sop_definition: SopDefinitionTable;
-  sop_version: SopVersionTable;
-  sop_step: SopStepTable;
+ schema_migrations:SchemaMigrationTable; evo_runtime_info:EvoRuntimeInfoTable; enterprise:EnterpriseTable;
+ enterprise_template:EnterpriseTemplateTable; enterprise_template_version:EnterpriseTemplateVersionTable; enterprise_template_binding:EnterpriseTemplateBindingTable;
+ domain_definition:DomainDefinitionTable; transaction_type:TransactionTypeTable; application_definition:ApplicationDefinitionTable; application_definition_version:ApplicationDefinitionVersionTable; field_group_definition:FieldGroupDefinitionTable; field_definition:FieldDefinitionTable; application_instance:ApplicationInstanceTable; enterprise_application_overlay:EnterpriseApplicationOverlayTable; command_definition:CommandDefinitionTable; dimension_definition:DimensionDefinitionTable; ledger_definition:LedgerDefinitionTable; posting_rule:PostingRuleTable; valuation_rule:ValuationRuleTable; valuation_policy:ValuationPolicyTable; allocation_policy:AllocationPolicyTable; allocation_instruction:AllocationInstructionTable; allocation_run:AllocationRunTable; allocation_relation:AllocationRelationTable; position_definition:PositionDefinitionTable; rate_dataset:RateDatasetTable; rate_observation:RateObservationTable; calculation_dependency_edge:CalculationDependencyEdgeTable; replay_checkpoint:ReplayCheckpointTable; replay_coverage_certification:ReplayCoverageCertificationTable; replay_checkpoint_promotion:ReplayCheckpointPromotionTable; economic_runtime_dataset:EconomicRuntimeDatasetTable; replay_checkpoint_materialization:ReplayCheckpointMaterializationTable; command_execution:CommandExecutionTable; business_data:BusinessDataTable; enterprise_runtime_state:EnterpriseRuntimeStateTable; posting_input:PostingInputTable; outbox_event:OutboxEventTable; ledger_dataset:LedgerDatasetTable; posting_run:PostingRunTable; ledger_entry:LedgerEntryTable; valuation_posting_run:ValuationPostingRunTable; valuation_position:ValuationPositionTable; valuation_run:ValuationRunTable; valuation_result:ValuationResultTable; ledger_balance:LedgerBalanceTable; posting_failure:PostingFailureTable; permission_grant:PermissionGrantTable; feature_flag:FeatureFlagTable; work_item:WorkItemTable; replay_run:ReplayRunTable; cost_run:CostRunTable; cost_result:CostResultTable; item_definition:ItemDefinitionTable; capability_definition:CapabilityDefinitionTable; flow_definition:FlowDefinitionTable; flow_instance:FlowInstanceTable; business_object_link:BusinessObjectLinkTable; flow_trace:FlowTraceTable; metric_definition:MetricDefinitionTable; sop_definition:SopDefinitionTable; sop_version:SopVersionTable; sop_step:SopStepTable;
 }

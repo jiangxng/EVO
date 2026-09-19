@@ -1,9 +1,16 @@
+import { sql } from 'kysely';
 import { createDatabase } from '../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../platform/runtime/src/config.js';
+import { PostgresEnterpriseTemplateService } from '../modules/enterprise-template/infrastructure/postgres-enterprise-template-service.js';
+import { enterpriseCoreV1 } from '../modules/enterprise-template/reference/enterprise-core-v1.js';
+import { PostgresPositionDefinitionStore } from '../modules/position/infrastructure/postgres-position-definition-store.js';
 
 const config = loadRuntimeConfig();
 const database = createDatabase(config.databaseUrl);
 const db = database.db;
+
+const jsonArray = (value: readonly unknown[]) =>
+  sql<readonly unknown[]>`${JSON.stringify(value)}::jsonb`;
 
 async function one<T>(promise: Promise<T | undefined>, label: string): Promise<T> {
   const value = await promise;
@@ -25,6 +32,22 @@ try {
     'enterprise'
   );
 
+  const enterpriseTemplates = new PostgresEnterpriseTemplateService(db);
+  await enterpriseTemplates.publish({
+    templateCode: 'enterprise-core',
+    templateName: 'EVO Enterprise Core',
+    description: 'Cross-industry reference enterprise template for EVO deterministic runtime certification.',
+    version: 1,
+    definition: enterpriseCoreV1
+  });
+  await enterpriseTemplates.bindEnterprise(
+    'EVO_DEMO',
+    'enterprise-core',
+    1,
+    'seed-demo',
+    'Reference enterprise deterministic runtime certification'
+  );
+
   async function domain(code: string, name: string) {
     return one(
       db.insertInto('domain_definition')
@@ -36,6 +59,7 @@ try {
   const salesDomain = await domain('sales', 'Sales');
   const productionDomain = await domain('production', 'Production');
   const inventoryDomain = await domain('inventory', 'Inventory');
+  const valuationDomain = await domain('valuation', 'Valuation');
 
   async function txType(domainId: string, code: string, name: string) {
     return one(
@@ -48,6 +72,7 @@ try {
   const salesType = await txType(salesDomain.id, 'sales_order', 'Sales Order');
   const productionType = await txType(productionDomain.id, 'production_completion', 'Production Completion');
   const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
+  const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
 
   async function app(code: string, name: string, typeId: string) {
     return one(
@@ -60,6 +85,7 @@ try {
   const salesApp = await app('sales_order', 'Sales Order', salesType.id);
   const productionApp = await app('production_completion', 'Production Completion', productionType.id);
   const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
+  const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
 
   async function version(appId: string) {
     const existing = await db.selectFrom('application_definition_version')
@@ -80,6 +106,7 @@ try {
   const salesVersion = await version(salesApp.id);
   const productionVersion = await version(productionApp.id);
   const inventoryVersion = await version(inventoryApp.id);
+  const valuationVersion = await version(valuationApp.id);
 
   async function instance(appId: string, code: string, name: string) {
     return one(
@@ -98,6 +125,7 @@ try {
   await instance(salesApp.id, 'sales', 'Sales');
   await instance(productionApp.id, 'production', 'Production');
   await instance(inventoryApp.id, 'inventory', 'Inventory');
+  await instance(valuationApp.id, 'valuation', 'Valuation');
 
   await db.insertInto('item_definition').values({
     enterprise_id: enterprise.id,
@@ -201,7 +229,7 @@ try {
       application_definition_version_id: versionId,
       code, name,
       input_schema: { type: 'object' },
-      preconditions: [],
+      preconditions: jsonArray([]),
       execution_policy: {},
       resulting_business_data_type: resultType,
       config: {}
@@ -211,6 +239,8 @@ try {
     })).execute();
   }
   await command(salesVersion.id, 'approve-sales-order', 'Approve Sales Order', 'sales_order.approved');
+  await command(salesVersion.id, 'record-customer-payment', 'Record Customer Payment', 'customer_payment.received');
+  await command(valuationVersion.id, 'request-valuation', 'Request Valuation', 'valuation.requested');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
@@ -290,13 +320,13 @@ try {
     project: field('project'), department: field('department'),
     profit_center: field('profitCenter'), cost_center: field('costCenter')
   };
-  await rule(salesVersion.id,'order-pending-production',10,trueExpr,{
+  await rule(salesVersion.id,'order-pending-production',10,eq('eventKind','ORDER'),{
     ledgerCode:'pending_production', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
-  await rule(salesVersion.id,'order-pending-shipment',20,trueExpr,{
+  await rule(salesVersion.id,'order-pending-shipment',20,eq('eventKind','ORDER'),{
     ledgerCode:'pending_shipment', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
-  await rule(salesVersion.id,'order-receivable',30,trueExpr,{
+  await rule(salesVersion.id,'order-receivable',30,eq('eventKind','ORDER'),{
     ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: orderDims
   });
 
@@ -336,6 +366,36 @@ try {
     ]).doNothing()).execute();
   }
 
+  const positionDefinitions = new PostgresPositionDefinitionStore(db);
+  await positionDefinitions.publish({
+    enterpriseId: enterprise.id,
+    code: 'fx_receivable',
+    name: 'FX Receivable Position',
+    version: 1,
+    dimensions: [
+      { code: 'order_no', field: 'orderNo' },
+      { code: 'customer', field: 'customer' }
+    ],
+    sourceRules: [{
+      businessDataType: 'sales_order.approved',
+      direction: 'INCREASE',
+      foreign: {
+        valueField: 'totalAmount',
+        unitField: 'currency',
+        role: 'RESOURCE_QUANTITY'
+      },
+      carrying: {
+        valueField: 'localCarryingAmount',
+        unitField: 'localCurrency',
+        role: 'VALUATION_AMOUNT'
+      }
+    }],
+    config: {
+      semantic: 'OPEN_FX_RECEIVABLE',
+      settlementBusinessDataType: 'customer_payment.received'
+    }
+  });
+
   await db.insertInto('feature_flag').values({
     code: 'v10_reference_flow',
     enterprise_id: enterprise.id,
@@ -370,6 +430,74 @@ try {
     status: 'PUBLISHED'
   })).execute();
 
+  const costRuntimeConfig = {
+    inboundBusinessDataTypes: ['production.completed','inventory.received'],
+    outboundBusinessDataTypes: ['sales_shipment.created'],
+    quantityField: 'quantity',
+    quantityUnit: 'EA',
+    basisAmountField: 'totalCost',
+    basisUnit: 'CNY',
+    specificIdentityField: 'lot'
+  };
+
+  const allocationPolicies = [
+    ['inventory_fifo','Inventory FIFO Allocation','OLDEST_FIRST'],
+    ['inventory_lifo','Inventory LIFO Allocation','NEWEST_FIRST'],
+    ['inventory_specific','Inventory Specific Identification','EXPLICIT_ONLY'],
+    ['fx_settlement_explicit','FX Settlement Explicit Allocation','EXPLICIT_ONLY']
+  ] as const;
+  for (const [code,name,sourceOrdering] of allocationPolicies) {
+    await db.insertInto('allocation_policy').values({
+      enterprise_id: enterprise.id,
+      code,
+      name,
+      version: 1,
+      status: 'PUBLISHED',
+      dimensions: jsonArray(['warehouse','productId']),
+      eligibility: code === 'fx_settlement_explicit'
+        ? {
+            sourceBusinessDataTypes: ['sales_order.approved'],
+            consumerBusinessDataTypes: ['customer_payment.received']
+          }
+        : {
+            inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
+            outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
+          },
+      source_ordering: sourceOrdering,
+      allow_partial_allocation: true,
+      negative_position_policy: 'REJECT',
+      precision_policy: {
+        quantityScale: 6,
+        amountScale: 6,
+        roundingMode: 'HALF_UP',
+        residualRecipient: 'FINAL_SOURCE'
+      },
+      config: {
+        specificIdentityField: costRuntimeConfig.specificIdentityField
+      },
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name,
+      status: 'PUBLISHED',
+      dimensions: jsonArray(['warehouse','productId']),
+      source_ordering: sourceOrdering,
+      eligibility: code === 'fx_settlement_explicit'
+        ? {
+            sourceBusinessDataTypes: ['sales_order.approved'],
+            consumerBusinessDataTypes: ['customer_payment.received']
+          }
+        : {
+            inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
+            outboundBusinessDataTypes: costRuntimeConfig.outboundBusinessDataTypes
+          },
+      precision_policy: {
+        quantityScale: 6,
+        amountScale: 6,
+        roundingMode: 'HALF_UP',
+        residualRecipient: 'FINAL_SOURCE'
+      }
+    })).execute();
+  }
   for (const method of ['FIFO','LIFO','MOVING_AVERAGE','SPECIFIC_IDENTIFICATION'] as const) {
     await db.insertInto('valuation_policy').values({
       enterprise_id: enterprise.id,
@@ -378,10 +506,14 @@ try {
       method,
       negative_inventory_policy: 'DISALLOW_NEGATIVE',
       pool_dimension_schema: { keys: ['warehouse','productId'] },
-      config: { alpha2: true },
+      config: costRuntimeConfig,
       version: 1,
       status: 'ACTIVE'
-    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({ status: 'ACTIVE' })).execute();
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      status: 'ACTIVE',
+      pool_dimension_schema: { keys: ['warehouse','productId'] },
+      config: costRuntimeConfig
+    })).execute();
   }
 
   console.log(JSON.stringify({

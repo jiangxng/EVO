@@ -1,0 +1,16 @@
+{
+  "$schema":"evo.enterprise-runtime-separation/1.0",
+  "status":"CONVERGENCE_CANDIDATE",
+  "concerns":{
+    "businessFact":{"owner":"BusinessData","examples":["productionDate","measureUnit","paymentTerm"]},
+    "lineage":{"owner":"BusinessData/LedgerEntry explicit lineage","examples":["transCode","transDetailId","orderCode","processCode"]},
+    "ordering":{"owner":"PostingInput","examples":["effectiveTime","seqTime"]},
+    "effect":{"owner":"LedgerEntry","examples":["qty","amount","foreign"]},
+    "dimension":{"owner":"DimensionDefinition + explicit mapping","examples":["entityId","matCode","whCode","facilityCode","projectId","departmentId","batchNo"]},
+    "matching":{"owner":"Explicit Matching/Settlement relation","examples":["transMatchedCode","transMatchedSeq","qtyTbMatched","amntTbMatched"]},
+    "derivedBalance":{"owner":"Balance projection","examples":["qtyWaterBal","amntWaterBal"]},
+    "runtimeControl":{"owner":"Runtime control metadata","examples":["version","componentId","firstValue","lastValue"]},
+    "costValuation":{"owner":"CostRun/CostResult/ValuationPosting","examples":["inventoryCost","costCarryOver"]}
+  },
+  "rule":"Legacy physical calculation columns MUST NOT force unrelated concerns into a new EVO table or definition family."
+}

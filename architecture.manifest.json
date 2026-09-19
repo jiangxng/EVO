@@ -7,7 +7,8 @@
     "EVO-11",
     "EVO-12",
     "EVO-13-v0.2",
-    "EVO-v1.0.0-alpha.2"
+    "EVO-v1.0.0-alpha.2",
+    "Economic-Runtime-Freeze-v0.1"
   ],
   "modules": {
     "identity": {
@@ -78,7 +79,8 @@
       "mayDependOn": [
         "metadata",
         "business-data",
-        "ledger"
+        "ledger",
+        "materialization"
       ]
     },
     "ledger": {
@@ -90,7 +92,8 @@
       ],
       "mayDependOn": [
         "metadata",
-        "dimensions"
+        "dimensions",
+        "materialization"
       ]
     },
     "cost": {
@@ -99,24 +102,41 @@
         "cost_layer",
         "cost_match",
         "cost_result",
-        "cost_run"
+        "cost_run",
+        "cost/allocation policy pin lineage"
       ],
       "mayDependOn": [
         "metadata",
         "ledger",
-        "valuation"
+        "valuation",
+        "allocation",
+        "economic",
+        "lineage",
+        "materialization"
       ]
     },
     "replay": {
       "owns": [
-        "replay_run"
+        "replay_run",
+        "replay_checkpoint",
+        "calculation_dependency_edge",
+        "replay preservation of allocation policy pins",
+        "replay_checkpoint_promotion",
+        "governed incremental-safe checkpoint promotion",
+        "replay_checkpoint_materialization",
+        "checkpoint prefix-state capture and restore orchestration"
       ],
       "mayDependOn": [
+        "metadata",
         "business-data",
         "posting",
         "ledger",
         "cost",
-        "valuation"
+        "valuation",
+        "allocation",
+        "economic",
+        "lineage",
+        "materialization"
       ]
     },
     "workflow": {
@@ -128,7 +148,8 @@
       "mayDependOn": [
         "metadata",
         "command",
-        "query"
+        "query",
+        "materialization"
       ]
     },
     "ai": {
@@ -220,18 +241,116 @@
         "valuation_rule",
         "valuation_posting_run",
         "valuation_position",
-        "valuation posting execution"
+        "valuation posting execution",
+        "valuation_run",
+        "valuation_result",
+        "FX period-end valuation runtime",
+        "FX realized settlement valuation runtime",
+        "canonical valuation.requested interpretation and replay lineage"
       ],
       "mayDependOn": [
         "metadata",
         "ledger",
         "posting",
-        "dimensions"
+        "dimensions",
+        "economic",
+        "allocation",
+        "lineage",
+        "position",
+        "business-data",
+        "materialization"
+      ]
+    },
+    "enterprise-package": {
+      "owns": [
+        "enterprise package contract",
+        "definition-only package validation",
+        "deployment plan and target orchestration"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "enterprise-template": {
+      "owns": [
+        "enterprise_template",
+        "enterprise_template_version",
+        "enterprise_template_binding",
+        "enterprise template version pinning"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "economic": {
+      "owns": [
+        "economic measurement contracts",
+        "basis evidence contracts",
+        "rate_dataset",
+        "rate_observation",
+        "rate observation and dataset pin contracts"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "allocation": {
+      "owns": [
+        "allocation_policy",
+        "allocation_instruction",
+        "allocation_run",
+        "allocation_relation",
+        "allocation instruction contracts",
+        "allocation policy contracts",
+        "allocation relation contracts",
+        "allocation run semantics"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "economic",
+        "business-data",
+        "lineage",
+        "materialization"
+      ]
+    },
+    "lineage": {
+      "owns": [
+        "calculation dependency semantic contracts",
+        "calculation dependency emission/query port"
+      ],
+      "mayDependOn": [
+        "metadata"
+      ]
+    },
+    "position": {
+      "owns": [
+        "position_definition",
+        "versioned position semantics",
+        "position resolution contracts"
+      ],
+      "mayDependOn": [
+        "metadata",
+        "business-data",
+        "allocation",
+        "economic"
+      ]
+    },
+    "materialization": {
+      "owns": [
+        "economic_runtime_dataset",
+        "runtime materialization generation identity",
+        "candidate/current/archive lifecycle",
+        "generation activation semantics",
+        "isolated ORACLE runtime generation",
+        "oracle-of-candidate materialization provenance"
+      ],
+      "mayDependOn": [
+        "metadata"
       ]
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 7,
+  "dbSchemaVersion": 21,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",

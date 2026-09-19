@@ -1,4 +1,5 @@
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 
 export interface WorkItemView {
   readonly id: string;
@@ -13,6 +14,13 @@ export interface WorkItemView {
 }
 
 export interface WorkProjection {
-  refresh(enterpriseId: string): Promise<number>;
-  listOpen(enterpriseId: string): Promise<readonly WorkItemView[]>;
+  refresh(
+    enterpriseId: string,
+    materialization?: MaterializationContext
+  ): Promise<number>;
+
+  listOpen(
+    enterpriseId: string,
+    materialization?: MaterializationContext
+  ): Promise<readonly WorkItemView[]>;
 }

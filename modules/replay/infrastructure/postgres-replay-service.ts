@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
 import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
+import { computeEconomicRuntimeDigest } from './postgres-replay-digest.js';
 import type {
   ReplayResult,
   ReplayService
@@ -20,27 +20,20 @@ export class PostgresReplayService implements ReplayService {
 
       const boundary = BigInt(runtime.next_posting_sequence) - 1n;
 
-      const balances = await trx
-        .selectFrom('ledger_balance as b')
-        .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
-        .select(['d.code as ledger','b.dimension_hash','b.quantity','b.amount'])
-        .where('b.enterprise_id', '=', enterpriseId)
-        .orderBy('d.code')
-        .orderBy('b.dimension_hash')
-        .execute();
+      const beforeDigest = await computeEconomicRuntimeDigest(
+        trx,
+        enterpriseId,
+        runtime.consistency_domain,
+        boundary
+      );
 
-      const beforeSnapshot = balances.map((row) => ({
-        ledger: row.ledger,
-        dimension_hash: row.dimension_hash,
-        quantity: row.quantity,
-        amount: row.amount
-      }));
-      const beforeDigest = createHash('sha256')
-        .update(JSON.stringify(beforeSnapshot))
-        .digest('hex');
+      const beforeSnapshot = {
+        digestScope: 'economic-runtime-v0.1',
+        digest: beforeDigest
+      };
 
       const latestCostRun = await trx.selectFrom('cost_run')
-        .select(['id','method','valuation_policy_id','valuation_policy_version'])
+        .select(['id','method','valuation_policy_id','valuation_policy_version','allocation_policy_id','allocation_policy_version'])
         .where('enterprise_id','=',enterpriseId)
         .where('status','=','COMPLETED')
         .orderBy('started_at','desc')
@@ -65,6 +58,11 @@ export class PostgresReplayService implements ReplayService {
         }
       }
 
+      // node-postgres serializes top-level arrays as PostgreSQL array literals. These columns are jsonb,
+      // so serialize explicitly at the infrastructure boundary to preserve the JSON array/object shape.
+      const beforeSnapshotJson = JSON.stringify(beforeSnapshot);
+      const valuationRulePinsJson = JSON.stringify(valuationRulePins);
+
       const run = await trx
         .insertInto('replay_run')
         .values({
@@ -74,7 +72,7 @@ export class PostgresReplayService implements ReplayService {
           status: 'REBUILDING',
           boundary_sequence: boundary,
           before_digest: beforeDigest,
-          before_snapshot: beforeSnapshot,
+          before_snapshot: sql`${beforeSnapshotJson}::jsonb`,
           after_digest: null,
           validation_status: 'NOT_VALIDATED',
           completed_at: null,
@@ -82,7 +80,9 @@ export class PostgresReplayService implements ReplayService {
           cost_method: latestCostRun?.method ?? null,
           valuation_policy_id: latestCostRun?.valuation_policy_id ?? null,
           valuation_policy_version: latestCostRun?.valuation_policy_version ?? null,
-          valuation_rule_pins: valuationRulePins
+          allocation_policy_id: latestCostRun?.allocation_policy_id ?? null,
+          allocation_policy_version: latestCostRun?.allocation_policy_version ?? null,
+          valuation_rule_pins: sql`${valuationRulePinsJson}::jsonb`
         })
         .returning('id')
         .executeTakeFirstOrThrow();
@@ -119,14 +119,53 @@ export class PostgresReplayService implements ReplayService {
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('valuation_posting_run')
         .where('enterprise_id', '=', enterpriseId).execute();
+
+      // Generic valuation runs/results (including FX period-end and realized settlement)
+      // are derived interpretation state. Canonical BusinessData and RateDataset survive replay.
+      const valuationRunIds = await trx.selectFrom('valuation_run')
+        .select('id')
+        .where('enterprise_id','=',enterpriseId)
+        .execute();
+      const derivedValuationRunIds = valuationRunIds.map((row) => row.id);
+      if (derivedValuationRunIds.length > 0) {
+        await trx.deleteFrom('valuation_result')
+          .where('valuation_run_id','in',derivedValuationRunIds)
+          .execute();
+        await trx.deleteFrom('valuation_run')
+          .where('id','in',derivedValuationRunIds)
+          .execute();
+      }
       await trx.deleteFrom('cost_result')
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('cost_run')
         .where('enterprise_id', '=', enterpriseId).execute();
+
+      // Allocation instructions are canonical business intent and must survive replay.
+      // Allocation runs/relations are derived interpretation results and are rebuilt.
+      const allocationRunIds = await trx.selectFrom('allocation_run')
+        .select('id')
+        .where('enterprise_id','=',enterpriseId)
+        .execute();
+      const derivedAllocationRunIds = allocationRunIds.map((row) => row.id);
+      if (derivedAllocationRunIds.length > 0) {
+        await trx.deleteFrom('allocation_relation')
+          .where('allocation_run_id','in',derivedAllocationRunIds)
+          .execute();
+        await trx.deleteFrom('allocation_run')
+          .where('id','in',derivedAllocationRunIds)
+          .execute();
+      }
       await trx.deleteFrom('posting_run')
         .where('enterprise_id', '=', enterpriseId).execute();
       await trx.deleteFrom('posting_failure')
         .where('enterprise_id', '=', enterpriseId).execute();
+
+      // WorkItems are derived operational materialization. They must not survive
+      // a Full Replay as stale CURRENT/CANDIDATE state; rebuild them from the
+      // reconstructed ledger balances after replay.
+      await trx.deleteFrom('work_item')
+        .where('enterprise_id', '=', enterpriseId)
+        .execute();
 
       await trx
         .updateTable('posting_input')
@@ -156,6 +195,9 @@ export class PostgresReplayService implements ReplayService {
         costPins: latestCostRun === undefined ? null : {
           ...(latestCostRun.valuation_policy_id !== null && latestCostRun.valuation_policy_version !== null
             ? { valuationPolicyId: latestCostRun.valuation_policy_id, valuationPolicyVersion: latestCostRun.valuation_policy_version }
+            : {}),
+          ...(latestCostRun.allocation_policy_id !== null && latestCostRun.allocation_policy_version !== null
+            ? { allocationPolicyId: latestCostRun.allocation_policy_id, allocationPolicyVersion: latestCostRun.allocation_policy_version }
             : {}),
           valuationRules: valuationRulePins
         }

@@ -1,9 +1,9 @@
 # EVO Global Invariants
 
-Status: Authoritative
-Context Version: 1.0
+Status: **CONSTITUTIONAL / AUTHORITATIVE**
+Context Version: 1.1
 
-These rules are architecture constraints, not implementation suggestions.
+These rules are architecture constraints, not implementation suggestions. They are binding on humans, LLMs, migrations, generators, tests and future implementations. A later implementation MUST NOT silently weaken them. A deliberate constitutional change requires an explicit Architecture Change record, rationale, compatibility/data impact, migration plan and tests.
 
 - INV-001: Every write that creates Actual BusinessData must pass through the Command boundary.
 - INV-002: Business history is preserved; historical BusinessData is not silently rewritten to represent later state.
@@ -23,6 +23,28 @@ These rules are architecture constraints, not implementation suggestions.
 - INV-016: Breaking public contract changes require a version change, compatibility statement, migration and tests.
 - INV-017: Core semantic changes to Command → BusinessData → Posting → Ledger → Cost require an Architecture Change record.
 - INV-018: Repository documentation, contracts and tests are authoritative over chat history or LLM memory.
+
+## LLM-Native Engineering Constitution
+
+- INV-019 — Repository Is Memory: EVO MUST remain understandable and maintainable without access to the chat/model that created it. Architecture, ownership, interfaces, invariants, lineage, version semantics, migration decisions and non-obvious algorithms MUST be documented in-repository.
+- INV-020 — Context Determinism: An LLM following the repository read order and authoritative artifacts MUST be able to recover the intended architecture without reconstructing historical conversations. When equal-authority sources conflict, implementation MUST stop until the conflict is explicitly resolved.
+- INV-021 — Small Replaceable Modules: Implementation SHOULD be decomposed behind explicit contracts so an LLM can modify one bounded module without loading the whole system. Dependency direction and ownership MUST remain explicit.
+- INV-022 — Explain Non-Obvious Semantics: Code alone is not sufficient documentation for business invariants, replay ordering, accounting direction, cost propagation, allocation, version selection or migration decisions. Those semantics MUST have adjacent durable documentation and executable tests.
+- INV-023 — Deterministic Runtime Without LLM: EVO Instance runtime MUST remain fully operational without an LLM. LLMs may design, analyze, compile or propose outside runtime; deterministic EVO services execute authoritative operations.
+
+## Eleven-Year Legacy Preservation Constitution
+
+Asloop-Backend is the older and broader calculation/ERP implementation. `bookkeeping` is a later simplification of accounting/calculation semantics but is incomplete and does not supersede all Asloop behavior. Neither repository is copied as EVO architecture; both are evidence sources for LLM-native convergence.
+
+- INV-024 — Lossless First: No source datum, metadata item, relation, expression, rule, code-encoded business semantic or historical test dataset from Asloop-Backend or bookkeeping may disappear merely because of context-window limits, token limits, file size, implementation convenience, apparent redundancy, or because EVO cannot yet express it.
+- INV-025 — No Unjustified Deletion: Every discovered legacy item MUST receive a traceable disposition: PRESERVED, TRANSFORMED, MERGED, SPLIT, LEGACY_ONLY, DEPRECATED, or UNRESOLVED. DEPRECATED and UNRESOLVED content remains retained with provenance.
+- INV-026 — Source Conservation: For every migrated source dataset, source cardinality and identity MUST reconcile to migration evidence. Normalization may reduce runtime definitions only when every source item remains traceable to its disposition and zero items are silently dropped.
+- INV-027 — Raw Evidence Is Immutable: Raw legacy evidence and provenance are retained independently from normalized EVO definitions. Normalized data and generated Enterprise Templates never replace the source evidence record.
+- INV-028 — Semantics Over Implementation: EVO MUST preserve useful business meaning while rejecting legacy implementation coupling such as physical legacy schemas, mutable historical balance chains, dynamic-SQL accounting, stored-procedure accounting, controller/DAO/UI coupling, implicit latest-version behavior and direct cost-to-balance mutation.
+- INV-029 — Bookkeeping Is Not Complete Authority: Simplification found in bookkeeping MUST NOT be interpreted as evidence that broader Asloop semantics are obsolete. Where bookkeeping does not cover Asloop behavior, that Asloop behavior remains a migration candidate until explicitly classified with evidence.
+- INV-030 — LLM-Native Rewrite: Legacy executable code is a semantic source, not a codebase to mechanically port. EVO implementations MUST be rewritten against canonical EVO contracts, deterministic invariants and bounded modules, with documentation sufficient for a different LLM to understand why the implementation exists.
+- INV-031 — Batch Processing Must Be Lossless: Large datasets MAY be analyzed in batches, but batching MUST NOT become sampling. Batch manifests, counts, source locators and reconciliation MUST make the union of batches equivalent to the accounted source set.
+- INV-032 — Full-Scale Data Validation: Migration and runtime architecture MUST preserve the ability to load and exercise complete enterprise-scale legacy-derived datasets for stress, replay, posting, balance, cost, lineage and deterministic reconstruction tests. Sample/demo data is never sufficient evidence of migration completeness.
 
 ## Alpha.2 Dimensions + Valuation Posting
 
