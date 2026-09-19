@@ -119,9 +119,7 @@
         "calculation_dependency_edge",
         "replay preservation of allocation policy pins",
         "replay_checkpoint_promotion",
-        "governed incremental-safe checkpoint promotion",
-        "economic_runtime_dataset",
-        "economic runtime materialization generation lifecycle"
+        "governed incremental-safe checkpoint promotion"
       ],
       "mayDependOn": [
         "metadata",
@@ -132,7 +130,8 @@
         "valuation",
         "allocation",
         "economic",
-        "lineage"
+        "lineage",
+        "materialization"
       ]
     },
     "workflow": {
@@ -326,6 +325,17 @@
         "business-data",
         "allocation",
         "economic"
+      ]
+    },
+    "materialization": {
+      "owns": [
+        "economic_runtime_dataset",
+        "runtime materialization generation identity",
+        "candidate/current/archive lifecycle",
+        "generation activation semantics"
+      ],
+      "mayDependOn": [
+        "metadata"
       ]
     }
   },
