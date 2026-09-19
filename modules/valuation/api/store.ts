@@ -3,6 +3,7 @@ import type {
   RateDatasetPin
 } from '../../economic/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 
 export interface StartValuationRunInput {
   readonly enterpriseId: string;
@@ -12,6 +13,7 @@ export interface StartValuationRunInput {
   readonly inputDigest: string;
   readonly rateDataset?: RateDatasetPin;
   readonly policy: JsonObject;
+  readonly materialization?: MaterializationContext;
 }
 
 export interface RecordValuationResultInput {
