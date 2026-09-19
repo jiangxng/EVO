@@ -1,5 +1,6 @@
 import type { Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
+import type { JsonObject } from '../../metadata/api/contracts.js';
 import type {
   BuildCostCheckpointStateRequest,
   CostCheckpointStateBuilder
@@ -31,8 +32,8 @@ implements CostCheckpointStateBuilder {
     }
 
     const definition = valuationInputDefinition(
-      policy.config as never,
-      policy.pool_dimension_schema as never
+      policy.config as JsonObject,
+      policy.pool_dimension_schema as JsonObject
     );
 
     const movements = await this.inputs.list(
