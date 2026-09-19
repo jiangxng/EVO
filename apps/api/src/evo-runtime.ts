@@ -24,7 +24,7 @@ import { PostgresReplayTopologyStore } from '../../../modules/replay/infrastruct
 import { PostgresReplayCheckpointService } from '../../../modules/replay/infrastructure/postgres-replay-checkpoint-service.js';
 import { PostgresReplayCoverageCertificationService } from '../../../modules/replay/infrastructure/postgres-replay-coverage-certification-service.js';
 import { PostgresReplayCheckpointPromotionService } from '../../../modules/replay/infrastructure/postgres-replay-checkpoint-promotion-service.js';
-import { PostgresEconomicRuntimeDatasetService } from '../../../modules/replay/infrastructure/postgres-economic-runtime-dataset-service.js';
+import { PostgresEconomicRuntimeDatasetService } from '../../../modules/materialization/infrastructure/postgres-economic-runtime-dataset-service.js';
 import { PostgresDependencyGraphRebuilder } from '../../../modules/lineage/infrastructure/postgres-dependency-graph-rebuilder.js';
 import { DefaultIncrementalReplayPlanner } from '../../../modules/replay/application/incremental-replay-planner.js';
 import { PostgresValuationInputReader } from '../../../modules/cost/infrastructure/postgres-valuation-input-reader.js';
