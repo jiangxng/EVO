@@ -15,13 +15,16 @@ function asBigInt(value: unknown): bigint {
 }
 
 function edgeFromRow(row: {
-  id:string; enterprise_id:string; graph_version:string; from_kind:string; from_id:string;
+  id:string; enterprise_id:string; economic_runtime_dataset_id:string|null; graph_version:string; from_kind:string; from_id:string;
   to_kind:string; to_id:string; edge_kind:CalculationDependencyEdge['edgeKind'];
   effective_from: unknown; lineage: JsonObject;
 }): CalculationDependencyEdge {
   return {
     id: row.id,
     enterpriseId: row.enterprise_id,
+    ...(row.economic_runtime_dataset_id !== null
+      ? { runtimeDatasetId: row.economic_runtime_dataset_id }
+      : {}),
     graphVersion: row.graph_version,
     fromKind: row.from_kind,
     fromId: row.from_id,
@@ -73,6 +76,7 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
   ): Promise<CalculationDependencyEdge> {
     const inserted = await this.db.insertInto('calculation_dependency_edge').values({
       enterprise_id: edge.enterpriseId,
+      economic_runtime_dataset_id: edge.runtimeDatasetId ?? null,
       graph_version: edge.graphVersion,
       from_kind: edge.fromKind,
       from_id: edge.fromId,
@@ -82,12 +86,12 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
       effective_from: edge.effectiveFrom ?? null,
       lineage: edge.lineage
     }).onConflict((oc) => oc.columns([
-      'enterprise_id','graph_version','from_kind','from_id','to_kind','to_id','edge_kind'
+      'enterprise_id','economic_runtime_dataset_id','graph_version','from_kind','from_id','to_kind','to_id','edge_kind'
     ]).doNothing())
       .returningAll()
       .executeTakeFirst();
 
-    const row = inserted ?? await this.db.selectFrom('calculation_dependency_edge')
+    let fallbackQuery = this.db.selectFrom('calculation_dependency_edge')
       .selectAll()
       .where('enterprise_id','=',edge.enterpriseId)
       .where('graph_version','=',edge.graphVersion)
@@ -95,7 +99,13 @@ export class PostgresReplayTopologyStore implements ReplayTopologyStore {
       .where('from_id','=',edge.fromId)
       .where('to_kind','=',edge.toKind)
       .where('to_id','=',edge.toId)
-      .where('edge_kind','=',edge.edgeKind)
+      .where('edge_kind','=',edge.edgeKind);
+
+    fallbackQuery = edge.runtimeDatasetId === undefined
+      ? fallbackQuery.where('economic_runtime_dataset_id','is',null)
+      : fallbackQuery.where('economic_runtime_dataset_id','=',edge.runtimeDatasetId);
+
+    const row = inserted ?? await fallbackQuery
       .executeTakeFirstOrThrow();
 
     return edgeFromRow({
