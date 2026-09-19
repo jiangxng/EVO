@@ -252,7 +252,8 @@
         "allocation",
         "lineage",
         "position",
-        "business-data"
+        "business-data",
+        "materialization"
       ]
     },
     "enterprise-package": {
