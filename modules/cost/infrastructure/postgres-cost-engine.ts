@@ -15,6 +15,7 @@ import type { ValuationPostingService } from '../../valuation/api/contracts.js';
 import type { ValuationInputReader } from '../api/valuation-input.js';
 import type {
   CostEngine,
+  CostIncrementalResume,
   CostMethod,
   CostRecalculationResult,
   CostReplayPins
@@ -34,6 +35,81 @@ interface PoolState {
   readonly averageContributors: Set<string>;
   averageQuantity: Decimal;
   averageAmount: Decimal;
+}
+
+function restorePools(
+  method: CostMethod,
+  resume: CostIncrementalResume | undefined
+): Map<string, PoolState> {
+  const pools = new Map<string,PoolState>();
+  if (resume === undefined) return pools;
+
+  for (const snapshot of resume.poolStates) {
+    if (snapshot.method !== method) {
+      fail(
+        'COST_CHECKPOINT_METHOD_MISMATCH',
+        `Checkpoint pool ${snapshot.poolKey} uses ${snapshot.method}, expected ${method}.`
+      );
+    }
+    if (pools.has(snapshot.poolKey)) {
+      fail(
+        'COST_CHECKPOINT_POOL_DUPLICATE',
+        `Checkpoint contains duplicate cost pool ${snapshot.poolKey}.`
+      );
+    }
+
+    if (method === 'MOVING_AVERAGE') {
+      if (snapshot.movingAverage === undefined) {
+        fail(
+          'COST_CHECKPOINT_MOVING_AVERAGE_STATE_REQUIRED',
+          `Checkpoint pool ${snapshot.poolKey} is missing moving-average state.`
+        );
+      }
+      const quantity = new Decimal(snapshot.movingAverage.quantity);
+      const amount = new Decimal(snapshot.movingAverage.amount);
+      if (!quantity.isFinite() || !amount.isFinite() || quantity.lt(0)) {
+        fail(
+          'COST_CHECKPOINT_STATE_INVALID',
+          `Checkpoint moving-average pool ${snapshot.poolKey} is invalid.`
+        );
+      }
+      pools.set(snapshot.poolKey,{
+        layers: [],
+        averageContributors: new Set(snapshot.movingAverage.contributorBusinessDataIds),
+        averageQuantity: quantity,
+        averageAmount: amount
+      });
+      continue;
+    }
+
+    const layers: Layer[] = snapshot.layers.map((layer) => {
+      const quantity = new Decimal(layer.remainingQuantity);
+      const unitCost = new Decimal(layer.unitCost);
+      if (!quantity.isFinite() || quantity.lte(0) || !unitCost.isFinite()) {
+        fail(
+          'COST_CHECKPOINT_STATE_INVALID',
+          `Checkpoint layer ${layer.sourceBusinessDataId} in pool ${snapshot.poolKey} is invalid.`
+        );
+      }
+      return {
+        businessDataId: layer.sourceBusinessDataId,
+        quantity,
+        unitCost,
+        ...(layer.specificIdentity !== undefined
+          ? { specificIdentity: layer.specificIdentity }
+          : {})
+      };
+    });
+
+    pools.set(snapshot.poolKey,{
+      layers,
+      averageContributors: new Set<string>(),
+      averageQuantity: new Decimal(0),
+      averageAmount: new Decimal(0)
+    });
+  }
+
+  return pools;
 }
 
 function fail(code: string, message: string, details?: JsonObject): never {
@@ -59,17 +135,33 @@ export class PostgresCostEngine implements CostEngine {
     enterpriseId: string,
     method: CostMethod,
     pins?: CostReplayPins,
-    materialization?: MaterializationContext
+    materialization?: MaterializationContext,
+    resume?: CostIncrementalResume
   ): Promise<CostRecalculationResult> {
-    if (materialization?.mode === 'CANDIDATE') {
+    if (materialization?.mode === 'CANDIDATE' && resume === undefined) {
       fail(
         'COST_CANDIDATE_PREFIX_STATE_REQUIRED',
-        'Candidate cost recalculation is blocked until checkpoint cost-pool prefix state is available.',
+        'Candidate cost recalculation requires checkpoint cost-pool prefix state.',
         {
           enterpriseId,
           runtimeDatasetId: materialization.runtimeDatasetId,
           method
         }
+      );
+    }
+    if (resume !== undefined && materialization?.mode !== 'CANDIDATE') {
+      fail(
+        'COST_INCREMENTAL_CONTEXT_REQUIRED',
+        'Checkpoint-resumed cost recalculation requires a CANDIDATE materialization context.'
+      );
+    }
+    if (
+      resume !== undefined &&
+      resume.targetBoundarySequence <= resume.checkpointBoundarySequence
+    ) {
+      fail(
+        'COST_INCREMENTAL_BOUNDARY_INVALID',
+        'Incremental cost target boundary must be strictly after the checkpoint boundary.'
       );
     }
 
@@ -177,7 +269,16 @@ export class PostgresCostEngine implements CostEngine {
     let allocationRunId: string | undefined;
 
     try {
-      const movements = await this.inputs.list(enterpriseId, inputDefinition);
+      const movements = await this.inputs.list(
+        enterpriseId,
+        inputDefinition,
+        resume === undefined
+          ? undefined
+          : {
+              afterSequence: resume.checkpointBoundarySequence,
+              atOrBeforeSequence: resume.targetBoundarySequence
+            }
+      );
 
       if (allocationPolicy !== undefined) {
         const inputDigest = createHash('sha256').update(JSON.stringify({
@@ -185,6 +286,11 @@ export class PostgresCostEngine implements CostEngine {
           method,
           valuationPolicy: { id: policy.id, version: policy.version },
           allocationPolicy: { id: allocationPolicy.id, version: allocationPolicy.version },
+          resume: resume === undefined ? null : {
+            checkpointBoundarySequence: resume.checkpointBoundarySequence.toString(),
+            targetBoundarySequence: resume.targetBoundarySequence.toString(),
+            poolStates: resume.poolStates
+          },
           movements: movements.map((movement) => ({
             id: movement.businessDataId,
             type: movement.businessDataType,
@@ -209,7 +315,7 @@ export class PostgresCostEngine implements CostEngine {
         allocationRunId = allocationRun.id;
       }
 
-      const pools = new Map<string, PoolState>();
+      const pools = restorePools(method,resume);
       let resultCount = 0;
       let valuationPostingCount = 0;
 
@@ -263,6 +369,9 @@ export class PostgresCostEngine implements CostEngine {
             for (const sourceBusinessDataId of [...state.averageContributors].sort()) {
               await this.dependencies.recordDependency({
                 enterpriseId,
+                ...(materialization !== undefined
+                  ? { runtimeDatasetId: materialization.runtimeDatasetId }
+                  : {}),
                 graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
                 fromKind: 'BUSINESS_FACT',
                 fromId: sourceBusinessDataId,
@@ -377,6 +486,9 @@ export class PostgresCostEngine implements CostEngine {
         const unitCost = total.div(quantity);
         await this.dependencies.recordDependency({
           enterpriseId,
+          ...(materialization !== undefined
+            ? { runtimeDatasetId: materialization.runtimeDatasetId }
+            : {}),
           graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
           fromKind: 'POLICY_VERSION',
           fromId: versionedDependencyNodeId(policy.id,policy.version),
@@ -394,6 +506,9 @@ export class PostgresCostEngine implements CostEngine {
         if (allocationPolicy !== undefined) {
           await this.dependencies.recordDependency({
             enterpriseId,
+            ...(materialization !== undefined
+              ? { runtimeDatasetId: materialization.runtimeDatasetId }
+              : {}),
             graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
             fromKind: 'POLICY_VERSION',
             fromId: versionedDependencyNodeId(allocationPolicy.id,allocationPolicy.version),
