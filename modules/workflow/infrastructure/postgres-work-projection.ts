@@ -1,6 +1,7 @@
 import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 import type {
   WorkItemView,
   WorkProjection
@@ -15,8 +16,11 @@ const workTypeByLedger: Record<string, { type: string; title: string; priority: 
 export class PostgresWorkProjection implements WorkProjection {
   constructor(private readonly db: Kysely<Database>) {}
 
-  async refresh(enterpriseId: string): Promise<number> {
-    const balances = await this.db
+  async refresh(
+    enterpriseId: string,
+    materialization?: MaterializationContext
+  ): Promise<number> {
+    let query = this.db
       .selectFrom('ledger_balance as b')
       .innerJoin('ledger_definition as d', 'd.id', 'b.ledger_definition_id')
       .innerJoin('ledger_dataset as ds', 'ds.id', 'b.ledger_dataset_id')
@@ -27,9 +31,16 @@ export class PostgresWorkProjection implements WorkProjection {
         'b.quantity',
         'b.amount'
       ])
-      .where('b.enterprise_id', '=', enterpriseId)
-      .where('ds.status', '=', 'ACTIVE')
-      .execute();
+      .where('b.enterprise_id', '=', enterpriseId);
+
+    query = materialization?.mode === 'CANDIDATE'
+      ? query
+          .where('ds.economic_runtime_dataset_id','=',materialization.runtimeDatasetId)
+          .where('ds.kind','=','CANDIDATE')
+          .where('ds.status','=','BUILDING')
+      : query.where('ds.status', '=', 'ACTIVE');
+
+    const balances = await query.execute();
 
     let changed = 0;
     for (const row of balances) {
@@ -43,6 +54,7 @@ export class PostgresWorkProjection implements WorkProjection {
         .insertInto('work_item')
         .values({
           enterprise_id: enterpriseId,
+          economic_runtime_dataset_id: materialization?.runtimeDatasetId ?? null,
           work_type: mapping.type,
           title: mapping.title,
           status: positive ? 'OPEN' : 'DONE',
@@ -59,6 +71,7 @@ export class PostgresWorkProjection implements WorkProjection {
         .onConflict((oc) =>
           oc.columns([
             'enterprise_id',
+            'economic_runtime_dataset_id',
             'work_type',
             'source_ledger_code',
             'source_dimension_hash'
@@ -77,12 +90,21 @@ export class PostgresWorkProjection implements WorkProjection {
     return changed;
   }
 
-  async listOpen(enterpriseId: string): Promise<readonly WorkItemView[]> {
-    const rows = await this.db
+  async listOpen(
+    enterpriseId: string,
+    materialization?: MaterializationContext
+  ): Promise<readonly WorkItemView[]> {
+    let query = this.db
       .selectFrom('work_item')
       .selectAll()
       .where('enterprise_id', '=', enterpriseId)
-      .where('status', 'in', ['OPEN', 'IN_PROGRESS'])
+      .where('status', 'in', ['OPEN', 'IN_PROGRESS']);
+
+    query = materialization === undefined
+      ? query.where('economic_runtime_dataset_id','is',null)
+      : query.where('economic_runtime_dataset_id','=',materialization.runtimeDatasetId);
+
+    const rows = await query
       .orderBy('priority', 'desc')
       .orderBy('created_at')
       .execute();
