@@ -60,4 +60,31 @@ implements MaterializationContextResolver {
       mode: 'CANDIDATE'
     };
   }
+
+  async oracle(
+    runtimeDatasetId: string,
+    enterpriseId: string,
+    consistencyDomain: string
+  ): Promise<MaterializationContext> {
+    const row = await this.db.selectFrom('economic_runtime_dataset')
+      .select(['id','enterprise_id','consistency_domain','kind','status'])
+      .where('id','=',runtimeDatasetId)
+      .executeTakeFirstOrThrow();
+
+    if (
+      row.enterprise_id !== enterpriseId ||
+      row.consistency_domain !== consistencyDomain ||
+      row.kind !== 'ORACLE' ||
+      row.status !== 'BUILDING'
+    ) {
+      throw new Error(
+        'Oracle materialization context requires a BUILDING ORACLE dataset in the exact enterprise/consistency scope.'
+      );
+    }
+
+    return {
+      runtimeDatasetId: row.id,
+      mode: 'ORACLE'
+    };
+  }
 }
