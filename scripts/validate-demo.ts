@@ -881,62 +881,130 @@ try {
     throw new Error('Candidate Economic Runtime digest must be a deterministic SHA-256 digest.');
   }
 
-  // Independent oracle: after freezing the candidate semantic digest, rebuild the
-  // entire updated canonical history from the beginning. This intentionally destroys
-  // candidate derived state and is certification-harness behavior, not production activation.
-  const oracleReplay = await runtime.replay.prepareFullReplay(ids.enterpriseId);
-  if (oracleReplay.boundarySequence !== incrementalTargetBoundary) {
+  // Isolated Full Replay oracle: rebuild the entire updated canonical history
+  // into a separate ORACLE generation while CURRENT and CANDIDATE remain intact.
+  const oracleDataset = await runtime.runtimeDatasets.createOracle({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    parentDatasetId: currentRuntimeDataset.id,
+    oracleOfDatasetId: incrementalCandidate.id,
+    boundarySequence: incrementalTargetBoundary
+  });
+  const oracleContext = await runtime.materializationContexts.oracle(
+    oracleDataset.id,
+    ids.enterpriseId,
+    consistencyDomain
+  );
+
+  const oraclePosting = await runtime.candidatePostingReplay.replayRange(
+    ids.enterpriseId,
+    0n,
+    incrementalTargetBoundary,
+    oracleContext
+  );
+  if (oraclePosting.postingInputCount !== Number(incrementalTargetBoundary)) {
     throw new Error(
-      `Full Replay oracle boundary ${oracleReplay.boundarySequence} does not match incremental target ${incrementalTargetBoundary}.`
+      `Isolated oracle must replay the complete posting range, got ${oraclePosting.postingInputCount} inputs through boundary ${incrementalTargetBoundary}.`
     );
   }
 
-  await drainPosting(runtime,ids.enterpriseId);
-
-  if (oracleReplay.costMethod !== null) {
-    await runtime.cost.recalculate(
-      ids.enterpriseId,
-      oracleReplay.costMethod,
-      oracleReplay.costPins ?? undefined
+  const oracleCost = await runtime.cost.recalculate(
+    ids.enterpriseId,
+    'FIFO',
+    {
+      valuationPolicyId: fifoPolicy.id,
+      valuationPolicyVersion: fifoPolicy.version,
+      allocationPolicyId: fifoAllocationPolicy.id,
+      allocationPolicyVersion: fifoAllocationPolicy.version,
+      valuationRules: {
+        'sales_shipment.created': {
+          id: shipmentValuationRule.id,
+          version: shipmentValuationRule.version
+        }
+      }
+    },
+    oracleContext
+  );
+  if (oracleCost.resultCount !== 2) {
+    throw new Error(
+      `Isolated Full Replay oracle expected two shipment cost results, got ${oracleCost.resultCount}.`
     );
   }
 
   const oracleValuationReplay = await runtime.valuationReplay.replayAcceptedRequests(
     ids.enterpriseId,
     consistencyDomain,
-    oracleReplay.boundarySequence
+    incrementalTargetBoundary,
+    oracleContext
   );
   if (oracleValuationReplay.replayedRequestCount !== 2) {
     throw new Error(
-      `Independent Full Replay oracle expected two valuation requests, got ${oracleValuationReplay.replayedRequestCount}.`
+      `Isolated Full Replay oracle expected two valuation requests, got ${oracleValuationReplay.replayedRequestCount}.`
     );
   }
 
-  await runtime.work.refresh(ids.enterpriseId);
-
-  const oracleDigest = await computeEconomicRuntimeDigest(
-    runtime.db,
+  const oracleWorkProjectionCount = await runtime.work.refresh(
     ids.enterpriseId,
-    consistencyDomain,
-    oracleReplay.boundarySequence
+    oracleContext
   );
+  if (oracleWorkProjectionCount < 1) {
+    throw new Error('Isolated Full Replay oracle must rebuild work materialization.');
+  }
 
-  await runtime.replay.completeFullReplay(
-    oracleReplay.replayRunId,
-    ids.enterpriseId,
-    oracleDigest
+  const oracleDigestResult = await runtime.oracleEconomicRuntimeDigest.compute(
+    oracleDataset.id
   );
-
-  if (candidateDigest.digest !== oracleDigest) {
+  if (candidateDigest.digest !== oracleDigestResult.digest) {
     throw new Error(
-      `Incremental equivalence mismatch: candidate=${candidateDigest.digest}, oracle=${oracleDigest}`
+      `Incremental equivalence mismatch: candidate=${candidateDigest.digest}, oracle=${oracleDigestResult.digest}`
     );
   }
 
-  const oracleRunRecord = await runtime.db.selectFrom('replay_run')
-    .select(['validation_status','before_digest','after_digest'])
-    .where('id','=',oracleReplay.replayRunId)
+  const verifiedOracle = await runtime.runtimeDatasets.markVerified(
+    oracleDataset.id,
+    oracleDigestResult.digest
+  );
+  if (verifiedOracle.kind !== 'ORACLE' || verifiedOracle.status !== 'VERIFIED') {
+    throw new Error('Exact-match oracle generation must become ORACLE/VERIFIED.');
+  }
+
+  const intactCandidate = await runtime.db.selectFrom('economic_runtime_dataset')
+    .select(['kind','status'])
+    .where('id','=',incrementalCandidate.id)
     .executeTakeFirstOrThrow();
+  if (intactCandidate.kind !== 'CANDIDATE' || intactCandidate.status !== 'BUILDING') {
+    throw new Error('Isolated oracle certification must leave the Candidate intact and BUILDING.');
+  }
+
+  const candidateCostStillExists = await runtime.db.selectFrom('cost_run')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  if (Number(candidateCostStillExists.count) < 1) {
+    throw new Error('Isolated oracle must not destroy Candidate derived state.');
+  }
+
+  const currentSuffixPosting = await runtime.db.selectFrom('posting_input')
+    .select('status')
+    .where('business_data_id','=',incrementalShipmentBusiness.id)
+    .executeTakeFirstOrThrow();
+  if (currentSuffixPosting.status !== 'QUEUED') {
+    throw new Error('Isolated oracle must not advance CURRENT posting state.');
+  }
+
+  const currentWorkAfterOracle = await runtime.work.listOpen(ids.enterpriseId);
+  const currentPendingShipmentAfterOracle = currentWorkAfterOracle.find((item) =>
+    item.sourceLedgerCode === 'pending_shipment'
+  );
+  if (
+    currentPendingShipmentAfterOracle === undefined ||
+    !new Decimal(currentPendingShipmentAfterOracle.quantity).eq(8)
+  ) {
+    throw new Error(
+      'CURRENT work state must remain at checkpoint quantity 8 while Candidate/Oracle evaluate suffix state 7.'
+    );
+  }
 
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
@@ -945,11 +1013,13 @@ try {
     );
   }
 
-  const replayedFxResults = await runtime.db.selectFrom('valuation_result')
-    .select(['result_kind','delta_amount'])
-    .where('enterprise_id','=',ids.enterpriseId)
-    .where('result_kind','in',['FX_PERIOD_END','FX_REALIZED_SETTLEMENT'])
-    .orderBy('result_kind')
+  const replayedFxResults = await runtime.db.selectFrom('valuation_result as result')
+    .innerJoin('valuation_run as run','run.id','result.valuation_run_id')
+    .select(['result.result_kind','result.delta_amount'])
+    .where('result.enterprise_id','=',ids.enterpriseId)
+    .where('run.economic_runtime_dataset_id','=',oracleDataset.id)
+    .where('result.result_kind','in',['FX_PERIOD_END','FX_REALIZED_SETTLEMENT'])
+    .orderBy('result.result_kind')
     .execute();
   const replayedPeriod = replayedFxResults.find((row) => row.result_kind === 'FX_PERIOD_END');
   const replayedSettlement = replayedFxResults.find((row) => row.result_kind === 'FX_REALIZED_SETTLEMENT');
@@ -1037,11 +1107,17 @@ try {
       pendingShipmentQuantity: candidatePendingShipment.quantity,
       candidateEconomicRuntimeDigest: candidateDigest.digest,
       candidateDigestFamilyCounts: candidateDigest.familyCounts,
-      fullReplayOracleDigest: oracleDigest,
-      incrementalEqualsFullReplay: candidateDigest.digest === oracleDigest,
-      oracleReplayValidationStatus: oracleRunRecord.validation_status,
-      oracleReplayBeforeDigest: oracleRunRecord.before_digest,
-      oracleReplayAfterDigest: oracleRunRecord.after_digest,
+      isolatedOracleDatasetId: oracleDataset.id,
+      isolatedOracleStatus: verifiedOracle.status,
+      isolatedOraclePostingInputCount: oraclePosting.postingInputCount,
+      isolatedOracleCostResultCount: oracleCost.resultCount,
+      isolatedOracleWorkProjectionCount: oracleWorkProjectionCount,
+      fullReplayOracleDigest: oracleDigestResult.digest,
+      oracleDigestFamilyCounts: oracleDigestResult.familyCounts,
+      incrementalEqualsFullReplay: candidateDigest.digest === oracleDigestResult.digest,
+      candidateStillIntact: intactCandidate.status === 'BUILDING',
+      currentSuffixPostingStatus: currentSuffixPosting.status,
+      currentPendingShipmentQuantity: currentPendingShipmentAfterOracle.quantity,
       plannerFallback: suffixPlan.fallbackToFullReplay
     },
     fxCoverage: {
