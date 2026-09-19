@@ -227,6 +227,7 @@ export class PostgresAllocationStore implements AllocationStore {
 
     const row = await this.db.insertInto('allocation_run').values({
       enterprise_id: input.enterpriseId,
+      economic_runtime_dataset_id: input.materialization?.runtimeDatasetId ?? null,
       allocation_policy_id: input.allocationPolicyId,
       allocation_policy_version: input.allocationPolicyVersion,
       input_digest: input.inputDigest,
@@ -234,13 +235,16 @@ export class PostgresAllocationStore implements AllocationStore {
       completed_at: null,
       error: null
     }).returning([
-      'id','enterprise_id','allocation_policy_id','allocation_policy_version',
+      'id','enterprise_id','economic_runtime_dataset_id','allocation_policy_id','allocation_policy_version',
       'input_digest','status','started_at','completed_at'
     ]).executeTakeFirstOrThrow();
 
     return {
       id: row.id,
       enterpriseId: row.enterprise_id,
+      ...(row.economic_runtime_dataset_id !== null
+        ? { runtimeDatasetId: row.economic_runtime_dataset_id }
+        : {}),
       allocationPolicyId: row.allocation_policy_id,
       allocationPolicyVersion: row.allocation_policy_version,
       status: row.status,
