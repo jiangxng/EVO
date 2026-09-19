@@ -125,7 +125,10 @@ implements ValuationRequestInterpreter {
           scope: request.payload.scope,
           positionDefinition: request.payload.positionDefinition,
           requestBusinessDataId: request.businessDataId,
-          requestPayload: request.payload as unknown as JsonObject
+          requestPayload: request.payload as unknown as JsonObject,
+          ...(request.materialization !== undefined
+            ? { materialization: request.materialization }
+            : {})
         });
 
         if (positions.length === 0) {
@@ -138,7 +141,10 @@ implements ValuationRequestInterpreter {
           valuationAt,
           rateDataset: request.payload.rateDataset,
           policy: parsePolicy(request.payload.policy),
-          positions
+          positions,
+          ...(request.materialization !== undefined
+            ? { materialization: request.materialization }
+            : {})
         });
         return;
       }
@@ -160,7 +166,10 @@ implements ValuationRequestInterpreter {
       scope: payload.scope,
       positionDefinition: payload.positionDefinition,
       requestBusinessDataId: request.businessDataId,
-      requestPayload: payload as unknown as JsonObject
+      requestPayload: payload as unknown as JsonObject,
+      ...(request.materialization !== undefined
+        ? { materialization: request.materialization }
+        : {})
     });
 
     if (positions.length !== 1) {
@@ -220,7 +229,10 @@ implements ValuationRequestInterpreter {
       settlementLocal: measurements.local,
       allocationPolicyId: payload.allocationPolicy.id,
       allocationPolicyVersion: payload.allocationPolicy.version,
-      instructionId: instruction.id
+      instructionId: instruction.id,
+      ...(request.materialization !== undefined
+        ? { materialization: request.materialization }
+        : {})
     });
   }
 }
