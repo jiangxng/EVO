@@ -426,6 +426,47 @@ try {
     throw new Error('Expected conservative replay checkpoint blockers.');
   }
 
+  const costPoolSnapshots = await runtime.replayCheckpointMaterialization.captureCostPools(
+    checkpoint.id
+  );
+  const costPoolSnapshotsAgain = await runtime.replayCheckpointMaterialization.captureCostPools(
+    checkpoint.id
+  );
+  if (costPoolSnapshots.length < 1) {
+    throw new Error('Expected ReplayCheckpoint to capture at least one COST_POOL state.');
+  }
+  if (
+    costPoolSnapshotsAgain.length !== costPoolSnapshots.length ||
+    costPoolSnapshotsAgain.some((snapshot,index) =>
+      snapshot.id !== costPoolSnapshots[index]?.id ||
+      snapshot.semanticDigest !== costPoolSnapshots[index]?.semanticDigest
+    )
+  ) {
+    throw new Error('Cost-pool checkpoint materialization capture must be idempotent.');
+  }
+
+  const fifoCheckpointPool = costPoolSnapshots.find((snapshot) =>
+    snapshot.state.method === 'FIFO' &&
+    snapshot.state.layers.some((layer) =>
+      layer.sourceBusinessDataId === productionBusiness.id
+    )
+  );
+  if (fifoCheckpointPool === undefined) {
+    throw new Error('Expected checkpoint FIFO pool to retain the production source layer.');
+  }
+  const productionLayer = fifoCheckpointPool.state.layers.find((layer) =>
+    layer.sourceBusinessDataId === productionBusiness.id
+  );
+  if (
+    productionLayer === undefined ||
+    !new Decimal(productionLayer.remainingQuantity).eq(8) ||
+    !new Decimal(productionLayer.unitCost).eq(10)
+  ) {
+    throw new Error(
+      `Checkpoint FIFO state expected production remainder qty=8 unitCost=10, got ${JSON.stringify(productionLayer)}`
+    );
+  }
+
   const coverage = await runtime.replayCoverage.evaluate(
     checkpoint.id,
     'validate-demo'
@@ -584,6 +625,15 @@ try {
       id: checkpoint.id,
       safeForIncremental: checkpoint.validity.safeForIncremental,
       blockers
+    },
+    checkpointCostPool: {
+      snapshotCount: costPoolSnapshots.length,
+      fifoPoolKey: fifoCheckpointPool.state.poolKey,
+      remainingProductionQuantity: productionLayer.remainingQuantity,
+      unitCost: productionLayer.unitCost,
+      sourceBusinessDataId: productionLayer.sourceBusinessDataId,
+      semanticDigest: fifoCheckpointPool.semanticDigest,
+      idempotent: true
     },
     replayCoverageCertification: {
       id: coverage.id,
