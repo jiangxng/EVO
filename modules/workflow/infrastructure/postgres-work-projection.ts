@@ -33,7 +33,7 @@ export class PostgresWorkProjection implements WorkProjection {
       ])
       .where('b.enterprise_id', '=', enterpriseId);
 
-    query = materialization?.mode === 'CANDIDATE'
+    query = materialization !== undefined && materialization.mode !== 'CURRENT'
       ? query
           .where('ds.economic_runtime_dataset_id','=',materialization.runtimeDatasetId)
           .where('ds.kind','=','CANDIDATE')
