@@ -588,6 +588,204 @@ try {
     throw new Error('Previous economic runtime CURRENT dataset must be archived on activation.');
   }
 
+  // True incremental-cost proof: add one canonical shipment after the promoted checkpoint,
+  // restore the certified FIFO prefix (8 units @ 10), and cost only the suffix.
+  const incrementalShipmentNo = `SHIP-INCREMENTAL-${suffix}`;
+  const incrementalShipment = await runtime.command.execute({
+    enterpriseId: ids.enterpriseId,
+    applicationInstanceId: ids.inventoryAppId,
+    commandCode: 'ship-sales-order',
+    actor: { type: 'AUTOMATION', id: 'demo-automation' },
+    requestId: `${orderNo}:incremental-shipment`,
+    correlationId,
+    causationId: orderBusiness.id,
+    idempotencyKey: incrementalShipmentNo,
+    input: {
+      movementType: 'SHIP',
+      shipmentNo: incrementalShipmentNo,
+      orderNo,
+      customer: 'Validation',
+      productId: 'P-100',
+      warehouse: 'HK',
+      quantity: 1,
+      lot: null,
+      project,
+      department: 'SALES',
+      profitCenter: 'PC-PROJECT',
+      costCenter: 'CC-SALES'
+    },
+    effectiveAt: new Date('2026-09-19T02:00:00.000Z'),
+    businessObjectKey: incrementalShipmentNo,
+    lineage: {
+      flowDefinitionId: ids.flowDefinitionId,
+      flowInstanceKey: orderNo,
+      stepCode: 'incremental-shipment-created',
+      parentBusinessDataId: orderBusiness.id,
+      relationType: 'FULFILLS'
+    }
+  });
+  await runtime.flow.projectCommand(incrementalShipment.commandExecutionId);
+  await drainPosting(runtime,ids.enterpriseId);
+
+  const incrementalShipmentBusiness = await runtime.db.selectFrom('business_data')
+    .select('id')
+    .where('command_execution_id','=',incrementalShipment.commandExecutionId)
+    .executeTakeFirstOrThrow();
+  const incrementalShipmentPosting = await runtime.db.selectFrom('posting_input')
+    .select('posting_sequence')
+    .where('business_data_id','=',incrementalShipmentBusiness.id)
+    .executeTakeFirstOrThrow();
+  const incrementalTargetBoundary = BigInt(incrementalShipmentPosting.posting_sequence);
+
+  if (incrementalTargetBoundary <= checkpoint.boundarySequence) {
+    throw new Error('Incremental suffix business fact must be strictly after the promoted checkpoint.');
+  }
+
+  const suffixPlan = await runtime.incrementalReplayPlanner.plan({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    graphVersion: checkpoint.dependencyGraphVersion,
+    runtimeSemanticVersion: checkpoint.runtimeSemanticVersion,
+    impactRoots: [{
+      kind: 'BUSINESS_FACT',
+      id: incrementalShipmentBusiness.id
+    }],
+    earliestAffectedSequence: incrementalTargetBoundary,
+    dependencyGraphComplete: coverage.dependencyGraphComplete
+  });
+  if (suffixPlan.fallbackToFullReplay || suffixPlan.checkpoint?.id !== checkpoint.id) {
+    throw new Error(
+      `Expected suffix plan to use promoted checkpoint, fallback=${suffixPlan.fallbackReasons.join(', ')}`
+    );
+  }
+
+  const currentRuntimeDataset = await runtime.runtimeDatasets.getActive(
+    ids.enterpriseId,
+    consistencyDomain
+  );
+  const incrementalCandidate = await runtime.runtimeDatasets.createCandidate({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    parentDatasetId: currentRuntimeDataset.id,
+    sourceCheckpointId: checkpoint.id,
+    sourcePromotionId: promotion.id,
+    incrementalPlanDigest: suffixPlan.planDigest,
+    startSequence: checkpoint.boundarySequence + 1n,
+    boundarySequence: incrementalTargetBoundary
+  });
+  const candidateContext = await runtime.materializationContexts.candidate(
+    incrementalCandidate.id,
+    ids.enterpriseId,
+    consistencyDomain
+  );
+
+  const restoredCostPools = await runtime.replayCheckpointMaterialization.loadCostPools(
+    checkpoint.id
+  );
+  const incrementalCost = await runtime.cost.recalculate(
+    ids.enterpriseId,
+    'FIFO',
+    {
+      valuationPolicyId: fifoPolicy.id,
+      valuationPolicyVersion: fifoPolicy.version,
+      allocationPolicyId: fifoAllocationPolicy.id,
+      allocationPolicyVersion: fifoAllocationPolicy.version,
+      valuationRules: {
+        'sales_shipment.created': {
+          id: shipmentValuationRule.id,
+          version: shipmentValuationRule.version
+        }
+      }
+    },
+    candidateContext,
+    {
+      checkpointBoundarySequence: checkpoint.boundarySequence,
+      targetBoundarySequence: incrementalTargetBoundary,
+      poolStates: restoredCostPools.map((snapshot) => snapshot.state)
+    }
+  );
+
+  if (incrementalCost.resultCount !== 1 || incrementalCost.valuationPostingCount !== 1) {
+    throw new Error(
+      `Incremental candidate costing must process exactly one suffix shipment, got ${JSON.stringify(incrementalCost)}`
+    );
+  }
+
+  const incrementalCostResult = await runtime.db.selectFrom('cost_result as cr')
+    .innerJoin('cost_run as run','run.id','cr.cost_run_id')
+    .select([
+      'cr.business_data_id',
+      'cr.quantity',
+      'cr.unit_cost',
+      'cr.total_cost',
+      'run.economic_runtime_dataset_id'
+    ])
+    .where('run.id','=',incrementalCost.costRunId)
+    .executeTakeFirstOrThrow();
+
+  if (
+    incrementalCostResult.business_data_id !== incrementalShipmentBusiness.id ||
+    !new Decimal(incrementalCostResult.quantity).eq(1) ||
+    !new Decimal(incrementalCostResult.unit_cost).eq(10) ||
+    !new Decimal(incrementalCostResult.total_cost).eq(10) ||
+    incrementalCostResult.economic_runtime_dataset_id !== incrementalCandidate.id
+  ) {
+    throw new Error(
+      `Incremental suffix cost result is incorrect: ${JSON.stringify(incrementalCostResult)}`
+    );
+  }
+
+  const candidateAllocation = await runtime.db.selectFrom('allocation_relation as ar')
+    .innerJoin('allocation_run as run','run.id','ar.allocation_run_id')
+    .select([
+      'ar.source_business_data_id',
+      'ar.consumer_business_data_id',
+      'ar.measurements',
+      'run.economic_runtime_dataset_id'
+    ])
+    .where('ar.consumer_business_data_id','=',incrementalShipmentBusiness.id)
+    .where('run.economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+
+  if (
+    candidateAllocation.source_business_data_id !== productionBusiness.id ||
+    candidateAllocation.economic_runtime_dataset_id !== incrementalCandidate.id
+  ) {
+    throw new Error('Incremental allocation must consume the checkpoint-restored production layer inside the candidate generation.');
+  }
+
+  const candidateValuationPosition = await runtime.db.selectFrom('valuation_position')
+    .select(['economic_runtime_dataset_id','business_data_id','total_cost'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .where('business_data_id','=',incrementalShipmentBusiness.id)
+    .executeTakeFirstOrThrow();
+
+  if (
+    candidateValuationPosition.economic_runtime_dataset_id !== incrementalCandidate.id ||
+    !new Decimal(candidateValuationPosition.total_cost).eq(10)
+  ) {
+    throw new Error('Incremental valuation position must remain isolated in the candidate generation.');
+  }
+
+  const candidateLedgerDataset = await runtime.db.selectFrom('ledger_dataset')
+    .select(['id','kind','status','economic_runtime_dataset_id'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .where('kind','=','CANDIDATE')
+    .where('status','=','BUILDING')
+    .executeTakeFirstOrThrow();
+
+  const candidateDependencyCount = await runtime.db.selectFrom('calculation_dependency_edge')
+    .select(({ fn }) => fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+
+  if (Number(candidateDependencyCount.count) < 1) {
+    throw new Error('Incremental candidate costing must emit generation-scoped dependency evidence.');
+  }
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -665,6 +863,20 @@ try {
       activatedKind: activatedRuntimeDataset.kind,
       activatedStatus: activatedRuntimeDataset.status,
       previousDatasetFinalStatus: archivedParent.status
+    },
+    incrementalCostCandidate: {
+      checkpointBoundarySequence: checkpoint.boundarySequence.toString(),
+      targetBoundarySequence: incrementalTargetBoundary.toString(),
+      candidateDatasetId: incrementalCandidate.id,
+      candidateLedgerDatasetId: candidateLedgerDataset.id,
+      processedSuffixResultCount: incrementalCost.resultCount,
+      suffixBusinessDataId: incrementalShipmentBusiness.id,
+      quantity: incrementalCostResult.quantity,
+      unitCost: incrementalCostResult.unit_cost,
+      totalCost: incrementalCostResult.total_cost,
+      allocationSourceBusinessDataId: candidateAllocation.source_business_data_id,
+      generationScopedDependencyCount: Number(candidateDependencyCount.count),
+      plannerFallback: suffixPlan.fallbackToFullReplay
     },
     fxCoverage: {
       periodEndDelta: replayedPeriod.delta_amount,
