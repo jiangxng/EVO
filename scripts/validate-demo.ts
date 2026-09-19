@@ -860,6 +860,27 @@ try {
     throw new Error('Candidate work items must be scoped to the candidate runtime generation.');
   }
 
+  const candidateDigest = await runtime.candidateEconomicRuntimeDigest.compute({
+    checkpointId: checkpoint.id,
+    candidateRuntimeDatasetId: incrementalCandidate.id,
+    targetBoundarySequence: incrementalTargetBoundary
+  });
+  if (
+    candidateDigest.familyCounts.ledgerBalances < 1 ||
+    candidateDigest.familyCounts.ledgerEntries < 1 ||
+    candidateDigest.familyCounts.costResults < 1 ||
+    candidateDigest.familyCounts.allocationRelations < 1 ||
+    candidateDigest.familyCounts.valuationPositions < 1 ||
+    candidateDigest.familyCounts.workItems < 1
+  ) {
+    throw new Error(
+      `Candidate Economic Runtime digest is missing required semantic families: ${JSON.stringify(candidateDigest.familyCounts)}`
+    );
+  }
+  if (!/^[0-9a-f]{64}$/i.test(candidateDigest.digest)) {
+    throw new Error('Candidate Economic Runtime digest must be a deterministic SHA-256 digest.');
+  }
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -957,6 +978,8 @@ try {
       candidateWorkProjectionCount,
       candidateWorkItemCount: Number(candidateWorkGenerationCount.count),
       pendingShipmentQuantity: candidatePendingShipment.quantity,
+      candidateEconomicRuntimeDigest: candidateDigest.digest,
+      candidateDigestFamilyCounts: candidateDigest.familyCounts,
       plannerFallback: suffixPlan.fallbackToFullReplay
     },
     fxCoverage: {
