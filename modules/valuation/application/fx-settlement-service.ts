@@ -67,7 +67,10 @@ export class DefaultFxSettlementService implements FxSettlementService {
       enterpriseId: request.enterpriseId,
       allocationPolicyId: request.allocationPolicyId,
       allocationPolicyVersion: request.allocationPolicyVersion,
-      inputDigest
+      inputDigest,
+      ...(request.materialization !== undefined
+        ? { materialization: request.materialization }
+        : {})
     });
 
     let valuationRunId: string | undefined;
@@ -155,7 +158,10 @@ export class DefaultFxSettlementService implements FxSettlementService {
           closureOnly: true,
           allocationPolicyId: request.allocationPolicyId,
           allocationPolicyVersion: request.allocationPolicyVersion
-        }
+        },
+        ...(request.materialization !== undefined
+          ? { materialization: request.materialization }
+          : {})
       });
 
       await this.valuations.recordResult({
