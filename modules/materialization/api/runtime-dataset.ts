@@ -1,6 +1,7 @@
 export type EconomicRuntimeDatasetKind =
   | 'CURRENT'
   | 'CANDIDATE'
+  | 'ORACLE'
   | 'ARCHIVED';
 
 export type EconomicRuntimeDatasetStatus =
@@ -19,6 +20,7 @@ export interface EconomicRuntimeDataset {
   readonly parentDatasetId?: string;
   readonly sourceCheckpointId?: string;
   readonly sourcePromotionId?: string;
+  readonly oracleOfDatasetId?: string;
   readonly incrementalPlanDigest?: string;
   readonly startSequence?: bigint;
   readonly boundarySequence?: bigint;
@@ -39,6 +41,14 @@ export interface CreateCandidateRuntimeDatasetRequest {
   readonly boundarySequence: bigint;
 }
 
+export interface CreateOracleRuntimeDatasetRequest {
+  readonly enterpriseId: string;
+  readonly consistencyDomain: string;
+  readonly parentDatasetId: string;
+  readonly oracleOfDatasetId: string;
+  readonly boundarySequence: bigint;
+}
+
 export interface EconomicRuntimeDatasetService {
   getActive(
     enterpriseId: string,
@@ -47,6 +57,10 @@ export interface EconomicRuntimeDatasetService {
 
   createCandidate(
     request: CreateCandidateRuntimeDatasetRequest
+  ): Promise<EconomicRuntimeDataset>;
+
+  createOracle(
+    request: CreateOracleRuntimeDatasetRequest
   ): Promise<EconomicRuntimeDataset>;
 
   markVerified(
