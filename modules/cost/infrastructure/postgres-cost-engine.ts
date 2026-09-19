@@ -437,7 +437,10 @@ export class PostgresCostEngine implements CostEngine {
           .executeTakeFirstOrThrow();
 
         resultCount += 1;
-        const valuation = await this.valuation.postCostResult(result.id);
+        const valuation = await this.valuation.postCostResult(
+          result.id,
+          materialization
+        );
         if (valuation.status === 'POSTED') valuationPostingCount += 1;
       }
 
