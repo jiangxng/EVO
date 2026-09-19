@@ -9,6 +9,7 @@ import type { LedgerWriter } from '../api/ledger-writer.js';
 import { dimensionHash } from '../domain/canonical-json.js';
 import { validateDimensionPolicy } from '../../dimensions/domain/dimension-policy.js';
 import type { LedgerDimensionPolicy } from '../../dimensions/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 
 export class PostgresLedgerWriter implements LedgerWriter {
   async applyPosting(
@@ -16,10 +17,11 @@ export class PostgresLedgerWriter implements LedgerWriter {
     context: LedgerPostingContext,
     effects: readonly LedgerEffect[]
   ): Promise<void> {
-    const datasetId = await this.ensureActiveDataset(
+    const datasetId = await this.ensureDataset(
       trx,
       context.enterpriseId,
-      context.consistencyDomain
+      context.consistencyDomain,
+      context.materialization
     );
 
     for (const effect of effects) {
@@ -122,11 +124,40 @@ export class PostgresLedgerWriter implements LedgerWriter {
     }
   }
 
-  private async ensureActiveDataset(
+  private async ensureDataset(
     trx: DatabaseTransaction,
     enterpriseId: string,
-    consistencyDomain: string
+    consistencyDomain: string,
+    materialization?: MaterializationContext
   ): Promise<string> {
+    if (materialization?.mode === 'CANDIDATE') {
+      const existing = await trx
+        .selectFrom('ledger_dataset')
+        .select('id')
+        .where('enterprise_id', '=', enterpriseId)
+        .where('consistency_domain', '=', consistencyDomain)
+        .where('economic_runtime_dataset_id', '=', materialization.runtimeDatasetId)
+        .where('kind', '=', 'CANDIDATE')
+        .where('status', '=', 'BUILDING')
+        .executeTakeFirst();
+
+      if (existing !== undefined) return existing.id;
+
+      return (await trx
+        .insertInto('ledger_dataset')
+        .values({
+          enterprise_id: enterpriseId,
+          consistency_domain: consistencyDomain,
+          economic_runtime_dataset_id: materialization.runtimeDatasetId,
+          kind: 'CANDIDATE',
+          status: 'BUILDING',
+          posting_boundary_sequence: null,
+          activated_at: null
+        })
+        .returning('id')
+        .executeTakeFirstOrThrow()).id;
+    }
+
     const existing = await trx
       .selectFrom('ledger_dataset')
       .select('id')
@@ -142,6 +173,7 @@ export class PostgresLedgerWriter implements LedgerWriter {
       .values({
         enterprise_id: enterpriseId,
         consistency_domain: consistencyDomain,
+        economic_runtime_dataset_id: materialization?.runtimeDatasetId ?? null,
         kind: 'CURRENT',
         status: 'ACTIVE',
         posting_boundary_sequence: null,
