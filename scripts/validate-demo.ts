@@ -830,6 +830,36 @@ try {
     throw new Error('Incremental candidate costing must emit generation-scoped dependency evidence.');
   }
 
+  const candidateWorkProjectionCount = await runtime.work.refresh(
+    ids.enterpriseId,
+    candidateContext
+  );
+  const candidateWork = await runtime.work.listOpen(
+    ids.enterpriseId,
+    candidateContext
+  );
+  const candidatePendingShipment = candidateWork.find((item) =>
+    item.sourceLedgerCode === 'pending_shipment'
+  );
+  if (
+    candidateWorkProjectionCount < 1 ||
+    candidatePendingShipment === undefined ||
+    !new Decimal(candidatePendingShipment.quantity).eq(7)
+  ) {
+    throw new Error(
+      `Candidate work projection expected pending_shipment quantity 7, got ${JSON.stringify(candidateWork)}`
+    );
+  }
+
+  const candidateWorkGenerationCount = await runtime.db.selectFrom('work_item')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  if (Number(candidateWorkGenerationCount.count) < 1) {
+    throw new Error('Candidate work items must be scoped to the candidate runtime generation.');
+  }
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -924,6 +954,9 @@ try {
       totalCost: incrementalCostResult.total_cost,
       allocationSourceBusinessDataId: candidateAllocation.source_business_data_id,
       generationScopedDependencyCount: Number(candidateDependencyCount.count),
+      candidateWorkProjectionCount,
+      candidateWorkItemCount: Number(candidateWorkGenerationCount.count),
+      pendingShipmentQuantity: candidatePendingShipment.quantity,
       plannerFallback: suffixPlan.fallbackToFullReplay
     },
     fxCoverage: {
