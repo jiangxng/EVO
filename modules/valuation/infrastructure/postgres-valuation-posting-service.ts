@@ -3,6 +3,7 @@ import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { DatabaseTransaction } from '../../../platform/database/src/transaction.js';
 import type { JsonObject, JsonValue } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 import { dimensionHash } from '../../ledger/domain/canonical-json.js';
 import { evaluateExpression } from '../../posting/domain/expression-engine.js';
 import { validateDimensionPolicy } from '../../dimensions/domain/dimension-policy.js';
@@ -27,7 +28,23 @@ function asJsonObject(value: Record<string, unknown>, label: string): JsonObject
 export class PostgresValuationPostingService implements ValuationPostingService {
   constructor(private readonly db: Kysely<Database>) {}
 
-  async postCostResult(costResultId: string): Promise<ValuationPostingResult> {
+  async postCostResult(
+    costResultId: string,
+    materialization?: MaterializationContext
+  ): Promise<ValuationPostingResult> {
+    if (materialization?.mode === 'CANDIDATE') {
+      throw new AppError({
+        code: 'VALUATION_CANDIDATE_POSITION_GENERATION_NOT_READY',
+        message: 'Candidate cost valuation posting is blocked until valuation_position supports parallel materialization generations.',
+        module: 'valuation',
+        operation: 'postCostResult',
+        details: {
+          costResultId,
+          runtimeDatasetId: materialization.runtimeDatasetId
+        }
+      });
+    }
+
     return this.db.transaction().execute(async (trx) => {
       const cost = await trx.selectFrom('cost_result').selectAll().where('id', '=', costResultId).executeTakeFirstOrThrow();
       if (cost.total_cost === null || cost.valuation_rule_id === null || cost.valuation_rule_version === null) {
