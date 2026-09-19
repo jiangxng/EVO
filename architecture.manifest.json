@@ -148,7 +148,8 @@
       "mayDependOn": [
         "metadata",
         "command",
-        "query"
+        "query",
+        "materialization"
       ]
     },
     "ai": {
@@ -347,7 +348,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 19,
+  "dbSchemaVersion": 20,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",
