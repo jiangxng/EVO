@@ -458,6 +458,9 @@ export class PostgresCostEngine implements CostEngine {
 
             await this.dependencies.recordDependency({
               enterpriseId,
+              ...(materialization !== undefined
+                ? { runtimeDatasetId: materialization.runtimeDatasetId }
+                : {}),
               graphVersion: ECONOMIC_RUNTIME_DEPENDENCY_GRAPH_VERSION,
               fromKind: 'BUSINESS_FACT',
               fromId: layer.businessDataId,
