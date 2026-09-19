@@ -1,5 +1,6 @@
 import type { RateDatasetPin } from '../../economic/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 import type { PositionDefinitionPin } from '../../position/api/contracts.js';
 
 export const VALUATION_REQUEST_BUSINESS_DATA_TYPE = 'valuation.requested';
@@ -59,6 +60,7 @@ export interface AcceptedValuationRequest {
   readonly enterpriseId: string;
   readonly effectiveAt: Date;
   readonly payload: ValuationRequestPayload;
+  readonly materialization?: MaterializationContext;
 }
 
 export interface ValuationRequestInterpreter {
@@ -73,6 +75,7 @@ export interface ValuationRequestReplayService {
   replayAcceptedRequests(
     enterpriseId: string,
     consistencyDomain: string,
-    boundarySequence: bigint
+    boundarySequence: bigint,
+    materialization?: MaterializationContext
   ): Promise<ValuationRequestReplayResult>;
 }
