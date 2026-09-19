@@ -61,6 +61,18 @@ export class PostgresCostEngine implements CostEngine {
     pins?: CostReplayPins,
     materialization?: MaterializationContext
   ): Promise<CostRecalculationResult> {
+    if (materialization?.mode === 'CANDIDATE') {
+      fail(
+        'COST_CANDIDATE_PREFIX_STATE_REQUIRED',
+        'Candidate cost recalculation is blocked until checkpoint cost-pool prefix state is available.',
+        {
+          enterpriseId,
+          runtimeDatasetId: materialization.runtimeDatasetId,
+          method
+        }
+      );
+    }
+
     if (pins?.valuationPolicyId === undefined || pins.valuationPolicyVersion === undefined) {
       fail(
         'COST_VALUATION_POLICY_PIN_REQUIRED',
