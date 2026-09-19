@@ -15,6 +15,12 @@ try {
   const correlationId = `O2C:${orderNo}`;
   const project = `PROJECT-${suffix}`;
 
+  // Reference-enterprise economic time must be deterministic and independent
+  // from CI wall-clock time. Date.now() above is used only for unique business keys.
+  const orderAt = new Date('2026-09-18T09:00:00.000Z');
+  const productionAt = new Date('2026-09-18T12:00:00.000Z');
+  const shipmentAt = new Date('2026-09-18T15:00:00.000Z');
+
   const order = await runtime.command.execute({
     enterpriseId: ids.enterpriseId,
     applicationInstanceId: ids.salesAppId,
@@ -29,7 +35,7 @@ try {
       fulfillmentMode: 'MAKE', project, department: 'SALES',
       profitCenter: 'PC-PROJECT', costCenter: 'CC-SALES'
     },
-    effectiveAt: new Date(), businessObjectKey: orderNo,
+    effectiveAt: orderAt, businessObjectKey: orderNo,
     lineage: { flowDefinitionId: ids.flowDefinitionId, flowInstanceKey: orderNo, stepCode: 'sales-order-approved' }
   });
   await runtime.flow.projectCommand(order.commandExecutionId);
@@ -49,7 +55,7 @@ try {
       quantity: 10, totalCost: '100.00', project, department: 'SALES',
       profitCenter: 'PC-PROJECT', costCenter: 'CC-SALES'
     },
-    effectiveAt: new Date(), businessObjectKey: `PROD:${orderNo}:P-100`,
+    effectiveAt: productionAt, businessObjectKey: `PROD:${orderNo}:P-100`,
     lineage: {
       flowDefinitionId: ids.flowDefinitionId, flowInstanceKey: orderNo,
       stepCode: 'production-completed', parentBusinessDataId: orderBusiness.id,
@@ -72,7 +78,7 @@ try {
       productId: 'P-100', warehouse: 'HK', quantity: 2, lot: null,
       project, department: 'SALES', profitCenter: 'PC-PROJECT', costCenter: 'CC-SALES'
     },
-    effectiveAt: new Date(), businessObjectKey: shipmentNo,
+    effectiveAt: shipmentAt, businessObjectKey: shipmentNo,
     lineage: {
       flowDefinitionId: ids.flowDefinitionId, flowInstanceKey: orderNo,
       stepCode: 'shipment-created', parentBusinessDataId: orderBusiness.id,
