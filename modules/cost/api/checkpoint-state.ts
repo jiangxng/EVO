@@ -29,7 +29,9 @@ export interface CostPoolCheckpointState {
   readonly movingAverage?: MovingAverageCheckpointState;
 }
 
-export function projectCostPoolCheckpointStates(
-  method: CostMethod,
-  inputs: readonly ValuationInput[]
-): readonly CostPoolCheckpointState[];
+export interface CostCheckpointStateProjector {
+  project(
+    method: CostMethod,
+    inputs: readonly ValuationInput[]
+  ): readonly CostPoolCheckpointState[];
+}
