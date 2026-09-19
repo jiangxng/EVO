@@ -6,6 +6,7 @@ import type {
 import type { RateDatasetPin } from '../../economic/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
 import type { MaterializationContext } from '../../materialization/api/context.js';
+import type { CostPoolCheckpointState } from './checkpoint-state.js';
 
 export type CostMethod =
   | 'FIFO'
@@ -66,6 +67,12 @@ export interface AuthoritativeCostRequest {
   readonly inputBoundaryDigest: string;
 }
 
+export interface CostIncrementalResume {
+  readonly checkpointBoundarySequence: bigint;
+  readonly targetBoundarySequence: bigint;
+  readonly poolStates: readonly CostPoolCheckpointState[];
+}
+
 export interface CostRecalculationResult {
   readonly costRunId: string;
   readonly runtimeDatasetId?: string;
@@ -79,6 +86,7 @@ export interface CostEngine {
     enterpriseId: string,
     method: CostMethod,
     pins?: CostReplayPins,
-    materialization?: MaterializationContext
+    materialization?: MaterializationContext,
+    resume?: CostIncrementalResume
   ): Promise<CostRecalculationResult>;
 }
