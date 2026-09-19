@@ -3,6 +3,7 @@ import type {
   RateDatasetPin
 } from '../../economic/api/contracts.js';
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 
 export interface FxPositionSnapshot {
   readonly positionKey: string;
@@ -24,6 +25,7 @@ export interface FxPeriodEndRequest {
   readonly rateDataset: RateDatasetPin;
   readonly policy: FxRevaluationPolicy;
   readonly positions: readonly FxPositionSnapshot[];
+  readonly materialization?: MaterializationContext;
 }
 
 export interface FxRevaluationResult {
@@ -58,6 +60,7 @@ export interface FxSettlementClosureRequest {
   readonly allocationPolicyId: string;
   readonly allocationPolicyVersion: number;
   readonly instructionId?: string;
+  readonly materialization?: MaterializationContext;
 }
 
 export interface FxSettlementClosureResult {
