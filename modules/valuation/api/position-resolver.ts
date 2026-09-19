@@ -1,4 +1,5 @@
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 import type { PositionDefinitionPin } from '../../position/api/contracts.js';
 import type { FxPositionSnapshot } from './fx.js';
 import type { ValuationScopeSelector } from './request.js';
@@ -10,6 +11,7 @@ export interface ResolveFxPositionsRequest {
   readonly positionDefinition: PositionDefinitionPin;
   readonly requestBusinessDataId: string;
   readonly requestPayload: JsonObject;
+  readonly materialization?: MaterializationContext;
 }
 
 export interface FxPositionResolver {
