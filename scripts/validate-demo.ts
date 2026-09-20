@@ -1045,6 +1045,22 @@ try {
     throw new Error('Activated Candidate must expose pending_shipment quantity 7 as CURRENT work state.');
   }
 
+  const currentOverlay = await runtime.currentEconomicRuntimeView.read(
+    ids.enterpriseId,
+    consistencyDomain
+  );
+  if (
+    currentOverlay.activeRuntimeDatasetId !== incrementalCandidate.id ||
+    currentOverlay.generationChain.length !== 2 ||
+    currentOverlay.certifiedActivationDigest !== candidateDigest.digest ||
+    currentOverlay.computedSemanticDigest !== candidateDigest.digest ||
+    JSON.stringify(currentOverlay.familyCounts) !== JSON.stringify(candidateDigest.familyCounts)
+  ) {
+    throw new Error(
+      `Activated CURRENT overlay must reproduce the certified Candidate semantic view: ${JSON.stringify(currentOverlay)}`
+    );
+  }
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -1162,6 +1178,9 @@ try {
       previousDatasetFinalStatus: archivedParent.status,
       activatedPendingShipmentQuantity: activatedPendingShipment.quantity,
       activatedSuffixPostingStatus: activatedSuffixPosting.status,
+      currentOverlayGenerationChain: currentOverlay.generationChain,
+      currentOverlaySemanticDigest: currentOverlay.computedSemanticDigest,
+      currentOverlayFamilyCounts: currentOverlay.familyCounts,
       plannerFallback: suffixPlan.fallbackToFullReplay
     },
     fxCoverage: {
