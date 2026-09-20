@@ -4,7 +4,12 @@ Current baseline: **v1.0.0-alpha.2**
 
 EVO models the enterprise, runs the enterprise, and helps the enterprise improve itself.
 
-Start with `LLM.md` if you are an AI/coding agent. Humans and models should treat `PHILOSOPHY.md`, `CONCEPTS.md`, `INVARIANTS.md`, `ARCHITECTURE.md`, `PUBLIC-API.md`, `architecture.manifest.json` and `context.manifest.json` as authoritative project context.
+AI/coding agents start with `AGENTS.md`, then `LLM.md`, and use
+`context.manifest.json` to select a bounded read profile. Do not read all
+historical documents by default. Humans and models should treat
+`PHILOSOPHY.md`, `CONCEPTS.md`, `INVARIANTS.md`, `ARCHITECTURE.md`,
+`PUBLIC-API.md`, `architecture.manifest.json` and `context.manifest.json` as
+canonical project context within their stated authority scopes.
 
 ## Reference Flow
 

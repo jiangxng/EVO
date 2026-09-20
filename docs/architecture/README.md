@@ -4,6 +4,20 @@ This directory contains the versioned conceptual architecture series.
 
 Canonical implementation entry point: [`/ARCHITECTURE.md`](../../ARCHITECTURE.md)
 
+## AI/LLM navigation
+
+The numbered architecture series below is a genealogy, not a mandatory reading
+sequence for every task. AI agents should start at `/AGENTS.md`, then use
+`/context.manifest.json` to select a task-specific profile and current pointers.
+
+Current cross-model documentation rules:
+
+- `continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md`
+- `continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md`
+
+Documents under `legacy/` are historical evidence and are not default bootstrap
+material.
+
 ## Architecture series
 
 1. `EVO-00-Core-Architecture-v0.1.md`
@@ -19,5 +33,6 @@ Canonical implementation entry point: [`/ARCHITECTURE.md`](../../ARCHITECTURE.md
 11. `EVO-10-Service-Boundaries-Runtime-Components-v0.1.md`
 12. `EVO-11-API-Command-Contracts-v0.1.md`
 13. `EVO-12-Repository-Structure-Implementation-Roadmap-v0.1.md`
+14. `EVO-13-Enterprise-Operating-Model-Convergence-v0.2.md`
 
 `EVO-08` is the canonical conceptual convergence baseline. Later documents refine physical/runtime/API/repository implementation decisions.

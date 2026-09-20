@@ -1,8 +1,18 @@
 {
   "project": "EVO",
   "productCategory": "Enterprise Operating System",
-  "contextContractVersion": "1.1",
+  "contextContractVersion": "1.2",
   "baseline": "v1.0.0-alpha.2",
+  "bootstrap": {
+    "agentInstructions": "AGENTS.md",
+    "llmContract": "LLM.md",
+    "continuityProtocol": "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
+    "currentCheckpoint": "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-20-v1.0.md",
+    "currentStatus": "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
+    "currentCertification": "docs/architecture/certification/ER-C05B4.4A-CURRENT-GENERATION-OVERLAY-READ-CERTIFICATION-v0.1.md",
+    "documentationStandard": "docs/architecture/continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md",
+    "activePacket": "ER-C05B4.4B — Read Routing & Activation Failure Matrix"
+  },
   "requiredReading": [
     "PHILOSOPHY.md",
     "CONCEPTS.md",
@@ -11,6 +21,50 @@
     "PUBLIC-API.md",
     "architecture.manifest.json"
   ],
+  "readProfiles": {
+    "boundedModuleChange": {
+      "maxInitialDocuments": 4,
+      "documents": [
+        "AGENTS.md",
+        "LLM.md",
+        "context.manifest.json"
+      ]
+    },
+    "crossModuleArchitecture": {
+      "maxInitialDocuments": 10,
+      "documents": [
+        "AGENTS.md",
+        "LLM.md",
+        "context.manifest.json",
+        "PHILOSOPHY.md",
+        "CONCEPTS.md",
+        "INVARIANTS.md",
+        "ARCHITECTURE.md",
+        "PUBLIC-API.md",
+        "architecture.manifest.json"
+      ]
+    },
+    "continuation": {
+      "maxInitialDocuments": 7,
+      "documents": [
+        "AGENTS.md",
+        "LLM.md",
+        "context.manifest.json",
+        "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
+        "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-20-v1.0.md",
+        "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
+        "docs/architecture/certification/ER-C05B4.4A-CURRENT-GENERATION-OVERLAY-READ-CERTIFICATION-v0.1.md"
+      ]
+    },
+    "archaeology": {
+      "maxInitialDocuments": 4,
+      "documents": [
+        "AGENTS.md",
+        "LLM.md",
+        "context.manifest.json"
+      ]
+    }
+  },
   "canonicalRuntimeSpine": [
     "Command",
     "BusinessData",
@@ -23,23 +77,30 @@
     "Replay"
   ],
   "sourcePriority": [
-    "architecture-change-or-adr",
-    "global-invariants",
-    "public-api-and-interface-contracts",
-    "canonical-architecture-concepts-philosophy",
-    "module-context",
-    "tests-and-schemas",
-    "implementation",
-    "comments-and-examples",
-    "chat-or-model-memory"
+    "use-two-axis-authority-model",
+    "executable-reality-code-migrations-db-constraints-tests-verified-ci",
+    "normative-intent-current-adr-invariants-contracts-freezes",
+    "progress-latest-checkpoint-status",
+    "evidence-certification-with-explicit-boundary",
+    "history-legacy-chat-model-memory"
   ],
   "moduleContextPattern": [
     "modules/<module>/README.md",
-    "modules/<module>/CONTEXT.md",
+    "modules/<module>/CONTEXT.md (optional when present)",
     "docs/interfaces/<relevant-interface>.md",
     "docs/adr/<relevant-adr>.md",
     "modules/<module>/tests/**"
   ],
+  "historicalOnlyPatterns": [
+    "docs/architecture/legacy/**",
+    "docs/legacy/**",
+    "chat/**"
+  ],
+  "terminology": {
+    "Full-Replay Oracle": "Independent full-replay reference result used to judge Candidate correctness; unrelated to Oracle Database.",
+    "CURRENT": "Authoritative active runtime generation, or current-at-snapshot-time inside a dated historical document.",
+    "Candidate": "Isolated proposed derived generation; never canonical BusinessData."
+  },
   "rules": {
     "actualWriteBoundary": "Command",
     "businessHistory": "preserved",

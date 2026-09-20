@@ -19,4 +19,6 @@ Process, WorkItem, Plan and Trigger runtime.
 
 ## Status
 
-M0 placeholder. Concrete contracts are introduced by the milestone that implements this module.
+Work projection is implemented and generation-scoped for CURRENT, Candidate, and
+Full-Replay Oracle reference flows. Broader workflow/process runtime remains
+incremental.

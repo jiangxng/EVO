@@ -19,7 +19,9 @@ Valuation policies and deterministic cost calculation.
 
 ## Status
 
-M0 placeholder. Concrete contracts are introduced by the milestone that implements this module.
+Implemented with unit coverage for supported cost methods and database E2E
+certification for the reference FIFO checkpoint/suffix scenario. This does not
+mean every method has equivalent production activation certification.
 
 
 ## Economic Runtime Freeze refinements

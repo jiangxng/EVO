@@ -31,4 +31,5 @@ such as balances and open work are read only from the active leaf generation.
 
 ## Status
 
-B4.4A current-generation overlay read implementation candidate.
+B4.4A current-generation overlay reads are certified for the reference FIFO
+scenario. B4.4B default read routing and failure/concurrency coverage remain open.

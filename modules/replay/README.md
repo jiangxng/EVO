@@ -19,7 +19,9 @@ Full-rebuild orchestration and replay lifecycle.
 
 ## Status
 
-M0 placeholder. Concrete contracts are introduced by the milestone that implements this module.
+Implemented through governed incremental Candidate, isolated Full-Replay Oracle,
+equivalence certification, and atomic activation for the certified reference FIFO
+scenario. Multi-policy and failure/concurrency coverage remain open.
 
 
 ## Economic Runtime Freeze refinements

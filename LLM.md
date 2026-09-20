@@ -1,7 +1,7 @@
 # EVO LLM Context Contract
 
 Status: Authoritative
-Context Contract Version: 1.0
+Context Contract Version: 1.2
 
 This file is model-agnostic. It is intended for GPT, Claude, Gemini, local/open models, coding agents and future systems.
 
@@ -11,38 +11,48 @@ Different LLMs are allowed to propose different implementations. They are not al
 
 A model must be able to understand EVO from the repository without relying on prior chat history, account memory, hidden prompts or undocumented conventions.
 
-## Mandatory Read Order
+## Deterministic Bootstrap
 
-Before architecture or cross-module work, read:
+`AGENTS.md` is the concise, automatically discoverable cross-model entry point.
+This file defines the deeper project contract. `context.manifest.json` is the
+machine-readable router for time-sensitive current state.
 
-1. `/PHILOSOPHY.md`
-2. `/CONCEPTS.md`
-3. `/INVARIANTS.md`
-4. `/ARCHITECTURE.md`
-5. `/PUBLIC-API.md`
-6. `/architecture.manifest.json`
-7. `/context.manifest.json`
-8. relevant module `README.md` and `CONTEXT.md`
-9. relevant interface docs and ADRs
-10. relevant tests before implementation changes
+Do not use one mandatory read list for every task. Select one read profile from
+`context.manifest.json`:
 
-For a bounded module change, load only the minimum authoritative context listed in `context.manifest.json` plus dependencies/interfaces. Do not ingest the repository indiscriminately if the bounded context is sufficient.
+- `boundedModuleChange` for a local implementation or bug fix;
+- `crossModuleArchitecture` for architecture/contracts spanning modules;
+- `continuation` for "continue" or a new chat/model handoff;
+- `archaeology` only for a named legacy-evidence question.
 
-## Source Priority
+Module `CONTEXT.md` is optional. Read it when present; do not invent it or scan
+the repository because a module does not have one.
 
-When sources conflict, use this priority:
+Stop broad reading once you can identify the business goal, active packet,
+owner module, affected invariant/interface, evidence level, and next validation.
 
-1. Explicit current Architecture Change / ADR with later version
-2. Global Invariants
-3. Public API / interface contracts
-4. Architecture and canonical Concepts/Philosophy
-5. Module context
-6. Executable tests and schemas (tests may reveal drift; do not silently redefine architecture from an accidental test)
-7. Implementation
-8. comments / examples
-9. chat history or model memory
+## Two-Axis Authority
 
-If authoritative sources conflict at the same level, stop architectural modification and report the conflict. Do not invent a reconciliation.
+Do not force all conflicts into one total priority list.
+
+### Executable reality
+
+Current code, migrations, database constraints, executable tests, and verified CI
+determine what EVO actually does now.
+
+### Normative intent
+
+Current Architecture Changes/ADRs, global Invariants, public contracts, and
+accepted freezes determine what EVO is required to do.
+
+Latest checkpoints/status documents determine current progress and next work.
+Certification packets prove only their named scenario and boundary. Comments,
+examples, legacy documents, chat history, and model memory are lower-authority
+context.
+
+If executable reality and normative intent conflict, report document or
+implementation drift. Do not silently redefine architecture from an accidental
+test, and do not claim an unimplemented ADR is runtime reality.
 
 ## Required Change Behavior
 
@@ -57,6 +67,11 @@ Before changing code, state internally:
 - required tests
 
 Do not create a new core concept solely to simplify implementation.
+
+Before a material change, classify the evidence target as one of:
+
+`DESIGN ONLY`, `IMPLEMENTED`, `STATIC VERIFIED`, `UNIT VERIFIED`,
+`DATABASE E2E VERIFIED`, or `CERTIFIED — named scenario/boundary`.
 
 ## Forbidden Assumptions
 
@@ -82,3 +97,14 @@ A code change should include, when relevant:
 - reproducible validation command
 
 The repository, not the conversation, is EVO's long-term memory.
+
+## Documentation Lifecycle
+
+Versioned ADRs, freezes, checkpoints, database snapshots, certifications, and
+genealogy evidence are additive. Root instruction/router files, index READMEs,
+and ordinary module README/CONTEXT files are maintained pointers and may be
+updated in place.
+
+The detailed rules live in the manifest-designated documentation standard.
+Run `npm run validate:docs` after changing bootstrap, routing, current pointers,
+or versioned evidence paths.
