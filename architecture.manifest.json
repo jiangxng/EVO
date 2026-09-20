@@ -342,7 +342,9 @@
         "candidate/current/archive lifecycle",
         "generation activation semantics",
         "isolated ORACLE runtime generation",
-        "oracle-of-candidate materialization provenance"
+        "oracle-of-candidate materialization provenance",
+        "runtime equivalence certification",
+        "governed candidate activation"
       ],
       "mayDependOn": [
         "metadata"
@@ -350,7 +352,7 @@
     }
   },
   "currentMilestone": "v1.0.0-alpha.2",
-  "dbSchemaVersion": 21,
+  "dbSchemaVersion": 22,
   "metadataSchemaVersion": 3,
   "release": {
     "version": "1.0.0-alpha.2",

@@ -570,30 +570,10 @@ try {
     throw new Error('Economic runtime candidate must bind the current ACTIVE parent dataset.');
   }
 
-  const verifiedRuntimeDataset = await runtime.runtimeDatasets.markVerified(
+  await runtime.runtimeDatasets.markFailed(
     candidateRuntimeDataset.id,
-    after
+    'Superseded by the complete checkpoint-restored Candidate certification scenario.'
   );
-  if (verifiedRuntimeDataset.status !== 'VERIFIED') {
-    throw new Error('Economic runtime candidate must become VERIFIED before activation.');
-  }
-
-  const activatedRuntimeDataset = await runtime.runtimeDatasets.activateVerified(
-    verifiedRuntimeDataset.id
-  );
-  if (
-    activatedRuntimeDataset.status !== 'ACTIVE' ||
-    activatedRuntimeDataset.kind !== 'CURRENT'
-  ) {
-    throw new Error('Verified economic runtime candidate must atomically become CURRENT/ACTIVE.');
-  }
-  const archivedParent = await runtime.db.selectFrom('economic_runtime_dataset')
-    .select(['kind','status'])
-    .where('id','=',activeRuntimeDataset.id)
-    .executeTakeFirstOrThrow();
-  if (archivedParent.kind !== 'ARCHIVED' || archivedParent.status !== 'ARCHIVED') {
-    throw new Error('Previous economic runtime CURRENT dataset must be archived on activation.');
-  }
 
   // True incremental-cost proof: add one canonical shipment after the promoted checkpoint,
   // restore the certified FIFO prefix (8 units @ 10), and cost only the suffix.
@@ -960,7 +940,7 @@ try {
     );
   }
 
-  const verifiedOracle = await runtime.runtimeDatasets.markVerified(
+  const verifiedOracle = await runtime.runtimeDatasets.markOracleVerified(
     oracleDataset.id,
     oracleDigestResult.digest
   );
@@ -1004,6 +984,65 @@ try {
     throw new Error(
       'CURRENT work state must remain at checkpoint quantity 8 while Candidate/Oracle evaluate suffix state 7.'
     );
+  }
+
+  const governedActivation = await runtime.runtimeEquivalence.certifyAndActivate({
+    candidateDatasetId: incrementalCandidate.id,
+    oracleDatasetId: oracleDataset.id,
+    certifiedBy: 'evo-reference-certifier',
+    reason: 'Candidate equals its isolated Full Replay Oracle for the governed reference scenario.'
+  });
+  if (
+    governedActivation.certification.status !== 'CERTIFIED' ||
+    governedActivation.certification.blockers.length !== 0 ||
+    governedActivation.activatedDataset?.id !== incrementalCandidate.id ||
+    governedActivation.activatedDataset.kind !== 'CURRENT' ||
+    governedActivation.activatedDataset.status !== 'ACTIVE'
+  ) {
+    throw new Error(
+      `Exact Candidate/Oracle equivalence must atomically activate the Candidate: ${JSON.stringify(governedActivation)}`
+    );
+  }
+
+  const archivedParent = await runtime.db.selectFrom('economic_runtime_dataset')
+    .select(['kind','status'])
+    .where('id','=',currentRuntimeDataset.id)
+    .executeTakeFirstOrThrow();
+  if (archivedParent.kind !== 'ARCHIVED' || archivedParent.status !== 'ARCHIVED') {
+    throw new Error('Governed activation must archive the exact previous CURRENT generation.');
+  }
+
+  const activeCandidateLedger = await runtime.db.selectFrom('ledger_dataset')
+    .select(['kind','status'])
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  if (activeCandidateLedger.kind !== 'CURRENT' || activeCandidateLedger.status !== 'ACTIVE') {
+    throw new Error('Governed activation must atomically activate the Candidate ledger generation.');
+  }
+
+  const currentMaterialization = await runtime.materializationContexts.current(
+    ids.enterpriseId,
+    consistencyDomain
+  );
+  if (currentMaterialization.runtimeDatasetId !== incrementalCandidate.id) {
+    throw new Error('Current materialization context must resolve to the certified Candidate generation.');
+  }
+  const activatedSuffixPosting = await runtime.db.selectFrom('posting_input')
+    .select('status')
+    .where('business_data_id','=',incrementalShipmentBusiness.id)
+    .executeTakeFirstOrThrow();
+  if (activatedSuffixPosting.status !== 'POSTED') {
+    throw new Error('Governed activation must atomically consume the certified suffix PostingInput.');
+  }
+  const activatedWork = await runtime.work.listOpen(ids.enterpriseId,currentMaterialization);
+  const activatedPendingShipment = activatedWork.find((item) =>
+    item.sourceLedgerCode === 'pending_shipment'
+  );
+  if (
+    activatedPendingShipment === undefined ||
+    !new Decimal(activatedPendingShipment.quantity).eq(7)
+  ) {
+    throw new Error('Activated Candidate must expose pending_shipment quantity 7 as CURRENT work state.');
   }
 
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
@@ -1079,12 +1118,8 @@ try {
     economicRuntimeDataset: {
       previousDatasetId: activeRuntimeDataset.id,
       candidateDatasetId: candidateRuntimeDataset.id,
-      activatedDatasetId: activatedRuntimeDataset.id,
       candidateInitialStatus: candidateRuntimeDataset.status,
-      verifiedStatus: verifiedRuntimeDataset.status,
-      activatedKind: activatedRuntimeDataset.kind,
-      activatedStatus: activatedRuntimeDataset.status,
-      previousDatasetFinalStatus: archivedParent.status
+      candidateFinalStatus: 'FAILED'
     },
     incrementalCostCandidate: {
       checkpointBoundarySequence: checkpoint.boundarySequence.toString(),
@@ -1118,6 +1153,15 @@ try {
       candidateStillIntact: intactCandidate.status === 'BUILDING',
       currentSuffixPostingStatus: currentSuffixPosting.status,
       currentPendingShipmentQuantity: currentPendingShipmentAfterOracle.quantity,
+      equivalenceCertificationId: governedActivation.certification.id,
+      equivalenceCertificationStatus: governedActivation.certification.status,
+      equivalenceCertificationDigest: governedActivation.certification.certificationDigest,
+      governedActivatedDatasetId: governedActivation.activatedDataset.id,
+      governedActivatedKind: governedActivation.activatedDataset.kind,
+      governedActivatedStatus: governedActivation.activatedDataset.status,
+      previousDatasetFinalStatus: archivedParent.status,
+      activatedPendingShipmentQuantity: activatedPendingShipment.quantity,
+      activatedSuffixPostingStatus: activatedSuffixPosting.status,
       plannerFallback: suffixPlan.fallbackToFullReplay
     },
     fxCoverage: {

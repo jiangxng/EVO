@@ -63,13 +63,9 @@ export interface EconomicRuntimeDatasetService {
     request: CreateOracleRuntimeDatasetRequest
   ): Promise<EconomicRuntimeDataset>;
 
-  markVerified(
+  markOracleVerified(
     datasetId: string,
     semanticDigest: string
-  ): Promise<EconomicRuntimeDataset>;
-
-  activateVerified(
-    datasetId: string
   ): Promise<EconomicRuntimeDataset>;
 
   markFailed(

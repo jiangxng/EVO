@@ -270,7 +270,7 @@ implements EconomicRuntimeDatasetService {
     });
   }
 
-  async markVerified(
+  async markOracleVerified(
     datasetId: string,
     semanticDigest: string
   ): Promise<EconomicRuntimeDataset> {
@@ -286,62 +286,12 @@ implements EconomicRuntimeDatasetService {
         failure_reason: null
       })
       .where('id','=',datasetId)
-      .where('kind','in',['CANDIDATE','ORACLE'])
+      .where('kind','=','ORACLE')
       .where('status','=','BUILDING')
       .returningAll()
       .executeTakeFirstOrThrow();
 
     return mapRow(row);
-  }
-
-  async activateVerified(datasetId: string): Promise<EconomicRuntimeDataset> {
-    return this.db.transaction().execute(async (trx) => {
-      const candidate = await trx.selectFrom('economic_runtime_dataset')
-        .selectAll()
-        .where('id','=',datasetId)
-        .where('kind','=','CANDIDATE')
-        .where('status','=','VERIFIED')
-        .forUpdate()
-        .executeTakeFirstOrThrow();
-
-      if (candidate.semantic_digest === null) {
-        throw new Error('Verified candidate is missing semantic digest.');
-      }
-
-      const active = await trx.selectFrom('economic_runtime_dataset')
-        .selectAll()
-        .where('enterprise_id','=',candidate.enterprise_id)
-        .where('consistency_domain','=',candidate.consistency_domain)
-        .where('status','=','ACTIVE')
-        .forUpdate()
-        .executeTakeFirstOrThrow();
-
-      if (candidate.parent_dataset_id !== active.id) {
-        throw new Error('Candidate parent is no longer the current ACTIVE runtime dataset.');
-      }
-
-      await trx.updateTable('economic_runtime_dataset')
-        .set({
-          kind: 'ARCHIVED',
-          status: 'ARCHIVED'
-        })
-        .where('id','=',active.id)
-        .where('status','=','ACTIVE')
-        .executeTakeFirstOrThrow();
-
-      const activated = await trx.updateTable('economic_runtime_dataset')
-        .set({
-          kind: 'CURRENT',
-          status: 'ACTIVE',
-          activated_at: sql`now()`
-        })
-        .where('id','=',candidate.id)
-        .where('status','=','VERIFIED')
-        .returningAll()
-        .executeTakeFirstOrThrow();
-
-      return mapRow(activated);
-    });
   }
 
   async markFailed(datasetId: string, reason: string): Promise<void> {
