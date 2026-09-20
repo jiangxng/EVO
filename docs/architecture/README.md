@@ -18,6 +18,11 @@ Current cross-model documentation rules:
 Documents under `legacy/` are historical evidence and are not default bootstrap
 material.
 
+Recurring repository-level analysis (project intent, plan, progress, risk) and
+its analysis methodology:
+
+- `reviews/EVO-REPOSITORY-ANALYSIS-2026-09-20-v0.1.md`
+
 ## Architecture series
 
 1. `EVO-00-Core-Architecture-v0.1.md`
