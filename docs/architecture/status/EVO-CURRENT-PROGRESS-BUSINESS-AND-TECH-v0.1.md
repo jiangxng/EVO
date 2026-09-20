@@ -754,3 +754,56 @@ Candidate digest == Oracle digest
 ## 当前一句话状态（2026-09-20 B4.3B）
 
 > **EVO 已在参考场景中打通“安全 Checkpoint → 局部 Candidate → 隔离 Full Replay Oracle → 不可变等价认证 → 原子正式切换”的完整闭环；下一步转向激活后的完整历史读取与并发/失败安全认证。**
+
+---
+
+# 14. 2026-09-20 追加状态：B4.4A CURRENT 代际叠加读取已认证
+
+> 本节追加在 B4.3B 之后，不覆盖任何历史状态。
+
+## A. 业务问题
+
+增量 Candidate 上线后，新世代只保存恢复后的当前余额和重算 suffix，并不复制全部历史分录。只读新 dataset 会丢历史；不分世代全读则会混入 Archived、Candidate 和 Oracle。
+
+## B. 企业现在获得的能力
+
+在参考 FIFO 场景中，EVO 已能：
+
+- 沿已认证 parent chain 组合历史前缀与当前后缀；
+- 从 active leaf generation 读取正式余额与待办；
+- 组合 Ledger、Cost、Allocation、Valuation 和 Work 语义；
+- 用激活认证摘要校验最终正式视图；
+- 对循环、跨域、断档、缺少认证或摘要不一致执行失败关闭。
+
+## C. 技术路线
+
+新增 `PostgresCurrentEconomicRuntimeViewService`。在 `REPEATABLE READ` 事务中锁定 CURRENT，验证每个 parent→child 的 CERTIFIED 激活证据，按 sequence interval 组合历史 family，并只从叶子读取快照 family。
+
+## D. 当前验证状态
+
+`ER-C05B4.4A — CERTIFIED FOR REFERENCE FIFO SCENARIO`
+
+- remote head `6fa8abde08b26d1096b2ab89be23425a795f7604`；
+- GitHub Actions `35479404204`；
+- migration/typecheck/build 全绿；
+- 31 个测试文件、83 项测试全绿；
+- seed:demo/validate:demo 真实 PostgreSQL 18 全绿；
+- Candidate = Oracle = activated CURRENT overlay digest：`3d39e82014a071558293e96dbe5e38e02689b9d8dc23955242aab98761eed291`。
+
+## E. 当前还差什么
+
+B4.4 整体尚未关闭。Dashboard、LedgerReader 等旧默认读取仍需统一路由；还缺多代连续激活、mismatch/stale/revoked、重复请求、并发 Worker 和 crash recovery 数据库认证。
+
+## F. 下一步及业务原因
+
+进入：
+
+`ER-C05B4.4B — Read Routing & Activation Failure Matrix`
+
+业务原因：
+
+> 不能只提供一个正确的新读取服务，还必须确保所有正式入口都无法绕开它，并证明异常与并发不会产生残缺历史、重复结果或两个 CURRENT。
+
+## 当前一句话状态（2026-09-20 B4.4A）
+
+> **EVO 已证明激活后的增量世代能够与父代历史组合成和 Full Replay 完全相同的正式经济视图；下一步封闭旧读取旁路，并完成激活失败与并发安全矩阵。**
