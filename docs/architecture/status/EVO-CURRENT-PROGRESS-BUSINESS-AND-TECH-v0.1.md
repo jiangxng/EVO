@@ -699,3 +699,58 @@ Candidate digest == Oracle digest
 ## 当前一句话状态（2026-09-20）
 
 > **EVO 已证明局部重算 Candidate 与独立 Full Replay Oracle 可以在不破坏当前生产状态的情况下得到完全相同的企业经济语义；当前正在把该数学/工程等价证明升级为不可绕过、可审计、失败关闭的生产激活治理。**
+
+---
+
+# 13. 2026-09-20 追加状态：B4.3B 治理激活已认证
+
+> 本节追加在 B4.3A 之后，不覆盖任何历史状态。
+
+## A. 业务问题
+
+企业需要的不只是 Candidate 与 Full Replay Oracle “算得一样”，还必须保证只有这份被精确认证的 Candidate 能替换当前正式状态，并且切换过程中不能重复记账、不能选错 parent、不能绕过治理。
+
+## B. 企业现在获得的能力
+
+在参考 FIFO 场景中，EVO 已能：
+
+- 保存 Candidate↔Oracle 不可变等价证据；
+- 拒绝摘要、范围、parent、Checkpoint 或 Promotion 错配；
+- 原子归档旧 CURRENT；
+- 原子激活 Candidate Runtime 与 Ledger；
+- 将已认证 suffix PostingInput 从 QUEUED 切换为 POSTED；
+- 将企业 Posting cursor 推进到认证边界；
+- 将正式待发货余额从 8 更新为 7；
+- 保留 +200 未实现和 +100 已实现汇兑语义。
+
+## C. 技术路线
+
+新增 Schema 22 `runtime_equivalence_certification`，并移除通用 Candidate `markVerified/activateVerified` 绕过路径。所有认证、状态切换和 Posting cursor 更新在同一 PostgreSQL 事务内完成。
+
+## D. 当前验证状态
+
+`ER-C05B4.3B — CERTIFIED FOR REFERENCE FIFO SCENARIO`
+
+- remote head `07f6a97c453e9697595fab1b2f3c7dfc48281382`；
+- GitHub Actions `35478570102`；
+- migration/typecheck/build 全绿；
+- 31 个测试文件、83 项测试全绿；
+- seed:demo/validate:demo 真实 PostgreSQL 18 全绿。
+
+## E. 当前还差什么
+
+尚需证明激活后所有历史读取能正确组合 parent prefix 与 CURRENT suffix，并扩大到多成本方法、mismatch/stale-parent 数据库 E2E、并发 Worker、重试和崩溃恢复。
+
+## F. 下一步及业务原因
+
+进入：
+
+`ER-C05B4.4 — Activation Safety Matrix & Generation-Overlay Read Certification`
+
+业务原因：
+
+> 新 CURRENT 不仅要有正确余额，还必须让审计、成本、分配、估值和业务查询看到完整历史；同时任何并发或失败都不能产生两个 CURRENT 或重复记账。
+
+## 当前一句话状态（2026-09-20 B4.3B）
+
+> **EVO 已在参考场景中打通“安全 Checkpoint → 局部 Candidate → 隔离 Full Replay Oracle → 不可变等价认证 → 原子正式切换”的完整闭环；下一步转向激活后的完整历史读取与并发/失败安全认证。**
