@@ -283,7 +283,7 @@ implements RuntimeEquivalenceCertificationService {
           candidate_semantic_digest: candidateDigest.digest,
           oracle_semantic_digest: oracleDigest.digest,
           status,
-          blockers,
+          blockers: sql<readonly unknown[]>`${JSON.stringify(blockers)}::jsonb`,
           evidence,
           certification_digest: certificationDigest,
           certified_by: request.certifiedBy,
