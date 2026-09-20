@@ -630,3 +630,72 @@ EVO 用什么模型/模块解决？
 这一步完成后，主线将进入：
 
 > **从 Full Replay correctness oracle 推进到可生产使用的安全 Incremental Replay。**
+
+---
+
+# 12. 2026-09-20 追加状态：B4.3A 隔离 Oracle 已认证
+
+> 本节为追加记录，不覆盖第 5–11 节在 2026-09-19 时的历史状态。
+
+## A. 业务问题
+
+企业不能为了验证一份局部重算结果，先破坏当前正在使用的账、成本和工作状态；也不能在 Full Replay 对照验证时销毁准备上线的 Candidate。
+
+## B. 企业现在获得的能力
+
+EVO 已经可以同时保留：
+
+- 当前生产状态 `CURRENT`；
+- 从安全 Checkpoint 开始局部重算的 `CANDIDATE`；
+- 从第一笔历史开始完整重算的独立 `ORACLE`。
+
+Candidate 与 Oracle 使用同一归一化经济语义摘要进行比较，Oracle 验证过程不推进 CURRENT 的 Posting 状态，不改变 CURRENT 的工作余额，也不删除 Candidate 派生数据。
+
+## C. 技术路线
+
+```text
+CURRENT / ACTIVE
+      ├─ CANDIDATE：恢复前缀 + 重算 suffix
+      └─ ORACLE：隔离 generation 内完整重放
+
+Candidate digest == Oracle digest
+```
+
+隔离边界覆盖 Posting、Ledger、Cost、Allocation、Valuation、Work 和 Dependency。
+
+## D. 当前验证状态
+
+`ER-C05B4.3A — CERTIFIED`
+
+证据：
+
+- implementation head `2caf3433bc539646cfde9ff4a700e7390cee3162`；
+- PostgreSQL 18 E2E run `35431321738`；
+- migration、typecheck、build、30 个测试文件/79 项单测、seed:demo、validate:demo 全部通过；
+- DB schema version 21。
+
+## E. 当前还差什么
+
+生产安全增量重放尚未全部关闭。
+
+当前已有通用的 Candidate `markVerified` 与 `activateVerified` 原语，但尚未通过一个不可绕过的治理服务强制绑定：
+
+- exact Candidate；
+- exact VERIFIED Oracle；
+- 相同 parent / boundary / plan / checkpoint / promotion；
+- 完全相等的 semantic digest；
+- 不可变 equivalence certification。
+
+## F. 下一步及业务原因
+
+下一工作包是：
+
+`ER-C05B4.3B — Governed Candidate Equivalence Certification & Atomic Activation`
+
+业务原因是：
+
+> “算得一样”必须进一步变成“只有拿着这份精确等价证据的那一代 Candidate 才能成为新的生产 CURRENT”；任何错配或过期都必须保持旧 CURRENT 不动并拒绝切换。
+
+## 当前一句话状态（2026-09-20）
+
+> **EVO 已证明局部重算 Candidate 与独立 Full Replay Oracle 可以在不破坏当前生产状态的情况下得到完全相同的企业经济语义；当前正在把该数学/工程等价证明升级为不可绕过、可审计、失败关闭的生产激活治理。**
