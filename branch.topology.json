@@ -88,7 +88,7 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "ER-C05B4.4B consecutive multi-generation activation and overlay equivalence proof."
+      "description": "ER-C05B4.4B consecutive multi-generation activation slice; PostgreSQL 18 E2E verified, ready to merge."
     }
   },
   "requiredLLMProcedure": [
