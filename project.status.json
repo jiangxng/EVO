@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "078ddb9962bfa5fc796bce0269021481261aa888"
+    "lastVerifiedRuntimeMergeCommit": "3866bc19dfa449b4859ae8d1706208e43d6af474"
   },
   "activeWorkPacket": {
     "id": "ER-C05B4.4B",
@@ -35,8 +35,8 @@
       "crash and retry recovery",
       "additional checkpoint invalidation / transaction interruption cases if required"
     ],
-    "nextAction": "Certify crash/retry recovery and finalize any remaining transaction-interruption cases required to close ER-C05B4.4B.",
-    "activeBranch": "evo/er-c05b4-4b-worker-concurrency-v0.1"
+    "nextAction": "Inject controlled activation transaction failures, verify full rollback, and prove idempotent retry can safely recover.",
+    "activeBranch": "evo/er-c05b4-4b-crash-retry-v0.1"
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -63,7 +63,8 @@
       "evo/llm-progress-markers-v0.1",
       "evo/branch-topology-contract-v0.1",
       "evo/branch-topology-drift-fix-v0.1",
-      "evo/er-c05b4-4b-multigeneration-v0.1"
+      "evo/er-c05b4-4b-multigeneration-v0.1",
+      "evo/er-c05b4-4b-worker-concurrency-v0.1"
     ],
     "branchTopology": "branch.topology.json",
     "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions."
