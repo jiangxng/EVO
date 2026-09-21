@@ -898,3 +898,66 @@ B4.4B 尚未认证关闭。仍需数据库级证明：
 ## 当前一句话状态（2026-09-21）
 
 > **EVO 已把“正确的 CURRENT overlay”接入默认 Dashboard、Ledger 和 Work 正式入口，并通过真实 PostgreSQL 18 E2E；当前继续证明错误、过期、撤销和重复激活请求都不能改变唯一可信 CURRENT。**
+
+
+---
+
+# 16. 2026-09-21 追加状态：B4.4B 激活失败矩阵第一组已通过数据库 E2E
+
+> 本节追加在读取路由第一阶段之后；B4.4B 整体仍未关闭。
+
+## A. 业务问题
+
+正式切换不能只证明“正确请求能成功”，还必须证明错误、过期、被撤销或重复的请求不会改变生产 CURRENT。
+
+## B. 当前已经证明
+
+真实 PostgreSQL 18 环境现已验证：
+
+- **Duplicate activation retry**：同一 Candidate/Oracle 再次提交只返回同一 certification，不新增第二份认证、不产生第二次切换，仍只有一个 CURRENT；
+- **Semantic mismatch**：Candidate 与 Oracle digest 不一致时形成 `REJECTED`，包含 `SEMANTIC_DIGEST_MISMATCH`；
+- **Stale active parent**：Candidate 计算完成后 CURRENT parent 已变化时形成 `REJECTED`，包含 `STALE_ACTIVE_PARENT`；
+- **Revoked promotion**：Candidate/Oracle 已计算完成，但其 Checkpoint Promotion 在激活前被撤销时形成 `REJECTED`，包含 `PROMOTION_NOT_ACTIVE`；
+- 所有失败场景均不激活 Candidate，并最终保持原正式 CURRENT 唯一。
+
+## C. 技术路线
+
+新增独立数据库验证脚本：
+
+`scripts/validate-activation-failure-matrix.ts`
+
+并将其加入 CI：
+
+`npm run validate:activation-failure-matrix`
+
+失败矩阵直接调用正式 `PostgresRuntimeEquivalenceCertificationService` 及其 PostgreSQL 事务边界。Digest Port 在失败夹具中使用受控输入，以隔离并验证治理事务本身；真实 Candidate/Oracle digest 计算路径已经由 B4.3A/B4.3B/B4.4A 的完整认证覆盖。
+
+## D. 当前验证状态
+
+**DATABASE E2E VERIFIED — B4.4B FAILURE MATRIX FIRST SET**
+
+- implementation head before this documentation update: `d8babb3e6fc987567027a4502cee23b89eced2c9`
+- GitHub Actions: `35581245021 — SUCCESS`
+- PostgreSQL 18
+- Schema 22
+- `validate:docs` PASS
+- migration PASS
+- typecheck PASS
+- build PASS
+- 31 files / 83 tests PASS
+- `seed:demo` PASS
+- `validate:demo` PASS
+- `validate:activation-failure-matrix` PASS
+
+## E. B4.4B 尚未关闭的核心证据
+
+当前剩余重点收敛为：
+
+1. 两次及以上连续正式 generation activation；
+2. activation 与 Worker 并发互斥/一致性；
+3. crash / retry recovery；
+4. 必要时补充更深的 Checkpoint invalidation / transaction interruption 组合矩阵。
+
+## 当前一句话状态（2026-09-21 B4.4B）
+
+> **EVO 已证明正式读取入口能够统一服从 CURRENT generation，并已在数据库层证明重复、摘要不一致、旧 parent 和被撤销治理证据都不能错误切换生产状态；下一步进入连续多代激活与并发/崩溃恢复。**
