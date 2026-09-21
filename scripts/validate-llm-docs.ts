@@ -64,6 +64,12 @@ const requirementsStatus = JSON.parse(await readFile(manifest.bootstrap.requirem
   };
   antiOverdesignQuestions?: readonly string[];
   alignmentTriggers?: readonly string[];
+  alignmentCadence?: {
+    verifiedSliceInterval?: number;
+    countingRule?: string;
+    triggerRule?: string;
+    resetRule?: string;
+  };
   explanationOrder?: readonly string[];
 };
 const branchTopology = JSON.parse(await readFile(manifest.bootstrap.branchTopology,'utf8')) as { authoritativeBranch?: string; branchClasses?: Record<string,{class?:string;mergePolicy?:string}>; allowedClasses?: readonly string[]; allowedMergePolicies?: readonly string[] };
@@ -102,6 +108,16 @@ if (!Array.isArray(requirementsStatus.antiOverdesignQuestions) || requirementsSt
 }
 if (!Array.isArray(requirementsStatus.alignmentTriggers) || requirementsStatus.alignmentTriggers.length < 1) {
   failures.push('requirements.status.json lacks alignmentTriggers.');
+}
+if (requirementsStatus.alignmentCadence?.verifiedSliceInterval !== 3) {
+  failures.push('requirements.status.json alignmentCadence.verifiedSliceInterval must be exactly 3.');
+}
+if (
+  requirementsStatus.alignmentCadence?.countingRule === undefined ||
+  requirementsStatus.alignmentCadence?.triggerRule === undefined ||
+  requirementsStatus.alignmentCadence?.resetRule === undefined
+) {
+  failures.push('requirements.status.json must define countingRule, triggerRule, and resetRule for alignment cadence.');
 }
 if (JSON.stringify(requirementsStatus.explanationOrder) !== JSON.stringify(['BUSINESS','PRODUCT','TECHNICAL'])) {
   failures.push('requirements.status.json explanationOrder must be BUSINESS -> PRODUCT -> TECHNICAL.');

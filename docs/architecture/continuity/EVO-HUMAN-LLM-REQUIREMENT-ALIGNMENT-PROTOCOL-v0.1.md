@@ -70,7 +70,7 @@ Perform a formal alignment review when any of these occurs:
 
 - Stage transition;
 - completed enterprise business loop;
-- 3–5 completed work packets since last review;
+- every 3 completed verified work packets since last formal review;
 - new core abstraction;
 - new major database family;
 - new cross-module infrastructure;
@@ -143,3 +143,26 @@ answer from repository artifacts:
 
 If answers are missing or contradictory, report alignment drift before coding.
 
+
+
+## 11. Deterministic cadence
+
+Do not wait for a vague sense that the project has gone too long without alignment.
+
+The default cadence is:
+
+```text
+3 merged bounded slices
+with DATABASE E2E VERIFIED or CERTIFIED evidence
+        ↓
+mandatory formal requirement-alignment review
+```
+
+The counter resets when the formal review is recorded in `requirements.status.json.lastAlignment`.
+
+Event triggers override the counter. A Stage transition, completed enterprise loop,
+new core abstraction, new major database family, new cross-module infrastructure,
+proposal to generalize a local mechanism, explicit human concern, or explicit
+alignment request triggers review immediately.
+
+This cadence is a governance control, not a release schedule.

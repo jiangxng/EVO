@@ -144,7 +144,7 @@ Stage E 要回答：
 
 - 一个 Stage 结束或开始；
 - 一个完整业务闭环完成；
-- 连续完成 3–5 个 work packet；
+- 每完成 3 个已通过 DATABASE E2E VERIFIED / CERTIFIED 的 bounded work packet；
 - 引入新的核心抽象；
 - 引入新的数据库大类；
 - 新建跨模块基础设施；
