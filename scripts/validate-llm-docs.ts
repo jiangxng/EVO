@@ -78,6 +78,25 @@ for (const key of ['acceptance','verified','open','deferred'] as const) {
     failures.push(`requirements.status.json lacks activeRequirementSet.${key} array.`);
   }
 }
+
+const verifiedRequirements = requirementsStatus.activeRequirementSet?.verified ?? [];
+const openRequirements = requirementsStatus.activeRequirementSet?.open ?? [];
+const overlap = verifiedRequirements.filter((item) => openRequirements.includes(item));
+if (overlap.length > 0) {
+  failures.push(`requirements.status.json marks the same requirement verified and open: ${overlap.join(', ')}.`);
+}
+if (
+  projectStatus.activeWorkPacket?.overallClosed === false &&
+  openRequirements.length === 0
+) {
+  failures.push('An open activeWorkPacket must retain at least one explicit open requirement.');
+}
+if (
+  Array.isArray(requirementsStatus.activeRequirementSet?.deferred) &&
+  requirementsStatus.activeRequirementSet!.deferred!.length === 0
+) {
+  failures.push('requirements.status.json must preserve explicit deferred scope for anti-overdesign control.');
+}
 if (!Array.isArray(requirementsStatus.antiOverdesignQuestions) || requirementsStatus.antiOverdesignQuestions.length !== 4) {
   failures.push('requirements.status.json must define exactly four antiOverdesignQuestions.');
 }
