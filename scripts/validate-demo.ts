@@ -1004,6 +1004,44 @@ try {
     );
   }
 
+  const certificationCountBeforeRetry = await runtime.db
+    .selectFrom('runtime_equivalence_certification')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('candidate_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  const duplicateActivation = await runtime.runtimeEquivalence.certifyAndActivate({
+    candidateDatasetId: incrementalCandidate.id,
+    oracleDatasetId: oracleDataset.id,
+    certifiedBy: 'evo-reference-certifier',
+    reason: 'Idempotent duplicate activation retry for the already-certified pair.'
+  });
+  const certificationCountAfterRetry = await runtime.db
+    .selectFrom('runtime_equivalence_certification')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('candidate_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  const activeGenerationAfterRetry = await runtime.db
+    .selectFrom('economic_runtime_dataset')
+    .select(['id','kind','status'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('consistency_domain','=',consistencyDomain)
+    .where('status','=','ACTIVE')
+    .execute();
+  if (
+    duplicateActivation.certification.id !== governedActivation.certification.id ||
+    duplicateActivation.certification.certificationDigest !== governedActivation.certification.certificationDigest ||
+    duplicateActivation.activatedDataset?.id !== incrementalCandidate.id ||
+    Number(certificationCountBeforeRetry.count) !== 1 ||
+    Number(certificationCountAfterRetry.count) !== 1 ||
+    activeGenerationAfterRetry.length !== 1 ||
+    activeGenerationAfterRetry[0]?.id !== incrementalCandidate.id ||
+    activeGenerationAfterRetry[0]?.kind !== 'CURRENT'
+  ) {
+    throw new Error(
+      'Duplicate activation retry must be idempotent and preserve exactly one certified CURRENT generation.'
+    );
+  }
+
   const archivedParent = await runtime.db.selectFrom('economic_runtime_dataset')
     .select(['kind','status'])
     .where('id','=',currentRuntimeDataset.id)
@@ -1232,6 +1270,9 @@ try {
       equivalenceCertificationId: governedActivation.certification.id,
       equivalenceCertificationStatus: governedActivation.certification.status,
       equivalenceCertificationDigest: governedActivation.certification.certificationDigest,
+      duplicateActivationIdempotent: true,
+      duplicateActivationCertificationId: duplicateActivation.certification.id,
+      duplicateActivationCertificationCount: Number(certificationCountAfterRetry.count),
       governedActivatedDatasetId: governedActivation.activatedDataset.id,
       governedActivatedKind: governedActivation.activatedDataset.kind,
       governedActivatedStatus: governedActivation.activatedDataset.status,
