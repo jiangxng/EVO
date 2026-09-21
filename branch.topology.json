@@ -105,6 +105,12 @@
       "containedByMain": true,
       "supersededBy": "main",
       "description": "ER-C05B4.4B crash/retry, invalidated-checkpoint, and final activation-safety certification slice merged by PR #10."
+    },
+    "evo/stage-e-o2c-packet-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Stage E planning slice defining EEL-C01 Order-to-Cash Settlement Reference Loop and deterministic handoff."
     }
   },
   "requiredLLMProcedure": [
