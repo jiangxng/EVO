@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "0c08a097e95a51a5e228e794b3bb36f03ba2fd4c"
+    "lastVerifiedRuntimeMergeCommit": "078ddb9962bfa5fc796bce0269021481261aa888"
   },
   "activeWorkPacket": {
     "id": "ER-C05B4.4B",
@@ -35,8 +35,8 @@
       "crash and retry recovery",
       "additional checkpoint invalidation / transaction interruption cases if required"
     ],
-    "nextAction": "Certify activation versus Worker concurrency, then crash/retry recovery.",
-    "activeBranch": "evo/er-c05b4-4b-multigeneration-v0.1"
+    "nextAction": "Define and verify CURRENT live-tail semantics plus a shared Worker/Activation cutover lock before closing the concurrency gate.",
+    "activeBranch": "evo/er-c05b4-4b-worker-concurrency-v0.1"
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -61,7 +61,9 @@
       "evo/apm-certification-enterprise-template-v0.1",
       "evo/er-c05b4-4b-read-routing-v0.1",
       "evo/llm-progress-markers-v0.1",
-      "evo/branch-topology-contract-v0.1"
+      "evo/branch-topology-contract-v0.1",
+      "evo/branch-topology-drift-fix-v0.1",
+      "evo/er-c05b4-4b-multigeneration-v0.1"
     ],
     "branchTopology": "branch.topology.json",
     "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions."
