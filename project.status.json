@@ -35,7 +35,8 @@
       "crash and retry recovery",
       "additional checkpoint invalidation / transaction interruption cases if required"
     ],
-    "nextAction": "Build and certify multi-generation activation before Worker concurrency and crash/retry recovery."
+    "nextAction": "Prove two consecutive governed production generation activations with Candidate=Oracle=activated CURRENT overlay.",
+    "activeBranch": "evo/er-c05b4-4b-multigeneration-v0.1"
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
