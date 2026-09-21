@@ -1128,3 +1128,81 @@ EVO 现在不再只是证明“一次增量上线正确”，而是已经证明�
 ## 当前一句话状态
 
 > **EVO 已证明正常 Worker 与 Candidate Activation 在同一企业一致性域内通过数据库 cutover lock 串行化，既不会让旧 Candidate 覆盖新业务，也不会让激活后的新业务脱离 CURRENT generation；B4.4B 现在只剩 crash/retry recovery 主 Gate。**
+
+
+---
+
+# 18. 2026-09-22 追加状态：ER-C05B4.4B 已认证关闭
+
+## A. 业务问题
+
+B4.4B 的目标不是再证明一次“重算结果正确”，而是证明企业长期运行时，正式经济状态在连续升级、正常 Worker 写入、错误治理证据和事务中断下仍然只有一个可信 CURRENT。
+
+## B. 当前已经证明
+
+参考 FIFO Economic Runtime 场景现已完整覆盖：
+
+- Dashboard / LedgerReader / WorkProjection 正式读取统一服从 CURRENT generation；
+- 连续两次 governed activation：Candidate = Full-Replay Oracle = activated CURRENT overlay；
+- duplicate activation retry 幂等；
+- semantic mismatch fail-closed；
+- stale active parent fail-closed；
+- revoked promotion fail-closed；
+- invalidated checkpoint fail-closed（CHECKPOINT_NOT_ACTIVE）；
+- Worker 与 Activation 共享 PostgreSQL cutover row lock；
+- Worker 先提交时，过期 Candidate 以 POSTING_CURSOR_AHEAD_OF_CANDIDATE 拒绝；
+- activation boundary 之后的正常业务形成 CURRENT live tail；
+- Activation 最深 cutover 点发生数据库异常时，全事务回滚；
+- 删除故障后，同一 Candidate/Oracle 可以安全重试并成功激活；
+- 重试后仍只有一个 CURRENT、一个 ACTIVE Ledger、一个 certification。
+
+## C. 最终数据库证据
+
+**CERTIFIED — ER-C05B4.4B / REFERENCE FIFO ECONOMIC-RUNTIME SCENARIO**
+
+- certified implementation head: `d3dab3ed7a1d4b2a285d9564ac03f058555bfd64`
+- final evidence run: `35659612160 — SUCCESS`
+- PostgreSQL 18
+- schema 22
+- validate:docs PASS
+- migrate PASS
+- typecheck PASS
+- build PASS
+- test PASS
+- seed:demo PASS
+- validate:demo PASS
+- validate:worker-activation-concurrency PASS
+- validate:activation-crash-retry PASS
+- validate:activation-failure-matrix PASS
+
+Certification:
+`docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md`
+
+## D. 阶段结论
+
+`ER-C05B4.4B — Read Routing & Activation Failure Matrix`
+
+**CLOSED**
+
+B4.4B 当前没有剩余 open gate。
+
+## E. 明确未证明的范围
+
+本认证不能外推为：
+
+- LIFO / Moving Average / Specific Identification 同等级认证；
+- 大规模性能与高可用/容灾；
+- 产品化权限、UI、报表、行业模板；
+- EC / Eidos 最终集成。
+
+这些需要后续独立 packet。
+
+## F. 下一步
+
+仓库目前没有已经批准的 B4.4C / B4.5 编号。
+
+下一步应先从整体 roadmap 与上述 non-claims 中正式定义新的 bounded work packet，再开始实现；未来 LLM 不得沿编号惯性自行发明下一阶段。
+
+## 当前一句话状态（2026-09-22）
+
+> **EVO 已在参考 FIFO 场景中完成“正式读取 → 连续多代增量重算 → 独立 Full Replay 对照 → 治理认证 → Worker 并发切换 → 崩溃全回滚 → 同 Candidate 安全重试”的 PostgreSQL 18 数据库闭环；ER-C05B4.4B 已认证关闭。**
