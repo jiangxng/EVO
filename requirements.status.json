@@ -45,10 +45,11 @@
       "cash.received increases Cash by actual cash measurement",
       "cash.received decreases Receivable by settled foreign measurement",
       "customer receipt explicitly identifies the receivable it settles",
-      "cross-currency settlement produces explainable realized FX"
+      "cross-currency settlement produces explainable realized FX",
+      "production and shipment work close for the full-completion reference scenario",
+      "receivable WorkItem closes after full settlement"
     ],
     "open": [
-      "Work closure",
       "Full Replay equality",
       "legacy compatibility replay certification",
       "final EEL-C01 database certification"
@@ -64,12 +65,20 @@
       "UI/report productization"
     ],
     "currentWork": {
+      "pullRequest": 16,
       "branch": "evo/eel-c01-work-closure-v0.1",
-      "evidenceState": "IMPLEMENTATION PLANNED",
-      "requirement": "Work closure",
-      "businessOutcome": "After full production, shipment, and collection, no PRODUCE, SHIP, or COLLECT WorkItem remains open for the reference order.",
-      "productOutcome": "The completed order disappears from pending production, pending shipment, and collection queues while Cash remains a financial position, not a task.",
-      "smallestSufficientChange": "First prove the existing balance-derived WorkProjection can transition the three work items from OPEN to DONE. Add runtime code only if the E2E exposes a real gap.",
+      "evidenceState": "DATABASE E2E VERIFIED",
+      "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
+      "verifiedCiRun": 35664093669,
+      "businessEvidence": [
+        "order opens PRODUCE, SHIP, and COLLECT work",
+        "full production closes PRODUCE work",
+        "full shipment closes SHIP work",
+        "full receipt closes COLLECT work",
+        "no O2C work remains open after full closure",
+        "Cash is not projected as a WorkItem"
+      ],
+      "antiOverdesignResult": "Existing balance-derived WorkProjection satisfied the requirement; no new workflow engine was needed.",
       "deferredScopePreserved": true
     }
   },
