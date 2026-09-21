@@ -143,11 +143,18 @@
       "description": "EEL-C01.3 canonical cash.received explicit settlement allocation and realized-FX slice merged after PostgreSQL 18 E2E."
     },
     "evo/eel-c01-work-closure-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 16,
+      "description": "EEL-C01.4 full O2C Work closure slice merged after PostgreSQL 18 E2E; existing WorkProjection proved sufficient."
+    },
+    "evo/eel-c01-full-replay-equality-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C01.4 full-closure Work lifecycle; PostgreSQL 18 E2E verified using existing WorkProjection with no new workflow abstraction.",
-      "pr": 16
+      "description": "EEL-C01.5 full-loop unchanged-history Full Replay equality and canonical-history preservation proof."
     }
   },
   "requiredLLMProcedure": [
