@@ -33,7 +33,7 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Prove EEL-C01.4 full-closure Work lifecycle using the existing ledger-balance WorkProjection; do not introduce a new workflow engine unless PostgreSQL E2E proves the projection insufficient.",
+    "nextAction": "Run PostgreSQL E2E for EEL-C01.4 Work lifecycle. If existing WorkProjection closes all three queues correctly, merge without adding a new workflow abstraction.",
     "verifiedHead": "36d8de14c746b94f7ecc9b195aa9e75214200656",
     "verifiedCiRun": 35663507253
   },
@@ -103,8 +103,9 @@
   },
   "currentUnmergedWork": {
     "branch": "evo/eel-c01-work-closure-v0.1",
-    "status": "IMPLEMENTATION_PLANNED",
+    "status": "IMPLEMENTED",
     "requirement": "full-closure O2C Work state",
-    "antiOverdesignDecision": "Reuse existing WorkProjection; no new workflow abstraction."
+    "antiOverdesignDecision": "Reuse existing WorkProjection; no new workflow abstraction.",
+    "validator": "npm run validate:eel-c01-work-closure"
   }
 }
