@@ -49,11 +49,10 @@
       "production and shipment work close for the full-completion reference scenario",
       "receivable WorkItem closes after full settlement",
       "Full Replay equality",
-      "legacy customer_payment.received remains replay-compatible"
+      "legacy customer_payment.received remains replay-compatible",
+      "BusinessData history is unchanged by replay"
     ],
-    "open": [
-      "final EEL-C01 database certification"
-    ],
+    "open": [],
     "deferred": [
       "partial payment",
       "overpayment and unapplied cash",
@@ -64,18 +63,10 @@
       "same-ledger multi-currency balance identity generalization",
       "UI/report productization"
     ],
-    "currentWork": {
-      "pullRequest": 21,
-      "branch": "evo/eel-c01-legacy-receipt-compat-v0.1",
-      "evidenceState": "DATABASE E2E VERIFIED",
-      "verifiedHead": "69c1744d24fc7c4211b91cea3fe7343433d33cbd",
-      "verifiedCiRun": 35667578606,
-      "requirement": "legacy compatibility replay certification",
-      "businessOutcome": "Historical customer_payment.received facts remain unchanged and replay-compatible after cash.received becomes the canonical new path.",
-      "productOutcome": "Existing enterprises can upgrade without losing, rewriting, or silently changing old customer-payment economic history.",
-      "antiOverdesignResult": "Compatibility was proven with existing runtime mechanisms only; no generic payment migration framework was added.",
-      "deferredScopePreserved": true
-    }
+    "currentWork": null,
+    "status": "CERTIFIED",
+    "certification": "docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md",
+    "alignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C01-v0.1.md"
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -108,13 +99,17 @@
   ],
   "lastAlignment": {
     "date": "2026-09-22",
-    "reason": "User requested protection against requirement drift and overdesign in long-running LLM-native development.",
-    "result": "Stage E and EEL-C01 remain aligned; add explicit governance against technical scope drift and human comprehension gaps."
+    "reason": "Completed EEL-C01 enterprise business loop and explicit human confidence/comprehension alignment trigger.",
+    "result": "EEL-C01 business outcomes are satisfied and certified; no current requirement drift or overdesign blocker found. Adjacent payment/banking/generalization scope remains deferred."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
     "countingRule": "Count merged bounded slices whose evidence level is DATABASE E2E VERIFIED or CERTIFIED.",
     "triggerRule": "Run formal alignment at the third slice or any mandatory event trigger, whichever comes first.",
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
+  },
+  "nextRequirementSelection": {
+    "state": "BUSINESS_SELECTION_REQUIRED",
+    "rule": "Choose the next Stage E bounded packet from confirmed business value/coverage before introducing new technical abstractions."
   }
 }
