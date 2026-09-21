@@ -11,10 +11,10 @@
     "id": "EEL-C01",
     "name": "Order-to-Cash Settlement Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DATABASE E2E VERIFIED",
+    "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/eel-c01-receipt-posting-v0.1",
+    "activeBranch": "evo/eel-c01-settlement-allocation-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
@@ -23,7 +23,8 @@
       "EEL-C01.1/C01.2 implementation: cash.received runtime path, Cash ledger, and separate settled/cash posting measurements",
       "reference cash ledger and receipt posting",
       "explicit receivable decrease using settled foreign measurement",
-      "cash increase using actual local measurement"
+      "cash increase using actual local measurement",
+      "EEL-C01.3 implementation: cash.received canonical settlement type and explicit allocation/realized-FX validation path"
     ],
     "openGates": [
       "legacy customer_payment.received replay compatibility",
@@ -31,7 +32,7 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Implement explicit settlement AllocationInstruction/AllocationRelation convergence for cash.received, then prove Work closure and full O2C Full Replay equality.",
+    "nextAction": "Run PostgreSQL E2E for canonical cash.received AllocationInstruction/AllocationRelation and realized FX; then close O2C Work and prove Full Replay equality.",
     "verifiedHead": "1d44ee11af3ed847cfc4a4629210f5ee07f245fb",
     "verifiedCiRun": 35661639605
   },
