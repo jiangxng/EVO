@@ -14,7 +14,7 @@
     "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/eel-c01-settlement-allocation-v0.1",
+    "activeBranch": "evo/eel-c01-settlement-allocation-v0.2",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
@@ -31,7 +31,7 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Repair PR #13 validation, prove explicit settlement AllocationRelation/realized FX for cash.received, then proceed to Work closure and Full Replay equality.",
+    "nextAction": "Run PR #15 PostgreSQL E2E for canonical cash.received AllocationInstruction/AllocationRelation and realized FX; if verified, merge the bounded slice before Work closure.",
     "verifiedHead": "1d44ee11af3ed847cfc4a4629210f5ee07f245fb",
     "verifiedCiRun": 35661639605
   },
@@ -100,11 +100,14 @@
     "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred."
   },
   "currentUnmergedWork": {
-    "branch": "evo/eel-c01-settlement-allocation-v0.1",
-    "pullRequest": 13,
-    "status": "CI_FAILED_NOT_MERGED",
-    "note": "EEL-C01.3 implementation is not authoritative runtime reality until CI passes and the PR is merged.",
-    "failureClassification": "TEST_ISOLATION_ASSUMPTION",
-    "failureDetail": "PR #13 validator expected exactly one replayed realized-settlement request, but shared seeded DB state contained three. Existing receipt-posting validation passed; business semantics are not yet disproven, but EEL-C01.3 remains unverified."
+    "branch": "evo/eel-c01-settlement-allocation-v0.2",
+    "pullRequest": 15,
+    "status": "CI_PENDING_NOT_MERGED",
+    "priorAttempt": {
+      "pullRequest": 13,
+      "status": "SUPERSEDED",
+      "failureClassification": "TEST_ISOLATION_ASSUMPTION"
+    },
+    "note": "v0.2 is rebuilt from aligned main and removes the brittle global replay-count assumption."
   }
 }
