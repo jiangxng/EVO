@@ -20,6 +20,9 @@ has enough information to act safely.
 |---|---|
 | Agent never discovers project instructions | Root `AGENTS.md`; adapters for Claude and Copilot |
 | Context window is consumed by broad documentation | Task-specific read profiles and explicit stop conditions |
+| Technical work drifts away from confirmed business need | Business requirement baseline + requirements.status.json + Human–LLM alignment protocol |
+| Future flexibility drives unnecessary complexity | Mandatory anti-overdesign gate and explicit deferred scope |
+| Human stakeholder cannot judge progress because reporting is too technical | Business → Product → Technical explanation order |
 | Old handoff is mistaken for current state | Machine pointer to one current checkpoint |
 | Design text is mistaken for implementation | Separate reality, intent, progress, and evidence authority |
 | Passing unit tests is called production proof | Fixed evidence-level vocabulary |
@@ -39,7 +42,9 @@ Every important document belongs primarily to one class.
 | Router | Machine-readable current pointers | Maintained in place, validated | `context.manifest.json` |
 | Normative | Required architecture behavior | Versioned/superseded | ADR, Invariants, Contract, Freeze |
 | Reality | Actual executable behavior | Changes with implementation | code, migration, test, DB constraint |
+| Business Intent | Confirmed business outcomes, acceptance and non-goals | Versioned/additive | business requirement baseline |
 | Progress | Current stage and next packet | Append or new checkpoint | status, current checkpoint |
+| Alignment | Requirement-to-capability/evidence and anti-overdesign state | Maintained pointer + additive review evidence | requirements.status.json, alignment matrix |
 | Evidence | Proof within named boundary | Immutable/additive | certification packet, CI run |
 | Historical | Genealogy and discarded/superseded state | Immutable, not default reading | legacy, archaeology history |
 
@@ -173,3 +178,23 @@ Before accepting a documentation change, check:
 5. Are commands exact and ordered, with prerequisites stated?
 6. Are failures preserved as evidence but clearly not current instructions?
 7. Does `npm run validate:docs` pass?
+
+
+## 11. Requirement alignment
+
+Repository documentation must allow a human stakeholder to judge whether technical
+work still serves the intended business outcome without first understanding all
+implementation terminology.
+
+For material architecture/generalization work, the model must load the
+manifest-designated requirement status and alignment protocol.
+
+A CI failure should be classified where possible. Distinguish at minimum:
+
+- business acceptance failure;
+- implementation defect;
+- validation/test assumption defect;
+- documentation/status drift;
+- infrastructure/transient failure.
+
+Do not translate every red CI run into a business-requirement failure.
