@@ -9,6 +9,7 @@ const exact = {
   activeParentMatches: true,
   checkpointActive: true,
   promotionActive: true,
+  postingCursorWithinCandidate: true,
   oracleStoredDigest: 'a'.repeat(64),
   oracleComputedDigest: 'a'.repeat(64),
   candidateComputedDigest: 'a'.repeat(64)
@@ -31,6 +32,13 @@ describe('runtime equivalence activation gate', () => {
       ...exact,
       activeParentMatches: false
     })).toContain('STALE_ACTIVE_PARENT');
+  });
+
+  it('fails closed when normal posting advanced beyond the Candidate boundary', () => {
+    expect(evaluateRuntimeEquivalence({
+      ...exact,
+      postingCursorWithinCandidate: false
+    })).toContain('POSTING_CURSOR_AHEAD_OF_CANDIDATE');
   });
 
   it('detects Oracle derived-state drift after verification', () => {
