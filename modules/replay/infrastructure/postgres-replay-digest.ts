@@ -22,6 +22,12 @@ export function digestEconomicRuntimeSemantic(
   return digest(semantic);
 }
 
+export function digestEconomicRuntimeFamily(
+  family: JsonValue
+): string {
+  return digest(family);
+}
+
 function asBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') return value;
   if (typeof value === 'number' && Number.isInteger(value)) return BigInt(value);
