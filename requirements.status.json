@@ -64,17 +64,12 @@
       "UI/report productization"
     ],
     "currentWork": {
-      "pullRequest": 15,
-      "branch": "evo/eel-c01-settlement-allocation-v0.2",
-      "evidenceState": "DATABASE E2E VERIFIED",
-      "verifiedHead": "36d8de14c746b94f7ecc9b195aa9e75214200656",
-      "verifiedCiRun": 35663507253,
-      "businessEvidence": [
-        "cash.received is the explicit settlement consumer",
-        "AllocationRelation consumes the selected 1000 USD receivable position",
-        "realized FX is +100 CNY",
-        "operational receivable remains zero"
-      ],
+      "branch": "evo/eel-c01-work-closure-v0.1",
+      "evidenceState": "IMPLEMENTATION PLANNED",
+      "requirement": "Work closure",
+      "businessOutcome": "After full production, shipment, and collection, no PRODUCE, SHIP, or COLLECT WorkItem remains open for the reference order.",
+      "productOutcome": "The completed order disappears from pending production, pending shipment, and collection queues while Cash remains a financial position, not a task.",
+      "smallestSufficientChange": "First prove the existing balance-derived WorkProjection can transition the three work items from OPEN to DONE. Add runtime code only if the E2E exposes a real gap.",
       "deferredScopePreserved": true
     }
   },
