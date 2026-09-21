@@ -22,11 +22,13 @@ export class PostgresLedgerReader implements LedgerReader {
       .where('enterprise_id','=',enterpriseId)
       .where('consistency_domain','=',runtime.consistency_domain)
       .where('status','=','ACTIVE')
-      .executeTakeFirstOrThrow();
-    if (current.kind !== 'CURRENT') {
+      .executeTakeFirst();
+    if (current !== undefined && current.kind !== 'CURRENT') {
       throw new Error('LedgerReader requires one CURRENT/ACTIVE runtime generation.');
     }
-    const linkedLedger = await this.db.selectFrom('ledger_dataset')
+    const linkedLedger = current === undefined
+      ? undefined
+      : await this.db.selectFrom('ledger_dataset')
       .select('id')
       .where('enterprise_id','=',enterpriseId)
       .where('consistency_domain','=',runtime.consistency_domain)
@@ -35,7 +37,7 @@ export class PostgresLedgerReader implements LedgerReader {
       .where('status','=','ACTIVE')
       .executeTakeFirst();
     const ledgerDatasetId = linkedLedger?.id ?? (
-      current.parent_dataset_id === null
+      current === undefined || current.parent_dataset_id === null
         ? (await this.db.selectFrom('ledger_dataset')
             .select('id')
             .where('enterprise_id','=',enterpriseId)
