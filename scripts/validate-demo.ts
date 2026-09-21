@@ -1093,8 +1093,14 @@ try {
     throw new Error('Default WorkProjection read must resolve the activated CURRENT generation.');
   }
 
+  const legacyWorkBeforeRefresh = await runtime.db.selectFrom('work_item')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','is',null)
+    .where('status','in',['OPEN','IN_PROGRESS'])
+    .executeTakeFirstOrThrow();
   await runtime.work.refresh(ids.enterpriseId);
-  const legacyWorkAfterActivation = await runtime.db.selectFrom('work_item')
+  const legacyWorkAfterRefresh = await runtime.db.selectFrom('work_item')
     .select(({fn})=>fn.countAll<number>().as('count'))
     .where('enterprise_id','=',ids.enterpriseId)
     .where('economic_runtime_dataset_id','is',null)
@@ -1108,7 +1114,7 @@ try {
     .executeTakeFirstOrThrow();
   if (
     Number(currentWorkAfterRefresh.count) < 1 ||
-    Number(legacyWorkAfterActivation.count) !== 3
+    Number(legacyWorkAfterRefresh.count) !== Number(legacyWorkBeforeRefresh.count)
   ) {
     throw new Error(
       'CURRENT work refresh must remain generation-scoped and must not create new legacy-scope WorkItems.'
