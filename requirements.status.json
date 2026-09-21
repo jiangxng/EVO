@@ -65,15 +65,11 @@
       "UI/report productization"
     ],
     "currentWork": {
-      "pullRequest": 19,
-      "branch": "evo/eel-c01-full-replay-equality-v0.2",
-      "evidenceState": "DATABASE E2E VERIFIED",
-      "verifiedHead": "a39989a6b335acd10a11805484e99b747bf85cd6",
-      "verifiedCiRun": 35666804875,
-      "requirement": "Full Replay equality",
-      "businessOutcome": "Deleting and rebuilding derived state leaves the fully completed O2C order economically unchanged while preserving canonical business history and explicit settlement intent.",
-      "productOutcome": "After replay, the enterprise still sees the same closed order, same cash, zero receivable, no open O2C work, same explicit settlement relation, same realized FX, and same shipment cost.",
-      "antiOverdesignResult": "Existing replay infrastructure was sufficient; only an isolated EEL-C01 business-level proof was added.",
+      "evidenceState": "READY_FOR_NEXT_SLICE",
+      "requirement": "legacy compatibility replay certification",
+      "businessOutcome": "Existing historical customer_payment.received facts must continue to replay correctly after the new cash.received canonical path is introduced.",
+      "productOutcome": "An enterprise upgrade must not break old customer-payment history or change its reconstructed economic result.",
+      "antiOverdesignDecision": "Add a bounded compatibility proof only; do not introduce a new payment framework.",
       "deferredScopePreserved": true
     }
   },
@@ -86,7 +82,7 @@
   "alignmentTriggers": [
     "stage transition",
     "completed enterprise business loop",
-    "3-5 completed work packets",
+    "every 3 completed verified work packets since last alignment",
     "new core abstraction",
     "new major database family",
     "new cross-module infrastructure",
@@ -110,5 +106,11 @@
     "date": "2026-09-22",
     "reason": "User requested protection against requirement drift and overdesign in long-running LLM-native development.",
     "result": "Stage E and EEL-C01 remain aligned; add explicit governance against technical scope drift and human comprehension gaps."
+  },
+  "alignmentCadence": {
+    "verifiedSliceInterval": 3,
+    "countingRule": "Count merged bounded slices whose evidence level is DATABASE E2E VERIFIED or CERTIFIED.",
+    "triggerRule": "Run formal alignment at the third slice or any mandatory event trigger, whichever comes first.",
+    "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   }
 }
