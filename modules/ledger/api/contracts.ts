@@ -1,4 +1,5 @@
 import type { JsonObject } from '../../metadata/api/contracts.js';
+import type { MaterializationContext } from '../../materialization/api/context.js';
 
 export interface LedgerEffect {
   readonly postingRuleId: string;
@@ -22,6 +23,7 @@ export interface LedgerPostingContext {
   readonly effectiveAt: Date;
   readonly postingPriority: number;
   readonly postingSequence: bigint;
+  readonly materialization?: MaterializationContext;
 }
 
 export interface LedgerBalanceView {

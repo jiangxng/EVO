@@ -1,0 +1,24 @@
+{
+  "$schema":"evo.dimension-catalog/1.0",
+  "status":"CONVERGENCE_CANDIDATE",
+  "dimensions":[
+    {"code":"enterprise","semantic":"legal/operating entity","origin":"LEGACY_CONVERGED"},
+    {"code":"customer","semantic":"customer counterparty","origin":"LEGACY_CONVERGED"},
+    {"code":"supplier","semantic":"supplier counterparty","origin":"LEGACY_CONVERGED"},
+    {"code":"counterparty","semantic":"generic dealer/counterparty role where business role is not customer/supplier-specific","origin":"LEGACY_CONVERGED"},
+    {"code":"material","semantic":"material/product/SKU identity","origin":"LEGACY_CONVERGED"},
+    {"code":"warehouse","semantic":"warehouse","origin":"LEGACY_DERIVED"},
+    {"code":"location","semantic":"warehouse location/bin","origin":"LEGACY_DERIVED"},
+    {"code":"batch","semantic":"inventory/production batch","origin":"LEGACY_DERIVED"},
+    {"code":"project","semantic":"project","origin":"LEGACY_DERIVED"},
+    {"code":"department","semantic":"organization department","origin":"LEGACY_DERIVED"},
+    {"code":"profit-center","semantic":"profit responsibility center","origin":"LEGACY_CONVERGED"},
+    {"code":"cost-center","semantic":"cost responsibility center","origin":"LEGACY_CONVERGED"},
+    {"code":"facility","semantic":"production/operating facility","origin":"LEGACY_DERIVED"},
+    {"code":"work-center","semantic":"production work center","origin":"LEGACY_CONVERGED"},
+    {"code":"cash-account","semantic":"cash/bank/fund account","origin":"LEGACY_CONVERGED"},
+    {"code":"currency","semantic":"transaction/accounting currency","origin":"LEGACY_CONVERGED"},
+    {"code":"account-sub","semantic":"legacy auxiliary account subdivision pending final accounting convergence","origin":"LEGACY_DERIVED","resolution":"UNRESOLVED_CANONICAL_BOUNDARY"}
+  ],
+  "invariant":"Dimensions are explicitly declared and explicitly mapped by each ledger/posting policy; source fields never propagate implicitly."
+}

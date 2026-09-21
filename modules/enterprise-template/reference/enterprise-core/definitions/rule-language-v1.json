@@ -1,0 +1,27 @@
+{
+  "$schema":"evo.rule-language/1.0",
+  "status":"DRAFT_FROM_LEGACY_CONVERGENCE",
+  "principle":"TYPED_DETERMINISTIC_AST_NOT_ARBITRARY_CODE",
+  "valueTypes":["DECIMAL","INTEGER","BOOLEAN","TEXT","DATE","DATETIME","MONEY","QUANTITY","IDENTIFIER","DIMENSION_VALUE"],
+  "nodes":[
+    {"kind":"REF","purpose":"Explicit typed source reference"},
+    {"kind":"CONST","purpose":"Typed constant"},
+    {"kind":"ADD","purpose":"Decimal-safe addition"},
+    {"kind":"SUBTRACT","purpose":"Decimal-safe subtraction"},
+    {"kind":"MULTIPLY","purpose":"Decimal-safe multiplication"},
+    {"kind":"DIVIDE","purpose":"Decimal-safe division with explicit zero/precision policy"},
+    {"kind":"DIRECTION","purpose":"Explicit signed ledger effect"},
+    {"kind":"COMPARE","purpose":"Typed comparison"},
+    {"kind":"AND","purpose":"Boolean conjunction"},
+    {"kind":"OR","purpose":"Boolean disjunction"},
+    {"kind":"NOT","purpose":"Boolean negation"},
+    {"kind":"IF","purpose":"Deterministic conditional value"},
+    {"kind":"SUM","purpose":"Explicit deterministic aggregation"},
+    {"kind":"MATCH","purpose":"Explicit governed matching reference"},
+    {"kind":"ALLOCATE","purpose":"Conserved allocation using pinned allocation policy"},
+    {"kind":"VALUATION_REF","purpose":"Reference pinned valuation result/policy"},
+    {"kind":"FX_CONVERT","purpose":"Currency conversion using explicit rate source/version"}
+  ],
+  "forbidden":["ARBITRARY_SQL","ARBITRARY_JAVASCRIPT","IMPLICIT_LATEST","IMPLICIT_DIMENSION_PROPAGATION","COINCIDENCE_BASED_MATCHING","FLOAT_MONEY_ARITHMETIC"],
+  "legacySemanticFamilies":["REFERENCE","ARITHMETIC","DIRECTION","CONDITION","AGGREGATION","MATCHING","ALLOCATION","INVENTORY","COST","FX","OPENING_CLOSING","PROJECT_PRODUCTION","UNKNOWN"]
+}

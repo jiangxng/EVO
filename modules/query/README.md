@@ -4,6 +4,10 @@
 
 Read-only cross-module query composition.
 
+The current Economic Runtime view is generation-aware: immutable history is
+composed from certified parent/child sequence segments, while snapshot families
+such as balances and open work are read only from the active leaf generation.
+
 ## Owns
 
 `read models`
@@ -17,6 +21,15 @@ Read-only cross-module query composition.
 - Importing another module's `infrastructure/` is prohibited.
 - Material interface or invariant changes require documentation and tests.
 
+## Current generation-overlay invariant
+
+- resolve exactly one `CURRENT / ACTIVE` Economic Runtime Dataset;
+- reject cyclic, cross-scope, discontinuous, or uncertified parent lineage;
+- compose Ledger / Cost / Allocation / Valuation history by generation interval;
+- read Ledger balances and WorkItems only from the active leaf generation;
+- require the composed semantic digest to equal the digest certified at activation.
+
 ## Status
 
-M0 placeholder. Concrete contracts are introduced by the milestone that implements this module.
+B4.4A current-generation overlay reads are certified for the reference FIFO
+scenario. B4.4B default read routing and failure/concurrency coverage remain open.

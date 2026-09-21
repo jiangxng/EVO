@@ -1,3 +1,4 @@
+import type { MaterializationContext } from '../../materialization/api/context.js';
 export interface ValuationPostingResult {
   readonly valuationPostingRunId: string;
   readonly status: 'POSTED' | 'NO_CHANGE';
@@ -6,5 +7,8 @@ export interface ValuationPostingResult {
 }
 
 export interface ValuationPostingService {
-  postCostResult(costResultId: string): Promise<ValuationPostingResult>;
+  postCostResult(
+    costResultId: string,
+    materialization?: MaterializationContext
+  ): Promise<ValuationPostingResult>;
 }

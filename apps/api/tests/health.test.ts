@@ -13,25 +13,20 @@ describe('API health', () => {
   it('reports liveness without requiring the database', async () => {
     app = buildApp({ loggerLevel: 'silent' });
 
-    const response = await app.inject({
-      method: 'GET',
-      url: '/health/live'
-    });
+    const response = await app.inject({ method: 'GET', url: '/health/live' });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
       status: 'ok',
-      service: 'evo-api'
+      service: 'evo-api',
+      version: '1.0.0-alpha.2'
     });
   });
 
   it('does not claim readiness when the database is absent', async () => {
     app = buildApp({ loggerLevel: 'silent' });
 
-    const response = await app.inject({
-      method: 'GET',
-      url: '/health/ready'
-    });
+    const response = await app.inject({ method: 'GET', url: '/health/ready' });
 
     expect(response.statusCode).toBe(503);
   });
