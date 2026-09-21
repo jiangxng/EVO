@@ -191,7 +191,52 @@ try {
     .where('status','=','ARCHIVED')
     .executeTakeFirstOrThrow();
 
-  // 3) Revoked promotion must fail closed even with matching digests.
+  // 3) Invalidated checkpoint must fail closed even when Candidate/Oracle digests match.
+  const invalidatedDigest = sha('failure-matrix:invalidated-checkpoint');
+  const invalidatedPair = await createSyntheticPair(
+    'invalidated-checkpoint',
+    invalidatedDigest
+  );
+  await runtime.db.updateTable('replay_checkpoint')
+    .set({
+      status: 'INVALIDATED',
+      invalidated_at: new Date(),
+      invalidation_reason: 'Database E2E checkpoint invalidation fixture.'
+    })
+    .where('id','=',promotion.checkpoint_id)
+    .where('status','=','ACTIVE')
+    .executeTakeFirstOrThrow();
+
+  const invalidated = await gate(
+    invalidatedDigest,
+    invalidatedDigest
+  ).certifyAndActivate({
+    candidateDatasetId: invalidatedPair.candidate.id,
+    oracleDatasetId: invalidatedPair.oracle.id,
+    certifiedBy: 'evo-failure-matrix',
+    reason: 'Database E2E invalidated checkpoint rejection fixture.'
+  });
+  if (
+    invalidated.certification.status !== 'REJECTED' ||
+    !invalidated.certification.blockers.includes('CHECKPOINT_NOT_ACTIVE') ||
+    invalidated.activatedDataset !== undefined
+  ) {
+    throw new Error('Candidate governed by an invalidated checkpoint must be rejected.');
+  }
+
+  // Restore the governance fixture so the next independent failure case can
+  // prove Promotion revocation rather than inheriting CHECKPOINT_NOT_ACTIVE.
+  await runtime.db.updateTable('replay_checkpoint')
+    .set({
+      status: 'ACTIVE',
+      invalidated_at: null,
+      invalidation_reason: null
+    })
+    .where('id','=',promotion.checkpoint_id)
+    .where('status','=','INVALIDATED')
+    .executeTakeFirstOrThrow();
+
+  // 4) Revoked promotion must fail closed even with matching digests.
   const revokedDigest = sha('failure-matrix:revoked-promotion');
   const revokedPair = await createSyntheticPair('revoked-promotion',revokedDigest);
   await runtime.replayPromotion.revoke(
@@ -237,6 +282,10 @@ try {
     staleParent:{
       certificationId:stale.certification.id,
       blockers:stale.certification.blockers
+    },
+    invalidatedCheckpoint:{
+      certificationId:invalidated.certification.id,
+      blockers:invalidated.certification.blockers
     },
     revokedPromotion:{
       certificationId:revoked.certification.id,
