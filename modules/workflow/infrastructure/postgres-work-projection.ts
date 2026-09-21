@@ -7,6 +7,59 @@ import type {
   WorkProjection
 } from '../api/contracts.js';
 
+
+type CurrentWorkScope = {
+  readonly consistencyDomain: string;
+  readonly runtimeDatasetId: string | null;
+};
+
+async function resolveCurrentWorkScope(
+  db: Kysely<Database>,
+  enterpriseId: string
+): Promise<CurrentWorkScope> {
+  const runtime = await db.selectFrom('enterprise_runtime_state')
+    .select('consistency_domain')
+    .where('enterprise_id','=',enterpriseId)
+    .executeTakeFirstOrThrow();
+  const current = await db.selectFrom('economic_runtime_dataset')
+    .select(['id','kind','status','parent_dataset_id'])
+    .where('enterprise_id','=',enterpriseId)
+    .where('consistency_domain','=',runtime.consistency_domain)
+    .where('status','=','ACTIVE')
+    .executeTakeFirst();
+  if (current === undefined) {
+    return {
+      consistencyDomain: runtime.consistency_domain,
+      runtimeDatasetId: null
+    };
+  }
+  if (current.kind !== 'CURRENT') {
+    throw new Error('WorkProjection requires one CURRENT/ACTIVE runtime generation.');
+  }
+  const linkedLedger = await db.selectFrom('ledger_dataset')
+    .select('id')
+    .where('enterprise_id','=',enterpriseId)
+    .where('consistency_domain','=',runtime.consistency_domain)
+    .where('economic_runtime_dataset_id','=',current.id)
+    .where('kind','=','CURRENT')
+    .where('status','=','ACTIVE')
+    .executeTakeFirst();
+
+  if (linkedLedger !== undefined) {
+    return {
+      consistencyDomain: runtime.consistency_domain,
+      runtimeDatasetId: current.id
+    };
+  }
+  if (current.parent_dataset_id !== null) {
+    throw new Error('CURRENT runtime generation has no active Ledger dataset.');
+  }
+  return {
+    consistencyDomain: runtime.consistency_domain,
+    runtimeDatasetId: null
+  };
+}
+
 const workTypeByLedger: Record<string, { type: string; title: string; priority: number }> = {
   pending_production: { type: 'PRODUCE', title: '待生产', priority: 30 },
   pending_shipment: { type: 'SHIP', title: '待出库/发货', priority: 20 },
@@ -20,6 +73,13 @@ export class PostgresWorkProjection implements WorkProjection {
     enterpriseId: string,
     materialization?: MaterializationContext
   ): Promise<number> {
+    const currentScope = materialization === undefined
+      ? await resolveCurrentWorkScope(this.db,enterpriseId)
+      : null;
+    const effectiveRuntimeDatasetId = materialization?.runtimeDatasetId
+      ?? currentScope?.runtimeDatasetId
+      ?? null;
+
     let query = this.db
       .selectFrom('ledger_balance as b')
       .innerJoin('ledger_definition as d', 'd.id', 'b.ledger_definition_id')
@@ -38,7 +98,15 @@ export class PostgresWorkProjection implements WorkProjection {
           .where('ds.economic_runtime_dataset_id','=',materialization.runtimeDatasetId)
           .where('ds.kind','=','CANDIDATE')
           .where('ds.status','=','BUILDING')
-      : query.where('ds.status', '=', 'ACTIVE');
+      : effectiveRuntimeDatasetId === null
+        ? query
+            .where('ds.economic_runtime_dataset_id','is',null)
+            .where('ds.kind','=','CURRENT')
+            .where('ds.status', '=', 'ACTIVE')
+        : query
+            .where('ds.economic_runtime_dataset_id','=',effectiveRuntimeDatasetId)
+            .where('ds.kind','=','CURRENT')
+            .where('ds.status', '=', 'ACTIVE');
 
     const balances = await query.execute();
 
@@ -54,7 +122,7 @@ export class PostgresWorkProjection implements WorkProjection {
         .insertInto('work_item')
         .values({
           enterprise_id: enterpriseId,
-          economic_runtime_dataset_id: materialization?.runtimeDatasetId ?? null,
+          economic_runtime_dataset_id: effectiveRuntimeDatasetId,
           work_type: mapping.type,
           title: mapping.title,
           status: positive ? 'OPEN' : 'DONE',
@@ -94,15 +162,22 @@ export class PostgresWorkProjection implements WorkProjection {
     enterpriseId: string,
     materialization?: MaterializationContext
   ): Promise<readonly WorkItemView[]> {
+    const currentScope = materialization === undefined
+      ? await resolveCurrentWorkScope(this.db,enterpriseId)
+      : null;
+    const effectiveRuntimeDatasetId = materialization?.runtimeDatasetId
+      ?? currentScope?.runtimeDatasetId
+      ?? null;
+
     let query = this.db
       .selectFrom('work_item')
       .selectAll()
       .where('enterprise_id', '=', enterpriseId)
       .where('status', 'in', ['OPEN', 'IN_PROGRESS']);
 
-    query = materialization === undefined
+    query = effectiveRuntimeDatasetId === null
       ? query.where('economic_runtime_dataset_id','is',null)
-      : query.where('economic_runtime_dataset_id','=',materialization.runtimeDatasetId);
+      : query.where('economic_runtime_dataset_id','=',effectiveRuntimeDatasetId);
 
     const rows = await query
       .orderBy('priority', 'desc')

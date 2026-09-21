@@ -25,7 +25,8 @@
     "test:posting": "vitest run modules/posting modules/ledger",
     "seed:demo": "node --env-file-if-exists=.env --import tsx scripts/seed-demo.ts",
     "validate:demo": "node --env-file-if-exists=.env --import tsx scripts/validate-demo.ts",
-    "start": "node dist/apps/api/src/main.js"
+    "start": "node dist/apps/api/src/main.js",
+    "validate:activation-failure-matrix": "node --env-file-if-exists=.env --import tsx scripts/validate-activation-failure-matrix.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",

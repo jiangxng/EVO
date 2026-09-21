@@ -147,10 +147,16 @@ implements CurrentEconomicRuntimeViewService {
         }
       }
 
-      if (active.boundary_sequence === null) {
-        throw new Error('Certified CURRENT generation is missing its boundary sequence.');
-      }
-      const activeBoundary = asBigInt(active.boundary_sequence);
+      const activeBoundary = active.boundary_sequence === null
+        ? (() => 0n)()
+        : asBigInt(active.boundary_sequence);
+      const effectiveActiveBoundary = active.boundary_sequence === null
+        ? asBigInt((await trx.selectFrom('enterprise_runtime_state')
+            .select('last_posted_sequence')
+            .where('enterprise_id','=',enterpriseId)
+            .where('consistency_domain','=',consistencyDomain)
+            .executeTakeFirstOrThrow()).last_posted_sequence ?? 0)
+        : activeBoundary;
       const segments: Segment[] = [];
       for (let index = 0; index < chain.length; index += 1) {
         const dataset = chain[index]!;
@@ -160,7 +166,7 @@ implements CurrentEconomicRuntimeViewService {
           : asBigInt(dataset.start_sequence);
         const endSequence = next?.start_sequence !== null && next?.start_sequence !== undefined
           ? asBigInt(next.start_sequence) - 1n
-          : activeBoundary;
+          : effectiveActiveBoundary;
         const linkedLedger = await trx.selectFrom('ledger_dataset')
           .select('id')
           .where('economic_runtime_dataset_id','=',dataset.id)
@@ -272,14 +278,26 @@ implements CurrentEconomicRuntimeViewService {
       valuationPositions.sort((a,b) => String(a.business_data_id).localeCompare(String(b.business_data_id)) || String(a.valuation_rule_id).localeCompare(String(b.valuation_rule_id)));
       valuationResults.sort((a,b) => String(a.result_kind).localeCompare(String(b.result_kind)) || String(a.position_key).localeCompare(String(b.position_key)));
 
-      const activeLedger = await trx.selectFrom('ledger_dataset')
+      const linkedActiveLedger = await trx.selectFrom('ledger_dataset')
         .select('id')
         .where('enterprise_id','=',enterpriseId)
         .where('consistency_domain','=',consistencyDomain)
         .where('economic_runtime_dataset_id','=',active.id)
         .where('kind','=','CURRENT')
         .where('status','=','ACTIVE')
-        .executeTakeFirstOrThrow();
+        .executeTakeFirst();
+      const activeLedger = linkedActiveLedger ?? (
+        chain.length === 1 && active.parent_dataset_id === null
+          ? await trx.selectFrom('ledger_dataset')
+              .select('id')
+              .where('enterprise_id','=',enterpriseId)
+              .where('consistency_domain','=',consistencyDomain)
+              .where('economic_runtime_dataset_id','is',null)
+              .where('kind','=','CURRENT')
+              .where('status','=','ACTIVE')
+              .executeTakeFirstOrThrow()
+          : (() => { throw new Error('CURRENT runtime generation has no active Ledger dataset.'); })()
+      );
       const balances = await trx.selectFrom('ledger_balance as b')
         .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
         .select([
@@ -289,14 +307,17 @@ implements CurrentEconomicRuntimeViewService {
         .where('b.ledger_dataset_id','=',activeLedger.id)
         .orderBy('d.code').orderBy('b.dimension_hash')
         .execute();
-      const workItems = await trx.selectFrom('work_item')
+      let workQuery = trx.selectFrom('work_item')
         .select([
           'work_type','title','status','priority','source_ledger_code',
           'source_dimension_hash','source_dimensions','source_quantity','source_amount',
           'assigned_actor_type','assigned_actor_id'
         ])
-        .where('enterprise_id','=',enterpriseId)
-        .where('economic_runtime_dataset_id','=',active.id)
+        .where('enterprise_id','=',enterpriseId);
+      workQuery = linkedActiveLedger === undefined && chain.length === 1
+        ? workQuery.where('economic_runtime_dataset_id','is',null)
+        : workQuery.where('economic_runtime_dataset_id','=',active.id);
+      const workItems = await workQuery
         .orderBy('work_type').orderBy('source_ledger_code').orderBy('source_dimension_hash')
         .execute();
 
@@ -357,7 +378,10 @@ implements CurrentEconomicRuntimeViewService {
         }))
       };
       const computedSemanticDigest = digest(semantic);
-      if (computedSemanticDigest !== active.semantic_digest) {
+      if (
+        active.semantic_digest !== null &&
+        computedSemanticDigest !== active.semantic_digest
+      ) {
         throw new Error(
           `CURRENT runtime overlay digest mismatch: certified=${active.semantic_digest}, computed=${computedSemanticDigest}`
         );

@@ -1004,6 +1004,44 @@ try {
     );
   }
 
+  const certificationCountBeforeRetry = await runtime.db
+    .selectFrom('runtime_equivalence_certification')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('candidate_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  const duplicateActivation = await runtime.runtimeEquivalence.certifyAndActivate({
+    candidateDatasetId: incrementalCandidate.id,
+    oracleDatasetId: oracleDataset.id,
+    certifiedBy: 'evo-reference-certifier',
+    reason: 'Idempotent duplicate activation retry for the already-certified pair.'
+  });
+  const certificationCountAfterRetry = await runtime.db
+    .selectFrom('runtime_equivalence_certification')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('candidate_dataset_id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  const activeGenerationAfterRetry = await runtime.db
+    .selectFrom('economic_runtime_dataset')
+    .select(['id','kind','status'])
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('consistency_domain','=',consistencyDomain)
+    .where('status','=','ACTIVE')
+    .execute();
+  if (
+    duplicateActivation.certification.id !== governedActivation.certification.id ||
+    duplicateActivation.certification.certificationDigest !== governedActivation.certification.certificationDigest ||
+    duplicateActivation.activatedDataset?.id !== incrementalCandidate.id ||
+    Number(certificationCountBeforeRetry.count) !== 1 ||
+    Number(certificationCountAfterRetry.count) !== 1 ||
+    activeGenerationAfterRetry.length !== 1 ||
+    activeGenerationAfterRetry[0]?.id !== incrementalCandidate.id ||
+    activeGenerationAfterRetry[0]?.kind !== 'CURRENT'
+  ) {
+    throw new Error(
+      'Duplicate activation retry must be idempotent and preserve exactly one certified CURRENT generation.'
+    );
+  }
+
   const archivedParent = await runtime.db.selectFrom('economic_runtime_dataset')
     .select(['kind','status'])
     .where('id','=',currentRuntimeDataset.id)
@@ -1058,6 +1096,66 @@ try {
   ) {
     throw new Error(
       `Activated CURRENT overlay must reproduce the certified Candidate semantic view: ${JSON.stringify(currentOverlay)}`
+    );
+  }
+
+  const routedDashboard = await runtime.query.dashboard(ids.enterpriseId);
+  const dashboardPendingShipment = (routedDashboard.balances as Array<Record<string,unknown>>)
+    .find((row) => row.ledger === 'pending_shipment');
+  if (
+    dashboardPendingShipment === undefined ||
+    !new Decimal(String(dashboardPendingShipment.quantity)).eq(7)
+  ) {
+    throw new Error('Default Dashboard must route balances through the activated CURRENT generation.');
+  }
+
+  const routedLedgerBalances = await runtime.ledger.getBalances(
+    ids.enterpriseId,
+    'pending_shipment'
+  );
+  if (
+    routedLedgerBalances.length === 0 ||
+    !new Decimal(routedLedgerBalances[0]!.quantity).eq(7)
+  ) {
+    throw new Error('Default LedgerReader must resolve the activated CURRENT Ledger generation.');
+  }
+
+  const defaultCurrentWork = await runtime.work.listOpen(ids.enterpriseId);
+  const defaultPendingShipment = defaultCurrentWork.find((item) =>
+    item.sourceLedgerCode === 'pending_shipment'
+  );
+  if (
+    defaultPendingShipment === undefined ||
+    !new Decimal(defaultPendingShipment.quantity).eq(7)
+  ) {
+    throw new Error('Default WorkProjection read must resolve the activated CURRENT generation.');
+  }
+
+  const legacyWorkBeforeRefresh = await runtime.db.selectFrom('work_item')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','is',null)
+    .where('status','in',['OPEN','IN_PROGRESS'])
+    .executeTakeFirstOrThrow();
+  await runtime.work.refresh(ids.enterpriseId);
+  const legacyWorkAfterRefresh = await runtime.db.selectFrom('work_item')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','is',null)
+    .where('status','in',['OPEN','IN_PROGRESS'])
+    .executeTakeFirstOrThrow();
+  const currentWorkAfterRefresh = await runtime.db.selectFrom('work_item')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .where('status','in',['OPEN','IN_PROGRESS'])
+    .executeTakeFirstOrThrow();
+  if (
+    Number(currentWorkAfterRefresh.count) < 1 ||
+    Number(legacyWorkAfterRefresh.count) !== Number(legacyWorkBeforeRefresh.count)
+  ) {
+    throw new Error(
+      'CURRENT work refresh must remain generation-scoped and must not create new legacy-scope WorkItems.'
     );
   }
 
@@ -1172,6 +1270,9 @@ try {
       equivalenceCertificationId: governedActivation.certification.id,
       equivalenceCertificationStatus: governedActivation.certification.status,
       equivalenceCertificationDigest: governedActivation.certification.certificationDigest,
+      duplicateActivationIdempotent: true,
+      duplicateActivationCertificationId: duplicateActivation.certification.id,
+      duplicateActivationCertificationCount: Number(certificationCountAfterRetry.count),
       governedActivatedDatasetId: governedActivation.activatedDataset.id,
       governedActivatedKind: governedActivation.activatedDataset.kind,
       governedActivatedStatus: governedActivation.activatedDataset.status,

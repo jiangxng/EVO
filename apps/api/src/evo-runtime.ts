@@ -10,6 +10,7 @@ import { PostgresPostingStateStore } from '../../../modules/posting/infrastructu
 import { PostingService } from '../../../modules/posting/application/posting-service.js';
 import { PostgresCandidatePostingReplayService } from '../../../modules/posting/infrastructure/postgres-candidate-posting-replay-service.js';
 import { PostgresLedgerWriter } from '../../../modules/ledger/infrastructure/postgres-ledger-writer.js';
+import { PostgresLedgerReader } from '../../../modules/ledger/infrastructure/postgres-ledger-reader.js';
 import { PostgresWorkProjection } from '../../../modules/workflow/infrastructure/postgres-work-projection.js';
 import { PostgresAuthorizationService } from '../../../modules/identity/infrastructure/postgres-authorization-service.js';
 import { PostgresReplayService } from '../../../modules/replay/infrastructure/postgres-replay-service.js';
@@ -115,7 +116,8 @@ export function createEvoRuntime(database: DatabaseHandle) {
   );
   const valuationReplay = new PostgresValuationRequestReplayService(db,valuationRequests);
   const incrementalReplayPlanner = new DefaultIncrementalReplayPlanner(replayTopology);
-  return { db, command, posting, candidatePostingReplay, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, candidateEconomicRuntimeDigest, oracleEconomicRuntimeDigest, replayCoverage, replayPromotion, runtimeDatasets, runtimeEquivalence, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db), currentEconomicRuntimeView:new PostgresCurrentEconomicRuntimeViewService(db), ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  const currentEconomicRuntimeView = new PostgresCurrentEconomicRuntimeViewService(db);
+  return { db, command, posting, candidatePostingReplay, ledger:new PostgresLedgerReader(db), work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, candidateEconomicRuntimeDigest, oracleEconomicRuntimeDigest, replayCoverage, replayPromotion, runtimeDatasets, runtimeEquivalence, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db,currentEconomicRuntimeView), currentEconomicRuntimeView, ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {

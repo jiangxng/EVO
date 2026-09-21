@@ -807,3 +807,157 @@ B4.4 整体尚未关闭。Dashboard、LedgerReader 等旧默认读取仍需统�
 ## 当前一句话状态（2026-09-20 B4.4A）
 
 > **EVO 已证明激活后的增量世代能够与父代历史组合成和 Full Replay 完全相同的正式经济视图；下一步封闭旧读取旁路，并完成激活失败与并发安全矩阵。**
+
+
+---
+
+# 15. 2026-09-21 追加状态：B4.4B 第一阶段正式读取路由已通过数据库 E2E
+
+> 本节追加在 B4.4A 之后，不代表 B4.4B 整体关闭。
+
+## A. 业务问题
+
+B4.4A 已经证明 generation-aware CURRENT overlay 本身可以得到正确完整的正式经济视图，但 Dashboard、LedgerReader、WorkProjection 等默认入口仍可能绕开该模型，直接读取历史表或 legacy 空 generation 数据。
+
+这会产生一个实际生产风险：
+
+> 内核已经算对，但不同页面、报表或工作队列可能各自看到不同的“正式状态”。
+
+## B. 企业现在获得的能力
+
+当前第一阶段已实现并验证：
+
+- Dashboard 的余额、Work、Cost 正式语义在 generation 生命周期启用后统一走 CURRENT overlay；
+- LedgerReader 只读取精确绑定当前 CURRENT generation 的 ACTIVE LedgerDataset；
+- WorkProjection 默认读取在激活后自动解析 CURRENT generation；
+- 激活后的正常 Work refresh 继续写入 CURRENT generation，不再新增 legacy-null WorkItem；
+- 在尚未进入 Economic Runtime generation 生命周期前，初始化/传统 baseline 仍可正常运行；
+- 一旦 generation 已存在，正式读取不再回退到旧 baseline。
+
+## C. 技术路线
+
+采用两段式正式读取边界：
+
+```text
+尚无 ACTIVE Economic Runtime generation
+    → legacy baseline 是唯一正式状态
+
+ACTIVE generation 已存在
+    → 必须解析 CURRENT / ACTIVE
+    → Dashboard 走 CurrentEconomicRuntimeView
+    → Ledger / Work 读取当前 leaf generation
+    → 禁止回退 legacy baseline
+```
+
+跨 generation 的完整历史组合仍由 Query 模块拥有；Ledger 和 Workflow 不反向依赖 Query，而是只解析当前 snapshot generation，保持现有模块依赖方向。
+
+## D. 当前验证状态
+
+**DATABASE E2E VERIFIED — B4.4B READ ROUTING FIRST SLICE**
+
+- branch: `evo/er-c05b4-4b-read-routing-v0.1`
+- implementation head: `b6a3f04a4ff7b34021ad397fdb1cfacad1f58b85`
+- GitHub Actions: `35580699604 — SUCCESS`
+- PostgreSQL: 18
+- schema: 22（无新增 migration）
+- docs validation: PASS
+- migration: PASS
+- typecheck: PASS
+- build: PASS
+- tests: 31 files / 83 tests PASS
+- seed:demo: PASS
+- validate:demo: PASS
+
+数据库 E2E 明确验证激活后：
+
+- Dashboard `pending_shipment = 7`；
+- 默认 LedgerReader `pending_shipment = 7`；
+- 默认 WorkProjection `pending_shipment = 7`；
+- 再次执行默认 Work refresh 不增加 legacy-null scoped WorkItem。
+
+## E. 当前还差什么
+
+B4.4B 尚未认证关闭。仍需数据库级证明：
+
+1. 两次及以上连续 generation activation；
+2. semantic mismatch 拒绝；
+3. stale parent 拒绝；
+4. revoked Checkpoint / Promotion governance 拒绝；
+5. duplicate activation retry / idempotency；
+6. activation 与 Worker 并发；
+7. crash / retry recovery。
+
+## F. 下一步及业务原因
+
+下一子阶段优先进入：
+
+`B4.4B — Activation Failure Matrix`
+
+先证明 mismatch、stale/revoked governance 与重复激活全部 fail-closed，再推进并发与 crash recovery。
+
+## 当前一句话状态（2026-09-21）
+
+> **EVO 已把“正确的 CURRENT overlay”接入默认 Dashboard、Ledger 和 Work 正式入口，并通过真实 PostgreSQL 18 E2E；当前继续证明错误、过期、撤销和重复激活请求都不能改变唯一可信 CURRENT。**
+
+
+---
+
+# 16. 2026-09-21 追加状态：B4.4B 激活失败矩阵第一组已通过数据库 E2E
+
+> 本节追加在读取路由第一阶段之后；B4.4B 整体仍未关闭。
+
+## A. 业务问题
+
+正式切换不能只证明“正确请求能成功”，还必须证明错误、过期、被撤销或重复的请求不会改变生产 CURRENT。
+
+## B. 当前已经证明
+
+真实 PostgreSQL 18 环境现已验证：
+
+- **Duplicate activation retry**：同一 Candidate/Oracle 再次提交只返回同一 certification，不新增第二份认证、不产生第二次切换，仍只有一个 CURRENT；
+- **Semantic mismatch**：Candidate 与 Oracle digest 不一致时形成 `REJECTED`，包含 `SEMANTIC_DIGEST_MISMATCH`；
+- **Stale active parent**：Candidate 计算完成后 CURRENT parent 已变化时形成 `REJECTED`，包含 `STALE_ACTIVE_PARENT`；
+- **Revoked promotion**：Candidate/Oracle 已计算完成，但其 Checkpoint Promotion 在激活前被撤销时形成 `REJECTED`，包含 `PROMOTION_NOT_ACTIVE`；
+- 所有失败场景均不激活 Candidate，并最终保持原正式 CURRENT 唯一。
+
+## C. 技术路线
+
+新增独立数据库验证脚本：
+
+`scripts/validate-activation-failure-matrix.ts`
+
+并将其加入 CI：
+
+`npm run validate:activation-failure-matrix`
+
+失败矩阵直接调用正式 `PostgresRuntimeEquivalenceCertificationService` 及其 PostgreSQL 事务边界。Digest Port 在失败夹具中使用受控输入，以隔离并验证治理事务本身；真实 Candidate/Oracle digest 计算路径已经由 B4.3A/B4.3B/B4.4A 的完整认证覆盖。
+
+## D. 当前验证状态
+
+**DATABASE E2E VERIFIED — B4.4B FAILURE MATRIX FIRST SET**
+
+- implementation head before this documentation update: `d8babb3e6fc987567027a4502cee23b89eced2c9`
+- GitHub Actions: `35581245021 — SUCCESS`
+- PostgreSQL 18
+- Schema 22
+- `validate:docs` PASS
+- migration PASS
+- typecheck PASS
+- build PASS
+- 31 files / 83 tests PASS
+- `seed:demo` PASS
+- `validate:demo` PASS
+- `validate:activation-failure-matrix` PASS
+
+## E. B4.4B 尚未关闭的核心证据
+
+当前剩余重点收敛为：
+
+1. 两次及以上连续正式 generation activation；
+2. activation 与 Worker 并发互斥/一致性；
+3. crash / retry recovery；
+4. 必要时补充更深的 Checkpoint invalidation / transaction interruption 组合矩阵。
+
+## 当前一句话状态（2026-09-21 B4.4B）
+
+> **EVO 已证明正式读取入口能够统一服从 CURRENT generation，并已在数据库层证明重复、摘要不一致、旧 parent 和被撤销治理证据都不能错误切换生产状态；下一步进入连续多代激活与并发/崩溃恢复。**

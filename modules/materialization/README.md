@@ -26,3 +26,7 @@ certification, and governed activation.
 
 B4.3B governed activation and B4.4A post-activation overlay reads are certified
 for the reference FIFO scenario. Failure/concurrency matrix coverage remains open.
+
+
+B4.4B database E2E additionally verifies duplicate activation idempotency and
+fail-closed semantic mismatch, stale-parent, and revoked-promotion cases.

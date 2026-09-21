@@ -13,7 +13,7 @@ export interface CurrentEconomicRuntimeFamilyCounts {
 export interface CurrentEconomicRuntimeView {
   readonly activeRuntimeDatasetId: string;
   readonly generationChain: readonly string[];
-  readonly certifiedActivationDigest: string;
+  readonly certifiedActivationDigest: string | null;
   readonly computedSemanticDigest: string;
   readonly semantic: JsonObject;
   readonly familyCounts: CurrentEconomicRuntimeFamilyCounts;
