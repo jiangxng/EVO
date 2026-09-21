@@ -143,11 +143,12 @@
       "description": "EEL-C01.3 canonical cash.received explicit settlement allocation and realized-FX slice merged after PostgreSQL 18 E2E."
     },
     "evo/eel-c01-work-closure-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "EEL-C01.4 full-closure Work lifecycle; PostgreSQL 18 E2E verified using existing WorkProjection with no new workflow abstraction.",
-      "pr": 16
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 16,
+      "description": "EEL-C01.4 full O2C Work closure slice merged after PostgreSQL 18 E2E; existing WorkProjection proved sufficient."
     },
     "evo/requirement-alignment-governance-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -156,6 +157,19 @@
       "supersededBy": "main",
       "pr": 18,
       "description": "Human–LLM alignment usability refinement: 60-second business summary and contradiction guards."
+    },
+    "evo/eel-c01-full-replay-equality-v0.1": {
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": false,
+      "pr": 17,
+      "description": "Superseded EEL-C01.5 branch. Runtime proof passed, but branch diverged after Human–LLM alignment governance merged; implementation migrated to v0.2 on latest main."
+    },
+    "evo/eel-c01-full-replay-equality-v0.2": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "EEL-C01.5 Full Replay equality migrated onto latest aligned main; awaiting fresh PostgreSQL 18 revalidation."
     }
   },
   "requiredLLMProcedure": [
