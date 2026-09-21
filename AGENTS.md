@@ -14,10 +14,11 @@ ownership, and auditable evidence. Do not simplify these invariants away.
 1. Read `LLM.md`.
 2. Read `context.manifest.json`; it is the machine-readable router.
 3. Read `project.status.json`; it is the maintained machine-readable current progress pointer.
-4. Select exactly one read profile before opening more documents.
-5. For a bounded change, read only the target module `README.md`, its
+4. Read `branch.topology.json` before analyzing, comparing, merging, deleting, or reviving branches.
+5. Select exactly one read profile before opening more documents.
+6. For a bounded change, read only the target module `README.md`, its
    `CONTEXT.md` if present, relevant public interfaces/ADRs, and nearby tests.
-6. Read `docs/architecture/legacy/**` only for an explicit archaeology or
+7. Read `docs/architecture/legacy/**` only for an explicit archaeology or
    genealogy question. Legacy documents are evidence, not current instructions.
 
 If a path in the manifest is missing or contradictory, stop and report document
