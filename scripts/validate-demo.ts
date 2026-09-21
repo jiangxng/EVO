@@ -1481,9 +1481,23 @@ try {
       valuationRuleId:row.valuation_rule_id,
       valuationRuleVersion:row.valuation_rule_version
     });
+    const ledgerEntryComparator = (
+      left: ReturnType<typeof normalizeLedgerEntry>,
+      right: ReturnType<typeof normalizeLedgerEntry>
+    ) =>
+      Number(BigInt(left.postingSequence) - BigInt(right.postingSequence)) ||
+      left.ledger.localeCompare(right.ledger) ||
+      left.effectIndex - right.effectIndex ||
+      left.postingPriority - right.postingPriority ||
+      left.entrySourceKind.localeCompare(right.entrySourceKind) ||
+      left.businessDataId.localeCompare(right.businessDataId) ||
+      (left.valuationRuleId ?? '').localeCompare(right.valuationRuleId ?? '') ||
+      left.dimensionHash.localeCompare(right.dimensionHash);
     const candidateEntries = [...candidatePrefixEntries,...candidateSuffixEntries]
-      .map(normalizeLedgerEntry);
-    const normalizedOracleEntries = oracleEntries.map(normalizeLedgerEntry);
+      .map(normalizeLedgerEntry)
+      .sort(ledgerEntryComparator);
+    const normalizedOracleEntries = oracleEntries.map(normalizeLedgerEntry)
+      .sort(ledgerEntryComparator);
     const ledgerEntryDiffs = candidateEntries.map((candidateEntry,index)=>({
       index,
       candidate:candidateEntry,
