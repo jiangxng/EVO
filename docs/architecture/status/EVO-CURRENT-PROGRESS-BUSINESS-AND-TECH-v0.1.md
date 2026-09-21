@@ -961,3 +961,107 @@ B4.4B 尚未认证关闭。仍需数据库级证明：
 ## 当前一句话状态（2026-09-21 B4.4B）
 
 > **EVO 已证明正式读取入口能够统一服从 CURRENT generation，并已在数据库层证明重复、摘要不一致、旧 parent 和被撤销治理证据都不能错误切换生产状态；下一步进入连续多代激活与并发/崩溃恢复。**
+
+
+---
+
+# 17. 2026-09-22 追加状态：B4.4B 连续多代 Activation 已通过数据库 E2E
+
+> 本节继续采用新增法。B4.4B 整体仍未关闭；Worker 并发与 crash/retry recovery 仍是开放 gate。
+
+## A. 业务问题
+
+企业运行不会只发生一次规则切换或一次增量重算。真正长期运行的 EVO 必须允许正式经济状态持续演进：
+
+```text
+Baseline
+  ↓
+Generation 1
+  ↓
+Generation 2
+  ↓
+Generation 3 ...
+```
+
+每一代都必须以前一代正式 CURRENT 为 parent，并且不能因为代数增加而重复计算、漏历史、误读旧数据集或失去独立 Full-Replay 校验能力。
+
+## B. 本轮发现并修复的两个真实缺口
+
+### 1. Candidate checkpoint prefix 不能依赖 ACTIVE LedgerDataset
+
+第一代激活以后，原 baseline LedgerDataset 已经归档。如果第二代 Candidate digest 仍按 `ds.status = ACTIVE` 找 checkpoint prefix，会把 baseline 历史漏掉。
+
+现已改为按稳定 generation identity 读取：
+
+```text
+checkpoint prefix
+→ ledger_dataset.economic_runtime_dataset_id IS NULL
+```
+
+这使 checkpoint prefix 的身份不再受后续 CURRENT 切换影响。
+
+### 2. LedgerEntry canonical ordering 必须是全序
+
+第二代 E2E 揭示同一 posting sequence / ledger / effectIndex 下可以同时存在：
+
+- 普通业务 POSTING 分录；
+- Cost → Valuation 产生的 VALUATION 分录。
+
+旧排序在 effectIndex 处结束，PostgreSQL 可以任意交换两行，导致 Candidate 与 Oracle 内容完全相同但 digest 不一致。
+
+现已统一 Candidate、Oracle、CURRENT overlay、Full Replay digest 的稳定排序，并增加 postingPriority、entrySourceKind、businessDataId、valuationRuleId、dimensionHash 等 tie-break。
+
+同时新增 per-family semantic digest，可在未来等价性失败时直接定位 Ledger / Cost / Allocation / Valuation / Work 哪一族发生漂移。
+
+## C. 数据库 E2E 已证明
+
+参考 FIFO 场景现在真实发生第二笔增量 shipment，并完成：
+
+1. Generation 1 已处于正式 CURRENT；
+2. 第二 Candidate 绑定 Generation 1 为 ACTIVE parent；
+3. 第二 Candidate 复用同一个已认证 checkpoint；
+4. Candidate 隔离恢复 checkpoint prefix，并重放 checkpoint 后的两笔 suffix；
+5. Candidate 2 重算两笔 suffix FIFO Cost；
+6. 独立 Full-Replay Oracle 2 从零重放完整边界；
+7. Candidate 2 semantic digest = Oracle 2 semantic digest；
+8. governed activation 原子激活 Candidate 2；
+9. Generation 1 转为 ARCHIVED；
+10. CURRENT overlay generation chain 为三节点：Baseline → Generation 1 → Generation 2；
+11. Activated CURRENT overlay digest = Candidate 2 digest；
+12. Dashboard / LedgerReader / WorkProjection 全部显示 `pending_shipment = 6`。
+
+## D. 验证状态
+
+**DATABASE E2E VERIFIED — B4.4B CONSECUTIVE MULTI-GENERATION ACTIVATION**
+
+- branch: `evo/er-c05b4-4b-multigeneration-v0.1`
+- implementation head: `4b888e09a359489c3e7ba66fcf9cbac882058bf6`
+- GitHub Actions: `35647593407 — SUCCESS`
+- PostgreSQL: 18
+- schema: 22（无 migration）
+- docs validation: PASS
+- migration: PASS
+- typecheck: PASS
+- build: PASS
+- tests: 31 files / 83 tests PASS
+- seed:demo: PASS
+- validate:demo: PASS
+- validate:activation-failure-matrix: PASS
+
+## E. 当前业务能力
+
+EVO 现在不再只是证明“一次增量上线正确”，而是已经证明：
+
+> 一代增量结果成为正式 CURRENT 后，下一代仍可以继续以它为正式 parent 做隔离增量重算、独立 Full-Replay 对照、治理认证和原子切换，并保持完整正式账史与查询视图一致。
+
+这开始满足企业长期连续升级、长期重算和长期保留历史解释链的基础要求。
+
+## F. B4.4B 当前剩余重点
+
+1. Activation 与 Worker 并发；
+2. crash / retry recovery；
+3. 如并发/恢复测试暴露需要，再补 Checkpoint invalidation / transaction interruption 组合矩阵。
+
+## 当前一句话状态（2026-09-22）
+
+> **EVO 已在真实 PostgreSQL 18 中证明连续两代 governed activation 可以保持 Candidate = Full-Replay Oracle = 正式 CURRENT overlay；B4.4B 下一步进入 Worker 并发与崩溃恢复。**
