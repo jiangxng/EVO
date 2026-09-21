@@ -1412,7 +1412,9 @@ try {
         candidateDigest:secondCandidateDigest.digest,
         oracleDigest:secondOracleDigest.digest,
         candidateFamilyCounts:secondCandidateDigest.familyCounts,
-        oracleFamilyCounts:secondOracleDigest.familyCounts
+        oracleFamilyCounts:secondOracleDigest.familyCounts,
+        candidateFamilyDigests:secondCandidateDigest.familyDigests,
+        oracleFamilyDigests:secondOracleDigest.familyDigests
       })}`
     );
   }
