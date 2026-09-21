@@ -761,3 +761,52 @@ Safe Fallback
 > **企业完整经济业务循环与产品化。**
 
 这将是 EVO 项目的一个正式大阶段切换点。
+
+
+---
+
+# 14. 2026-09-22 追加：Stage D 关闭并进入 Stage E
+
+## Stage D — Production-Safe Incremental Replay
+
+状态：
+
+**FOUNDATION CLOSED / CERTIFIED FOR REFERENCE FIFO BOUNDARY**
+
+关闭证据：
+
+- governed Candidate / independent Full-Replay Oracle equivalence；
+- consecutive generation activation；
+- official CURRENT overlay reads；
+- activation failure matrix；
+- Worker / Activation cutover serialization；
+- crash rollback + retry recovery；
+- ER-C05B4.4B certification。
+
+这满足本路线图第 13 节定义的 Replay correctness foundation 关闭信号。
+
+## Stage E — Enterprise Economic Loops
+
+状态：
+
+**ACTIVE**
+
+第一个正式 bounded packet：
+
+`EEL-C01 — Order-to-Cash Settlement Reference Loop`
+
+业务目标：
+
+> 把已经存在的 Sales Order、Shipment、Receivable、Customer Receipt、Allocation、FX Settlement、Cash 和 Replay 资产收成第一条可以数据库认证的企业完整业务闭环。
+
+第一项真实语义收敛：
+
+- Runtime compatibility type：`customer_payment.received`；
+- Enterprise Template v1 target type：`cash.received`；
+- 不改写旧 BusinessData；
+- 以 CUSTOMER_CASH_RECEIPT 作为共同语义角色；
+- 收款必须分别表达 settled receivable foreign amount 和 actual cash local amount。
+
+详细 packet：
+
+`docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md`
