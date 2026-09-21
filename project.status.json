@@ -5,16 +5,16 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "3d87d3cb1a286799967ccee1bf45877fd6b3cb42"
+    "lastVerifiedRuntimeMergeCommit": "347baecc18819dca6b8d2f5467a3457b80f20f6a"
   },
   "activeWorkPacket": {
     "id": "EEL-C01",
     "name": "Order-to-Cash Settlement Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DATABASE E2E VERIFIED",
-    "overallClosed": false,
+    "status": "CERTIFIED",
+    "overallClosed": true,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/eel-c01-legacy-receipt-compat-v0.1",
+    "activeBranch": null,
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
@@ -28,14 +28,16 @@
       "realized FX through canonical cash.received",
       "full-closure O2C Work state",
       "O2C Full Replay equality",
-      "legacy customer_payment.received replay compatibility"
+      "legacy customer_payment.received replay compatibility",
+      "EEL-C01 database certification",
+      "completed-loop Human–LLM requirement alignment review"
     ],
-    "openGates": [
-      "EEL-C01 database certification"
-    ],
-    "nextAction": "Merge verified legacy receipt compatibility proof, then perform final EEL-C01 database certification and mandatory completed-loop requirement alignment review.",
+    "openGates": [],
+    "nextAction": "Perform business-first selection of the next bounded Stage E enterprise economic loop packet. Do not extend EEL-C01 without a new confirmed requirement.",
     "verifiedHead": "69c1744d24fc7c4211b91cea3fe7343433d33cbd",
-    "verifiedCiRun": 35667578606
+    "verifiedCiRun": 35667578606,
+    "certification": "docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md",
+    "alignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C01-v0.1.md"
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -85,12 +87,12 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "ER-C05B4.4B",
-    "name": "Read Routing & Activation Failure Matrix",
+    "id": "EEL-C01",
+    "name": "Order-to-Cash Settlement Reference Loop",
     "status": "CERTIFIED",
-    "certification": "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md",
-    "verifiedHead": "d3dab3ed7a1d4b2a285d9564ac03f058555bfd64",
-    "verifiedCiRun": 35659612160
+    "certification": "docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md",
+    "verifiedHead": "347baecc18819dca6b8d2f5467a3457b80f20f6a",
+    "verifiedCiRun": 35667720747
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -98,31 +100,11 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "ALIGNED_WITH_STATUS_DRIFT_REPAIRED",
+    "currentAssessment": "ALIGNED_EEL_C01_CERTIFIED_NO_CURRENT_OVERDESIGN_BLOCKER",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
       "rule": "Perform a formal requirement-alignment review after every 3 merged DATABASE E2E VERIFIED/CERTIFIED bounded slices since the last review, or immediately when any mandatory trigger fires, whichever comes first."
     }
-  },
-  "currentUnmergedWork": {
-    "branch": "evo/eel-c01-legacy-receipt-compat-v0.1",
-    "pullRequest": 21,
-    "status": "DATABASE_E2E_VERIFIED_READY_TO_MERGE",
-    "verifiedHead": "69c1744d24fc7c4211b91cea3fe7343433d33cbd",
-    "verifiedCiRun": 35667578606,
-    "requirement": "legacy customer_payment.received replay compatibility",
-    "businessEvidence": [
-      "historical BusinessData type remains customer_payment.received",
-      "historical foreign/local payment measurements remain unchanged",
-      "explicit AllocationInstruction survives Full Replay",
-      "legacy AllocationRelation continues to consume exactly 1000 USD",
-      "period-end FX remains +200 CNY",
-      "realized FX remains +100 CNY",
-      "canonical replay-input digest remains unchanged",
-      "economic-runtime digest remains unchanged",
-      "no retroactive Cash/Receivable posting is invented for the legacy payment fact"
-    ],
-    "antiOverdesignResult": "Existing legacy command, Allocation, Valuation, and Full Replay paths were sufficient; no payment migration framework or semantic rewrite was introduced."
   }
 }
