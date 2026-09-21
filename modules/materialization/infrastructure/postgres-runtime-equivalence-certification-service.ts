@@ -145,7 +145,7 @@ implements RuntimeEquivalenceCertificationService {
     }
 
     const candidateScope = await this.db.selectFrom('economic_runtime_dataset')
-      .select(['source_checkpoint_id','boundary_sequence'])
+      .select(['enterprise_id','consistency_domain','source_checkpoint_id','boundary_sequence'])
       .where('id','=',request.candidateDatasetId)
       .where('kind','=','CANDIDATE')
       .where('status','=','BUILDING')
@@ -164,6 +164,15 @@ implements RuntimeEquivalenceCertificationService {
     ]);
 
     return this.db.transaction().execute(async (trx) => {
+      // EVO-INVARIANT: Worker normal posting and Candidate activation share this
+      // enterprise runtime row as the first cutover lock.
+      const runtime = await trx.selectFrom('enterprise_runtime_state')
+        .selectAll()
+        .where('enterprise_id','=',candidateScope.enterprise_id)
+        .where('consistency_domain','=',candidateScope.consistency_domain)
+        .forUpdate()
+        .executeTakeFirstOrThrow();
+
       const candidate = await trx.selectFrom('economic_runtime_dataset')
         .selectAll()
         .where('id','=',request.candidateDatasetId)
@@ -202,6 +211,12 @@ implements RuntimeEquivalenceCertificationService {
         .where('id','=',candidate.source_promotion_id)
         .executeTakeFirstOrThrow();
 
+      const runtimePostingSequence = runtime.last_posted_sequence === null
+        ? 0n
+        : asBigInt(runtime.last_posted_sequence);
+      const candidateBoundary = asBigInt(candidate.boundary_sequence);
+      const postingCursorWithinCandidate = runtimePostingSequence <= candidateBoundary;
+
       const semanticScopeMatches = !(
         oracle.enterprise_id !== candidate.enterprise_id ||
         oracle.consistency_domain !== candidate.consistency_domain ||
@@ -221,6 +236,7 @@ implements RuntimeEquivalenceCertificationService {
         checkpointActive: checkpoint.status === 'ACTIVE',
         promotionActive:
           promotion.status === 'ACTIVE' && promotion.checkpoint_id === checkpoint.id,
+        postingCursorWithinCandidate,
         oracleStoredDigest: oracle.semantic_digest,
         oracleComputedDigest: oracleDigest.digest,
         candidateComputedDigest: candidateDigest.digest
@@ -265,7 +281,10 @@ implements RuntimeEquivalenceCertificationService {
           workItems: oracleDigest.familyCounts.workItems
         },
         exactDigestMatch: candidateDigest.digest === oracleDigest.digest,
-        activeParentRevalidated: active.id === candidate.parent_dataset_id
+        activeParentRevalidated: active.id === candidate.parent_dataset_id,
+        runtimePostingSequenceAtCutover: runtimePostingSequence.toString(),
+        candidateBoundarySequence: candidateBoundary.toString(),
+        postingCursorWithinCandidate
       };
       const certificationDigest = digest(semantic);
 
