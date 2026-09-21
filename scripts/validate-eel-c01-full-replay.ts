@@ -159,9 +159,9 @@ function assertClosedSnapshot(snapshot: Awaited<ReturnType<typeof businessSnapsh
 
   if (
     snapshot.shipmentCost.method !== 'FIFO' ||
-    !new Decimal(snapshot.shipmentCost.quantity).eq(10) ||
-    !new Decimal(snapshot.shipmentCost.unitCost).eq(10) ||
-    !new Decimal(snapshot.shipmentCost.totalCost).eq(100)
+    !new Decimal(String(snapshot.shipmentCost.quantity ?? 0)).eq(10) ||
+    !new Decimal(String(snapshot.shipmentCost.unitCost ?? 0)).eq(10) ||
+    !new Decimal(String(snapshot.shipmentCost.totalCost ?? 0)).eq(100)
   ) {
     throw new Error(`${label} shipment cost is not the expected FIFO result: ${JSON.stringify(snapshot.shipmentCost)}`);
   }
