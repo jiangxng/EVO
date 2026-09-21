@@ -180,6 +180,12 @@
       "supersededBy": "main",
       "pr": 20,
       "description": "Deterministic Human–LLM requirement-alignment cadence and post-merge status-drift cleanup."
+    },
+    "evo/eel-c01-legacy-receipt-compat-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Final EEL-C01 compatibility slice: prove historical customer_payment.received replay semantics survive the new cash.received canonical path."
     }
   },
   "requiredLLMProcedure": [
