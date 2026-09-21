@@ -11,15 +11,16 @@
     "id": "EEL-C01",
     "name": "Order-to-Cash Settlement Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DESIGN ONLY",
+    "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/stage-e-o2c-packet-v0.1",
+    "activeBranch": "evo/eel-c01-receipt-posting-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
       "Stage D Production-Safe Incremental Replay foundation certified for reference FIFO boundary",
-      "EEL-C01 semantic direction accepted: CUSTOMER_CASH_RECEIPT role, cash.received v1 target, legacy customer_payment.received compatibility"
+      "EEL-C01 semantic direction accepted: CUSTOMER_CASH_RECEIPT role, cash.received v1 target, legacy customer_payment.received compatibility",
+      "EEL-C01.1/C01.2 implementation: cash.received runtime path, Cash ledger, and separate settled/cash posting measurements"
     ],
     "openGates": [
       "reference cash ledger and receipt posting",
@@ -30,7 +31,7 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Implement the smallest executable receipt-ledger convergence without introducing a new generalized settlement framework."
+    "nextAction": "Run PostgreSQL E2E for cash.received dual-measurement posting, then converge explicit settlement allocation and full O2C closure."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
