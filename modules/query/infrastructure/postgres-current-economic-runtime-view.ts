@@ -147,16 +147,29 @@ implements CurrentEconomicRuntimeViewService {
         }
       }
 
+      const runtimeState = await trx.selectFrom('enterprise_runtime_state')
+        .select('last_posted_sequence')
+        .where('enterprise_id','=',enterpriseId)
+        .where('consistency_domain','=',consistencyDomain)
+        .executeTakeFirstOrThrow();
+      const runtimeBoundary = runtimeState.last_posted_sequence === null
+        ? 0n
+        : asBigInt(runtimeState.last_posted_sequence);
       const activeBoundary = active.boundary_sequence === null
-        ? (() => 0n)()
+        ? runtimeBoundary
         : asBigInt(active.boundary_sequence);
-      const effectiveActiveBoundary = active.boundary_sequence === null
-        ? asBigInt((await trx.selectFrom('enterprise_runtime_state')
-            .select('last_posted_sequence')
-            .where('enterprise_id','=',enterpriseId)
-            .where('consistency_domain','=',consistencyDomain)
-            .executeTakeFirstOrThrow()).last_posted_sequence ?? 0)
-        : activeBoundary;
+      if (
+        active.boundary_sequence !== null &&
+        runtimeBoundary < activeBoundary
+      ) {
+        throw new Error(
+          'CURRENT runtime posting cursor is behind its certified activation boundary.'
+        );
+      }
+      const effectiveActiveBoundary = runtimeBoundary;
+      const hasLiveTail =
+        active.boundary_sequence !== null &&
+        runtimeBoundary > activeBoundary;
       const segments: Segment[] = [];
       for (let index = 0; index < chain.length; index += 1) {
         const dataset = chain[index]!;
@@ -390,6 +403,7 @@ implements CurrentEconomicRuntimeViewService {
       };
       const computedSemanticDigest = digest(semantic);
       if (
+        !hasLiveTail &&
         active.semantic_digest !== null &&
         computedSemanticDigest !== active.semantic_digest
       ) {
@@ -402,6 +416,9 @@ implements CurrentEconomicRuntimeViewService {
         activeRuntimeDatasetId: active.id,
         generationChain: chain.map((dataset)=>dataset.id),
         certifiedActivationDigest: active.semantic_digest,
+        certifiedBoundarySequence: activeBoundary,
+        currentBoundarySequence: effectiveActiveBoundary,
+        hasLiveTail,
         computedSemanticDigest,
         semantic,
         familyCounts: {
