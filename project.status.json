@@ -103,8 +103,10 @@
   },
   "currentUnmergedWork": {
     "branch": "evo/eel-c01-full-replay-equality-v0.1",
-    "status": "IMPLEMENTATION_PLANNED",
+    "status": "IMPLEMENTED",
     "requirement": "O2C Full Replay equality",
-    "antiOverdesignDecision": "Reuse existing Full Replay service and economic-runtime digest; add only EEL-C01 business-level assertions."
+    "antiOverdesignDecision": "Reuse existing Full Replay service and economic-runtime digest; add only EEL-C01 business-level assertions.",
+    "validator": "npm run validate:eel-c01-full-replay",
+    "evidenceIsolation": "Dedicated fresh PostgreSQL 18 CI job prevents prior validator-derived state from changing the Full Replay proof boundary."
   }
 }
