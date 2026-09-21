@@ -107,10 +107,17 @@
       "description": "ER-C05B4.4B crash/retry, invalidated-checkpoint, and final activation-safety certification slice merged by PR #10."
     },
     "evo/stage-e-o2c-packet-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "Stage E / EEL-C01 planning packet merged by PR #11."
+    },
+    "evo/eel-c01-receipt-posting-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "Stage E planning slice defining EEL-C01 Order-to-Cash Settlement Reference Loop and deterministic handoff."
+      "description": "EEL-C01 first executable slice: cash.received dual-measurement Cash/Receivable posting; PostgreSQL 18 E2E verified, ready to merge."
     }
   },
   "requiredLLMProcedure": [

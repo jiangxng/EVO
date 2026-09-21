@@ -248,3 +248,37 @@ Start with the smallest executable convergence:
 6. only then decide whether further runtime abstraction is required.
 
 Do not create a new generalized settlement framework unless the existing Allocation/Position/Valuation contracts prove insufficient.
+
+
+---
+
+## 12. 2026-09-22 Implementation Evidence — EEL-C01.1 / EEL-C01.2
+
+**Evidence level: DATABASE E2E VERIFIED**
+
+First executable receipt-ledger convergence is now proven on PostgreSQL 18.
+
+Verified behavior:
+
+- new reference runtime path emits `cash.received`;
+- historical `record-customer-payment -> customer_payment.received` remains unchanged;
+- one customer receipt preserves two independent monetary measurements:
+  - receivable settlement: `-1000 USD`;
+  - actual cash receipt: `+7300 CNY`;
+- Receivable settlement identity uses the same order/customer settlement dimensions on both increase and decrease, so the reference receivable closes to zero;
+- Cash balance increases to CNY 7300;
+- existing Replay, Worker/Activation concurrency, crash/retry, and activation failure-matrix validations remain green.
+
+Evidence:
+
+- implementation head: `1d44ee11af3ed847cfc4a4629210f5ee07f245fb`
+- GitHub Actions: `35661639605 — SUCCESS`
+- PostgreSQL: 18
+- DB schema: 22 (unchanged)
+- validator: `npm run validate:eel-c01-receipt-posting`
+
+This does **not** close EEL-C01. Explicit settlement AllocationRelation convergence, full Work closure, full-loop replay equality, and final certification remain open.
+
+### Additional bounded observation
+
+`ledger_entry` preserves currency, while current `ledger_balance` identity is ledger + dimension hash rather than currency-aware identity. This does not block the reference EEL-C01 scenario because USD Receivable and CNY Cash are different ledgers. Same-ledger multi-currency balance identity requires a separate bounded architecture packet if/when needed; it is not silently expanded inside EEL-C01.

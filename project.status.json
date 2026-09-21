@@ -11,26 +11,29 @@
     "id": "EEL-C01",
     "name": "Order-to-Cash Settlement Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DESIGN ONLY",
+    "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/stage-e-o2c-packet-v0.1",
+    "activeBranch": "evo/eel-c01-receipt-posting-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
       "Stage D Production-Safe Incremental Replay foundation certified for reference FIFO boundary",
-      "EEL-C01 semantic direction accepted: CUSTOMER_CASH_RECEIPT role, cash.received v1 target, legacy customer_payment.received compatibility"
-    ],
-    "openGates": [
+      "EEL-C01 semantic direction accepted: CUSTOMER_CASH_RECEIPT role, cash.received v1 target, legacy customer_payment.received compatibility",
+      "EEL-C01.1/C01.2 implementation: cash.received runtime path, Cash ledger, and separate settled/cash posting measurements",
       "reference cash ledger and receipt posting",
       "explicit receivable decrease using settled foreign measurement",
-      "cash increase using actual local measurement",
+      "cash increase using actual local measurement"
+    ],
+    "openGates": [
       "legacy customer_payment.received replay compatibility",
       "full-closure O2C Work state",
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Implement the smallest executable receipt-ledger convergence without introducing a new generalized settlement framework."
+    "nextAction": "Implement explicit settlement AllocationInstruction/AllocationRelation convergence for cash.received, then prove Work closure and full O2C Full Replay equality.",
+    "verifiedHead": "1d44ee11af3ed847cfc4a4629210f5ee07f245fb",
+    "verifiedCiRun": 35661639605
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
