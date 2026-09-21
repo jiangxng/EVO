@@ -15,7 +15,8 @@ A model must be able to understand EVO from the repository without relying on pr
 
 `AGENTS.md` is the concise, automatically discoverable cross-model entry point.
 This file defines the deeper project contract. `context.manifest.json` is the
-machine-readable router for time-sensitive current state.
+machine-readable router; `project.status.json` is the maintained machine-readable
+pointer to current packet, evidence, closed gates, open gates, and next action.
 
 Do not use one mandatory read list for every task. Select one read profile from
 `context.manifest.json`:
@@ -108,3 +109,8 @@ updated in place.
 The detailed rules live in the manifest-designated documentation standard.
 Run `npm run validate:docs` after changing bootstrap, routing, current pointers,
 or versioned evidence paths.
+
+
+## Code Progress Markers
+
+Use `project.status.json` as the only authoritative machine-readable current progress pointer. Code-local `EVO-WORK-PACKET`, `EVO-INVARIANT`, `EVO-EVIDENCE`, and `EVO-TODO-GATE` comments are optional navigation aids and must follow `docs/architecture/continuity/EVO-CODE-PROGRESS-MARKER-STANDARD-v0.1.md`. Do not encode percentages, chat-window state, or branch names as durable code progress comments.

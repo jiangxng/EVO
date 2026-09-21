@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "project": "EVO",
+  "authority": "maintained-current-progress-pointer",
+  "updatedAt": "2026-09-21",
+  "main": {
+    "authoritativeBranch": "main",
+    "lastVerifiedRuntimeMergeCommit": "0c08a097e95a51a5e228e794b3bb36f03ba2fd4c"
+  },
+  "activeWorkPacket": {
+    "id": "ER-C05B4.4B",
+    "name": "Read Routing & Activation Failure Matrix",
+    "status": "DATABASE E2E VERIFIED",
+    "overallClosed": false,
+    "businessGoal": "Ensure every official read obeys the authoritative CURRENT generation and activation fails closed under invalid, stale, revoked, duplicate, concurrent, or interrupted conditions.",
+    "verifiedHead": "914b44d12d7059e399d1231c00d71388e2d97042",
+    "verifiedCiRun": 35581386350,
+    "verifiedEnvironment": {
+      "node": "24.20.x",
+      "postgres": "18",
+      "schemaVersion": 22
+    },
+    "closedGates": [
+      "CURRENT-aware Dashboard routing",
+      "CURRENT-aware LedgerReader routing",
+      "CURRENT-aware WorkProjection read/refresh",
+      "duplicate activation retry idempotency",
+      "semantic digest mismatch rejection",
+      "stale active parent rejection",
+      "revoked promotion rejection"
+    ],
+    "openGates": [
+      "two-or-more consecutive production generation activations",
+      "activation versus Worker concurrency",
+      "crash and retry recovery",
+      "additional checkpoint invalidation / transaction interruption cases if required"
+    ],
+    "nextAction": "Build and certify multi-generation activation before Worker concurrency and crash/retry recovery."
+  },
+  "evidenceVocabulary": [
+    "DESIGN ONLY",
+    "IMPLEMENTED",
+    "STATIC VERIFIED",
+    "UNIT VERIFIED",
+    "DATABASE E2E VERIFIED",
+    "CERTIFIED",
+    "BLOCKED",
+    "REJECTED",
+    "SUPERSEDED",
+    "HISTORICAL ONLY"
+  ],
+  "branchPolicy": {
+    "authoritativeBranch": "main",
+    "workingRule": "Use short-lived work-packet branches. Merge a database-verified bounded slice to main before starting the next substantial slice when its evidence boundary is explicit.",
+    "historicalBranches": [
+      "convergence/upstream-readiness-v0.2.1",
+      "v0.3.0-apm-runtime",
+      "evo/recovery-full-template-build",
+      "evo/enterprise-package-v0.1",
+      "evo/apm-certification-enterprise-template-v0.1",
+      "evo/er-c05b4-4b-read-routing-v0.1"
+    ]
+  },
+  "markerPolicy": {
+    "authoritativeProgressLocation": "project.status.json",
+    "allowedCodeMarkers": [
+      "EVO-WORK-PACKET",
+      "EVO-INVARIANT",
+      "EVO-EVIDENCE",
+      "EVO-TODO-GATE"
+    ],
+    "forbiddenVolatileMarkers": [
+      "percent complete",
+      "temporary current branch name",
+      "chat-window references",
+      "uncited claims that a whole work packet is complete"
+    ]
+  }
+}

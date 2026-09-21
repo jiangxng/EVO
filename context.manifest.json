@@ -11,7 +11,9 @@
     "currentStatus": "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
     "currentCertification": "docs/architecture/certification/ER-C05B4.4A-CURRENT-GENERATION-OVERLAY-READ-CERTIFICATION-v0.1.md",
     "documentationStandard": "docs/architecture/continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md",
-    "activePacket": "ER-C05B4.4B — Read Routing & Activation Failure Matrix"
+    "activePacket": "ER-C05B4.4B — Read Routing & Activation Failure Matrix",
+    "projectStatus": "project.status.json",
+    "codeProgressMarkerStandard": "docs/architecture/continuity/EVO-CODE-PROGRESS-MARKER-STANDARD-v0.1.md"
   },
   "requiredReading": [
     "PHILOSOPHY.md",
@@ -27,7 +29,8 @@
       "documents": [
         "AGENTS.md",
         "LLM.md",
-        "context.manifest.json"
+        "context.manifest.json",
+        "project.status.json"
       ]
     },
     "crossModuleArchitecture": {
@@ -36,6 +39,7 @@
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
+        "project.status.json",
         "PHILOSOPHY.md",
         "CONCEPTS.md",
         "INVARIANTS.md",
@@ -45,11 +49,12 @@
       ]
     },
     "continuation": {
-      "maxInitialDocuments": 7,
+      "maxInitialDocuments": 8,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
+        "project.status.json",
         "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
         "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-20-v1.0.md",
         "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
@@ -61,7 +66,8 @@
       "documents": [
         "AGENTS.md",
         "LLM.md",
-        "context.manifest.json"
+        "context.manifest.json",
+        "project.status.json"
       ]
     }
   },
