@@ -7,11 +7,11 @@
     "agentInstructions": "AGENTS.md",
     "llmContract": "LLM.md",
     "continuityProtocol": "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
-    "currentCheckpoint": "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-20-v1.0.md",
+    "currentCheckpoint": "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-22-v1.1.md",
     "currentStatus": "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
-    "currentCertification": "docs/architecture/certification/ER-C05B4.4A-CURRENT-GENERATION-OVERLAY-READ-CERTIFICATION-v0.1.md",
+    "currentCertification": "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md",
     "documentationStandard": "docs/architecture/continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md",
-    "activePacket": "ER-C05B4.4B — Read Routing & Activation Failure Matrix",
+    "activePacket": "NONE — ER-C05B4.4B CLOSED; NEXT PACKET NOT YET DEFINED",
     "projectStatus": "project.status.json",
     "codeProgressMarkerStandard": "docs/architecture/continuity/EVO-CODE-PROGRESS-MARKER-STANDARD-v0.1.md",
     "branchTopology": "branch.topology.json"
@@ -60,9 +60,9 @@
         "project.status.json",
         "branch.topology.json",
         "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
-        "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-20-v1.0.md",
+        "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-22-v1.1.md",
         "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
-        "docs/architecture/certification/ER-C05B4.4A-CURRENT-GENERATION-OVERLAY-READ-CERTIFICATION-v0.1.md"
+        "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md"
       ]
     },
     "archaeology": {
