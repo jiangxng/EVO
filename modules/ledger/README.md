@@ -33,4 +33,7 @@ Application contracts use decimal strings for authoritative quantity/amount.
 
 Normal M3 operation uses one ACTIVE dataset per Enterprise consistency domain.
 
-Replay may later build/switch candidate datasets.
+Replay can build and atomically activate generation-scoped candidate datasets.
+Default balance reads now resolve the exact CURRENT/ACTIVE Economic Runtime
+generation after activation, while retaining explicit pre-generation baseline
+compatibility.
