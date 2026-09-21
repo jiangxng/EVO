@@ -20,5 +20,6 @@ Process, WorkItem, Plan and Trigger runtime.
 ## Status
 
 Work projection is implemented and generation-scoped for CURRENT, Candidate, and
-Full-Replay Oracle reference flows. Broader workflow/process runtime remains
-incremental.
+Full-Replay Oracle reference flows. Default reads and refreshes now resolve the
+CURRENT generation after activation and no longer create new legacy-null work
+rows. Broader workflow/process runtime remains incremental.
