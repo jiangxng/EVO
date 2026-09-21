@@ -166,10 +166,12 @@
       "description": "Superseded EEL-C01.5 branch. Runtime proof passed, but branch diverged after Human–LLM alignment governance merged; implementation migrated to v0.2 on latest main."
     },
     "evo/eel-c01-full-replay-equality-v0.2": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "EEL-C01.5 Full Replay equality migrated onto latest aligned main; awaiting fresh PostgreSQL 18 revalidation."
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 19,
+      "description": "EEL-C01.5 full O2C Full Replay equality slice revalidated on Human–LLM-aligned main with full CI and isolated PostgreSQL 18 proof."
     }
   },
   "requiredLLMProcedure": [
