@@ -4,8 +4,8 @@
   "authority": "maintained-current-progress-pointer",
   "updatedAt": "2026-09-21",
   "main": {
-    "branch": "main",
-    "mergedCommit": "0c08a097e95a51a5e228e794b3bb36f03ba2fd4c"
+    "authoritativeBranch": "main",
+    "lastVerifiedRuntimeMergeCommit": "0c08a097e95a51a5e228e794b3bb36f03ba2fd4c"
   },
   "activeWorkPacket": {
     "id": "ER-C05B4.4B",
