@@ -172,6 +172,12 @@
       "supersededBy": "main",
       "pr": 19,
       "description": "EEL-C01.5 full O2C Full Replay equality slice revalidated on Human–LLM-aligned main with full CI and isolated PostgreSQL 18 proof."
+    },
+    "evo/requirement-alignment-cadence-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Bounded requirement-alignment cadence/status-drift cleanup; no Runtime behavior changes."
     }
   },
   "requiredLLMProcedure": [
