@@ -200,7 +200,7 @@ try {
     throw new Error(`Settlement AllocationRelation must consume exactly 1000 USD: ${JSON.stringify(measurements)}`);
   }
 
-  const result = await runtime.db.selectFrom('valuation_result as r')
+  const settlementResults = await runtime.db.selectFrom('valuation_result as r')
     .innerJoin('valuation_run as run','run.id','r.valuation_run_id')
     .select([
       'r.result_kind','r.delta_amount','r.delta_unit','r.source_business_data_ids',
@@ -208,8 +208,14 @@ try {
     ])
     .where('r.enterprise_id','=',ids.enterpriseId)
     .where('r.result_kind','=','FX_REALIZED_SETTLEMENT')
-    .where('r.source_business_data_ids','@>',JSON.stringify([receiptBusiness.id]))
-    .executeTakeFirstOrThrow();
+    .execute();
+  const result = settlementResults.find((row) =>
+    Array.isArray(row.source_business_data_ids) &&
+    row.source_business_data_ids.includes(receiptBusiness.id)
+  );
+  if (result === undefined) {
+    throw new Error('Canonical cash receipt produced no realized FX settlement result.');
+  }
 
   if (
     result.status !== 'COMPLETED' ||
