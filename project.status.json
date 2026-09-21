@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "3866bc19dfa449b4859ae8d1706208e43d6af474"
+    "lastVerifiedRuntimeMergeCommit": "402def02950a4af80e6b52d7340e3c0ddec24768"
   },
   "activeWorkPacket": {
     "id": "ER-C05B4.4B",
@@ -34,8 +34,8 @@
       "invalidated checkpoint rejects activation with CHECKPOINT_NOT_ACTIVE"
     ],
     "openGates": [],
-    "nextAction": "Define the next bounded work packet from the roadmap and certified non-claims; do not infer a B4.4C/B4.5 number.",
-    "activeBranch": "evo/er-c05b4-4b-crash-retry-v0.1",
+    "nextAction": "Define the next bounded work packet from the roadmap and certified non-claims; no implementation branch is active.",
+    "activeBranch": null,
     "certification": "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md"
   },
   "evidenceVocabulary": [
@@ -64,7 +64,8 @@
       "evo/branch-topology-contract-v0.1",
       "evo/branch-topology-drift-fix-v0.1",
       "evo/er-c05b4-4b-multigeneration-v0.1",
-      "evo/er-c05b4-4b-worker-concurrency-v0.1"
+      "evo/er-c05b4-4b-worker-concurrency-v0.1",
+      "evo/er-c05b4-4b-crash-retry-v0.1"
     ],
     "branchTopology": "branch.topology.json",
     "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions."
