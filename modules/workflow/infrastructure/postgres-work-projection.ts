@@ -90,7 +90,7 @@ export class PostgresWorkProjection implements WorkProjection {
     query = materialization !== undefined && materialization.mode !== 'CURRENT'
       ? query
           .where('ds.economic_runtime_dataset_id','=',materialization.runtimeDatasetId)
-          .where('ds.kind','=',materialization.mode)
+          .where('ds.kind','=','CANDIDATE')
           .where('ds.status','=','BUILDING')
       : effectiveRuntimeDatasetId === null
         ? query
