@@ -26,16 +26,16 @@
       "cash increase using actual local measurement",
       "explicit settlement AllocationInstruction/AllocationRelation evidence",
       "realized FX through canonical cash.received",
-      "full-closure O2C Work state"
+      "full-closure O2C Work state",
+      "O2C Full Replay equality"
     ],
     "openGates": [
       "legacy customer_payment.received replay compatibility",
-      "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Prove EEL-C01.5 unchanged-history Full Replay equality using the existing Full Replay service: canonical input digest unchanged, economic runtime digest unchanged, and the reference O2C business outcome unchanged.",
-    "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
-    "verifiedCiRun": 35664093669
+    "nextAction": "Merge verified EEL-C01.5 Full Replay equality, then prove legacy customer_payment.received replay compatibility before final EEL-C01 database certification.",
+    "verifiedHead": "3efee40d12fd5e9ab99138da00964ff099f6ebfa",
+    "verifiedCiRun": 35666475133
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -103,10 +103,23 @@
   },
   "currentUnmergedWork": {
     "branch": "evo/eel-c01-full-replay-equality-v0.1",
-    "status": "IMPLEMENTED",
+    "pullRequest": 17,
+    "status": "DATABASE_E2E_VERIFIED_READY_TO_MERGE",
+    "verifiedHead": "3efee40d12fd5e9ab99138da00964ff099f6ebfa",
+    "verifiedCiRun": 35666475133,
     "requirement": "O2C Full Replay equality",
-    "antiOverdesignDecision": "Reuse existing Full Replay service and economic-runtime digest; add only EEL-C01 business-level assertions.",
-    "validator": "npm run validate:eel-c01-full-replay",
-    "evidenceIsolation": "Dedicated fresh PostgreSQL 18 CI job prevents prior validator-derived state from changing the Full Replay proof boundary."
+    "businessEvidence": [
+      "canonical replay-input digest remains unchanged",
+      "economic runtime digest remains unchanged",
+      "pending production remains zero",
+      "pending shipment remains zero",
+      "receivable remains zero",
+      "cash remains 7300 CNY",
+      "all three O2C WorkItems remain DONE",
+      "explicit settlement relation remains intact",
+      "realized FX remains +100 CNY",
+      "FIFO shipment cost remains 100 CNY"
+    ],
+    "antiOverdesignResult": "Existing Full Replay, Cost, Valuation, Work, and digest infrastructure was sufficient; no O2C-specific replay framework was introduced."
   }
 }
