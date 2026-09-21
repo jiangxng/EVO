@@ -337,15 +337,16 @@ try {
   await rule(salesVersion.id,'order-pending-shipment',20,eq('eventKind','ORDER'),{
     ledgerCode:'pending_shipment', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
-  await rule(salesVersion.id,'order-receivable',30,eq('eventKind','ORDER'),{
-    ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: orderDims
-  });
-
-  const receiptDims = {
+  const receivableDims = {
     order_no: field('orderNo'), customer: field('customer'),
     project: field('project'), department: field('department'),
     profit_center: field('profitCenter'), cost_center: field('costCenter')
   };
+  await rule(salesVersion.id,'order-receivable',30,eq('eventKind','ORDER'),{
+    ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: receivableDims
+  });
+
+  const receiptDims = receivableDims;
   await rule(cashReceiptVersion.id,'receipt-increase-cash',10,trueExpr,{
     ledgerCode:'cash', quantity: { type:'literal', value:0 }, amount: field('cashAmount'), currency: field('cashCurrency'), dimensions: receiptDims
   });
