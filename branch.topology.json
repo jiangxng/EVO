@@ -96,7 +96,7 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "ER-C05B4.4B activation/Worker concurrency, shared cutover lock, and CURRENT live-tail semantics."
+      "description": "ER-C05B4.4B Worker/Activation concurrency slice; PostgreSQL cutover-lock and CURRENT live-tail E2E verified."
     }
   },
   "requiredLLMProcedure": [
