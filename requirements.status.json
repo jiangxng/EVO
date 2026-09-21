@@ -65,11 +65,13 @@
       "UI/report productization"
     ],
     "currentWork": {
-      "evidenceState": "READY_FOR_NEXT_SLICE",
+      "branch": "evo/eel-c01-legacy-receipt-compat-v0.1",
+      "evidenceState": "IMPLEMENTED",
       "requirement": "legacy compatibility replay certification",
-      "businessOutcome": "Existing historical customer_payment.received facts must continue to replay correctly after the new cash.received canonical path is introduced.",
-      "productOutcome": "An enterprise upgrade must not break old customer-payment history or change its reconstructed economic result.",
-      "antiOverdesignDecision": "Add a bounded compatibility proof only; do not introduce a new payment framework.",
+      "businessOutcome": "Historical customer_payment.received facts must remain unchanged and replay-compatible after cash.received becomes the canonical path.",
+      "productOutcome": "Existing enterprises can upgrade without losing or silently changing old customer-payment economic history.",
+      "smallestSufficientChange": "Add one isolated compatibility proof using the existing old command, explicit allocation, FX settlement, and Full Replay services.",
+      "antiOverdesignDecision": "Do not add a generic payment migration framework or reinterpret old facts into new cash postings.",
       "deferredScopePreserved": true
     }
   },
