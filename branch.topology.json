@@ -83,6 +83,12 @@
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
       "description": "Bounded governance correction removing self-invalidating exact-main-HEAD semantics."
+    },
+    "evo/er-c05b4-4b-multigeneration-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "ER-C05B4.4B consecutive multi-generation activation slice; PostgreSQL 18 E2E verified, ready to merge."
     }
   },
   "requiredLLMProcedure": [
@@ -110,5 +116,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "b77fe408faa22309ec6fac56e4e7f5772b14ba76"
+  "lastReviewedMainCommit": "ada8ec14787864ba64cb5a62a9bdadecf7e9c115"
 }

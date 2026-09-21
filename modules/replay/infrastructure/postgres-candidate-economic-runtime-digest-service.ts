@@ -6,7 +6,10 @@ import type {
   CandidateEconomicRuntimeDigestResult,
   CandidateEconomicRuntimeDigestService
 } from '../api/candidate-digest.js';
-import { digestEconomicRuntimeSemantic } from './postgres-replay-digest.js';
+import {
+  digestEconomicRuntimeFamily,
+  digestEconomicRuntimeSemantic
+} from './postgres-replay-digest.js';
 
 function asBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') return value;
@@ -83,7 +86,7 @@ implements CandidateEconomicRuntimeDigestService {
       ])
       .where('e.enterprise_id','=',checkpoint.enterprise_id)
       .where('e.consistency_domain','=',checkpoint.consistency_domain)
-      .where('ds.status','=','ACTIVE')
+      .where('ds.economic_runtime_dataset_id','is',null)
       .where('e.posting_sequence','<=',checkpointBoundary)
       .execute();
 
@@ -106,7 +109,17 @@ implements CandidateEconomicRuntimeDigestService {
       if (sequence !== 0) return sequence;
       const ledger = left.ledger.localeCompare(right.ledger);
       if (ledger !== 0) return ledger;
-      return left.effect_index - right.effect_index;
+      const effect = left.effect_index - right.effect_index;
+      if (effect !== 0) return effect;
+      const priority = left.posting_priority - right.posting_priority;
+      if (priority !== 0) return priority;
+      const source = left.entry_source_kind.localeCompare(right.entry_source_kind);
+      if (source !== 0) return source;
+      const business = left.business_data_id.localeCompare(right.business_data_id);
+      if (business !== 0) return business;
+      const valuationRule = (left.valuation_rule_id ?? '').localeCompare(right.valuation_rule_id ?? '');
+      if (valuationRule !== 0) return valuationRule;
+      return left.dimension_hash.localeCompare(right.dimension_hash);
     });
 
     const balances = await this.db.selectFrom('ledger_balance as b')
@@ -319,6 +332,15 @@ implements CandidateEconomicRuntimeDigestService {
 
     return {
       digest: digestEconomicRuntimeSemantic(semantic),
+      familyDigests: {
+        ledgerEntries: digestEconomicRuntimeFamily(semantic.ledgerEntries ?? []),
+        ledgerBalances: digestEconomicRuntimeFamily(semantic.ledgerBalances ?? []),
+        costResults: digestEconomicRuntimeFamily(semantic.costResults ?? []),
+        allocationRelations: digestEconomicRuntimeFamily(semantic.allocationRelations ?? []),
+        valuationPositions: digestEconomicRuntimeFamily(semantic.valuationPositions ?? []),
+        valuationResults: digestEconomicRuntimeFamily(semantic.valuationResults ?? []),
+        workItems: digestEconomicRuntimeFamily(semantic.workItems ?? [])
+      },
       familyCounts: {
         ledgerEntries: entries.length,
         ledgerBalances: balances.length,

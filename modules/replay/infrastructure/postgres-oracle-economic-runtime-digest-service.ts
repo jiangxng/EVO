@@ -5,7 +5,10 @@ import type {
   OracleEconomicRuntimeDigestResult,
   OracleEconomicRuntimeDigestService
 } from '../api/oracle-digest.js';
-import { digestEconomicRuntimeSemantic } from './postgres-replay-digest.js';
+import {
+  digestEconomicRuntimeFamily,
+  digestEconomicRuntimeSemantic
+} from './postgres-replay-digest.js';
 
 function asBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') return value;
@@ -72,6 +75,11 @@ implements OracleEconomicRuntimeDigestService {
       .orderBy('e.posting_sequence')
       .orderBy('d.code')
       .orderBy('e.effect_index')
+      .orderBy('e.posting_priority')
+      .orderBy('e.entry_source_kind')
+      .orderBy('e.business_data_id')
+      .orderBy('e.valuation_rule_id')
+      .orderBy('e.dimension_hash')
       .execute();
 
     const balances = await this.db.selectFrom('ledger_balance as b')
@@ -227,6 +235,15 @@ implements OracleEconomicRuntimeDigestService {
 
     return {
       digest: digestEconomicRuntimeSemantic(semantic),
+      familyDigests: {
+        ledgerEntries: digestEconomicRuntimeFamily(semantic.ledgerEntries ?? []),
+        ledgerBalances: digestEconomicRuntimeFamily(semantic.ledgerBalances ?? []),
+        costResults: digestEconomicRuntimeFamily(semantic.costResults ?? []),
+        allocationRelations: digestEconomicRuntimeFamily(semantic.allocationRelations ?? []),
+        valuationPositions: digestEconomicRuntimeFamily(semantic.valuationPositions ?? []),
+        valuationResults: digestEconomicRuntimeFamily(semantic.valuationResults ?? []),
+        workItems: digestEconomicRuntimeFamily(semantic.workItems ?? [])
+      },
       familyCounts: {
         ledgerEntries: entries.length,
         ledgerBalances: balances.length,

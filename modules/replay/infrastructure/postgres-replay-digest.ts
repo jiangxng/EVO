@@ -22,6 +22,12 @@ export function digestEconomicRuntimeSemantic(
   return digest(semantic);
 }
 
+export function digestEconomicRuntimeFamily(
+  family: JsonValue
+): string {
+  return digest(family);
+}
+
 function asBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') return value;
   if (typeof value === 'number' && Number.isInteger(value)) return BigInt(value);
@@ -173,6 +179,11 @@ export async function computeEconomicRuntimeDigest(
       .orderBy('e.posting_sequence')
       .orderBy('d.code')
       .orderBy('e.effect_index')
+      .orderBy('e.posting_priority')
+      .orderBy('e.entry_source_kind')
+      .orderBy('e.business_data_id')
+      .orderBy('e.valuation_rule_id')
+      .orderBy('e.dimension_hash')
       .execute(),
 
     db.selectFrom('ledger_balance as b')

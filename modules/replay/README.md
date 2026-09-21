@@ -83,3 +83,18 @@ PR-head certification:
 `2f752e798723ae03b1deb73c536e23f6b338ae39`
 CI run:
 `35324891541 — SUCCESS`
+
+
+## B4.4B Multi-generation status
+
+Two consecutive governed production generations are now database-E2E verified for
+the reference FIFO scenario. A later Candidate may reuse the same certified
+checkpoint while rebuilding the complete isolated suffix state; its formal
+generation interval remains contiguous with its ACTIVE parent.
+
+Candidate, Oracle, CURRENT overlay, and Full Replay LedgerEntry semantics now use
+a total canonical ordering so POSTING and VALUATION entries sharing the same
+posting sequence cannot drift by database row order. Candidate/Oracle digest
+results also expose per-family semantic digests for failure localization.
+
+Worker concurrency and crash/retry recovery remain open B4.4B gates.

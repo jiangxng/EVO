@@ -13,8 +13,8 @@
     "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Ensure every official read obeys the authoritative CURRENT generation and activation fails closed under invalid, stale, revoked, duplicate, concurrent, or interrupted conditions.",
-    "verifiedHead": "914b44d12d7059e399d1231c00d71388e2d97042",
-    "verifiedCiRun": 35581386350,
+    "verifiedHead": "4b888e09a359489c3e7ba66fcf9cbac882058bf6",
+    "verifiedCiRun": 35647593407,
     "verifiedEnvironment": {
       "node": "24.20.x",
       "postgres": "18",
@@ -27,15 +27,16 @@
       "duplicate activation retry idempotency",
       "semantic digest mismatch rejection",
       "stale active parent rejection",
-      "revoked promotion rejection"
+      "revoked promotion rejection",
+      "two consecutive governed production generation activations with Candidate=Oracle=CURRENT overlay"
     ],
     "openGates": [
-      "two-or-more consecutive production generation activations",
       "activation versus Worker concurrency",
       "crash and retry recovery",
       "additional checkpoint invalidation / transaction interruption cases if required"
     ],
-    "nextAction": "Build and certify multi-generation activation before Worker concurrency and crash/retry recovery."
+    "nextAction": "Certify activation versus Worker concurrency, then crash/retry recovery.",
+    "activeBranch": "evo/er-c05b4-4b-multigeneration-v0.1"
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
