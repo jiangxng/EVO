@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "project": "EVO",
+  "authority": "machine-readable-branch-analysis-contract",
+  "updatedAt": "2026-09-21",
+  "authoritativeBranch": "main",
+  "authoritativeBranchHead": "3e6e891d48ebc4b403db218f8b6fff5f777105f4",
+  "analysisRules": [
+    "Never infer branch authority from branch name, commit count, age, or open/closed PR state alone.",
+    "Always classify each branch before proposing a merge.",
+    "Use compare_commits against main to determine ahead/behind/diverged state.",
+    "If a branch is fully contained by main, treat it as historical unless project.status.json explicitly marks it active.",
+    "If a branch diverged from main, do not wholesale merge unless this manifest explicitly allows it.",
+    "For diverged historical branches, recover individual commits/files only after architecture and ownership review.",
+    "Open PR does not imply current work; merged/closed PR history and this manifest take precedence.",
+    "main is the only authoritative integration branch unless this manifest is versioned to say otherwise."
+  ],
+  "branchClasses": {
+    "main": {
+      "class": "AUTHORITATIVE",
+      "mergePolicy": "TARGET",
+      "description": "Canonical integration branch and source of executable repository reality."
+    },
+    "evo/apm-certification-enterprise-template-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "Former certified integration branch merged by PR #3. Retained as historical milestone."
+    },
+    "evo/er-c05b4-4b-read-routing-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "B4.4B verified read-routing/failure-matrix slice merged by PR #4."
+    },
+    "evo/llm-progress-markers-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "LLM progress-governance slice merged by PR #5."
+    },
+    "evo/enterprise-package-v0.1": {
+      "class": "ANCESTOR_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "evo/apm-certification-enterprise-template-v0.1",
+      "description": "Historical ancestor whose content was absorbed by the later certified integration branch."
+    },
+    "evo/recovery-full-template-build": {
+      "class": "ANCESTOR_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "evo/apm-certification-enterprise-template-v0.1",
+      "description": "Historical recovery/build ancestor fully absorbed by the certified integration branch."
+    },
+    "convergence/upstream-readiness-v0.2.1": {
+      "class": "DIVERGED_HISTORICAL",
+      "mergePolicy": "NO_WHOLESALE_MERGE",
+      "containedByMain": false,
+      "pr": 1,
+      "prDisposition": "CLOSED_SUPERSEDED",
+      "description": "Early Convergence readiness evidence. May be mined selectively; do not merge as a branch."
+    },
+    "v0.3.0-apm-runtime": {
+      "class": "DIVERGED_HISTORICAL",
+      "mergePolicy": "NO_WHOLESALE_MERGE",
+      "containedByMain": false,
+      "pr": 2,
+      "prDisposition": "CLOSED_SUPERSEDED",
+      "description": "Early APM runtime integration experiment. PR #3 explicitly rejected wholesale merge; generic public-boundary work was reimplemented under EVO ownership."
+    }
+  },
+  "requiredLLMProcedure": [
+    "Read AGENTS.md, LLM.md, context.manifest.json, project.status.json, and branch.topology.json.",
+    "List current branches from GitHub rather than assuming this file is complete.",
+    "For any unclassified branch, compare it to main and classify it before merge advice.",
+    "For branches classified MERGED_MILESTONE or ANCESTOR_MILESTONE, do not merge again.",
+    "For DIVERGED_HISTORICAL, inspect only explicitly needed commits/files; never infer that missing files are accidental omissions.",
+    "For ACTIVE_WORK branches, verify current PR, CI, work packet, and base before proposing merge.",
+    "If GitHub reality conflicts with this file, report BRANCH_TOPOLOGY_DRIFT and update this file before making merge recommendations."
+  ],
+  "allowedClasses": [
+    "AUTHORITATIVE",
+    "ACTIVE_WORK",
+    "MERGED_MILESTONE",
+    "ANCESTOR_MILESTONE",
+    "DIVERGED_HISTORICAL",
+    "EXPERIMENTAL",
+    "ABANDONED"
+  ],
+  "allowedMergePolicies": [
+    "TARGET",
+    "MERGE_WHEN_VERIFIED",
+    "DO_NOT_MERGE_AGAIN",
+    "NO_WHOLESALE_MERGE",
+    "MANUAL_REVIEW_ONLY"
+  ]
+}

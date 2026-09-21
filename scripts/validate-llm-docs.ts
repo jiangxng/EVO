@@ -14,6 +14,7 @@ type ContextManifest = {
     readonly documentationStandard: string;
     readonly projectStatus: string;
     readonly codeProgressMarkerStandard: string;
+    readonly branchTopology: string;
     readonly activePacket: string;
   };
   readonly readProfiles: Record<string, {
@@ -46,8 +47,15 @@ for (const [profile,definition] of Object.entries(manifest.readProfiles)) {
 }
 
 const projectStatus = JSON.parse(await readFile(manifest.bootstrap.projectStatus,'utf8')) as { activeWorkPacket?: { id?: string; overallClosed?: boolean; openGates?: readonly string[] } };
+const branchTopology = JSON.parse(await readFile(manifest.bootstrap.branchTopology,'utf8')) as { authoritativeBranch?: string; branchClasses?: Record<string,{class?:string;mergePolicy?:string}>; allowedClasses?: readonly string[]; allowedMergePolicies?: readonly string[] };
 if (projectStatus.activeWorkPacket?.id === undefined) failures.push('project.status.json lacks activeWorkPacket.id.');
 if (!Array.isArray(projectStatus.activeWorkPacket?.openGates)) failures.push('project.status.json lacks activeWorkPacket.openGates array.');
+if (branchTopology.authoritativeBranch !== 'main') failures.push('branch.topology.json must identify main as authoritativeBranch.');
+if (branchTopology.branchClasses?.main?.class !== 'AUTHORITATIVE') failures.push('branch.topology.json must classify main as AUTHORITATIVE.');
+for (const [name,definition] of Object.entries(branchTopology.branchClasses ?? {})) {
+  if (!branchTopology.allowedClasses?.includes(definition.class ?? '')) failures.push(`branch.topology.json has invalid class for ${name}.`);
+  if (!branchTopology.allowedMergePolicies?.includes(definition.mergePolicy ?? '')) failures.push(`branch.topology.json has invalid mergePolicy for ${name}.`);
+}
 
 const llm = await readFile('LLM.md','utf8');
 const llmVersion = llm.match(/Context Contract Version:\s*(\S+)/)?.[1];
@@ -60,6 +68,7 @@ const agentsSize = (await stat('AGENTS.md')).size;
 if (agentsSize > 16 * 1024) failures.push(`AGENTS.md is ${agentsSize} bytes; limit is 16384.`);
 if (!agents.includes('context.manifest.json')) failures.push('AGENTS.md must route through context.manifest.json.');
 if (!agents.includes('project.status.json')) failures.push('AGENTS.md must route through project.status.json.');
+if (!agents.includes('branch.topology.json')) failures.push('AGENTS.md must route through branch.topology.json.');
 
 const readme = await readFile('README.md','utf8');
 if (!readme.includes('AGENTS.md')) failures.push('README.md must identify AGENTS.md as the AI entry point.');
