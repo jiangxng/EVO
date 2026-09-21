@@ -139,7 +139,7 @@
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
       "pr": 15,
-      "description": "Clean EEL-C01.3 v0.2 slice rebuilt from aligned main; canonical cash.received settlement allocation and realized-FX database evidence."
+      "description": "Clean EEL-C01.3 v0.2 slice; canonical cash.received explicit settlement allocation and +100 CNY realized-FX PostgreSQL E2E verified, ready to merge."
     }
   },
   "requiredLLMProcedure": [
