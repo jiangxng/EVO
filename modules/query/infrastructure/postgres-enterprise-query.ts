@@ -103,6 +103,7 @@ export class PostgresEnterpriseQuery implements EnterpriseQuery {
       .where('consistency_domain','=',runtime.consistency_domain)
       .where('status','=','ACTIVE')
       .executeTakeFirst();
+
     const balances = activeGeneration === undefined
       ? await this.db.selectFrom('ledger_balance as b')
           .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
@@ -114,22 +115,15 @@ export class PostgresEnterpriseQuery implements EnterpriseQuery {
           .where('ds.kind','=','CURRENT')
           .where('ds.status','=','ACTIVE')
           .orderBy('d.code').orderBy('b.dimension_hash').execute()
-      : (() => null)();
-    const routedBalances = balances ?? (() => {
-      throw new Error('Generation-aware balance digest routing was not resolved.');
-    })();
+      : await this.currentRuntime.read(
+          enterpriseId,
+          runtime.consistency_domain
+        ).then((view) => Array.isArray(view.semantic.ledgerBalances)
+          ? view.semantic.ledgerBalances
+          : []);
 
     return createHash('sha256')
-      .update(JSON.stringify(
-        activeGeneration === undefined
-          ? routedBalances
-          : await this.currentRuntime.read(
-              enterpriseId,
-              runtime.consistency_domain
-            ).then((view) => Array.isArray(view.semantic.ledgerBalances)
-              ? view.semantic.ledgerBalances
-              : [])
-      ))
+      .update(JSON.stringify(balances))
       .digest('hex');
   }
 }
