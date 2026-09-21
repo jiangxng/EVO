@@ -33,8 +33,8 @@
 | 销售订单形成应收 | 企业知道客户欠多少钱 | Sales Order → Receivable | PostgreSQL E2E | 已有 |
 | 客户收款增加现金 | 实际现金余额增加 | cash.received → Cash +7300 CNY | CI 35661825887 | 已验证 |
 | 收款减少应收 | 对应应收减少/归零 | cash.received → Receivable -1000 USD | CI 35661825887 | 已验证 |
-| 收款与被结清应收明确关联 | 能回答“这笔钱结了哪笔应收” | AllocationInstruction / Relation 路径 | PR #13 / CI 35662063042 | 实现中；失败已分类为测试隔离假设，尚未形成通过证据 |
-| 外币收款产生已实现汇兑损益 | 能解释实际到账和账面价值差额 | FX realized settlement | 现有内核 + PR #13 接入 | 实现中；业务语义未被失败反证，但尚未验证通过 |
+| 收款与被结清应收明确关联 | 能回答“这笔钱结了哪笔应收” | AllocationInstruction / Relation 路径 | PR #15 / CI 35663507253 | 已验证：显式选择并消耗目标 1000 USD 应收 |
+| 外币收款产生已实现汇兑损益 | 能解释实际到账和账面价值差额 | FX realized settlement | 现有内核 + PR #15 接入 | CI 35663507253 | 已验证：realized FX = +100 CNY |
 | 收清后待收任务关闭 | 不再出现该订单待收款 | Work projection closure | 尚未完成 | 未完成 |
 | 完整 O2C 可重放 | 删除派生结果后重建一致 | Full Replay equality | 尚未完成 | 未完成 |
 | 历史旧收款类型仍可重放 | 升级不破坏旧事实 | compatibility path | 部分已有 | 待专门验证 |
@@ -84,3 +84,48 @@ PR #13 的 CI `35662063042` 在新 EEL-C01.3 validator 失败。
 > EEL-C01.3 尚未获得通过证据；验证脚本必须精确隔离本场景后重新证明。
 
 在重新验证通过以前，PR #13 不得合入 main，也不得标记为 DATABASE E2E VERIFIED。
+
+
+## 7. PR #13 → PR #15 收敛
+
+PR #13 没有被强行 rebase/merge。
+
+原因：
+
+- 新的 Human–LLM alignment governance 已进入 main；
+- PR #13 同时修改了旧 project/status/topology 指针；
+- 机械合并会把已经修正的治理状态重新带回主线。
+
+因此采用最小迁移：
+
+- PR #13：保留为 superseded evidence；
+- PR #15：从最新 main 重建；
+- 只迁移当前 EEL-C01.3 必要实现；
+- 删除“全数据库只能有一条 replay request”的测试假设；
+- 不增加任何新的通用结算框架。
+
+
+## 8. 2026-09-22 — EEL-C01.3 数据库证据
+
+PR #15 已通过 PostgreSQL 18 E2E。
+
+- implementation head: `36d8de14c746b94f7ecc9b195aa9e75214200656`
+- CI: `35663507253 — SUCCESS`
+- `cash.received` 是本场景 settlement consumer；
+- 显式 AllocationInstruction 指向目标销售订单/应收来源；
+- AllocationRelation 消耗 `1000.00 USD`；
+- 实际现金仍为 `7300 CNY`；
+- carrying basis 为 `7200 CNY`；
+- realized FX = `+100 CNY`；
+- operational Receivable 保持为 0。
+
+业务结论：
+
+> EVO 现在不仅知道“客户付了钱”，还能够明确回答“这笔钱结清了哪笔应收，以及因此产生了多少已实现汇兑损益”。
+
+仍未关闭：
+
+- Work closure；
+- Full Replay equality；
+- legacy compatibility replay certification；
+- EEL-C01 final certification。

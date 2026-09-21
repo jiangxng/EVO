@@ -282,3 +282,37 @@ This does **not** close EEL-C01. Explicit settlement AllocationRelation converge
 ### Additional bounded observation
 
 `ledger_entry` preserves currency, while current `ledger_balance` identity is ledger + dimension hash rather than currency-aware identity. This does not block the reference EEL-C01 scenario because USD Receivable and CNY Cash are different ledgers. Same-ledger multi-currency balance identity requires a separate bounded architecture packet if/when needed; it is not silently expanded inside EEL-C01.
+
+
+---
+
+## 13. 2026-09-22 Implementation Evidence — EEL-C01.3
+
+**Evidence level: DATABASE E2E VERIFIED**
+
+The canonical customer-cash-receipt path now participates in explicit settlement allocation and realized FX using the existing Allocation/Position/Valuation runtime.
+
+Verified reference scenario:
+
+```text
+Receivable source       = 1000 USD
+Carrying basis          = 7200 CNY
+Actual cash receipt     = 7300 CNY
+Explicit allocation     = consume 1000 USD
+Realized FX             = +100 CNY
+Operational receivable  = 0
+```
+
+Evidence:
+
+- PR: `#15`
+- implementation head: `36d8de14c746b94f7ecc9b195aa9e75214200656`
+- GitHub Actions: `35663507253 — SUCCESS`
+- PostgreSQL: 18
+- validator: `npm run validate:eel-c01-settlement-allocation`
+
+The implementation reuses the existing settlement engine. No generic payment framework, partial-payment model, bank-reconciliation model, or other deferred scope was introduced.
+
+PR #13 is retained only as superseded historical evidence because its shared-database validator made two invalid assumptions: exact global replay request count and exact decimal string formatting.
+
+EEL-C01 remains open for Work closure, Full Replay equality, legacy compatibility replay certification, and final certification.

@@ -416,7 +416,8 @@ try {
     }],
     config: {
       semantic: 'OPEN_FX_RECEIVABLE',
-      settlementBusinessDataType: 'customer_payment.received'
+      settlementBusinessDataType: 'cash.received',
+      legacySettlementBusinessDataTypes: ['customer_payment.received']
     }
   });
 

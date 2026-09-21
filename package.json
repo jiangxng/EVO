@@ -29,7 +29,8 @@
     "validate:activation-failure-matrix": "node --env-file-if-exists=.env --import tsx scripts/validate-activation-failure-matrix.ts",
     "validate:worker-activation-concurrency": "node --env-file-if-exists=.env --import tsx scripts/validate-worker-activation-concurrency.ts",
     "validate:activation-crash-retry": "node --env-file-if-exists=.env --import tsx scripts/validate-activation-crash-retry.ts",
-    "validate:eel-c01-receipt-posting": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-receipt-posting.ts"
+    "validate:eel-c01-receipt-posting": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-receipt-posting.ts",
+    "validate:eel-c01-settlement-allocation": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-settlement-allocation.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",
