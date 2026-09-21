@@ -11,10 +11,10 @@
     "id": "EEL-C01",
     "name": "Order-to-Cash Settlement Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DATABASE E2E VERIFIED",
+    "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/eel-c01-work-closure-v0.1",
+    "activeBranch": "evo/eel-c01-full-replay-equality-v0.2",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
@@ -33,7 +33,7 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Merge verified EEL-C01.4 Work-closure slice, then prove EEL-C01.5 Full Replay equality and legacy receipt compatibility before final certification.",
+    "nextAction": "Revalidate the already-proven EEL-C01.5 Full Replay implementation on the latest aligned main, then merge it and prove legacy customer_payment.received replay compatibility before final certification.",
     "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
     "verifiedCiRun": 35664093669
   },
@@ -102,11 +102,15 @@
     "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred."
   },
   "currentUnmergedWork": {
-    "branch": "evo/eel-c01-work-closure-v0.1",
-    "pullRequest": 16,
-    "status": "DATABASE_E2E_VERIFIED_READY_TO_MERGE",
-    "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
-    "verifiedCiRun": 35664093669,
-    "antiOverdesignResult": "Existing WorkProjection was sufficient; no new workflow runtime abstraction was introduced."
+    "branch": "evo/eel-c01-full-replay-equality-v0.2",
+    "status": "IMPLEMENTED_REVALIDATION_REQUIRED",
+    "requirement": "O2C Full Replay equality",
+    "migratedFrom": "PR #17 / evo/eel-c01-full-replay-equality-v0.1",
+    "sourceEvidence": {
+      "verifiedHead": "3efee40d12fd5e9ab99138da00964ff099f6ebfa",
+      "verifiedCiRun": 35666475133
+    },
+    "antiOverdesignDecision": "Reuse existing Full Replay service and business-level assertions; no new replay framework.",
+    "validationTarget": "Full CI + isolated PostgreSQL 18 eel-c01-full-replay job on current main."
   }
 }
