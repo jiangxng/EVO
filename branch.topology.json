@@ -117,7 +117,7 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C01 first executable slice: cash.received runtime path and Cash/Receivable posting."
+      "description": "EEL-C01 first executable slice: cash.received dual-measurement Cash/Receivable posting; PostgreSQL 18 E2E verified, ready to merge."
     }
   },
   "requiredLLMProcedure": [
