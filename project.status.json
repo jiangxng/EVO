@@ -59,7 +59,9 @@
       "evo/enterprise-package-v0.1",
       "evo/apm-certification-enterprise-template-v0.1",
       "evo/er-c05b4-4b-read-routing-v0.1"
-    ]
+    ],
+    "branchTopology": "branch.topology.json",
+    "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions."
   },
   "markerPolicy": {
     "authoritativeProgressLocation": "project.status.json",
