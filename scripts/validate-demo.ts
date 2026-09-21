@@ -1408,7 +1408,12 @@ try {
   const secondOracleDigest = await runtime.oracleEconomicRuntimeDigest.compute(secondOracle.id);
   if (secondCandidateDigest.digest !== secondOracleDigest.digest) {
     throw new Error(
-      `Second-generation equivalence mismatch: candidate=${secondCandidateDigest.digest}, oracle=${secondOracleDigest.digest}`
+      `Second-generation equivalence mismatch: ${JSON.stringify({
+        candidateDigest:secondCandidateDigest.digest,
+        oracleDigest:secondOracleDigest.digest,
+        candidateFamilyCounts:secondCandidateDigest.familyCounts,
+        oracleFamilyCounts:secondOracleDigest.familyCounts
+      })}`
     );
   }
   const secondVerifiedOracle = await runtime.runtimeDatasets.markOracleVerified(
