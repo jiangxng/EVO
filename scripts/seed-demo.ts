@@ -60,6 +60,7 @@ try {
   const productionDomain = await domain('production', 'Production');
   const inventoryDomain = await domain('inventory', 'Inventory');
   const valuationDomain = await domain('valuation', 'Valuation');
+  const cashDomain = await domain('cash', 'Cash');
 
   async function txType(domainId: string, code: string, name: string) {
     return one(
@@ -73,6 +74,7 @@ try {
   const productionType = await txType(productionDomain.id, 'production_completion', 'Production Completion');
   const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
   const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
+  const cashReceiptType = await txType(cashDomain.id, 'cash_receipt', 'Cash Receipt');
 
   async function app(code: string, name: string, typeId: string) {
     return one(
@@ -86,6 +88,7 @@ try {
   const productionApp = await app('production_completion', 'Production Completion', productionType.id);
   const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
   const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
+  const cashReceiptApp = await app('cash_receipt', 'Cash Receipt', cashReceiptType.id);
 
   async function version(appId: string) {
     const existing = await db.selectFrom('application_definition_version')
@@ -107,6 +110,7 @@ try {
   const productionVersion = await version(productionApp.id);
   const inventoryVersion = await version(inventoryApp.id);
   const valuationVersion = await version(valuationApp.id);
+  const cashReceiptVersion = await version(cashReceiptApp.id);
 
   async function instance(appId: string, code: string, name: string) {
     return one(
@@ -126,6 +130,7 @@ try {
   await instance(productionApp.id, 'production', 'Production');
   await instance(inventoryApp.id, 'inventory', 'Inventory');
   await instance(valuationApp.id, 'valuation', 'Valuation');
+  await instance(cashReceiptApp.id, 'cash', 'Cash');
 
   await db.insertInto('item_definition').values({
     enterprise_id: enterprise.id,
@@ -240,6 +245,7 @@ try {
   }
   await command(salesVersion.id, 'approve-sales-order', 'Approve Sales Order', 'sales_order.approved');
   await command(salesVersion.id, 'record-customer-payment', 'Record Customer Payment', 'customer_payment.received');
+  await command(cashReceiptVersion.id, 'record-receipt', 'Record Cash Receipt', 'cash.received');
   await command(valuationVersion.id, 'request-valuation', 'Request Valuation', 'valuation.requested');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
@@ -291,9 +297,14 @@ try {
     required: ['order_no','customer'],
     optional: ['product_id','project','department','profit_center','cost_center']
   };
+  const cashPolicy = {
+    required: [],
+    optional: ['order_no','customer','project','department','profit_center','cost_center']
+  };
   await ledger('pending_production','待生产', operationalOrderPolicy);
   await ledger('pending_shipment','待出库/发货', operationalOrderPolicy);
   await ledger('receivable','待收款', receivablePolicy);
+  await ledger('cash','现金', cashPolicy);
   await ledger('inventory','库存', inventoryPolicy);
   await ledger('cogs','销售成本', inventoryPolicy);
 
@@ -328,6 +339,18 @@ try {
   });
   await rule(salesVersion.id,'order-receivable',30,eq('eventKind','ORDER'),{
     ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: orderDims
+  });
+
+  const receiptDims = {
+    order_no: field('orderNo'), customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
+  await rule(cashReceiptVersion.id,'receipt-increase-cash',10,trueExpr,{
+    ledgerCode:'cash', quantity: { type:'literal', value:0 }, amount: field('cashAmount'), currency: field('cashCurrency'), dimensions: receiptDims
+  });
+  await rule(cashReceiptVersion.id,'receipt-clear-receivable',20,trueExpr,{
+    ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: neg('settledAmount'), currency: field('settledCurrency'), dimensions: receiptDims
   });
 
   const invDims = {
@@ -457,7 +480,7 @@ try {
       eligibility: code === 'fx_settlement_explicit'
         ? {
             sourceBusinessDataTypes: ['sales_order.approved'],
-            consumerBusinessDataTypes: ['customer_payment.received']
+            consumerBusinessDataTypes: ['customer_payment.received','cash.received']
           }
         : {
             inboundBusinessDataTypes: costRuntimeConfig.inboundBusinessDataTypes,
