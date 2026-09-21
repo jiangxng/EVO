@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "a7a2cddefa95e21b353fb12dff2c1a5eb6e2af8f"
+    "lastVerifiedRuntimeMergeCommit": "4e3f4087814008798a9f3025b5c2ecc73a23a925"
   },
   "activeWorkPacket": {
     "id": "EEL-C01",
@@ -14,7 +14,7 @@
     "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/eel-c01-work-closure-v0.1",
+    "activeBranch": "evo/eel-c01-full-replay-equality-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
@@ -33,7 +33,7 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Merge verified EEL-C01.4 Work-closure slice, then prove EEL-C01.5 Full Replay equality and legacy receipt compatibility before final certification.",
+    "nextAction": "Prove EEL-C01.5 unchanged-history Full Replay equality using the existing Full Replay service: canonical input digest unchanged, economic runtime digest unchanged, and the reference O2C business outcome unchanged.",
     "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
     "verifiedCiRun": 35664093669
   },
@@ -102,11 +102,9 @@
     "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred."
   },
   "currentUnmergedWork": {
-    "branch": "evo/eel-c01-work-closure-v0.1",
-    "pullRequest": 16,
-    "status": "DATABASE_E2E_VERIFIED_READY_TO_MERGE",
-    "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
-    "verifiedCiRun": 35664093669,
-    "antiOverdesignResult": "Existing WorkProjection was sufficient; no new workflow runtime abstraction was introduced."
+    "branch": "evo/eel-c01-full-replay-equality-v0.1",
+    "status": "IMPLEMENTATION_PLANNED",
+    "requirement": "O2C Full Replay equality",
+    "antiOverdesignDecision": "Reuse existing Full Replay service and economic-runtime digest; add only EEL-C01 business-level assertions."
   }
 }
