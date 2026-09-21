@@ -1065,3 +1065,66 @@ EVO 现在不再只是证明“一次增量上线正确”，而是已经证明�
 ## 当前一句话状态（2026-09-22）
 
 > **EVO 已在真实 PostgreSQL 18 中证明连续两代 governed activation 可以保持 Candidate = Full-Replay Oracle = 正式 CURRENT overlay；B4.4B 下一步进入 Worker 并发与崩溃恢复。**
+
+
+---
+
+# 17. 2026-09-22 追加状态：B4.4B Worker / Activation 并发 Gate 已通过数据库 E2E
+
+## A. 业务问题
+
+企业正常业务不能因为增量 Replay Candidate 正在上线而丢单、重复记账或把新业务写回旧代账本；反过来，Worker 刚完成的新业务也不能被一个已经过期的 Candidate 覆盖。
+
+## B. 当前已经证明
+
+真实 PostgreSQL 18 环境已经验证：
+
+- Worker 正常 Posting 与 Candidate Activation 共享 `enterprise_runtime_state FOR UPDATE` cutover lock；
+- Worker 先取得 cutover 顺序时，新 Posting 先提交，随后 Activation 会重新读取 runtime cursor；
+- 当 runtime posting cursor 已超过 Candidate boundary 时，Activation 以 `POSTING_CURSOR_AHEAD_OF_CANDIDATE` fail-closed；
+- Activation 先进入 cutover 顺序时，Worker 必须等 Activation 事务结束后才能继续；
+- 已激活 CURRENT generation 可以继续承接正常 Worker Posting；
+- CURRENT overlay 可以把 certified activation boundary 之后的 normal-posting live tail 合成正式经济视图；
+- 并发拒绝场景不会产生第二个 CURRENT。
+
+## C. 证据方式
+
+新增：
+
+`scripts/validate-worker-activation-concurrency.ts`
+
+该验证不是依赖 JavaScript `Promise.all()` 的偶然调度，而是：
+
+1. 独立数据库连接先持有 runtime row 的 `FOR UPDATE`；
+2. 分别启动 Worker 与 Activation；
+3. 通过 PostgreSQL `pg_stat_activity` 确认真实 Lock wait；
+4. 控制释放顺序；
+5. 验证数据库最终状态与 blocker。
+
+## D. 当前验证状态
+
+**DATABASE E2E VERIFIED — B4.4B WORKER / ACTIVATION CONCURRENCY**
+
+- branch: `evo/er-c05b4-4b-worker-concurrency-v0.1`
+- implementation head before this documentation update: `f14232188b7a94b1f876cf02acfaf8f3954f2a8f`
+- GitHub Actions: `35659095633`
+- PostgreSQL: 18
+- schema: 22
+- docs validation: PASS
+- migration: PASS
+- typecheck: PASS
+- build: PASS
+- tests: PASS
+- seed:demo: PASS
+- validate:demo: PASS
+- validate:worker-activation-concurrency: PASS
+- validate:activation-failure-matrix: PASS
+
+## E. B4.4B 当前剩余核心 Gate
+
+1. crash / retry recovery；
+2. 根据 crash 证据决定是否还需要补充 checkpoint invalidation / transaction interruption 组合矩阵。
+
+## 当前一句话状态
+
+> **EVO 已证明正常 Worker 与 Candidate Activation 在同一企业一致性域内通过数据库 cutover lock 串行化，既不会让旧 Candidate 覆盖新业务，也不会让激活后的新业务脱离 CURRENT generation；B4.4B 现在只剩 crash/retry recovery 主 Gate。**
