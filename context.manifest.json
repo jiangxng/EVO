@@ -13,7 +13,8 @@
     "documentationStandard": "docs/architecture/continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md",
     "activePacket": "ER-C05B4.4B — Read Routing & Activation Failure Matrix",
     "projectStatus": "project.status.json",
-    "codeProgressMarkerStandard": "docs/architecture/continuity/EVO-CODE-PROGRESS-MARKER-STANDARD-v0.1.md"
+    "codeProgressMarkerStandard": "docs/architecture/continuity/EVO-CODE-PROGRESS-MARKER-STANDARD-v0.1.md",
+    "branchTopology": "branch.topology.json"
   },
   "requiredReading": [
     "PHILOSOPHY.md",
@@ -25,21 +26,23 @@
   ],
   "readProfiles": {
     "boundedModuleChange": {
-      "maxInitialDocuments": 4,
-      "documents": [
-        "AGENTS.md",
-        "LLM.md",
-        "context.manifest.json",
-        "project.status.json"
-      ]
-    },
-    "crossModuleArchitecture": {
-      "maxInitialDocuments": 10,
+      "maxInitialDocuments": 5,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
         "project.status.json",
+        "branch.topology.json"
+      ]
+    },
+    "crossModuleArchitecture": {
+      "maxInitialDocuments": 11,
+      "documents": [
+        "AGENTS.md",
+        "LLM.md",
+        "context.manifest.json",
+        "project.status.json",
+        "branch.topology.json",
         "PHILOSOPHY.md",
         "CONCEPTS.md",
         "INVARIANTS.md",
@@ -49,12 +52,13 @@
       ]
     },
     "continuation": {
-      "maxInitialDocuments": 8,
+      "maxInitialDocuments": 9,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
         "project.status.json",
+        "branch.topology.json",
         "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
         "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-20-v1.0.md",
         "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
@@ -62,12 +66,13 @@
       ]
     },
     "archaeology": {
-      "maxInitialDocuments": 4,
+      "maxInitialDocuments": 5,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
-        "project.status.json"
+        "project.status.json",
+        "branch.topology.json"
       ]
     }
   },
