@@ -193,7 +193,7 @@ try {
   const consumed = measurements[0];
   if (
     consumed === undefined ||
-    String(consumed.value) !== '1000' ||
+    !new Decimal(String(consumed.value ?? 0)).eq(1000) ||
     consumed.unit !== 'USD' ||
     consumed.role !== 'SETTLEMENT_QUANTITY'
   ) {
