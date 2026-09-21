@@ -807,3 +807,94 @@ B4.4 整体尚未关闭。Dashboard、LedgerReader 等旧默认读取仍需统�
 ## 当前一句话状态（2026-09-20 B4.4A）
 
 > **EVO 已证明激活后的增量世代能够与父代历史组合成和 Full Replay 完全相同的正式经济视图；下一步封闭旧读取旁路，并完成激活失败与并发安全矩阵。**
+
+
+---
+
+# 15. 2026-09-21 追加状态：B4.4B 第一阶段正式读取路由已通过数据库 E2E
+
+> 本节追加在 B4.4A 之后，不代表 B4.4B 整体关闭。
+
+## A. 业务问题
+
+B4.4A 已经证明 generation-aware CURRENT overlay 本身可以得到正确完整的正式经济视图，但 Dashboard、LedgerReader、WorkProjection 等默认入口仍可能绕开该模型，直接读取历史表或 legacy 空 generation 数据。
+
+这会产生一个实际生产风险：
+
+> 内核已经算对，但不同页面、报表或工作队列可能各自看到不同的“正式状态”。
+
+## B. 企业现在获得的能力
+
+当前第一阶段已实现并验证：
+
+- Dashboard 的余额、Work、Cost 正式语义在 generation 生命周期启用后统一走 CURRENT overlay；
+- LedgerReader 只读取精确绑定当前 CURRENT generation 的 ACTIVE LedgerDataset；
+- WorkProjection 默认读取在激活后自动解析 CURRENT generation；
+- 激活后的正常 Work refresh 继续写入 CURRENT generation，不再新增 legacy-null WorkItem；
+- 在尚未进入 Economic Runtime generation 生命周期前，初始化/传统 baseline 仍可正常运行；
+- 一旦 generation 已存在，正式读取不再回退到旧 baseline。
+
+## C. 技术路线
+
+采用两段式正式读取边界：
+
+```text
+尚无 ACTIVE Economic Runtime generation
+    → legacy baseline 是唯一正式状态
+
+ACTIVE generation 已存在
+    → 必须解析 CURRENT / ACTIVE
+    → Dashboard 走 CurrentEconomicRuntimeView
+    → Ledger / Work 读取当前 leaf generation
+    → 禁止回退 legacy baseline
+```
+
+跨 generation 的完整历史组合仍由 Query 模块拥有；Ledger 和 Workflow 不反向依赖 Query，而是只解析当前 snapshot generation，保持现有模块依赖方向。
+
+## D. 当前验证状态
+
+**DATABASE E2E VERIFIED — B4.4B READ ROUTING FIRST SLICE**
+
+- branch: `evo/er-c05b4-4b-read-routing-v0.1`
+- implementation head: `b6a3f04a4ff7b34021ad397fdb1cfacad1f58b85`
+- GitHub Actions: `35580699604 — SUCCESS`
+- PostgreSQL: 18
+- schema: 22（无新增 migration）
+- docs validation: PASS
+- migration: PASS
+- typecheck: PASS
+- build: PASS
+- tests: 31 files / 83 tests PASS
+- seed:demo: PASS
+- validate:demo: PASS
+
+数据库 E2E 明确验证激活后：
+
+- Dashboard `pending_shipment = 7`；
+- 默认 LedgerReader `pending_shipment = 7`；
+- 默认 WorkProjection `pending_shipment = 7`；
+- 再次执行默认 Work refresh 不增加 legacy-null scoped WorkItem。
+
+## E. 当前还差什么
+
+B4.4B 尚未认证关闭。仍需数据库级证明：
+
+1. 两次及以上连续 generation activation；
+2. semantic mismatch 拒绝；
+3. stale parent 拒绝；
+4. revoked Checkpoint / Promotion governance 拒绝；
+5. duplicate activation retry / idempotency；
+6. activation 与 Worker 并发；
+7. crash / retry recovery。
+
+## F. 下一步及业务原因
+
+下一子阶段优先进入：
+
+`B4.4B — Activation Failure Matrix`
+
+先证明 mismatch、stale/revoked governance 与重复激活全部 fail-closed，再推进并发与 crash recovery。
+
+## 当前一句话状态（2026-09-21）
+
+> **EVO 已把“正确的 CURRENT overlay”接入默认 Dashboard、Ledger 和 Work 正式入口，并通过真实 PostgreSQL 18 E2E；当前继续证明错误、过期、撤销和重复激活请求都不能改变唯一可信 CURRENT。**
