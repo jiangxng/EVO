@@ -8,35 +8,29 @@
     "lastVerifiedRuntimeMergeCommit": "402def02950a4af80e6b52d7340e3c0ddec24768"
   },
   "activeWorkPacket": {
-    "id": "ER-C05B4.4B",
-    "name": "Read Routing & Activation Failure Matrix",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Ensure every official read obeys the authoritative CURRENT generation and activation fails closed under invalid, stale, revoked, duplicate, concurrent, or interrupted conditions.",
-    "verifiedHead": "d3dab3ed7a1d4b2a285d9564ac03f058555bfd64",
-    "verifiedCiRun": 35659612160,
-    "verifiedEnvironment": {
-      "node": "24.20.x",
-      "postgres": "18",
-      "schemaVersion": 22
-    },
+    "id": "EEL-C01",
+    "name": "Order-to-Cash Settlement Reference Loop",
+    "stage": "Stage E — Enterprise Economic Loops",
+    "status": "DESIGN ONLY",
+    "overallClosed": false,
+    "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
+    "activeBranch": "evo/stage-e-o2c-packet-v0.1",
+    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
+    "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
-      "CURRENT-aware Dashboard routing",
-      "CURRENT-aware LedgerReader routing",
-      "CURRENT-aware WorkProjection read/refresh",
-      "duplicate activation retry idempotency",
-      "semantic digest mismatch rejection",
-      "stale active parent rejection",
-      "revoked promotion rejection",
-      "two consecutive governed production generation activations with Candidate=Oracle=CURRENT overlay",
-      "activation versus Worker concurrency serialized by shared PostgreSQL cutover lock with CURRENT live-tail verification",
-      "activation crash at final cutover rolls back atomically and the same Candidate/Oracle retries successfully",
-      "invalidated checkpoint rejects activation with CHECKPOINT_NOT_ACTIVE"
+      "Stage D Production-Safe Incremental Replay foundation certified for reference FIFO boundary",
+      "EEL-C01 semantic direction accepted: CUSTOMER_CASH_RECEIPT role, cash.received v1 target, legacy customer_payment.received compatibility"
     ],
-    "openGates": [],
-    "nextAction": "Define the next bounded work packet from the roadmap and certified non-claims; no implementation branch is active.",
-    "activeBranch": null,
-    "certification": "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md"
+    "openGates": [
+      "reference cash ledger and receipt posting",
+      "explicit receivable decrease using settled foreign measurement",
+      "cash increase using actual local measurement",
+      "legacy customer_payment.received replay compatibility",
+      "full-closure O2C Work state",
+      "O2C Full Replay equality",
+      "EEL-C01 database certification"
+    ],
+    "nextAction": "Implement the smallest executable receipt-ledger convergence without introducing a new generalized settlement framework."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -84,5 +78,13 @@
       "chat-window references",
       "uncited claims that a whole work packet is complete"
     ]
+  },
+  "previousCertifiedPacket": {
+    "id": "ER-C05B4.4B",
+    "name": "Read Routing & Activation Failure Matrix",
+    "status": "CERTIFIED",
+    "certification": "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md",
+    "verifiedHead": "d3dab3ed7a1d4b2a285d9564ac03f058555bfd64",
+    "verifiedCiRun": 35659612160
   }
 }
