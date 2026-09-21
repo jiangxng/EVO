@@ -103,7 +103,7 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "ER-C05B4.4B crash/retry recovery and transaction-interruption verification slice."
+      "description": "ER-C05B4.4B crash/retry, invalidated-checkpoint, and final activation-safety certification slice; final CI pending after closure-document updates."
     }
   },
   "requiredLLMProcedure": [
