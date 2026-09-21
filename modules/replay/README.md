@@ -20,8 +20,9 @@ Full-rebuild orchestration and replay lifecycle.
 ## Status
 
 Implemented through governed incremental Candidate, isolated Full-Replay Oracle,
-equivalence certification, and atomic activation for the certified reference FIFO
-scenario. Multi-policy and failure/concurrency coverage remain open.
+equivalence certification, generation-overlay reads, consecutive activation,
+Worker cutover serialization, and crash/retry recovery for the certified reference
+FIFO scenario. Multi-policy coverage remains outside this certification boundary.
 
 
 ## Economic Runtime Freeze refinements
@@ -97,4 +98,6 @@ a total canonical ordering so POSTING and VALUATION entries sharing the same
 posting sequence cannot drift by database row order. Candidate/Oracle digest
 results also expose per-family semantic digests for failure localization.
 
-Worker concurrency and crash/retry recovery remain open B4.4B gates.
+Worker concurrency, crash/retry recovery, invalidated-checkpoint rejection, and
+duplicate/stale/revoked activation failure paths are database-E2E verified.
+ER-C05B4.4B is closed for the reference FIFO Economic Runtime scenario.
