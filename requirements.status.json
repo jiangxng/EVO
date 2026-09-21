@@ -47,10 +47,10 @@
       "customer receipt explicitly identifies the receivable it settles",
       "cross-currency settlement produces explainable realized FX",
       "production and shipment work close for the full-completion reference scenario",
-      "receivable WorkItem closes after full settlement"
+      "receivable WorkItem closes after full settlement",
+      "Full Replay equality"
     ],
     "open": [
-      "Full Replay equality",
       "legacy compatibility replay certification",
       "final EEL-C01 database certification"
     ],
@@ -65,20 +65,15 @@
       "UI/report productization"
     ],
     "currentWork": {
-      "pullRequest": 16,
-      "branch": "evo/eel-c01-work-closure-v0.1",
+      "pullRequest": 19,
+      "branch": "evo/eel-c01-full-replay-equality-v0.2",
       "evidenceState": "DATABASE E2E VERIFIED",
-      "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
-      "verifiedCiRun": 35664093669,
-      "businessEvidence": [
-        "order opens PRODUCE, SHIP, and COLLECT work",
-        "full production closes PRODUCE work",
-        "full shipment closes SHIP work",
-        "full receipt closes COLLECT work",
-        "no O2C work remains open after full closure",
-        "Cash is not projected as a WorkItem"
-      ],
-      "antiOverdesignResult": "Existing balance-derived WorkProjection satisfied the requirement; no new workflow engine was needed.",
+      "verifiedHead": "a39989a6b335acd10a11805484e99b747bf85cd6",
+      "verifiedCiRun": 35666804875,
+      "requirement": "Full Replay equality",
+      "businessOutcome": "Deleting and rebuilding derived state leaves the fully completed O2C order economically unchanged while preserving canonical business history and explicit settlement intent.",
+      "productOutcome": "After replay, the enterprise still sees the same closed order, same cash, zero receivable, no open O2C work, same explicit settlement relation, same realized FX, and same shipment cost.",
+      "antiOverdesignResult": "Existing replay infrastructure was sufficient; only an isolated EEL-C01 business-level proof was added.",
       "deferredScopePreserved": true
     }
   },

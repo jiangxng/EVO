@@ -14,7 +14,7 @@
 1. **最终目标有没有变？** — 没有，仍是 AI-Native Enterprise Operating System。
 2. **现在在做什么业务？** — Stage E，第一个完整 Order-to-Cash 收款闭环。
 3. **企业已经多了什么能力？** — 订单形成应收、生产/发货待办关闭、收款增加现金并关闭应收、明确核销关系、计算已实现汇兑损益、收款待办关闭。
-4. **还缺什么才算当前闭环完成？** — Full Replay equality、旧 `customer_payment.received` 兼容重放证明、最终 EEL-C01 certification。
+4. **还缺什么才算当前闭环完成？** — 旧 `customer_payment.received` 兼容重放证明、最终 EEL-C01 certification。
 5. **有没有明显过度设计？** — 当前未发现；最近 Work closure 明确复用了既有 WorkProjection，没有新增 Workflow 引擎。
 6. **下一步为什么值得做？** — 因为只有证明完整 O2C 删除派生状态后仍可重建一致，才能确认这不是“某次跑对”，而是可长期重放的企业闭环。
 
@@ -51,7 +51,7 @@
 | 收款与被结清应收明确关联 | 能回答“这笔钱结了哪笔应收” | AllocationInstruction / Relation 路径 | PR #15 / CI 35663507253 | 已验证：显式选择并消耗目标 1000 USD 应收 |
 | 外币收款产生已实现汇兑损益 | 能解释实际到账和账面价值差额 | FX realized settlement | PR #15 / CI 35663507253 | 已验证：realized FX = +100 CNY |
 | 收清后待收任务关闭 | 不再出现该订单待收款；生产/发货待办也在全量完成后关闭 | 现有 balance-derived WorkProjection | PR #16 / CI 35664093669 | 已验证；无需新增 Workflow 引擎 |
-| 完整 O2C 可重放 | 删除派生结果后重建一致 | Full Replay equality | 尚未完成 | 未完成 |
+| 完整 O2C 可重放 | 删除派生结果后重建一致 | Full Replay equality | PR #19 / CI 35666804875 | 已验证 |
 | 历史旧收款类型仍可重放 | 升级不破坏旧事实 | compatibility path | 部分已有 | 待专门验证 |
 
 ## 4. 当前必要设计
@@ -188,3 +188,36 @@ Full Customer Receipt
 - Full Replay equality；
 - legacy `customer_payment.received` replay compatibility；
 - EEL-C01 final certification。
+
+
+## 10. 2026-09-22 — EEL-C01.5 Full Replay equality
+
+PR #19 已在最新 Human–LLM alignment 主线上通过完整 CI 与独立 PostgreSQL 18 Full Replay proof。
+
+业务结论：
+
+> 完整 O2C 订单在删除并重建派生状态后，企业看到的正式经济结果不变，而且 canonical BusinessData / AllocationInstruction 没有被 Replay 改写。
+
+关键结果：
+
+- pending production = 0；
+- pending shipment = 0；
+- receivable = 0；
+- Cash = 7300 CNY；
+- PRODUCE / SHIP / COLLECT 三个 WorkItem 仍为 DONE；
+- 显式 1000 USD settlement relation 保持；
+- realized FX = +100 CNY；
+- FIFO shipment cost = 100 CNY；
+- replay-input digest unchanged；
+- economic-runtime digest unchanged。
+
+证据：
+
+- PR: #19
+- verified head: `a39989a6b335acd10a11805484e99b747bf85cd6`
+- CI: `35666804875 — SUCCESS`
+
+当前 EEL-C01 只剩：
+
+1. legacy `customer_payment.received` replay compatibility；
+2. final EEL-C01 database certification。
