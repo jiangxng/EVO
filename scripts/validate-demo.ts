@@ -1159,6 +1159,342 @@ try {
     );
   }
 
+
+  // EVO-WORK-PACKET: ER-C05B4.4B
+  // EVO-INVARIANT: A later Candidate may reuse the same certified checkpoint, but its
+  // formal generation interval must begin exactly after the active parent boundary.
+  // Its isolated rebuild may replay earlier suffix facts to reconstruct a complete leaf snapshot.
+  const secondIncrementalShipmentNo = `SHIP-INCREMENTAL-2-${suffix}`;
+  const secondIncrementalShipment = await runtime.command.execute({
+    enterpriseId: ids.enterpriseId,
+    applicationInstanceId: ids.inventoryAppId,
+    commandCode: 'ship-sales-order',
+    actor: { type: 'AUTOMATION', id: 'demo-automation' },
+    requestId: `${orderNo}:incremental-shipment-2`,
+    correlationId,
+    causationId: orderBusiness.id,
+    idempotencyKey: secondIncrementalShipmentNo,
+    input: {
+      movementType: 'SHIP',
+      shipmentNo: secondIncrementalShipmentNo,
+      orderNo,
+      customer: 'Validation',
+      productId: 'P-100',
+      warehouse: 'HK',
+      quantity: 1,
+      lot: null,
+      project,
+      department: 'SALES',
+      profitCenter: 'PC-PROJECT',
+      costCenter: 'CC-SALES'
+    },
+    effectiveAt: new Date('2026-09-19T03:00:00.000Z'),
+    businessObjectKey: secondIncrementalShipmentNo,
+    lineage: {
+      flowDefinitionId: ids.flowDefinitionId,
+      flowInstanceKey: orderNo,
+      stepCode: 'incremental-shipment-2-created',
+      parentBusinessDataId: orderBusiness.id,
+      relationType: 'FULFILLS'
+    }
+  });
+  await runtime.flow.projectCommand(secondIncrementalShipment.commandExecutionId);
+
+  const secondIncrementalShipmentBusiness = await runtime.db.selectFrom('business_data')
+    .select('id')
+    .where('command_execution_id','=',secondIncrementalShipment.commandExecutionId)
+    .executeTakeFirstOrThrow();
+  const secondIncrementalShipmentPosting = await runtime.db.selectFrom('posting_input')
+    .select(['posting_sequence','status'])
+    .where('business_data_id','=',secondIncrementalShipmentBusiness.id)
+    .executeTakeFirstOrThrow();
+  const secondIncrementalTargetBoundary = BigInt(secondIncrementalShipmentPosting.posting_sequence);
+  if (
+    secondIncrementalTargetBoundary !== incrementalTargetBoundary + 1n ||
+    secondIncrementalShipmentPosting.status !== 'QUEUED'
+  ) {
+    throw new Error(
+      'Second incremental shipment must be the next QUEUED canonical posting input.'
+    );
+  }
+
+  const secondSuffixPlan = await runtime.incrementalReplayPlanner.plan({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    graphVersion: checkpoint.dependencyGraphVersion,
+    runtimeSemanticVersion: checkpoint.runtimeSemanticVersion,
+    impactRoots: [{
+      kind: 'BUSINESS_FACT',
+      id: secondIncrementalShipmentBusiness.id
+    }],
+    earliestAffectedSequence: secondIncrementalTargetBoundary,
+    dependencyGraphComplete: coverage.dependencyGraphComplete
+  });
+  if (
+    secondSuffixPlan.fallbackToFullReplay ||
+    secondSuffixPlan.checkpoint?.id !== checkpoint.id
+  ) {
+    throw new Error(
+      `Second-generation plan must reuse the promoted checkpoint, fallback=${secondSuffixPlan.fallbackReasons.join(', ')}`
+    );
+  }
+
+  const generationOneCurrent = await runtime.runtimeDatasets.getActive(
+    ids.enterpriseId,
+    consistencyDomain
+  );
+  if (generationOneCurrent.id !== incrementalCandidate.id) {
+    throw new Error('Second generation must bind the first activated Candidate as its ACTIVE parent.');
+  }
+
+  const secondCandidate = await runtime.runtimeDatasets.createCandidate({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    parentDatasetId: generationOneCurrent.id,
+    sourceCheckpointId: checkpoint.id,
+    sourcePromotionId: promotion.id,
+    incrementalPlanDigest: secondSuffixPlan.planDigest,
+    startSequence: incrementalTargetBoundary + 1n,
+    boundarySequence: secondIncrementalTargetBoundary
+  });
+  const secondCandidateContext = await runtime.materializationContexts.candidate(
+    secondCandidate.id,
+    ids.enterpriseId,
+    consistencyDomain
+  );
+
+  const secondRestoredLedgerPrefix = await runtime.replayCheckpointMaterialization.restoreLedgerBalances(
+    checkpoint.id,
+    secondCandidateContext
+  );
+  if (secondRestoredLedgerPrefix.balanceCount !== ledgerBalanceSnapshots.length) {
+    throw new Error('Second Candidate must restore the complete certified checkpoint balance prefix.');
+  }
+
+  const secondCandidatePosting = await runtime.candidatePostingReplay.replayRange(
+    ids.enterpriseId,
+    checkpoint.boundarySequence,
+    secondIncrementalTargetBoundary,
+    secondCandidateContext
+  );
+  if (secondCandidatePosting.postingInputCount !== 2) {
+    throw new Error(
+      `Second Candidate must replay both post-checkpoint suffix facts, got ${secondCandidatePosting.postingInputCount}.`
+    );
+  }
+
+  const secondCandidateCost = await runtime.cost.recalculate(
+    ids.enterpriseId,
+    'FIFO',
+    {
+      valuationPolicyId: fifoPolicy.id,
+      valuationPolicyVersion: fifoPolicy.version,
+      allocationPolicyId: fifoAllocationPolicy.id,
+      allocationPolicyVersion: fifoAllocationPolicy.version,
+      valuationRules: {
+        'sales_shipment.created': {
+          id: shipmentValuationRule.id,
+          version: shipmentValuationRule.version
+        }
+      }
+    },
+    secondCandidateContext,
+    {
+      checkpointBoundarySequence: checkpoint.boundarySequence,
+      targetBoundarySequence: secondIncrementalTargetBoundary,
+      poolStates: restoredCostPools.map((snapshot) => snapshot.state)
+    }
+  );
+  if (
+    secondCandidateCost.resultCount !== 2 ||
+    secondCandidateCost.valuationPostingCount !== 2
+  ) {
+    throw new Error(
+      `Second Candidate must rebuild two suffix shipment costs, got ${JSON.stringify(secondCandidateCost)}`
+    );
+  }
+
+  const secondCandidateWorkProjectionCount = await runtime.work.refresh(
+    ids.enterpriseId,
+    secondCandidateContext
+  );
+  const secondCandidateWork = await runtime.work.listOpen(
+    ids.enterpriseId,
+    secondCandidateContext
+  );
+  const secondCandidatePendingShipment = secondCandidateWork.find((item) =>
+    item.sourceLedgerCode === 'pending_shipment'
+  );
+  if (
+    secondCandidateWorkProjectionCount < 1 ||
+    secondCandidatePendingShipment === undefined ||
+    !new Decimal(secondCandidatePendingShipment.quantity).eq(6)
+  ) {
+    throw new Error(
+      `Second Candidate expected pending_shipment quantity 6, got ${JSON.stringify(secondCandidateWork)}`
+    );
+  }
+
+  const secondCandidateDigest = await runtime.candidateEconomicRuntimeDigest.compute({
+    checkpointId: checkpoint.id,
+    candidateRuntimeDatasetId: secondCandidate.id,
+    targetBoundarySequence: secondIncrementalTargetBoundary
+  });
+
+  const secondOracle = await runtime.runtimeDatasets.createOracle({
+    enterpriseId: ids.enterpriseId,
+    consistencyDomain,
+    parentDatasetId: generationOneCurrent.id,
+    oracleOfDatasetId: secondCandidate.id,
+    boundarySequence: secondIncrementalTargetBoundary
+  });
+  const secondOracleContext = await runtime.materializationContexts.oracle(
+    secondOracle.id,
+    ids.enterpriseId,
+    consistencyDomain
+  );
+  const secondOraclePosting = await runtime.candidatePostingReplay.replayRange(
+    ids.enterpriseId,
+    0n,
+    secondIncrementalTargetBoundary,
+    secondOracleContext
+  );
+  if (secondOraclePosting.postingInputCount !== Number(secondIncrementalTargetBoundary)) {
+    throw new Error(
+      `Second Full-Replay Oracle must replay every posting input through boundary ${secondIncrementalTargetBoundary}.`
+    );
+  }
+
+  const secondOracleCost = await runtime.cost.recalculate(
+    ids.enterpriseId,
+    'FIFO',
+    {
+      valuationPolicyId: fifoPolicy.id,
+      valuationPolicyVersion: fifoPolicy.version,
+      allocationPolicyId: fifoAllocationPolicy.id,
+      allocationPolicyVersion: fifoAllocationPolicy.version,
+      valuationRules: {
+        'sales_shipment.created': {
+          id: shipmentValuationRule.id,
+          version: shipmentValuationRule.version
+        }
+      }
+    },
+    secondOracleContext
+  );
+  if (secondOracleCost.resultCount !== 3) {
+    throw new Error(
+      `Second Full-Replay Oracle expected three shipment cost results, got ${secondOracleCost.resultCount}.`
+    );
+  }
+
+  const secondOracleValuationReplay = await runtime.valuationReplay.replayAcceptedRequests(
+    ids.enterpriseId,
+    consistencyDomain,
+    secondIncrementalTargetBoundary,
+    secondOracleContext
+  );
+  if (secondOracleValuationReplay.replayedRequestCount !== 2) {
+    throw new Error('Second Full-Replay Oracle must rebuild both canonical valuation requests.');
+  }
+  const secondOracleWorkProjectionCount = await runtime.work.refresh(
+    ids.enterpriseId,
+    secondOracleContext
+  );
+  if (secondOracleWorkProjectionCount < 1) {
+    throw new Error('Second Full-Replay Oracle must rebuild Work materialization.');
+  }
+
+  const secondOracleDigest = await runtime.oracleEconomicRuntimeDigest.compute(secondOracle.id);
+  if (secondCandidateDigest.digest !== secondOracleDigest.digest) {
+    throw new Error(
+      `Second-generation equivalence mismatch: candidate=${secondCandidateDigest.digest}, oracle=${secondOracleDigest.digest}`
+    );
+  }
+  const secondVerifiedOracle = await runtime.runtimeDatasets.markOracleVerified(
+    secondOracle.id,
+    secondOracleDigest.digest
+  );
+  if (secondVerifiedOracle.status !== 'VERIFIED') {
+    throw new Error('Second Oracle must become VERIFIED before activation.');
+  }
+
+  const secondActivation = await runtime.runtimeEquivalence.certifyAndActivate({
+    candidateDatasetId: secondCandidate.id,
+    oracleDatasetId: secondOracle.id,
+    certifiedBy: 'evo-reference-certifier',
+    reason: 'Second consecutive Candidate equals its isolated Full Replay Oracle.'
+  });
+  if (
+    secondActivation.certification.status !== 'CERTIFIED' ||
+    secondActivation.certification.blockers.length !== 0 ||
+    secondActivation.activatedDataset?.id !== secondCandidate.id ||
+    secondActivation.activatedDataset.kind !== 'CURRENT' ||
+    secondActivation.activatedDataset.status !== 'ACTIVE'
+  ) {
+    throw new Error(
+      `Second governed activation must atomically promote the Candidate: ${JSON.stringify(secondActivation)}`
+    );
+  }
+
+  const generationOneAfterSecondActivation = await runtime.db
+    .selectFrom('economic_runtime_dataset')
+    .select(['kind','status'])
+    .where('id','=',incrementalCandidate.id)
+    .executeTakeFirstOrThrow();
+  if (
+    generationOneAfterSecondActivation.kind !== 'ARCHIVED' ||
+    generationOneAfterSecondActivation.status !== 'ARCHIVED'
+  ) {
+    throw new Error('Second activation must archive generation one.');
+  }
+
+  const secondCurrentOverlay = await runtime.currentEconomicRuntimeView.read(
+    ids.enterpriseId,
+    consistencyDomain
+  );
+  if (
+    secondCurrentOverlay.activeRuntimeDatasetId !== secondCandidate.id ||
+    secondCurrentOverlay.generationChain.length !== 3 ||
+    secondCurrentOverlay.generationChain[0] !== currentRuntimeDataset.id ||
+    secondCurrentOverlay.generationChain[1] !== incrementalCandidate.id ||
+    secondCurrentOverlay.generationChain[2] !== secondCandidate.id ||
+    secondCurrentOverlay.certifiedActivationDigest !== secondCandidateDigest.digest ||
+    secondCurrentOverlay.computedSemanticDigest !== secondCandidateDigest.digest ||
+    JSON.stringify(secondCurrentOverlay.familyCounts) !== JSON.stringify(secondCandidateDigest.familyCounts)
+  ) {
+    throw new Error(
+      `Second activated CURRENT overlay must equal the second certified Candidate: ${JSON.stringify(secondCurrentOverlay)}`
+    );
+  }
+
+  const secondDashboard = await runtime.query.dashboard(ids.enterpriseId);
+  const secondDashboardPendingShipment = (secondDashboard.balances as Array<Record<string,unknown>>)
+    .find((row) => row.ledger === 'pending_shipment');
+  const secondLedgerBalances = await runtime.ledger.getBalances(
+    ids.enterpriseId,
+    'pending_shipment'
+  );
+  const secondDefaultWork = await runtime.work.listOpen(ids.enterpriseId);
+  const secondDefaultPendingShipment = secondDefaultWork.find((item) =>
+    item.sourceLedgerCode === 'pending_shipment'
+  );
+  if (
+    secondDashboardPendingShipment === undefined ||
+    !new Decimal(String(secondDashboardPendingShipment.quantity)).eq(6) ||
+    secondLedgerBalances.length === 0 ||
+    !new Decimal(secondLedgerBalances[0]!.quantity).eq(6) ||
+    secondDefaultPendingShipment === undefined ||
+    !new Decimal(secondDefaultPendingShipment.quantity).eq(6)
+  ) {
+    throw new Error(
+      'Dashboard, LedgerReader, and WorkProjection must all expose generation-two pending_shipment quantity 6.'
+    );
+  }
+
+  // EVO-EVIDENCE: DATABASE E2E target — two consecutive governed activations,
+  // Candidate = Full-Replay Oracle = activated CURRENT overlay.
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
@@ -1282,7 +1618,22 @@ try {
       currentOverlayGenerationChain: currentOverlay.generationChain,
       currentOverlaySemanticDigest: currentOverlay.computedSemanticDigest,
       currentOverlayFamilyCounts: currentOverlay.familyCounts,
-      plannerFallback: suffixPlan.fallbackToFullReplay
+      plannerFallback: suffixPlan.fallbackToFullReplay,
+      multiGeneration: {
+        secondCandidateDatasetId: secondCandidate.id,
+        secondOracleDatasetId: secondOracle.id,
+        secondTargetBoundarySequence: secondIncrementalTargetBoundary.toString(),
+        secondCandidatePostingInputCount: secondCandidatePosting.postingInputCount,
+        secondCandidateCostResultCount: secondCandidateCost.resultCount,
+        secondCandidatePendingShipmentQuantity: secondCandidatePendingShipment.quantity,
+        secondCandidateDigest: secondCandidateDigest.digest,
+        secondOracleDigest: secondOracleDigest.digest,
+        secondEquivalenceCertificationId: secondActivation.certification.id,
+        secondActivatedDatasetId: secondActivation.activatedDataset.id,
+        generationChain: secondCurrentOverlay.generationChain,
+        activatedPendingShipmentQuantity: secondDefaultPendingShipment.quantity,
+        consecutiveActivationsVerified: true
+      }
     },
     fxCoverage: {
       periodEndDelta: replayedPeriod.delta_amount,
