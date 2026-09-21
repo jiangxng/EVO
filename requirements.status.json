@@ -48,10 +48,10 @@
       "cross-currency settlement produces explainable realized FX",
       "production and shipment work close for the full-completion reference scenario",
       "receivable WorkItem closes after full settlement",
-      "Full Replay equality"
+      "Full Replay equality",
+      "legacy customer_payment.received remains replay-compatible"
     ],
     "open": [
-      "legacy compatibility replay certification",
       "final EEL-C01 database certification"
     ],
     "deferred": [
@@ -65,13 +65,15 @@
       "UI/report productization"
     ],
     "currentWork": {
+      "pullRequest": 21,
       "branch": "evo/eel-c01-legacy-receipt-compat-v0.1",
-      "evidenceState": "IMPLEMENTED",
+      "evidenceState": "DATABASE E2E VERIFIED",
+      "verifiedHead": "69c1744d24fc7c4211b91cea3fe7343433d33cbd",
+      "verifiedCiRun": 35667578606,
       "requirement": "legacy compatibility replay certification",
-      "businessOutcome": "Historical customer_payment.received facts must remain unchanged and replay-compatible after cash.received becomes the canonical path.",
-      "productOutcome": "Existing enterprises can upgrade without losing or silently changing old customer-payment economic history.",
-      "smallestSufficientChange": "Add one isolated compatibility proof using the existing old command, explicit allocation, FX settlement, and Full Replay services.",
-      "antiOverdesignDecision": "Do not add a generic payment migration framework or reinterpret old facts into new cash postings.",
+      "businessOutcome": "Historical customer_payment.received facts remain unchanged and replay-compatible after cash.received becomes the canonical new path.",
+      "productOutcome": "Existing enterprises can upgrade without losing, rewriting, or silently changing old customer-payment economic history.",
+      "antiOverdesignResult": "Compatibility was proven with existing runtime mechanisms only; no generic payment migration framework was added.",
       "deferredScopePreserved": true
     }
   },
