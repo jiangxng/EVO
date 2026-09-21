@@ -11,7 +11,7 @@
     "id": "EEL-C01",
     "name": "Order-to-Cash Settlement Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "IMPLEMENTED",
+    "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
     "activeBranch": "evo/eel-c01-legacy-receipt-compat-v0.1",
@@ -27,15 +27,15 @@
       "explicit settlement AllocationInstruction/AllocationRelation evidence",
       "realized FX through canonical cash.received",
       "full-closure O2C Work state",
-      "O2C Full Replay equality"
+      "O2C Full Replay equality",
+      "legacy customer_payment.received replay compatibility"
     ],
     "openGates": [
-      "legacy customer_payment.received replay compatibility",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Run isolated PostgreSQL 18 proof that historical customer_payment.received facts, explicit settlement intent, and FX results survive Full Replay unchanged; if verified, proceed directly to final EEL-C01 certification.",
-    "verifiedHead": "a39989a6b335acd10a11805484e99b747bf85cd6",
-    "verifiedCiRun": 35666804875
+    "nextAction": "Merge verified legacy receipt compatibility proof, then perform final EEL-C01 database certification and mandatory completed-loop requirement alignment review.",
+    "verifiedHead": "69c1744d24fc7c4211b91cea3fe7343433d33cbd",
+    "verifiedCiRun": 35667578606
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -107,12 +107,22 @@
   },
   "currentUnmergedWork": {
     "branch": "evo/eel-c01-legacy-receipt-compat-v0.1",
-    "status": "IMPLEMENTED",
+    "pullRequest": 21,
+    "status": "DATABASE_E2E_VERIFIED_READY_TO_MERGE",
+    "verifiedHead": "69c1744d24fc7c4211b91cea3fe7343433d33cbd",
+    "verifiedCiRun": 35667578606,
     "requirement": "legacy customer_payment.received replay compatibility",
-    "businessOutcome": "Existing historical customer payment facts remain reconstructable after cash.received becomes the canonical new receipt path.",
-    "productOutcome": "An upgrade does not rewrite or break historical customer-payment records or their realized FX result.",
-    "antiOverdesignDecision": "Compatibility-only proof; no generic payment framework and no retroactive cash posting for old facts.",
-    "validator": "npm run validate:eel-c01-legacy-receipt-compat",
-    "evidenceIsolation": "Dedicated fresh PostgreSQL 18 CI job."
+    "businessEvidence": [
+      "historical BusinessData type remains customer_payment.received",
+      "historical foreign/local payment measurements remain unchanged",
+      "explicit AllocationInstruction survives Full Replay",
+      "legacy AllocationRelation continues to consume exactly 1000 USD",
+      "period-end FX remains +200 CNY",
+      "realized FX remains +100 CNY",
+      "canonical replay-input digest remains unchanged",
+      "economic-runtime digest remains unchanged",
+      "no retroactive Cash/Receivable posting is invented for the legacy payment fact"
+    ],
+    "antiOverdesignResult": "Existing legacy command, Allocation, Valuation, and Full Replay paths were sufficient; no payment migration framework or semantic rewrite was introduced."
   }
 }
