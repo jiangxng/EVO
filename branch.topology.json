@@ -114,10 +114,17 @@
       "description": "Stage E / EEL-C01 planning packet merged by PR #11."
     },
     "evo/eel-c01-receipt-posting-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "EEL-C01.1/C01.2 cash.received dual-measurement posting slice merged by PR #12."
+    },
+    "evo/eel-c01-settlement-allocation-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C01 first executable slice: cash.received dual-measurement Cash/Receivable posting; PostgreSQL 18 E2E verified, ready to merge."
+      "description": "EEL-C01.3 canonical cash.received explicit settlement allocation and realized FX evidence."
     }
   },
   "requiredLLMProcedure": [
