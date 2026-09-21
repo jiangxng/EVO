@@ -360,3 +360,29 @@ confirmed business need
 
 EEL-C01 remains open for Full Replay equality, legacy receipt compatibility replay,
 and final database certification.
+
+
+---
+
+## 13. 2026-09-22 Legacy Receipt Compatibility Evidence
+
+**Evidence level: DATABASE E2E VERIFIED**
+
+Historical `customer_payment.received` remains an explicit compatibility input after
+`cash.received` becomes the canonical new receipt path.
+
+The isolated PostgreSQL 18 proof verifies:
+
+- old BusinessData type and measurements are unchanged;
+- explicit source-selection intent survives;
+- settlement allocation and realized FX rebuild identically;
+- Full Replay preserves canonical input and economic-runtime digests;
+- old payment facts receive no retroactive Cash/Receivable posting.
+
+Evidence:
+- PR #21
+- CI `35667578606 — SUCCESS`
+- validator: `npm run validate:eel-c01-legacy-receipt-compat`
+
+This closes the final functional compatibility gate. EEL-C01 now awaits only the
+formal certification packet and completed-loop Human–LLM requirement alignment review.

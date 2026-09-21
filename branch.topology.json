@@ -180,6 +180,14 @@
       "supersededBy": "main",
       "pr": 20,
       "description": "Deterministic Human–LLM requirement-alignment cadence and post-merge status-drift cleanup."
+    },
+    "evo/eel-c01-legacy-receipt-compat-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 21,
+      "description": "EEL-C01 legacy customer_payment.received replay compatibility proof; PostgreSQL 18 isolated E2E verifies history and FX semantics survive unchanged."
     }
   },
   "requiredLLMProcedure": [

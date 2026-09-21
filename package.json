@@ -32,7 +32,8 @@
     "validate:eel-c01-receipt-posting": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-receipt-posting.ts",
     "validate:eel-c01-settlement-allocation": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-settlement-allocation.ts",
     "validate:eel-c01-work-closure": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-work-closure.ts",
-    "validate:eel-c01-full-replay": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-full-replay.ts"
+    "validate:eel-c01-full-replay": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-full-replay.ts",
+    "validate:eel-c01-legacy-receipt-compat": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-legacy-receipt-compat.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",

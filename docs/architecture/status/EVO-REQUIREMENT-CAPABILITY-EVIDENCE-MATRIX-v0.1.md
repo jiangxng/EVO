@@ -14,7 +14,7 @@
 1. **最终目标有没有变？** — 没有，仍是 AI-Native Enterprise Operating System。
 2. **现在在做什么业务？** — Stage E，第一个完整 Order-to-Cash 收款闭环。
 3. **企业已经多了什么能力？** — 订单形成应收、生产/发货待办关闭、收款增加现金并关闭应收、明确核销关系、计算已实现汇兑损益、收款待办关闭。
-4. **还缺什么才算当前闭环完成？** — 旧 `customer_payment.received` 兼容重放证明、最终 EEL-C01 certification。
+4. **还缺什么才算当前闭环完成？** — 最终 EEL-C01 certification。
 5. **有没有明显过度设计？** — 当前未发现；最近 Work closure 明确复用了既有 WorkProjection，没有新增 Workflow 引擎。
 6. **下一步为什么值得做？** — 因为只有证明完整 O2C 删除派生状态后仍可重建一致，才能确认这不是“某次跑对”，而是可长期重放的企业闭环。
 
@@ -221,3 +221,30 @@ PR #19 已在最新 Human–LLM alignment 主线上通过完整 CI 与独立 Pos
 
 1. legacy `customer_payment.received` replay compatibility；
 2. final EEL-C01 database certification。
+
+
+## 11. 2026-09-22 — Legacy receipt replay compatibility
+
+PR #21 在独立 PostgreSQL 18 环境证明：
+
+- 历史 BusinessData 仍是 `customer_payment.received`；
+- 旧 foreign/local payment measurements 不变；
+- 显式 AllocationInstruction 保留；
+- legacy settlement relation 仍消费 1000 USD；
+- period-end FX = +200 CNY；
+- realized FX = +100 CNY；
+- canonical replay-input digest 不变；
+- economic-runtime digest 不变；
+- 不会把旧 payment 偷偷重解释成新的 Cash/Receivable posting。
+
+结论：
+
+> 新的 `cash.received` 是未来正式路径；旧的 `customer_payment.received` 是可重放的历史兼容输入。兼容不是改写历史。
+
+证据：
+
+- PR: #21
+- verified head: `69c1744d24fc7c4211b91cea3fe7343433d33cbd`
+- CI: `35667578606 — SUCCESS`
+
+当前 EEL-C01 只剩最终 certification。
