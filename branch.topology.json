@@ -146,7 +146,8 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C01.4 full-closure Work lifecycle proof using existing balance-derived WorkProjection."
+      "description": "EEL-C01.4 full-closure Work lifecycle; PostgreSQL 18 E2E verified using existing WorkProjection with no new workflow abstraction.",
+      "pr": 16
     }
   },
   "requiredLLMProcedure": [
