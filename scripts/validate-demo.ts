@@ -1061,6 +1061,60 @@ try {
     );
   }
 
+  const routedDashboard = await runtime.query.dashboard(ids.enterpriseId);
+  const dashboardPendingShipment = (routedDashboard.balances as Array<Record<string,unknown>>)
+    .find((row) => row.ledger === 'pending_shipment');
+  if (
+    dashboardPendingShipment === undefined ||
+    !new Decimal(String(dashboardPendingShipment.quantity)).eq(7)
+  ) {
+    throw new Error('Default Dashboard must route balances through the activated CURRENT generation.');
+  }
+
+  const routedLedgerBalances = await runtime.ledger.getBalances(
+    ids.enterpriseId,
+    'pending_shipment'
+  );
+  if (
+    routedLedgerBalances.length === 0 ||
+    !new Decimal(routedLedgerBalances[0]!.quantity).eq(7)
+  ) {
+    throw new Error('Default LedgerReader must resolve the activated CURRENT Ledger generation.');
+  }
+
+  const defaultCurrentWork = await runtime.work.listOpen(ids.enterpriseId);
+  const defaultPendingShipment = defaultCurrentWork.find((item) =>
+    item.sourceLedgerCode === 'pending_shipment'
+  );
+  if (
+    defaultPendingShipment === undefined ||
+    !new Decimal(defaultPendingShipment.quantity).eq(7)
+  ) {
+    throw new Error('Default WorkProjection read must resolve the activated CURRENT generation.');
+  }
+
+  await runtime.work.refresh(ids.enterpriseId);
+  const legacyWorkAfterActivation = await runtime.db.selectFrom('work_item')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','is',null)
+    .where('status','in',['OPEN','IN_PROGRESS'])
+    .executeTakeFirstOrThrow();
+  const currentWorkAfterRefresh = await runtime.db.selectFrom('work_item')
+    .select(({fn})=>fn.countAll<number>().as('count'))
+    .where('enterprise_id','=',ids.enterpriseId)
+    .where('economic_runtime_dataset_id','=',incrementalCandidate.id)
+    .where('status','in',['OPEN','IN_PROGRESS'])
+    .executeTakeFirstOrThrow();
+  if (
+    Number(currentWorkAfterRefresh.count) < 1 ||
+    Number(legacyWorkAfterActivation.count) !== 3
+  ) {
+    throw new Error(
+      'CURRENT work refresh must remain generation-scoped and must not create new legacy-scope WorkItems.'
+    );
+  }
+
   const graphCoverage = await runtime.dependencyGraph.rebuildEnterprise(ids.enterpriseId);
   if (graphCoverage.missingFamilies.length !== 0) {
     throw new Error(
