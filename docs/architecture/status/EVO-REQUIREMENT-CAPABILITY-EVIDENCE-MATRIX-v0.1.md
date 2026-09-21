@@ -5,6 +5,21 @@
 **Date: 2026-09-22**  
 **Authority scope: business-facing progress interpretation**
 
+## 0. 给业务负责人的 60 秒对齐摘要
+
+以后如果不想读技术细节，只需要先看这一段。
+
+当前判断只回答 6 个问题：
+
+1. **最终目标有没有变？** — 没有，仍是 AI-Native Enterprise Operating System。
+2. **现在在做什么业务？** — Stage E，第一个完整 Order-to-Cash 收款闭环。
+3. **企业已经多了什么能力？** — 订单形成应收、生产/发货待办关闭、收款增加现金并关闭应收、明确核销关系、计算已实现汇兑损益、收款待办关闭。
+4. **还缺什么才算当前闭环完成？** — Full Replay equality、旧 `customer_payment.received` 兼容重放证明、最终 EEL-C01 certification。
+5. **有没有明显过度设计？** — 当前未发现；最近 Work closure 明确复用了既有 WorkProjection，没有新增 Workflow 引擎。
+6. **下一步为什么值得做？** — 因为只有证明完整 O2C 删除派生状态后仍可重建一致，才能确认这不是“某次跑对”，而是可长期重放的企业闭环。
+
+如果这 6 个答案无法用业务语言说清楚，应标记 `COMPREHENSION_GAP`，暂停扩大技术范围。
+
 ## 1. 使用方法
 
 这张表不是技术任务列表。
@@ -34,7 +49,7 @@
 | 客户收款增加现金 | 实际现金余额增加 | cash.received → Cash +7300 CNY | CI 35661825887 | 已验证 |
 | 收款减少应收 | 对应应收减少/归零 | cash.received → Receivable -1000 USD | CI 35661825887 | 已验证 |
 | 收款与被结清应收明确关联 | 能回答“这笔钱结了哪笔应收” | AllocationInstruction / Relation 路径 | PR #15 / CI 35663507253 | 已验证：显式选择并消耗目标 1000 USD 应收 |
-| 外币收款产生已实现汇兑损益 | 能解释实际到账和账面价值差额 | FX realized settlement | 现有内核 + PR #15 接入 | CI 35663507253 | 已验证：realized FX = +100 CNY |
+| 外币收款产生已实现汇兑损益 | 能解释实际到账和账面价值差额 | FX realized settlement | PR #15 / CI 35663507253 | 已验证：realized FX = +100 CNY |
 | 收清后待收任务关闭 | 不再出现该订单待收款；生产/发货待办也在全量完成后关闭 | 现有 balance-derived WorkProjection | PR #16 / CI 35664093669 | 已验证；无需新增 Workflow 引擎 |
 | 完整 O2C 可重放 | 删除派生结果后重建一致 | Full Replay equality | 尚未完成 | 未完成 |
 | 历史旧收款类型仍可重放 | 升级不破坏旧事实 | compatibility path | 部分已有 | 待专门验证 |
