@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "EVO",
   "authority": "maintained-current-progress-pointer",
-  "updatedAt": "2026-09-21",
+  "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
     "lastVerifiedRuntimeMergeCommit": "0c08a097e95a51a5e228e794b3bb36f03ba2fd4c"
@@ -58,7 +58,9 @@
       "evo/recovery-full-template-build",
       "evo/enterprise-package-v0.1",
       "evo/apm-certification-enterprise-template-v0.1",
-      "evo/er-c05b4-4b-read-routing-v0.1"
+      "evo/er-c05b4-4b-read-routing-v0.1",
+      "evo/llm-progress-markers-v0.1",
+      "evo/branch-topology-contract-v0.1"
     ],
     "branchTopology": "branch.topology.json",
     "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions."
