@@ -39,4 +39,5 @@ jobs:
       - run: npm run test
       - run: npm run seed:demo
       - run: npm run validate:demo
+      - run: npm run validate:worker-activation-concurrency
       - run: npm run validate:activation-failure-matrix

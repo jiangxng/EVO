@@ -79,16 +79,24 @@
       "description": "Deterministic branch-topology governance slice merged by PR #6."
     },
     "evo/branch-topology-drift-fix-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "Bounded governance correction removing self-invalidating exact-main-HEAD semantics."
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "description": "Bounded governance correction removing self-invalidating exact-main-HEAD semantics.",
+      "supersededBy": "main"
     },
     "evo/er-c05b4-4b-multigeneration-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "description": "ER-C05B4.4B consecutive multi-generation activation slice; PostgreSQL 18 E2E verified, ready to merge.",
+      "supersededBy": "main"
+    },
+    "evo/er-c05b4-4b-worker-concurrency-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "ER-C05B4.4B consecutive multi-generation activation slice; PostgreSQL 18 E2E verified, ready to merge."
+      "description": "ER-C05B4.4B Worker/Activation concurrency slice; PostgreSQL cutover-lock and CURRENT live-tail E2E verified."
     }
   },
   "requiredLLMProcedure": [
@@ -116,5 +124,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "ada8ec14787864ba64cb5a62a9bdadecf7e9c115"
+  "lastReviewedMainCommit": "078ddb9962bfa5fc796bce0269021481261aa888"
 }

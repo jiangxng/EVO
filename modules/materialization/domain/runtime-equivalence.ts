@@ -8,6 +8,7 @@ export interface RuntimeEquivalenceEvaluationInput {
   readonly activeParentMatches: boolean;
   readonly checkpointActive: boolean;
   readonly promotionActive: boolean;
+  readonly postingCursorWithinCandidate: boolean;
   readonly oracleStoredDigest: string | null;
   readonly oracleComputedDigest: string;
   readonly candidateComputedDigest: string;
@@ -24,6 +25,7 @@ export function evaluateRuntimeEquivalence(
   if (!input.activeParentMatches) blockers.push('STALE_ACTIVE_PARENT');
   if (!input.checkpointActive) blockers.push('CHECKPOINT_NOT_ACTIVE');
   if (!input.promotionActive) blockers.push('PROMOTION_NOT_ACTIVE');
+  if (!input.postingCursorWithinCandidate) blockers.push('POSTING_CURSOR_AHEAD_OF_CANDIDATE');
   if (input.oracleStoredDigest !== input.oracleComputedDigest) {
     blockers.push('ORACLE_STORED_DIGEST_DRIFT');
   }

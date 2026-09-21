@@ -14,6 +14,9 @@ export interface CurrentEconomicRuntimeView {
   readonly activeRuntimeDatasetId: string;
   readonly generationChain: readonly string[];
   readonly certifiedActivationDigest: string | null;
+  readonly certifiedBoundarySequence: bigint;
+  readonly currentBoundarySequence: bigint;
+  readonly hasLiveTail: boolean;
   readonly computedSemanticDigest: string;
   readonly semantic: JsonObject;
   readonly familyCounts: CurrentEconomicRuntimeFamilyCounts;
