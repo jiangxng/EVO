@@ -13,8 +13,8 @@
     "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Ensure every official read obeys the authoritative CURRENT generation and activation fails closed under invalid, stale, revoked, duplicate, concurrent, or interrupted conditions.",
-    "verifiedHead": "4b888e09a359489c3e7ba66fcf9cbac882058bf6",
-    "verifiedCiRun": 35647593407,
+    "verifiedHead": "f14232188b7a94b1f876cf02acfaf8f3954f2a8f",
+    "verifiedCiRun": 35659095633,
     "verifiedEnvironment": {
       "node": "24.20.x",
       "postgres": "18",
@@ -28,14 +28,14 @@
       "semantic digest mismatch rejection",
       "stale active parent rejection",
       "revoked promotion rejection",
-      "two consecutive governed production generation activations with Candidate=Oracle=CURRENT overlay"
+      "two consecutive governed production generation activations with Candidate=Oracle=CURRENT overlay",
+      "activation versus Worker concurrency serialized by shared PostgreSQL cutover lock with CURRENT live-tail verification"
     ],
     "openGates": [
-      "activation versus Worker concurrency",
       "crash and retry recovery",
       "additional checkpoint invalidation / transaction interruption cases if required"
     ],
-    "nextAction": "Define and verify CURRENT live-tail semantics plus a shared Worker/Activation cutover lock before closing the concurrency gate.",
+    "nextAction": "Certify crash/retry recovery and finalize any remaining transaction-interruption cases required to close ER-C05B4.4B.",
     "activeBranch": "evo/er-c05b4-4b-worker-concurrency-v0.1"
   },
   "evidenceVocabulary": [
