@@ -23,7 +23,9 @@
       "EEL-C01.1/C01.2 implementation: cash.received runtime path, Cash ledger, and separate settled/cash posting measurements",
       "reference cash ledger and receipt posting",
       "explicit receivable decrease using settled foreign measurement",
-      "cash increase using actual local measurement"
+      "cash increase using actual local measurement",
+      "explicit settlement AllocationInstruction/AllocationRelation evidence",
+      "realized FX through canonical cash.received"
     ],
     "openGates": [
       "legacy customer_payment.received replay compatibility",
@@ -31,9 +33,9 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Run PR #15 PostgreSQL E2E for canonical cash.received AllocationInstruction/AllocationRelation and realized FX; if verified, merge the bounded slice before Work closure.",
-    "verifiedHead": "1d44ee11af3ed847cfc4a4629210f5ee07f245fb",
-    "verifiedCiRun": 35661639605
+    "nextAction": "Merge verified EEL-C01.3 slice, then implement full-closure O2C Work state before Full Replay equality.",
+    "verifiedHead": "36d8de14c746b94f7ecc9b195aa9e75214200656",
+    "verifiedCiRun": 35663507253
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -102,12 +104,13 @@
   "currentUnmergedWork": {
     "branch": "evo/eel-c01-settlement-allocation-v0.2",
     "pullRequest": 15,
-    "status": "CI_PENDING_NOT_MERGED",
+    "status": "DATABASE_E2E_VERIFIED_READY_TO_MERGE",
+    "verifiedHead": "36d8de14c746b94f7ecc9b195aa9e75214200656",
+    "verifiedCiRun": 35663507253,
     "priorAttempt": {
       "pullRequest": 13,
       "status": "SUPERSEDED",
       "failureClassification": "TEST_ISOLATION_ASSUMPTION"
-    },
-    "note": "v0.2 is rebuilt from aligned main and removes the brittle global replay-count assumption."
+    }
   }
 }
