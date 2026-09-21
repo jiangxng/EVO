@@ -135,11 +135,18 @@
       "description": "Human–LLM requirement alignment and anti-overdesign governance merged by PR #14."
     },
     "evo/eel-c01-settlement-allocation-v0.2": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 15,
+      "description": "EEL-C01.3 canonical cash.received explicit settlement allocation and realized-FX slice merged after PostgreSQL 18 E2E."
+    },
+    "evo/eel-c01-work-closure-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "pr": 15,
-      "description": "Clean EEL-C01.3 v0.2 slice; canonical cash.received explicit settlement allocation and +100 CNY realized-FX PostgreSQL E2E verified, ready to merge."
+      "description": "EEL-C01.4 full-closure Work lifecycle proof using existing balance-derived WorkProjection."
     }
   },
   "requiredLLMProcedure": [
