@@ -16,7 +16,9 @@ A model must be able to understand EVO from the repository without relying on pr
 `AGENTS.md` is the concise, automatically discoverable cross-model entry point.
 This file defines the deeper project contract. `context.manifest.json` is the
 machine-readable router; `project.status.json` is the maintained machine-readable
-pointer to current packet, evidence, closed gates, open gates, and next action.
+pointer to current packet, evidence, closed gates, open gates, and next action;
+`requirements.status.json` is the machine-readable business-intent, acceptance,
+deferred-scope, and anti-overdesign boundary.
 
 Do not use one mandatory read list for every task. Select one read profile from
 `context.manifest.json`:
@@ -119,3 +121,32 @@ Use `project.status.json` as the only authoritative machine-readable current pro
 ## Branch Analysis Determinism
 
 Before branch merge/delete/revival decisions, read `branch.topology.json`. Branch authority must not be inferred from branch names, age, commit counts, or PR openness. Use GitHub compare results plus the topology class. If GitHub reality conflicts with the topology file, report `BRANCH_TOPOLOGY_DRIFT` and repair the topology before recommending a merge.
+
+
+## Human–LLM Requirement Alignment
+
+LLMs own technology selection and implementation inside confirmed business intent.
+They do not own silent requirement reinterpretation.
+
+Before material architecture/generalization work, establish:
+
+- the current requirement and business problem;
+- observable acceptance outcome;
+- why existing capability is insufficient;
+- the smallest sufficient change;
+- explicit non-goals;
+- evidence target.
+
+Use the four anti-overdesign questions in `requirements.status.json`. "May be
+useful later", "more generic", or "best practice" is not sufficient by itself.
+
+When an alignment trigger fires, use the manifest-designated Human–LLM Requirement
+Alignment Protocol before expanding scope.
+
+Default progress explanation order:
+
+`BUSINESS → PRODUCT → TECHNICAL`
+
+A human stakeholder must be able to judge requirement alignment without first
+understanding internal class names, replay topology, database mechanics, or other
+implementation detail.
