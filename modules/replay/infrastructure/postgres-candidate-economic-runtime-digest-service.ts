@@ -83,7 +83,7 @@ implements CandidateEconomicRuntimeDigestService {
       ])
       .where('e.enterprise_id','=',checkpoint.enterprise_id)
       .where('e.consistency_domain','=',checkpoint.consistency_domain)
-      .where('ds.status','=','ACTIVE')
+      .where('ds.economic_runtime_dataset_id','is',null)
       .where('e.posting_sequence','<=',checkpointBoundary)
       .execute();
 
