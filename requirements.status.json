@@ -43,11 +43,11 @@
     "verified": [
       "sales order creates receivable",
       "cash.received increases Cash by actual cash measurement",
-      "cash.received decreases Receivable by settled foreign measurement"
+      "cash.received decreases Receivable by settled foreign measurement",
+      "customer receipt explicitly identifies the receivable it settles",
+      "cross-currency settlement produces explainable realized FX"
     ],
     "open": [
-      "explicit settlement AllocationRelation evidence",
-      "realized FX through canonical cash.received",
       "Work closure",
       "Full Replay equality",
       "legacy compatibility replay certification",
@@ -66,10 +66,16 @@
     "currentWork": {
       "pullRequest": 15,
       "branch": "evo/eel-c01-settlement-allocation-v0.2",
-      "evidenceState": "CI PENDING",
-      "priorPullRequest": 13,
-      "priorFailureClassification": "TEST_ISOLATION_ASSUMPTION",
-      "interpretation": "v0.2 preserves the requirement and existing settlement engine, while isolating evidence by explicit receipt/allocation source instead of global replay count."
+      "evidenceState": "DATABASE E2E VERIFIED",
+      "verifiedHead": "36d8de14c746b94f7ecc9b195aa9e75214200656",
+      "verifiedCiRun": 35663507253,
+      "businessEvidence": [
+        "cash.received is the explicit settlement consumer",
+        "AllocationRelation consumes the selected 1000 USD receivable position",
+        "realized FX is +100 CNY",
+        "operational receivable remains zero"
+      ],
+      "deferredScopePreserved": true
     }
   },
   "antiOverdesignQuestions": [
