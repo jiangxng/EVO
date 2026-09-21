@@ -20,6 +20,40 @@
 
 如果这 6 个答案无法用业务语言说清楚，应标记 `COMPREHENSION_GAP`，暂停扩大技术范围。
 
+## 0.1 2026-09-22 EEL-C01 完成后更新
+
+当前正式判断：
+
+1. **最终目标有没有变？** — 没有。
+2. **Stage E 是否结束？** — 没有；第一个完整企业闭环已经完成。
+3. **EEL-C01 是否完成？** — 是，参考边界已 CERTIFIED。
+4. **还有 EEL-C01 功能缺口吗？** — 当前确认需求范围内没有。
+5. **有没有明显过度设计？** — 当前审查未发现；相邻复杂支付/银行/通用化能力保持延后。
+6. **下一步是什么？** — 回到业务需求层选择第二个 Stage E bounded packet，而不是顺着现有技术继续扩 O2C。
+
+这意味着当前最重要的项目动作从：
+
+```text
+继续实现 EEL-C01
+```
+
+变成：
+
+```text
+选择下一个企业业务闭环
+→ 写业务验收
+→ 做反过度设计四问
+→ 再允许技术设计
+```
+
+最终认证：
+
+`docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md`
+
+需求对齐记录：
+
+`docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C01-v0.1.md`
+
 ## 1. 使用方法
 
 这张表不是技术任务列表。
