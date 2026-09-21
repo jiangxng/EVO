@@ -1407,6 +1407,89 @@ try {
 
   const secondOracleDigest = await runtime.oracleEconomicRuntimeDigest.compute(secondOracle.id);
   if (secondCandidateDigest.digest !== secondOracleDigest.digest) {
+    const candidateLedgerDataset = await runtime.db.selectFrom('ledger_dataset')
+      .select('id')
+      .where('economic_runtime_dataset_id','=',secondCandidate.id)
+      .where('kind','=','CANDIDATE')
+      .where('status','=','BUILDING')
+      .executeTakeFirstOrThrow();
+    const secondOracleLedgerDataset = await runtime.db.selectFrom('ledger_dataset')
+      .select('id')
+      .where('economic_runtime_dataset_id','=',secondOracle.id)
+      .where('kind','=','CANDIDATE')
+      .where('status','=','BUILDING')
+      .executeTakeFirstOrThrow();
+    const candidatePrefixEntries = await runtime.db.selectFrom('ledger_entry as e')
+      .innerJoin('ledger_definition as d','d.id','e.ledger_definition_id')
+      .innerJoin('ledger_dataset as ds','ds.id','e.ledger_dataset_id')
+      .select([
+        'd.code as ledger','e.business_data_id','e.posting_rule_id',
+        'e.posting_rule_schema_version','e.effect_index','e.quantity','e.amount',
+        'e.unit','e.currency','e.dimensions','e.dimension_hash','e.effective_at',
+        'e.posting_priority','e.posting_sequence','e.entry_source_kind',
+        'e.valuation_rule_id','e.valuation_rule_version'
+      ])
+      .where('e.enterprise_id','=',ids.enterpriseId)
+      .where('e.consistency_domain','=',consistencyDomain)
+      .where('ds.economic_runtime_dataset_id','is',null)
+      .where('e.posting_sequence','<=',checkpoint.boundarySequence)
+      .orderBy('e.posting_sequence').orderBy('d.code').orderBy('e.effect_index')
+      .execute();
+    const candidateSuffixEntries = await runtime.db.selectFrom('ledger_entry as e')
+      .innerJoin('ledger_definition as d','d.id','e.ledger_definition_id')
+      .select([
+        'd.code as ledger','e.business_data_id','e.posting_rule_id',
+        'e.posting_rule_schema_version','e.effect_index','e.quantity','e.amount',
+        'e.unit','e.currency','e.dimensions','e.dimension_hash','e.effective_at',
+        'e.posting_priority','e.posting_sequence','e.entry_source_kind',
+        'e.valuation_rule_id','e.valuation_rule_version'
+      ])
+      .where('e.ledger_dataset_id','=',candidateLedgerDataset.id)
+      .where('e.posting_sequence','>',checkpoint.boundarySequence)
+      .where('e.posting_sequence','<=',secondIncrementalTargetBoundary)
+      .orderBy('e.posting_sequence').orderBy('d.code').orderBy('e.effect_index')
+      .execute();
+    const oracleEntries = await runtime.db.selectFrom('ledger_entry as e')
+      .innerJoin('ledger_definition as d','d.id','e.ledger_definition_id')
+      .select([
+        'd.code as ledger','e.business_data_id','e.posting_rule_id',
+        'e.posting_rule_schema_version','e.effect_index','e.quantity','e.amount',
+        'e.unit','e.currency','e.dimensions','e.dimension_hash','e.effective_at',
+        'e.posting_priority','e.posting_sequence','e.entry_source_kind',
+        'e.valuation_rule_id','e.valuation_rule_version'
+      ])
+      .where('e.ledger_dataset_id','=',secondOracleLedgerDataset.id)
+      .where('e.posting_sequence','<=',secondIncrementalTargetBoundary)
+      .orderBy('e.posting_sequence').orderBy('d.code').orderBy('e.effect_index')
+      .execute();
+    const normalizeLedgerEntry = (row: typeof oracleEntries[number]) => ({
+      ledger:row.ledger,
+      businessDataId:row.business_data_id,
+      postingRuleId:row.posting_rule_id,
+      postingRuleSchemaVersion:row.posting_rule_schema_version,
+      effectIndex:row.effect_index,
+      quantity:row.quantity,
+      amount:row.amount,
+      unit:row.unit,
+      currency:row.currency,
+      dimensions:row.dimensions,
+      dimensionHash:row.dimension_hash,
+      effectiveAt:new Date(row.effective_at).toISOString(),
+      postingPriority:row.posting_priority,
+      postingSequence:BigInt(row.posting_sequence).toString(),
+      entrySourceKind:row.entry_source_kind,
+      valuationRuleId:row.valuation_rule_id,
+      valuationRuleVersion:row.valuation_rule_version
+    });
+    const candidateEntries = [...candidatePrefixEntries,...candidateSuffixEntries]
+      .map(normalizeLedgerEntry);
+    const normalizedOracleEntries = oracleEntries.map(normalizeLedgerEntry);
+    const ledgerEntryDiffs = candidateEntries.map((candidateEntry,index)=>({
+      index,
+      candidate:candidateEntry,
+      oracle:normalizedOracleEntries[index],
+      equal:JSON.stringify(candidateEntry)===JSON.stringify(normalizedOracleEntries[index])
+    })).filter((row)=>!row.equal);
     throw new Error(
       `Second-generation equivalence mismatch: ${JSON.stringify({
         candidateDigest:secondCandidateDigest.digest,
@@ -1414,7 +1497,8 @@ try {
         candidateFamilyCounts:secondCandidateDigest.familyCounts,
         oracleFamilyCounts:secondOracleDigest.familyCounts,
         candidateFamilyDigests:secondCandidateDigest.familyDigests,
-        oracleFamilyDigests:secondOracleDigest.familyDigests
+        oracleFamilyDigests:secondOracleDigest.familyDigests,
+        ledgerEntryDiffs
       })}`
     );
   }
