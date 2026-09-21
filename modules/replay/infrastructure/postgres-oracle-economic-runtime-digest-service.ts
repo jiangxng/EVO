@@ -75,6 +75,11 @@ implements OracleEconomicRuntimeDigestService {
       .orderBy('e.posting_sequence')
       .orderBy('d.code')
       .orderBy('e.effect_index')
+      .orderBy('e.posting_priority')
+      .orderBy('e.entry_source_kind')
+      .orderBy('e.business_data_id')
+      .orderBy('e.valuation_rule_id')
+      .orderBy('e.dimension_hash')
       .execute();
 
     const balances = await this.db.selectFrom('ledger_balance as b')
