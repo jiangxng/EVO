@@ -114,3 +114,8 @@ or versioned evidence paths.
 ## Code Progress Markers
 
 Use `project.status.json` as the only authoritative machine-readable current progress pointer. Code-local `EVO-WORK-PACKET`, `EVO-INVARIANT`, `EVO-EVIDENCE`, and `EVO-TODO-GATE` comments are optional navigation aids and must follow `docs/architecture/continuity/EVO-CODE-PROGRESS-MARKER-STANDARD-v0.1.md`. Do not encode percentages, chat-window state, or branch names as durable code progress comments.
+
+
+## Branch Analysis Determinism
+
+Before branch merge/delete/revival decisions, read `branch.topology.json`. Branch authority must not be inferred from branch names, age, commit counts, or PR openness. Use GitHub compare results plus the topology class. If GitHub reality conflicts with the topology file, report `BRANCH_TOPOLOGY_DRIFT` and repair the topology before recommending a merge.
