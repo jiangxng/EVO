@@ -154,7 +154,8 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C01.5 full-loop unchanged-history Full Replay equality and canonical-history preservation proof."
+      "pr": 17,
+      "description": "EEL-C01.5 full-loop unchanged-history Full Replay equality; PostgreSQL 18 E2E verified and ready to merge."
     }
   },
   "requiredLLMProcedure": [
