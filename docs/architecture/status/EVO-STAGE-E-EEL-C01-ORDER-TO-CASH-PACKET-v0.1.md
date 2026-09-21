@@ -1,6 +1,6 @@
 # EEL-C01 — Order-to-Cash Settlement Reference Loop v0.1
 
-**Status: ACTIVE WORK PACKET / DESIGN ACCEPTED FOR IMPLEMENTATION**  
+**Status: CERTIFIED / CLOSED — REFERENCE BOUNDARY**  
 **Date: 2026-09-22**  
 **Stage: E — Enterprise Economic Loops**  
 **Authority scope: first certified end-to-end enterprise business loop after Production-Safe Incremental Replay**
@@ -386,3 +386,28 @@ Evidence:
 
 This closes the final functional compatibility gate. EEL-C01 now awaits only the
 formal certification packet and completed-loop Human–LLM requirement alignment review.
+
+
+---
+
+## 15. 2026-09-22 Final Certification and Requirement Alignment
+
+**Final status: CERTIFIED — EEL-C01 ORDER-TO-CASH SETTLEMENT REFERENCE LOOP**
+
+All accepted EEL-C01 business outcomes are now evidenced.
+
+Certification:
+
+`docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md`
+
+Completed-loop Human–LLM requirement review:
+
+`docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C01-v0.1.md`
+
+Business conclusion:
+
+> EVO now has one complete reference Order-to-Cash loop that can execute, close, explain, and Full-Replay its official economic state without rewriting canonical business history.
+
+Scope conclusion:
+
+> Do not extend EEL-C01 with partial payment, banking, generic settlement, collections, or UI work unless a new confirmed business requirement creates a new bounded packet.
