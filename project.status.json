@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "402def02950a4af80e6b52d7340e3c0ddec24768"
+    "lastVerifiedRuntimeMergeCommit": "d3cecc66ffebaab1257790b8bc5a5a38b6853315"
   },
   "activeWorkPacket": {
     "id": "EEL-C01",
@@ -14,7 +14,7 @@
     "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": "evo/eel-c01-receipt-posting-v0.1",
+    "activeBranch": "evo/eel-c01-settlement-allocation-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
     "closedGates": [
@@ -31,7 +31,7 @@
       "O2C Full Replay equality",
       "EEL-C01 database certification"
     ],
-    "nextAction": "Implement explicit settlement AllocationInstruction/AllocationRelation convergence for cash.received, then prove Work closure and full O2C Full Replay equality.",
+    "nextAction": "Repair PR #13 validation, prove explicit settlement AllocationRelation/realized FX for cash.received, then proceed to Work closure and Full Replay equality.",
     "verifiedHead": "1d44ee11af3ed847cfc4a4629210f5ee07f245fb",
     "verifiedCiRun": 35661639605
   },
@@ -89,5 +89,22 @@
     "certification": "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md",
     "verifiedHead": "d3dab3ed7a1d4b2a285d9564ac03f058555bfd64",
     "verifiedCiRun": 35659612160
+  },
+  "requirementAlignment": {
+    "requirementStatus": "requirements.status.json",
+    "businessBaseline": "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
+    "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
+    "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
+    "lastAlignedAt": "2026-09-22",
+    "currentAssessment": "ALIGNED_WITH_STATUS_DRIFT_REPAIRED",
+    "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred."
+  },
+  "currentUnmergedWork": {
+    "branch": "evo/eel-c01-settlement-allocation-v0.1",
+    "pullRequest": 13,
+    "status": "CI_FAILED_NOT_MERGED",
+    "note": "EEL-C01.3 implementation is not authoritative runtime reality until CI passes and the PR is merged.",
+    "failureClassification": "TEST_ISOLATION_ASSUMPTION",
+    "failureDetail": "PR #13 validator expected exactly one replayed realized-settlement request, but shared seeded DB state contained three. Existing receipt-posting validation passed; business semantics are not yet disproven, but EEL-C01.3 remains unverified."
   }
 }

@@ -15,6 +15,10 @@ type ContextManifest = {
     readonly projectStatus: string;
     readonly codeProgressMarkerStandard: string;
     readonly branchTopology: string;
+    readonly requirementStatus: string;
+    readonly businessRequirementBaseline: string;
+    readonly requirementAlignmentProtocol: string;
+    readonly requirementEvidenceMatrix: string;
     readonly activePacket: string;
   };
   readonly readProfiles: Record<string, {
@@ -46,10 +50,46 @@ for (const [profile,definition] of Object.entries(manifest.readProfiles)) {
   for (const path of definition.documents) requirePath(path,`readProfiles.${profile}`);
 }
 
-const projectStatus = JSON.parse(await readFile(manifest.bootstrap.projectStatus,'utf8')) as { activeWorkPacket?: { id?: string; overallClosed?: boolean; openGates?: readonly string[] } };
+const projectStatus = JSON.parse(await readFile(manifest.bootstrap.projectStatus,'utf8')) as {
+  activeWorkPacket?: { id?: string; overallClosed?: boolean; openGates?: readonly string[] };
+  requirementAlignment?: { requirementStatus?: string };
+};
+const requirementsStatus = JSON.parse(await readFile(manifest.bootstrap.requirementStatus,'utf8')) as {
+  activeRequirementSet?: {
+    id?: string;
+    acceptance?: readonly string[];
+    verified?: readonly string[];
+    open?: readonly string[];
+    deferred?: readonly string[];
+  };
+  antiOverdesignQuestions?: readonly string[];
+  alignmentTriggers?: readonly string[];
+  explanationOrder?: readonly string[];
+};
 const branchTopology = JSON.parse(await readFile(manifest.bootstrap.branchTopology,'utf8')) as { authoritativeBranch?: string; branchClasses?: Record<string,{class?:string;mergePolicy?:string}>; allowedClasses?: readonly string[]; allowedMergePolicies?: readonly string[] };
 if (projectStatus.activeWorkPacket?.id === undefined) failures.push('project.status.json lacks activeWorkPacket.id.');
 if (!Array.isArray(projectStatus.activeWorkPacket?.openGates)) failures.push('project.status.json lacks activeWorkPacket.openGates array.');
+if (requirementsStatus.activeRequirementSet?.id === undefined) failures.push('requirements.status.json lacks activeRequirementSet.id.');
+if (requirementsStatus.activeRequirementSet?.id !== projectStatus.activeWorkPacket?.id) {
+  failures.push(`requirements.status.json activeRequirementSet.id ${requirementsStatus.activeRequirementSet?.id ?? 'missing'} != project.status.json activeWorkPacket.id ${projectStatus.activeWorkPacket?.id ?? 'missing'}.`);
+}
+for (const key of ['acceptance','verified','open','deferred'] as const) {
+  if (!Array.isArray(requirementsStatus.activeRequirementSet?.[key])) {
+    failures.push(`requirements.status.json lacks activeRequirementSet.${key} array.`);
+  }
+}
+if (!Array.isArray(requirementsStatus.antiOverdesignQuestions) || requirementsStatus.antiOverdesignQuestions.length !== 4) {
+  failures.push('requirements.status.json must define exactly four antiOverdesignQuestions.');
+}
+if (!Array.isArray(requirementsStatus.alignmentTriggers) || requirementsStatus.alignmentTriggers.length < 1) {
+  failures.push('requirements.status.json lacks alignmentTriggers.');
+}
+if (JSON.stringify(requirementsStatus.explanationOrder) !== JSON.stringify(['BUSINESS','PRODUCT','TECHNICAL'])) {
+  failures.push('requirements.status.json explanationOrder must be BUSINESS -> PRODUCT -> TECHNICAL.');
+}
+if (projectStatus.requirementAlignment?.requirementStatus !== manifest.bootstrap.requirementStatus) {
+  failures.push('project.status.json requirementAlignment.requirementStatus must match context.manifest bootstrap.requirementStatus.');
+}
 if (branchTopology.authoritativeBranch !== 'main') failures.push('branch.topology.json must identify main as authoritativeBranch.');
 if (branchTopology.branchClasses?.main?.class !== 'AUTHORITATIVE') failures.push('branch.topology.json must classify main as AUTHORITATIVE.');
 for (const [name,definition] of Object.entries(branchTopology.branchClasses ?? {})) {
@@ -69,6 +109,8 @@ if (agentsSize > 16 * 1024) failures.push(`AGENTS.md is ${agentsSize} bytes; lim
 if (!agents.includes('context.manifest.json')) failures.push('AGENTS.md must route through context.manifest.json.');
 if (!agents.includes('project.status.json')) failures.push('AGENTS.md must route through project.status.json.');
 if (!agents.includes('branch.topology.json')) failures.push('AGENTS.md must route through branch.topology.json.');
+if (!agents.includes('requirements.status.json')) failures.push('AGENTS.md must route through requirements.status.json.');
+if (!agents.includes('Business → Product → Technical')) failures.push('AGENTS.md must require Business → Product → Technical progress explanation.');
 
 const readme = await readFile('README.md','utf8');
 if (!readme.includes('AGENTS.md')) failures.push('README.md must identify AGENTS.md as the AI entry point.');
@@ -89,6 +131,8 @@ if (failures.length > 0) {
     contextContractVersion:manifest.contextContractVersion,
     activePacket:manifest.bootstrap.activePacket,
     currentCheckpoint:manifest.bootstrap.currentCheckpoint,
+    activeRequirementSet:requirementsStatus.activeRequirementSet?.id,
+    antiOverdesignQuestions:requirementsStatus.antiOverdesignQuestions?.length ?? 0,
     readProfiles:Object.keys(manifest.readProfiles),
     agentsBytes:agentsSize
   },null,2));

@@ -14,11 +14,12 @@ ownership, and auditable evidence. Do not simplify these invariants away.
 1. Read `LLM.md`.
 2. Read `context.manifest.json`; it is the machine-readable router.
 3. Read `project.status.json`; it is the maintained machine-readable current progress pointer.
-4. Read `branch.topology.json` before analyzing, comparing, merging, deleting, or reviving branches.
-5. Select exactly one read profile before opening more documents.
-6. For a bounded change, read only the target module `README.md`, its
+4. Read `requirements.status.json`; it is the machine-readable business requirement and anti-overdesign boundary.
+5. Read `branch.topology.json` before analyzing, comparing, merging, deleting, or reviving branches.
+6. Select exactly one read profile before opening more documents.
+7. For a bounded change, read only the target module `README.md`, its
    `CONTEXT.md` if present, relevant public interfaces/ADRs, and nearby tests.
-7. Read `docs/architecture/legacy/**` only for an explicit archaeology or
+8. Read `docs/architecture/legacy/**` only for an explicit archaeology or
    genealogy question. Legacy documents are evidence, not current instructions.
 
 If a path in the manifest is missing or contradictory, stop and report document
@@ -44,8 +45,10 @@ memory are hints only.
 ## Required working behavior
 
 - Preserve unrelated user changes and inspect the worktree before editing.
-- Identify the owning module, affected invariants/interfaces, migration impact,
-  replay/determinism impact, compatibility impact, and required evidence.
+- Identify the confirmed business requirement, acceptance outcome, owning module,
+  affected invariants/interfaces, migration impact, replay/determinism impact,
+  compatibility impact, and required evidence.
+- Before introducing a material abstraction/generalization, answer the four anti-overdesign questions in `requirements.status.json`.
 - Prefer small explicit contracts and bounded modules over hidden conventions.
 - Never use "latest" implicitly for historical rules, policies, metadata, rates,
   templates, or reference datasets.
@@ -85,6 +88,12 @@ npm run validate:demo
 Run the smallest relevant checks while iterating, then the full applicable
 sequence before claiming database E2E or certification. If PostgreSQL/Docker is
 unavailable, say so and do not relabel local static checks as database evidence.
+
+## Requirement alignment
+
+Technical autonomy operates inside confirmed business intent. A future-use-only benefit is not enough to justify present complexity. Use the manifest-designated Human–LLM Requirement Alignment Protocol when a Stage changes, a business loop closes, a new core abstraction/cross-module infrastructure is proposed, or the human stakeholder reports a comprehension/confidence gap.
+
+Progress communication should default to Business → Product → Technical.
 
 ## Stop and escalate when
 

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "project": "EVO",
+  "authority": "machine-readable-requirement-alignment",
+  "updatedAt": "2026-09-22",
+  "productIntent": {
+    "goal": "AI-native, modular, industry-agnostic Enterprise Operating System where enterprise activity can be executed, explained, replayed, upgraded, and continuously evolved.",
+    "humanOwns": [
+      "business outcome",
+      "acceptance criteria",
+      "non-negotiable constraints",
+      "product/management needs"
+    ],
+    "llmOwns": [
+      "technology selection",
+      "architecture",
+      "module design",
+      "data model",
+      "testing strategy",
+      "performance and reliability design"
+    ]
+  },
+  "currentStage": {
+    "id": "Stage E",
+    "name": "Enterprise Economic Loops",
+    "businessGoal": "Prove complete real enterprise business loops on top of the certified Economic Runtime."
+  },
+  "activeRequirementSet": {
+    "id": "EEL-C01",
+    "name": "Order-to-Cash Settlement Reference Loop",
+    "acceptance": [
+      "sales order creates explicit receivable",
+      "production and shipment work close for the full-completion reference scenario",
+      "customer receipt increases actual cash",
+      "customer receipt explicitly identifies the receivable it settles",
+      "full settlement closes the receivable",
+      "cross-currency settlement produces explainable realized FX",
+      "receivable WorkItem closes after full settlement",
+      "Full Replay rebuilds the same official economic state",
+      "BusinessData history is unchanged by replay",
+      "legacy customer_payment.received remains replay-compatible"
+    ],
+    "verified": [
+      "sales order creates receivable",
+      "cash.received increases Cash by actual cash measurement",
+      "cash.received decreases Receivable by settled foreign measurement"
+    ],
+    "open": [
+      "explicit settlement AllocationRelation evidence",
+      "realized FX through canonical cash.received",
+      "Work closure",
+      "Full Replay equality",
+      "legacy compatibility replay certification",
+      "final EEL-C01 database certification"
+    ],
+    "deferred": [
+      "partial payment",
+      "overpayment and unapplied cash",
+      "bank reconciliation",
+      "payment fees chargebacks refunds",
+      "credit and collections workflows",
+      "generic settlement framework",
+      "same-ledger multi-currency balance identity generalization",
+      "UI/report productization"
+    ],
+    "currentWork": {
+      "pullRequest": 13,
+      "branch": "evo/eel-c01-settlement-allocation-v0.1",
+      "evidenceState": "NOT VERIFIED",
+      "ciRun": 35662063042,
+      "failureClassification": "TEST_ISOLATION_ASSUMPTION",
+      "interpretation": "The failure does not prove the settlement semantics wrong; the validator counted all replayed requests in shared seeded state instead of isolating the EEL-C01.3 request."
+    }
+  },
+  "antiOverdesignQuestions": [
+    "Which confirmed current requirement needs this?",
+    "What acceptance gate is blocked if we do not build it now?",
+    "Can an existing mechanism satisfy the need more simply?",
+    "Is this current necessity or mainly hypothetical future flexibility?"
+  ],
+  "alignmentTriggers": [
+    "stage transition",
+    "completed enterprise business loop",
+    "3-5 completed work packets",
+    "new core abstraction",
+    "new major database family",
+    "new cross-module infrastructure",
+    "proposal to generalize a local mechanism",
+    "human comprehension/confidence gap",
+    "explicit requirement-alignment request"
+  ],
+  "explanationOrder": [
+    "BUSINESS",
+    "PRODUCT",
+    "TECHNICAL"
+  ],
+  "driftLabels": [
+    "REQUIREMENT_DRIFT",
+    "SCOPE_DRIFT",
+    "OVERDESIGN_RISK",
+    "COMPREHENSION_GAP",
+    "STATUS_DRIFT"
+  ],
+  "lastAlignment": {
+    "date": "2026-09-22",
+    "reason": "User requested protection against requirement drift and overdesign in long-running LLM-native development.",
+    "result": "Stage E and EEL-C01 remain aligned; add explicit governance against technical scope drift and human comprehension gaps."
+  }
+}

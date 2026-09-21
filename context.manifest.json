@@ -15,7 +15,11 @@
     "projectStatus": "project.status.json",
     "codeProgressMarkerStandard": "docs/architecture/continuity/EVO-CODE-PROGRESS-MARKER-STANDARD-v0.1.md",
     "branchTopology": "branch.topology.json",
-    "currentWorkPacket": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md"
+    "currentWorkPacket": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
+    "requirementStatus": "requirements.status.json",
+    "businessRequirementBaseline": "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
+    "requirementAlignmentProtocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
+    "requirementEvidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md"
   },
   "requiredReading": [
     "PHILOSOPHY.md",
@@ -27,53 +31,61 @@
   ],
   "readProfiles": {
     "boundedModuleChange": {
-      "maxInitialDocuments": 5,
+      "maxInitialDocuments": 6,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
         "project.status.json",
+        "requirements.status.json",
         "branch.topology.json"
       ]
     },
     "crossModuleArchitecture": {
-      "maxInitialDocuments": 11,
+      "maxInitialDocuments": 14,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
         "project.status.json",
+        "requirements.status.json",
         "branch.topology.json",
         "PHILOSOPHY.md",
         "CONCEPTS.md",
         "INVARIANTS.md",
         "ARCHITECTURE.md",
         "PUBLIC-API.md",
-        "architecture.manifest.json"
+        "architecture.manifest.json",
+        "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
+        "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md"
       ]
     },
     "continuation": {
-      "maxInitialDocuments": 10,
+      "maxInitialDocuments": 13,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
         "project.status.json",
+        "requirements.status.json",
         "branch.topology.json",
         "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
         "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-22-v1.2.md",
         "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
         "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md",
-        "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md"
+        "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
+        "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
+        "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md"
       ]
     },
     "archaeology": {
-      "maxInitialDocuments": 5,
+      "maxInitialDocuments": 6,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
         "project.status.json",
+        "requirements.status.json",
         "branch.topology.json"
       ]
     }
