@@ -2,9 +2,8 @@
   "schemaVersion": 1,
   "project": "EVO",
   "authority": "machine-readable-branch-analysis-contract",
-  "updatedAt": "2026-09-21",
+  "updatedAt": "2026-09-22",
   "authoritativeBranch": "main",
-  "authoritativeBranchHead": "3e6e891d48ebc4b403db218f8b6fff5f777105f4",
   "analysisRules": [
     "Never infer branch authority from branch name, commit count, age, or open/closed PR state alone.",
     "Always classify each branch before proposing a merge.",
@@ -13,7 +12,7 @@
     "If a branch diverged from main, do not wholesale merge unless this manifest explicitly allows it.",
     "For diverged historical branches, recover individual commits/files only after architecture and ownership review.",
     "Open PR does not imply current work; merged/closed PR history and this manifest take precedence.",
-    "main is the only authoritative integration branch unless this manifest is versioned to say otherwise."
+    "main is the only authoritative integration branch unless this manifest is versioned to say otherwise; lastReviewedMainCommit is evidence of the last topology review, not a required equality with live main HEAD."
   ],
   "branchClasses": {
     "main": {
@@ -71,6 +70,19 @@
       "pr": 2,
       "prDisposition": "CLOSED_SUPERSEDED",
       "description": "Early APM runtime integration experiment. PR #3 explicitly rejected wholesale merge; generic public-boundary work was reimplemented under EVO ownership."
+    },
+    "evo/branch-topology-contract-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "Deterministic branch-topology governance slice merged by PR #6."
+    },
+    "evo/branch-topology-drift-fix-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Bounded governance correction removing self-invalidating exact-main-HEAD semantics."
     }
   },
   "requiredLLMProcedure": [
@@ -97,5 +109,6 @@
     "DO_NOT_MERGE_AGAIN",
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
-  ]
+  ],
+  "lastReviewedMainCommit": "b77fe408faa22309ec6fac56e4e7f5772b14ba76"
 }
