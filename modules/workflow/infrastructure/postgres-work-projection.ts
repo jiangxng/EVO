@@ -26,7 +26,13 @@ async function resolveCurrentWorkScope(
     .where('enterprise_id','=',enterpriseId)
     .where('consistency_domain','=',runtime.consistency_domain)
     .where('status','=','ACTIVE')
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
+  if (current === undefined) {
+    return {
+      consistencyDomain: runtime.consistency_domain,
+      runtimeDatasetId: null
+    };
+  }
   if (current.kind !== 'CURRENT') {
     throw new Error('WorkProjection requires one CURRENT/ACTIVE runtime generation.');
   }
