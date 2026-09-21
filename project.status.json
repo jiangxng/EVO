@@ -103,6 +103,8 @@
     "branch": "evo/eel-c01-settlement-allocation-v0.1",
     "pullRequest": 13,
     "status": "CI_FAILED_NOT_MERGED",
-    "note": "EEL-C01.3 implementation is not authoritative runtime reality until CI passes and the PR is merged."
+    "note": "EEL-C01.3 implementation is not authoritative runtime reality until CI passes and the PR is merged.",
+    "failureClassification": "TEST_ISOLATION_ASSUMPTION",
+    "failureDetail": "PR #13 validator expected exactly one replayed realized-settlement request, but shared seeded DB state contained three. Existing receipt-posting validation passed; business semantics are not yet disproven, but EEL-C01.3 remains unverified."
   }
 }
