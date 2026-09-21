@@ -100,10 +100,11 @@
       "description": "ER-C05B4.4B Worker/Activation concurrency slice; PostgreSQL cutover-lock and CURRENT live-tail E2E merged by PR #9."
     },
     "evo/er-c05b4-4b-crash-retry-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "ER-C05B4.4B crash/retry, invalidated-checkpoint, and final activation-safety certification slice; final CI pending after closure-document updates."
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "ER-C05B4.4B crash/retry, invalidated-checkpoint, and final activation-safety certification slice merged by PR #10."
     }
   },
   "requiredLLMProcedure": [
@@ -131,5 +132,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "3866bc19dfa449b4859ae8d1706208e43d6af474"
+  "lastReviewedMainCommit": "af6a7ff5abc1d2a9e3e2fed4c4c1a699d787098c"
 }
