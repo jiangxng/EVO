@@ -5,7 +5,10 @@ import type {
   OracleEconomicRuntimeDigestResult,
   OracleEconomicRuntimeDigestService
 } from '../api/oracle-digest.js';
-import { digestEconomicRuntimeSemantic } from './postgres-replay-digest.js';
+import {
+  digestEconomicRuntimeFamily,
+  digestEconomicRuntimeSemantic
+} from './postgres-replay-digest.js';
 
 function asBigInt(value: unknown): bigint {
   if (typeof value === 'bigint') return value;
@@ -227,6 +230,15 @@ implements OracleEconomicRuntimeDigestService {
 
     return {
       digest: digestEconomicRuntimeSemantic(semantic),
+      familyDigests: {
+        ledgerEntries: digestEconomicRuntimeFamily(semantic.ledgerEntries ?? []),
+        ledgerBalances: digestEconomicRuntimeFamily(semantic.ledgerBalances ?? []),
+        costResults: digestEconomicRuntimeFamily(semantic.costResults ?? []),
+        allocationRelations: digestEconomicRuntimeFamily(semantic.allocationRelations ?? []),
+        valuationPositions: digestEconomicRuntimeFamily(semantic.valuationPositions ?? []),
+        valuationResults: digestEconomicRuntimeFamily(semantic.valuationResults ?? []),
+        workItems: digestEconomicRuntimeFamily(semantic.workItems ?? [])
+      },
       familyCounts: {
         ledgerEntries: entries.length,
         ledgerBalances: balances.length,
