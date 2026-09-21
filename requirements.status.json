@@ -64,12 +64,12 @@
       "UI/report productization"
     ],
     "currentWork": {
-      "pullRequest": 13,
-      "branch": "evo/eel-c01-settlement-allocation-v0.1",
-      "evidenceState": "NOT VERIFIED",
-      "ciRun": 35662063042,
-      "failureClassification": "TEST_ISOLATION_ASSUMPTION",
-      "interpretation": "The failure does not prove the settlement semantics wrong; the validator counted all replayed requests in shared seeded state instead of isolating the EEL-C01.3 request."
+      "pullRequest": 15,
+      "branch": "evo/eel-c01-settlement-allocation-v0.2",
+      "evidenceState": "CI PENDING",
+      "priorPullRequest": 13,
+      "priorFailureClassification": "TEST_ISOLATION_ASSUMPTION",
+      "interpretation": "v0.2 preserves the requirement and existing settlement engine, while isolating evidence by explicit receipt/allocation source instead of global replay count."
     }
   },
   "antiOverdesignQuestions": [
