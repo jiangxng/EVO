@@ -10,11 +10,11 @@
   "activeWorkPacket": {
     "id": "ER-C05B4.4B",
     "name": "Read Routing & Activation Failure Matrix",
-    "status": "DATABASE E2E VERIFIED",
-    "overallClosed": false,
+    "status": "CERTIFIED",
+    "overallClosed": true,
     "businessGoal": "Ensure every official read obeys the authoritative CURRENT generation and activation fails closed under invalid, stale, revoked, duplicate, concurrent, or interrupted conditions.",
-    "verifiedHead": "f14232188b7a94b1f876cf02acfaf8f3954f2a8f",
-    "verifiedCiRun": 35659095633,
+    "verifiedHead": "d3dab3ed7a1d4b2a285d9564ac03f058555bfd64",
+    "verifiedCiRun": 35659612160,
     "verifiedEnvironment": {
       "node": "24.20.x",
       "postgres": "18",
@@ -29,14 +29,14 @@
       "stale active parent rejection",
       "revoked promotion rejection",
       "two consecutive governed production generation activations with Candidate=Oracle=CURRENT overlay",
-      "activation versus Worker concurrency serialized by shared PostgreSQL cutover lock with CURRENT live-tail verification"
+      "activation versus Worker concurrency serialized by shared PostgreSQL cutover lock with CURRENT live-tail verification",
+      "activation crash at final cutover rolls back atomically and the same Candidate/Oracle retries successfully",
+      "invalidated checkpoint rejects activation with CHECKPOINT_NOT_ACTIVE"
     ],
-    "openGates": [
-      "crash and retry recovery",
-      "additional checkpoint invalidation / transaction interruption cases if required"
-    ],
-    "nextAction": "Inject controlled activation transaction failures, verify full rollback, and prove idempotent retry can safely recover.",
-    "activeBranch": "evo/er-c05b4-4b-crash-retry-v0.1"
+    "openGates": [],
+    "nextAction": "Define the next bounded work packet from the roadmap and certified non-claims; do not infer a B4.4C/B4.5 number.",
+    "activeBranch": "evo/er-c05b4-4b-crash-retry-v0.1",
+    "certification": "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md"
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
