@@ -45,10 +45,11 @@
       "cash.received increases Cash by actual cash measurement",
       "cash.received decreases Receivable by settled foreign measurement",
       "customer receipt explicitly identifies the receivable it settles",
-      "cross-currency settlement produces explainable realized FX"
+      "cross-currency settlement produces explainable realized FX",
+      "production and shipment work close for the full-completion reference scenario",
+      "receivable WorkItem closes after full settlement"
     ],
     "open": [
-      "Work closure",
       "Full Replay equality",
       "legacy compatibility replay certification",
       "final EEL-C01 database certification"
@@ -64,17 +65,20 @@
       "UI/report productization"
     ],
     "currentWork": {
-      "pullRequest": 15,
-      "branch": "evo/eel-c01-settlement-allocation-v0.2",
+      "pullRequest": 16,
+      "branch": "evo/eel-c01-work-closure-v0.1",
       "evidenceState": "DATABASE E2E VERIFIED",
-      "verifiedHead": "36d8de14c746b94f7ecc9b195aa9e75214200656",
-      "verifiedCiRun": 35663507253,
+      "verifiedHead": "1063f825bf331ac1b28c55b027da57b6af51137c",
+      "verifiedCiRun": 35664093669,
       "businessEvidence": [
-        "cash.received is the explicit settlement consumer",
-        "AllocationRelation consumes the selected 1000 USD receivable position",
-        "realized FX is +100 CNY",
-        "operational receivable remains zero"
+        "order opens PRODUCE, SHIP, and COLLECT work",
+        "full production closes PRODUCE work",
+        "full shipment closes SHIP work",
+        "full receipt closes COLLECT work",
+        "no O2C work remains open after full closure",
+        "Cash is not projected as a WorkItem"
       ],
+      "antiOverdesignResult": "Existing balance-derived WorkProjection satisfied the requirement; no new workflow engine was needed.",
       "deferredScopePreserved": true
     }
   },

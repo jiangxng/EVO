@@ -316,3 +316,47 @@ The implementation reuses the existing settlement engine. No generic payment fra
 PR #13 is retained only as superseded historical evidence because its shared-database validator made two invalid assumptions: exact global replay request count and exact decimal string formatting.
 
 EEL-C01 remains open for Work closure, Full Replay equality, legacy compatibility replay certification, and final certification.
+
+
+---
+
+## 14. 2026-09-22 Implementation Evidence — EEL-C01.4
+
+**Evidence level: DATABASE E2E VERIFIED**
+
+The full-closure reference order now proves Work lifecycle behavior without adding
+a second workflow state model.
+
+Verified lifecycle:
+
+- Sales Order creates OPEN PRODUCE / SHIP / COLLECT Work;
+- full Production closes PRODUCE;
+- full Shipment closes SHIP while COLLECT remains OPEN;
+- full Customer Cash Receipt closes COLLECT;
+- no reference-order O2C Work remains OPEN after full closure;
+- Cash is not projected as Work.
+
+Evidence:
+
+- PR: `#16`
+- implementation head: `1063f825bf331ac1b28c55b027da57b6af51137c`
+- GitHub Actions: `35664093669 — SUCCESS`
+- PostgreSQL: 18
+- validator: `npm run validate:eel-c01-work-closure`
+
+### Anti-overdesign result
+
+The existing balance-derived `PostgresWorkProjection` was sufficient. No new
+workflow engine, workflow state table, or generic collections runtime was added.
+
+This is an explicit example of the Human–LLM alignment rule:
+
+```text
+confirmed business need
+→ test existing smallest mechanism
+→ mechanism is sufficient
+→ do not generalize further
+```
+
+EEL-C01 remains open for Full Replay equality, legacy receipt compatibility replay,
+and final database certification.

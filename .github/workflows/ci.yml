@@ -41,6 +41,7 @@ jobs:
       - run: npm run validate:demo
       - run: npm run validate:eel-c01-receipt-posting
       - run: npm run validate:eel-c01-settlement-allocation
+      - run: npm run validate:eel-c01-work-closure
       - run: npm run validate:worker-activation-concurrency
       - run: npm run validate:activation-crash-retry
       - run: npm run validate:activation-failure-matrix
