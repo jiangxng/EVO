@@ -35,7 +35,7 @@
 | 收款减少应收 | 对应应收减少/归零 | cash.received → Receivable -1000 USD | CI 35661825887 | 已验证 |
 | 收款与被结清应收明确关联 | 能回答“这笔钱结了哪笔应收” | AllocationInstruction / Relation 路径 | PR #15 / CI 35663507253 | 已验证：显式选择并消耗目标 1000 USD 应收 |
 | 外币收款产生已实现汇兑损益 | 能解释实际到账和账面价值差额 | FX realized settlement | 现有内核 + PR #15 接入 | CI 35663507253 | 已验证：realized FX = +100 CNY |
-| 收清后待收任务关闭 | 不再出现该订单待收款 | Work projection closure | 尚未完成 | 未完成 |
+| 收清后待收任务关闭 | 不再出现该订单待收款；生产/发货待办也在全量完成后关闭 | 现有 balance-derived WorkProjection | PR #16 / CI 35664093669 | 已验证；无需新增 Workflow 引擎 |
 | 完整 O2C 可重放 | 删除派生结果后重建一致 | Full Replay equality | 尚未完成 | 未完成 |
 | 历史旧收款类型仍可重放 | 升级不破坏旧事实 | compatibility path | 部分已有 | 待专门验证 |
 
@@ -128,4 +128,48 @@ PR #15 已通过 PostgreSQL 18 E2E。
 - Work closure；
 - Full Replay equality；
 - legacy compatibility replay certification；
+- EEL-C01 final certification。
+
+
+## 9. 2026-09-22 — EEL-C01.4 Work closure 数据库证据
+
+PR #16 已通过 PostgreSQL 18 E2E。
+
+业务生命周期：
+
+```text
+Sales Order
+  → PRODUCE   OPEN
+  → SHIP      OPEN
+  → COLLECT   OPEN
+
+Full Production
+  → PRODUCE   DONE
+
+Full Shipment
+  → SHIP      DONE
+  → COLLECT   still OPEN
+
+Full Customer Receipt
+  → COLLECT   DONE
+  → no O2C Work remains OPEN
+```
+
+同时证明：
+
+- Cash 仍然是资金/财务头寸，不会被错误投影成 WorkItem；
+- 默认正式 Work 读取也不再返回该已完成订单；
+- 现有 WorkProjection 已足够满足当前业务要求；
+- 本阶段没有因为“以后可能需要”而引入新的通用 Workflow Runtime。
+
+证据：
+
+- implementation head: `1063f825bf331ac1b28c55b027da57b6af51137c`
+- CI: `35664093669 — SUCCESS`
+- validator: `npm run validate:eel-c01-work-closure`
+
+下一业务缺口：
+
+- Full Replay equality；
+- legacy `customer_payment.received` replay compatibility；
 - EEL-C01 final certification。
