@@ -46,6 +46,16 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-031 — Batch Processing Must Be Lossless: Large datasets MAY be analyzed in batches, but batching MUST NOT become sampling. Batch manifests, counts, source locators and reconciliation MUST make the union of batches equivalent to the accounted source set.
 - INV-032 — Full-Scale Data Validation: Migration and runtime architecture MUST preserve the ability to load and exercise complete enterprise-scale legacy-derived datasets for stress, replay, posting, balance, cost, lineage and deterministic reconstruction tests. Sample/demo data is never sufficient evidence of migration completeness.
 
+## Financial Accounting Integrity Constitution
+
+- INV-039 — Economic Ledger Is Not Automatically General Ledger: EVO's generic operational/economic Ledger remains an increase/decrease projection for quantities, obligations, positions, costs and management state. A ledger code such as cash, receivable, payable, inventory, revenue, expense or COGS MUST NOT be treated as proof that statutory/general-ledger double-entry accounting has been satisfied.
+- INV-040 — General Ledger Uses Explicit Double Entry: Every authoritative General Ledger Journal MUST contain explicit debit/credit lines. A financial journal MUST NOT be committed if total debit amount differs from total credit amount in the journal accounting currency under the declared precision policy.
+- INV-041 — No One-Sided General Ledger Posting: A canonical accounting projection MUST NOT create a one-sided General Ledger journal. A journal requires at least one debit line and at least one credit line; zero-value balancing lines are not acceptable substitutes for real accounting semantics.
+- INV-042 — Journal Balance Is Transactional: Double-entry validation occurs before the accounting journal becomes authoritative. If debit/credit validation fails, the entire General Ledger projection for that journal fails atomically; partially committed journal lines are forbidden.
+- INV-043 — Trial Balance Is Independently Verifiable: For every authoritative General Ledger dataset/period/accounting currency, EVO MUST be able to produce and validate a trial balance whose debit and credit totals reconcile exactly under the pinned accounting policy/version.
+- INV-044 — Financial Statements Derive From General Ledger: Balance Sheet, Income Statement and Cash Flow Statement are governed projections from authoritative accounting state. They MUST NOT become an independent fact system or be made to balance by rewriting canonical BusinessData.
+- INV-045 — Accounting Projection Remains Replayable: General Ledger journals, trial balance and financial statements are derived accounting results. They MUST be reproducible from canonical BusinessData/economic results plus explicitly pinned chart-of-accounts, recognition, posting, currency and period policies.
+
 ## Application Capability Exposure Constitution
 
 - INV-033 — No Implicit Domain Capability: EVO Core MUST NOT imply that an enterprise owns a domain capability merely because EVO can host an application that provides it.
