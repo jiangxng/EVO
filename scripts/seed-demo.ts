@@ -388,11 +388,16 @@ try {
     warehouse: field('warehouse'), project: field('project'), department: field('department'),
     cost_center: field('costCenter')
   };
+  const payableDims = {
+    order_no: field('orderNo'), supplier: field('supplier'), product_id: field('productId'),
+    project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
   await rule(purchaseVersion.id,'purchase-pending-receipt',10,trueExpr,{
     ledgerCode:'pending_purchase', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: purchaseDims
   });
   await rule(purchaseVersion.id,'purchase-payable',20,trueExpr,{
-    ledgerCode:'payable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: purchaseDims
+    ledgerCode:'payable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: payableDims
   });
 
   const purchaseReceiptInventoryDims = {
