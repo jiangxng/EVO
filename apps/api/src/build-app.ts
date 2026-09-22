@@ -20,6 +20,9 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
   const runtime=createEvoRuntime(options.database);
   app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
 
+  app.get('/api/v1/apps',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listApplications'});return runtime.capabilityDiscovery.listApplications(q.enterprise_id);});
+  app.get('/api/v1/capabilities',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listCapabilities'});return runtime.capabilityDiscovery.listCapabilities(q.enterprise_id);});
+
   app.get('/api/v1/enterprise-templates/:templateCode',async request=>{const p=request.params as {templateCode:string};const q=request.query as {version?:string};const version=q.version===undefined?undefined:Number(q.version);return runtime.enterpriseTemplates.get(p.templateCode,version);});
   app.put('/api/v1/enterprise-templates/:templateCode/versions/:version',async request=>{const p=request.params as {templateCode:string;version:string};const body=request.body as {name:string;description?:string;definition:JsonObject};const input={templateCode:p.templateCode,templateName:body.name,version:Number(p.version),definition:body.definition,...(body.description===undefined?{}:{description:body.description})};return runtime.enterpriseTemplates.publish(input);});
   app.get('/api/v1/enterprises/:enterpriseCode/template',async request=>runtime.enterpriseTemplates.getEnterpriseBinding((request.params as {enterpriseCode:string}).enterpriseCode));
