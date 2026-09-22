@@ -52,18 +52,18 @@ Prove one complete Procure-to-Pay reference loop on the certified EVO Economic R
 - 单一采购订单；
 - 单一物料；
 - 单一仓库；
-- 一次性全量收货；
-- 一次性全额付款；
+- 参考认证数据采用一次性全量收货；
+- 参考认证数据采用一次性全额付款；
 - 同币种结算；
 - 不含税务复杂性；
 - 不含预付款；
-- 不含部分收货；
-- 不含部分付款；
+- 本轮不把部分收货作为独立验收组合，但实现不得假设只能一次性收完；
+- 本轮不把部分付款作为独立验收组合，但实现不得假设只能一次性付完；
 - 不含退货；
 - 不含供应商贷项；
 - 不含银行对账。
 
-这些都属于后续独立业务包，不在 EEL-C02 中提前泛化。
+这些复杂组合不作为本轮独立认证场景，但底层实现不得为“一次收完/一次付完”做特化。复杂业务优先通过既有事实、规则、账本、关系、Projection 与 Allocation 机制表达，只有现有机制无法满足明确验收条件时才允许扩展核心。
 
 ## 3. Required Business Facts
 
@@ -199,7 +199,75 @@ Replay MUST:
 - preserve purchase-order, goods-receipt and payment BusinessData;
 - reproduce the same official P2P economic result.
 
-## 9. Anti-Overdesign Gate
+## 9. Stage E Generalization Rule
+
+**认证场景可以简单，但基础实现不得为简单场景特化。**
+
+EEL-C02 的参考数据可以是：
+
+```text
+采购 100
+收货 100
+付款 10000
+```
+
+但实现逻辑必须基于累计事实与余额，而不是基于“发生一笔就完成”的假设。
+
+正确语义：
+
+```text
+Pending Purchase Balance
+= Purchase Commitment Quantity
+- Accumulated Effective Receipt Quantity
+
+Payable Balance
+= Recognized Payable Amount
+- Accumulated Effective Settlement Amount
+```
+
+因此同一基础实现应天然允许：
+
+```text
+采购 100
+收货 30
+收货 20
+收货 50
+```
+
+以及：
+
+```text
+应付 10000
+付款 3000
+付款 2000
+付款 5000
+```
+
+不得写死：
+
+- singleReceipt；
+- singlePayment；
+- receivedQuantity == orderedQuantity 才能工作；
+- paidAmount == payableAmount 才能工作；
+- 第一笔收货直接将 Pending Purchase 清零；
+- 第一笔付款直接将 Payable 清零。
+
+Work 状态应由余额或明确 Projection 规则决定，而不是由“是否存在某类事件”决定。
+
+复杂业务并不自动意味着复杂底层。优先判断是否可以通过以下既有机制表达：
+
+- BusinessData；
+- Posting Rule；
+- LedgerEntry / Balance；
+- BusinessObjectLink；
+- AllocationInstruction / AllocationRelation；
+- Projection；
+- WorkItem；
+- Replay。
+
+只有现有机制无法满足当前业务验收时，才允许新增核心抽象。
+
+## 10. Anti-Overdesign Gate
 
 Before adding any new abstraction, answer all four:
 
@@ -210,7 +278,7 @@ Before adding any new abstraction, answer all four:
 
 If a new abstraction cannot pass these questions, defer it.
 
-## 10. Explicitly Deferred
+## 11. Explicitly Deferred
 
 Not part of EEL-C02:
 
@@ -237,7 +305,7 @@ Not part of EEL-C02:
 
 These may become future packets when business value requires them.
 
-## 11. Reuse First
+## 12. Reuse First
 
 Existing repository assets to examine before implementing:
 
@@ -252,7 +320,7 @@ Existing repository assets to examine before implementing:
 
 EEL-C02 should prove these mechanisms generalize to the procurement direction before inventing new infrastructure.
 
-## 12. Implementation Slice Order
+## 13. Implementation Slice Order
 
 Recommended bounded slices:
 
@@ -288,7 +356,7 @@ Prove:
 ### C02.5 — Final Certification
 Produce final EEL-C02 certification and Human–LLM alignment review.
 
-## 13. Done Definition
+## 14. Done Definition
 
 EEL-C02 is done only when the enterprise can complete this full business story:
 
