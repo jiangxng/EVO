@@ -341,10 +341,18 @@
       "description": "Post-Codex EEL-C04 status/context alignment merged by PR #41 after CI #644."
     },
     "evo/post-eel-c04-alignment-eel-c05-selection-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 42,
+      "description": "Post-EEL-C04 alignment and EEL-C05 Inventory Transfer selection merged after CI #646."
+    },
+    "evo/eel-c05-transfer-execution-bundle-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "Post-EEL-C04 completed-loop alignment and EEL-C05 Inventory Transfer selection/business packet."
+      "description": "EEL-C05 conservation-safe inventory transfer bundle: canonical transfer facts, partial receipt, source/destination quantity+value migration, explicit lineage and TRANSFER Work."
     }
   },
   "requiredLLMProcedure": [
@@ -372,7 +380,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "6bc9be3223aa5b491f5219fcfe9e939ba8e25819",
+  "lastReviewedMainCommit": "001a30d5612a7ba09fd1a7e8bfdd86a44fc6d195",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -400,15 +408,19 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/post-eel-c04-alignment-eel-c05-selection-v0.1",
+    "businessMainline": "evo/eel-c05-transfer-execution-bundle-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "EEL-C05 selection",
-      "inventory transfer business acceptance",
-      "anti-overdesign boundary"
+      "inventory transfer canonical facts",
+      "partial receipt 15 + 25",
+      "source/destination warehouse quantity conservation",
+      "FIFO-derived source/target value conservation",
+      "no P&L/AR/AP/Cash side effects",
+      "explicit transfer lineage",
+      "balance-driven TRANSFER Work"
     ],
-    "evidenceTarget": "documentation/requirement alignment only",
-    "afterSuccess": "Merge to main, then implement C05 Bundle A on a new branch.",
-    "rule": "Do not start WMS/TMS or cross-entity transfer work as part of this packet."
+    "evidenceTarget": "DATABASE E2E VERIFIED transfer conservation",
+    "afterSuccess": "Merge to main, then use a final C05 branch for Full Replay + Final Certification.",
+    "rule": "Do not split quantity and value transfer across separate main merges; the official inventory state must remain economically coherent."
   }
 }
