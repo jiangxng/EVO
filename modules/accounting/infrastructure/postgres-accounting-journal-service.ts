@@ -128,7 +128,7 @@ export class PostgresAccountingJournalService implements AccountingJournalServic
           });
         }
 
-        const anyPeriod=await trx.selectFrom('accounting_period')
+        const anyPeriod=request.mode==='REPLAY'?undefined:await trx.selectFrom('accounting_period')
           .select('id')
           .where('accounting_book_id','=',book.id)
           .executeTakeFirst();
