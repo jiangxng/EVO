@@ -333,10 +333,18 @@
       "description": "EEL-C04.6 Full Replay Equality and C04.7 final certification evidence merged by PR #40 after CI #642."
     },
     "evo/post-codex-eel-c04-alignment-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 41,
+      "description": "Post-Codex EEL-C04 status/context alignment merged by PR #41 after CI #644."
+    },
+    "evo/post-eel-c04-alignment-eel-c05-selection-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "Post-Codex status/context alignment after PR #39/#40; no runtime behavior changes."
+      "description": "Post-EEL-C04 completed-loop alignment and EEL-C05 Inventory Transfer selection/business packet."
     }
   },
   "requiredLLMProcedure": [
@@ -364,7 +372,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "11ee7618c12da214e8e0270b321e0f098a448488",
+  "lastReviewedMainCommit": "6bc9be3223aa5b491f5219fcfe9e939ba8e25819",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -392,15 +400,15 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/post-codex-eel-c04-alignment-v0.1",
+    "businessMainline": "evo/post-eel-c04-alignment-eel-c05-selection-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "repair STATUS_DRIFT after EEL-C04 certification",
-      "promote EEL-C04 v0.2 certification",
-      "promote v1.5 context checkpoint"
+      "EEL-C05 selection",
+      "inventory transfer business acceptance",
+      "anti-overdesign boundary"
     ],
-    "evidenceTarget": "documentation/status alignment only",
-    "afterSuccess": "Merge to main, then run completed-loop requirement alignment before selecting new Stage E implementation work.",
-    "rule": "No new business capability implementation should start from the stale C04 branch; main already contains the certified C04 runtime."
+    "evidenceTarget": "documentation/requirement alignment only",
+    "afterSuccess": "Merge to main, then implement C05 Bundle A on a new branch.",
+    "rule": "Do not start WMS/TMS or cross-entity transfer work as part of this packet."
   }
 }
