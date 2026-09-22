@@ -8,36 +8,28 @@
     "lastVerifiedRuntimeMergeCommit": "347baecc18819dca6b8d2f5467a3457b80f20f6a"
   },
   "activeWorkPacket": {
-    "id": "EEL-C01",
-    "name": "Order-to-Cash Settlement Reference Loop",
+    "id": "EEL-C02",
+    "name": "Procure-to-Pay Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Certify a full customer-collection loop from sales order and shipment through explicit receivable settlement, cash position, FX realization, work closure, and Full Replay equality.",
-    "activeBranch": null,
-    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
-    "evidenceTarget": "CERTIFIED — EEL-C01 Order-to-Cash Settlement Reference Loop",
+    "status": "DESIGN ONLY",
+    "overallClosed": false,
+    "businessGoal": "Certify a complete supplier-side procure-to-pay loop from purchase order through goods receipt, inventory recognition, payable settlement, cash payment, work closure, and Full Replay equality.",
+    "activeBranch": "evo/eel-c02-procure-to-pay-packet-v0.1",
+    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C02-PROCURE-TO-PAY-PACKET-v0.1.md",
+    "evidenceTarget": "CERTIFIED — EEL-C02 Procure-to-Pay Reference Loop",
     "closedGates": [
-      "Stage D Production-Safe Incremental Replay foundation certified for reference FIFO boundary",
-      "EEL-C01 semantic direction accepted: CUSTOMER_CASH_RECEIPT role, cash.received v1 target, legacy customer_payment.received compatibility",
-      "EEL-C01.1/C01.2 implementation: cash.received runtime path, Cash ledger, and separate settled/cash posting measurements",
-      "reference cash ledger and receipt posting",
-      "explicit receivable decrease using settled foreign measurement",
-      "cash increase using actual local measurement",
-      "explicit settlement AllocationInstruction/AllocationRelation evidence",
-      "realized FX through canonical cash.received",
-      "full-closure O2C Work state",
-      "O2C Full Replay equality",
-      "legacy customer_payment.received replay compatibility",
-      "EEL-C01 database certification",
-      "completed-loop Human–LLM requirement alignment review"
+      "EEL-C01 Order-to-Cash reference loop certified",
+      "EEL-C02 business packet selected from confirmed Stage E business coverage",
+      "enterprise-core-v1 already contains purchase-order, pending-purchase, payable, cash-payment semantic assets"
     ],
-    "openGates": [],
-    "nextAction": "Perform business-first selection of the next bounded Stage E enterprise economic loop packet. Do not extend EEL-C01 without a new confirmed requirement.",
-    "verifiedHead": "69c1744d24fc7c4211b91cea3fe7343433d33cbd",
-    "verifiedCiRun": 35667578606,
-    "certification": "docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md",
-    "alignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C01-v0.1.md"
+    "openGates": [
+      "C02.1 Purchase Order Economic Recognition",
+      "C02.2 Goods Receipt & Inventory",
+      "C02.3 Supplier Payment & Explicit Settlement",
+      "C02.4 Full Replay Equality",
+      "C02.5 Final Certification"
+    ],
+    "nextAction": "Implement and database-verify C02.1 Purchase Order Economic Recognition without introducing future-only procurement abstractions."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -101,7 +93,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "ALIGNED_EEL_C01_CERTIFIED_NO_CURRENT_OVERDESIGN_BLOCKER",
+    "currentAssessment": "ALIGNED_EEL_C02_SELECTED_BUSINESS_FIRST",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
