@@ -421,6 +421,11 @@ try {
     ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: receivableDims
   });
 
+  const reverseWorkDims = {
+    order_no: field('orderNo'), customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
   const salesInvoiceDims = {
     order_no: field('orderNo'), customer: field('customer'),
     project: field('project'), department: field('department'),
@@ -476,11 +481,6 @@ try {
     ledgerCode:'inventory', quantity: field('quantity'), amount: field('returnCost'), currency: field('currency'), dimensions: salesReturnInventoryDims
   });
 
-  const reverseWorkDims = {
-    order_no: field('orderNo'), customer: field('customer'),
-    project: field('project'), department: field('department'),
-    profit_center: field('profitCenter'), cost_center: field('costCenter')
-  };
   await rule(salesReturnVersion.id,'sales-return-open-exchange-work',20,eq('requiresExchange',true),{
     ledgerCode:'pending_exchange', quantity:field('exchangeQuantity'), amount:{type:'literal',value:0}, dimensions:reverseWorkDims
   });
