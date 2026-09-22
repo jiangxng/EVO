@@ -14,7 +14,7 @@
     "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Certify a complete customer-side reverse economic loop where return, exchange, refund, and red invoice are new immutable facts that adjust inventory/cash/economic state without mutating original sales, shipment, receipt, or invoice history, and remain deterministic under Full Replay.",
-    "activeBranch": "evo/eel-c03-red-invoice-v0.1",
+    "activeBranch": "evo/eel-c03-work-balance-closure-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "closedGates": [
@@ -27,15 +27,15 @@
       "C03.1 Sales Return Economic Recognition — DATABASE E2E VERIFIED / CI #600",
       "C03.2 Sales Exchange — DATABASE E2E VERIFIED / CI #602",
       "C03.3 Customer Refund — DATABASE E2E VERIFIED / CI #614",
-      "C03.4 implementation prepared: blue/red invoice canonical facts + sales_invoice_amount business ledger + explicit blue-to-red reference"
+      "C03.4 Red Invoice — DATABASE E2E VERIFIED / CI #620",
+      "C03.5 implementation prepared: pending_exchange / pending_refund / pending_red_invoice balances drive Work OPEN/DONE"
     ],
     "openGates": [
-      "C03.4 Red Invoice — awaiting PostgreSQL 18 evidence",
-      "C03.5 Work / Balance Closure",
+      "C03.5 Work / Balance Closure — awaiting PostgreSQL 18 evidence",
       "C03.6 Full Replay Equality",
       "C03.7 Final Certification"
     ],
-    "nextAction": "Run isolated PostgreSQL 18 validation for C03.4; if green, mark DATABASE E2E VERIFIED and continue to C03.5 Work / Balance Closure."
+    "nextAction": "Run isolated PostgreSQL 18 validation for C03.5; if green, merge and continue to C03.6 Full Replay Equality."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
