@@ -288,10 +288,18 @@
       "description": "EEL-C03.6 Full Replay Equality merged after PostgreSQL 18 E2E / CI #626."
     },
     "evo/eel-c03-final-certification-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 36,
+      "description": "EEL-C03 final certification merged after CI #628."
+    },
+    "evo/post-eel-c03-alignment-eel-c04-selection-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C03.7 final certification, evidence-matrix and machine-status closure."
+      "description": "Post-EEL-C03 completed-loop requirement alignment and EEL-C04 Manufacturing Execution selection/business packet."
     }
   },
   "requiredLLMProcedure": [
@@ -319,5 +327,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "73974207b47fbe956c7c6c51d69e367e1737d48b"
+  "lastReviewedMainCommit": "c59fe3bb61df5534745e2611deff452269358e9d"
 }
