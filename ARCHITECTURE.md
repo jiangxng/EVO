@@ -7,6 +7,9 @@
 
 ## Canonical runtime flow
 
+**Business-finance integration rule:** EVO is not a finance-first platform. Canonical enterprise facts are projected through installable applications/packages and conditional posting into operational/economic ledgers; formal General Ledger accounting is a stricter governed projection layered on the same facts. Capability growth should normally happen through metadata/apps/packages/rules rather than Core expansion.
+
+
 ```text
 Human / AI / Automation / External System
                     ↓
@@ -39,6 +42,8 @@ Human / AI / Automation / External System
 8. AI uses the same capability/Command boundary as other actors.
 9. Cross-module writes must respect module ownership.
 10. Chat memory is not an authoritative architecture store.
+11. Operational/economic ledgers are not automatically statutory General Ledger accounts; formal GL requires accounting recognition, explicit Debit/Credit journals and balance validation.
+12. Business/finance capabilities should be installable where possible; Core provides stable primitives and invariants, while applications/packages provide enterprise-specific semantics and posting rules.
 
 See `docs/invariants/core.md`.
 

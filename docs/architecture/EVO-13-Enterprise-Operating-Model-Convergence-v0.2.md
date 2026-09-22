@@ -2750,3 +2750,35 @@ B. Complete Enterprise Template Archaeology
 ---
 
 **End of 2026-09-18 Incremental Convergence Addendum**
+
+## 51. 2026-09-22 Addendum — 业财一体不是 Finance-first
+
+EVO 的产品结构必须继续避免传统 ERP 的两个极端：Finance-first，以及业务系统通过接口再连接独立财务系统。
+
+EVO 采用：
+
+one enterprise fact substrate + installable business capability + conditional posting + operational/economic ledgers + governed accounting projection.
+
+### EO-29 — Business-Finance Integration
+
+同一企业事实可以同时驱动业务状态、Work、库存/应收/应付/现金等经济账本、成本/估值、管理分析，并在满足会计确认条件后驱动 General Ledger 和财务报表。
+
+这些结果共享事实与 lineage，但不要求共享完全相同的账本语义。
+
+### EO-30 — Finance Is An Installable Capability Family
+
+General Ledger、收入确认、费用计提、固定资产、税务、财务报表等能力，应优先被表达为 Application / Package / Plugin + Metadata + Rules + Ledgers / Accounts + Projection + Validation，而不是扩张 Core Code。
+
+### EO-31 — Core Does Not Own Enterprise Accounting Policy
+
+Core 可以提供 accounting period infrastructure、balanced journal validation、chart-of-accounts contracts、evidence lineage、permission / audit / replay infrastructure。
+
+但具体企业什么业务触发收入确认、什么业务触发成本确认、什么时候计提费用、使用哪个科目、哪些辅助核算维度适用，应由安装的企业应用、会计包、规则和政策决定。
+
+### EO-32 — Installed Capability Determines Effective Enterprise Behavior
+
+企业没有安装某个 Application / Package 时，不应被认为天然拥有对应业务或财务能力。
+
+这一原则同样适用于 Revenue Recognition、Tax、Fixed Asset、General Ledger、Financial Reporting、Industry Accounting。
+
+因此 EVO 应持续朝“能力可安装、核心稳定”的方向演进。

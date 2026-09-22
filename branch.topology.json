@@ -246,6 +246,12 @@
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
       "description": "EEL-C03.2 Sales Exchange simple-event implementation and isolated PostgreSQL evidence."
+    },
+    "evo/financial-double-entry-integrity-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Financial Accounting Integrity audit: establishes explicit double-entry General Ledger gate before Trial Balance and financial statements; documentation/invariant slice only."
     }
   },
   "requiredLLMProcedure": [
@@ -273,5 +279,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "a3de17437f7ebdb6c5eca248cfc3bfdf20914065"
+  "lastReviewedMainCommit": "b8c90aadb4f14780c318d4f89c658f9ced72f1ae"
 }

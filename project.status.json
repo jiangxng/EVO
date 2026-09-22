@@ -104,5 +104,41 @@
       "verifiedSliceInterval": 3,
       "rule": "Perform a formal requirement-alignment review after every 3 merged DATABASE E2E VERIFIED/CERTIFIED bounded slices since the last review, or immediately when any mandatory trigger fires, whichever comes first."
     }
+  },
+  "financialAccountingIntegrity": {
+    "status": "GAP_CONFIRMED",
+    "authority": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-AUDIT-2026-09-22-v0.1.md",
+    "currentRuntime": "generic signed operational/economic Ledger",
+    "requiredBeforeFinancialStatements": [
+      "explicit General Ledger journal contract",
+      "explicit DEBIT/CREDIT journal lines",
+      "atomic journal balance validation",
+      "sum(debit) == sum(credit)",
+      "accounting evidence / original-voucher chain",
+      "accounting book + accounting year/period + close/reopen governance",
+      "accounting currency / RMB statutory presentation rules",
+      "trial balance certification",
+      "subledger/economic-ledger reconciliation",
+      "bank reconciliation",
+      "electronic accounting voucher + archive controls",
+      "deterministic General Ledger replay"
+    ],
+    "rule": "Operational/economic ledgers remain increase/decrease based. Only the General Ledger accounting projection is subject to double-entry debit/credit integrity.",
+    "blocks": [
+      "certified General Ledger claim",
+      "certified Trial Balance claim",
+      "Balance Sheet readiness claim",
+      "Income Statement readiness claim",
+      "Cash Flow Statement readiness claim",
+      "complete statutory financial statement package readiness claim"
+    ],
+    "doesNotBlock": [
+      "Stage E business-event certification",
+      "operational/economic ledgers and balances",
+      "cost/valuation",
+      "settlement/allocation",
+      "Replay of current Economic Runtime"
+    ],
+    "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md"
   }
 }

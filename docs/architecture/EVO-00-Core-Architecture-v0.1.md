@@ -261,3 +261,154 @@ Field
 
 The physical database schema is intentionally deferred until the conceptual
 model and object relationships have been validated.
+
+## 9. 2026-09-22 Addendum — 业财一体与可安装能力边界
+
+本节是对前述 Core Architecture 的增量澄清，不替代已有内容。
+
+### 9.1 EVO 不是财务平台
+
+EVO 的核心定位不是：
+
+```text
+Finance Platform
++ Business Modules
+```
+
+也不是：
+
+```text
+Business System
+→ Financial Interface
+→ Separate Finance System
+```
+
+更准确的定位是：
+
+> **EVO 是以企业事实为源头，通过条件式记账、账本抽象、关系、Projection 和可安装应用，把企业业务运行与财务解释统一在同一套可重放、可演进的企业运行底座上。**
+
+因此：
+
+```text
+Enterprise Business
+→ BusinessData
+→ Conditional Posting / Rules
+→ Operational / Economic Ledgers
+→ Balances / Work / Cost / Settlement
+
+same canonical facts
+→ Accounting Recognition
+→ General Ledger
+→ Trial Balance
+→ Financial Statements
+```
+
+“业财一体”表示业务与财务共享同一事实来源和可追溯规则链，并不表示所有业务账本都必须成为会计科目。
+
+### 9.2 平台提供原语，应用提供业务语义
+
+Core / Platform 应稳定提供：
+
+```text
+Command
+BusinessData
+Relationship / Lineage
+Posting
+Ledger
+Balance
+Allocation
+Valuation
+Replay
+Work / Projection
+Permission / Capability
+Versioning / Migration / Audit
+```
+
+具体企业能力优先由可安装对象提供：
+
+```text
+Application
+Application Package
+Business Pack
+Plugin
+Enterprise Template
+Industry Package
+Accounting / Reporting Package
+```
+
+例如：
+
+```text
+Sales
+Procurement
+Production
+Inventory
+Collection
+Payment
+Sales Return
+Exchange
+Revenue Recognition
+Cost Recognition
+Expense Accrual
+Fixed Asset
+General Ledger
+Tax
+Financial Reporting
+```
+
+不应仅因为某项能力常见于传统 ERP，就把其业务逻辑固化进 EVO Core。
+
+### 9.3 条件式记账是业务与财务连接器
+
+Application 决定：
+
+```text
+what business means
+what event occurred
+what conditions are satisfied
+```
+
+Posting Rule 决定：
+
+```text
+what ledger/accounting effects follow
+under which conditions
+with which dimensions
+using which policy/version
+```
+
+因此，类似“确认收入”这类能力可以由具体应用或可安装包在满足条件时触发会计确认，而不是由 Core 写死某一业务时点。
+
+### 9.4 企业复杂度优先增长在 Metadata / App / Rules，而不是 Core
+
+目标关系：
+
+```text
+More enterprise capability
+≈
+more installable definitions + events + rules + ledgers + projections
+```
+
+而不是：
+
+```text
+More enterprise capability
+=
+more hard-coded runtime branches
+```
+
+只有现有通用原语无法满足已经确认的当前业务验收条件时，才允许新增 Core abstraction.
+
+### 9.5 业财一体的最低可解释链
+
+任何正式业务/财务结果最终应可追溯：
+
+```text
+Result
+→ Ledger / GL Line
+→ Posting / Accounting Rule Version
+→ BusinessData
+→ Enterprise Business Event
+```
+
+财务报表、管理报表和 Work 不得成为脱离企业事实的第二套真相。
