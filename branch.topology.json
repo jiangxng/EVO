@@ -190,10 +190,18 @@
       "description": "EEL-C01 legacy receipt replay compatibility proof merged by PR #21."
     },
     "evo/eel-c01-final-certification-alignment-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 22,
+      "description": "Final EEL-C01 certification and completed-loop Human–LLM requirement alignment merged by PR #22."
+    },
+    "evo/eel-c01-post-cert-pointer-fix-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "Final EEL-C01 certification, completed-loop requirement alignment, and status-drift repair."
+      "description": "Post-certification pointer cleanup only; no runtime behavior changes."
     }
   },
   "requiredLLMProcedure": [
