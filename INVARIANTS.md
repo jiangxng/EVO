@@ -46,6 +46,15 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-031 — Batch Processing Must Be Lossless: Large datasets MAY be analyzed in batches, but batching MUST NOT become sampling. Batch manifests, counts, source locators and reconciliation MUST make the union of batches equivalent to the accounted source set.
 - INV-032 — Full-Scale Data Validation: Migration and runtime architecture MUST preserve the ability to load and exercise complete enterprise-scale legacy-derived datasets for stress, replay, posting, balance, cost, lineage and deterministic reconstruction tests. Sample/demo data is never sufficient evidence of migration completeness.
 
+## Application Capability Exposure Constitution
+
+- INV-033 — No Implicit Domain Capability: EVO Core MUST NOT imply that an enterprise owns a domain capability merely because EVO can host an application that provides it.
+- INV-034 — Installed Application Governs Domain API Exposure: A domain API/capability is currently available only when its owning application instance and effective application definition/version satisfy the governed active-state requirements for that enterprise.
+- INV-035 — Effective API Must Match Effective Capability Set: Runtime API discovery, generated API descriptions and callable domain routes MUST NOT advertise inactive, uninstalled or otherwise ineffective application capabilities as currently available.
+- INV-036 — Domain Writes Still Use Command: Application-specific REST, agent or integration adapters MUST resolve to governed Command capabilities; installing an application does not create a second authoritative write path.
+- INV-037 — Uninstall Does Not Erase History: Deactivation or uninstall removes current application capability exposure but MUST NOT silently delete historical BusinessData, Ledger history, lineage or replay evidence.
+- INV-038 — Runtime Discovery Overrides Assumption: Human clients, integrations, automation and LLM agents MUST be able to determine current enterprise capabilities from governed runtime discovery. Prior sessions, demo APIs, another enterprise, static examples or model memory are not evidence that a capability is currently available.
+
 ## Alpha.2 Dimensions + Valuation Posting
 
 ### DIM-01 — Explicit Dimension Definition
