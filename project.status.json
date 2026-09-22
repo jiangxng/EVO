@@ -9,29 +9,32 @@
   },
   "activeWorkPacket": {
     "id": "EEL-C03",
-    "name": "Sales Return & Refund Reference Loop",
+    "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
     "status": "DESIGN ONLY",
     "overallClosed": false,
-    "businessGoal": "Certify a complete customer-side reverse economic loop where sales return and refund are new immutable facts that restore inventory/reduce cash without mutating original sales, shipment, or receipt history, and remain deterministic under Full Replay.",
+    "businessGoal": "Certify a complete customer-side reverse economic loop where return, exchange, refund, and red invoice are new immutable facts that adjust inventory/cash/economic state without mutating original sales, shipment, receipt, or invoice history, and remain deterministic under Full Replay.",
     "activeBranch": "evo/eel-c03-sales-return-refund-packet-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md",
-    "evidenceTarget": "CERTIFIED — EEL-C03 Sales Return & Refund Reference Loop",
+    "evidenceTarget": "CERTIFIED — EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "closedGates": [
       "EEL-C01 Order-to-Cash certified",
       "EEL-C02 Procure-to-Pay certified",
       "Post-EEL-C02 formal requirement alignment completed",
       "EEL-C03 selected because it tests reverse business facts and append-only correction semantics",
-      "enterprise-core-v1 already contains sales-return semantic assets"
+      "enterprise-core-v1 already contains sales-return semantic assets",
+      "Human requirement correction: exchange and red invoice are current simple business events, not deferred platform features"
     ],
     "openGates": [
       "C03.1 Sales Return Economic Recognition",
-      "C03.2 Customer Refund",
-      "C03.3 Work / Balance Closure",
-      "C03.4 Full Replay Equality",
-      "C03.5 Final Certification"
+      "C03.2 Sales Exchange",
+      "C03.3 Customer Refund",
+      "C03.4 Red Invoice",
+      "C03.5 Work / Balance Closure",
+      "C03.6 Full Replay Equality",
+      "C03.7 Final Certification"
     ],
-    "nextAction": "Inspect current sales-return/inventory/receivable/cash semantics and implement C03.1 by reusing existing primitives before adding any reversal-specific runtime."
+    "nextAction": "Implement C03.1 first, then C03.2 exchange and C03.4 red invoice as simple canonical events using existing primitives before considering any RMA/tax-control platform abstraction."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
