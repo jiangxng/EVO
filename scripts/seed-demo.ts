@@ -184,6 +184,23 @@ try {
     })).returning('id').executeTakeFirst(), 'flow definition'
   );
 
+  const p2pFlow = await one(
+    db.insertInto('flow_definition').values({
+      enterprise_id: enterprise.id,
+      code: 'procure-to-pay',
+      name: 'Procure to Pay',
+      description: 'Reference supplier-side procure-to-pay flow for EVO Stage E.',
+      version: 1,
+      status: 'PUBLISHED',
+      definition: {
+        steps: ['purchase-order-approved','goods-received','supplier-paid']
+      },
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name: 'Procure to Pay', status: 'PUBLISHED'
+    })).returning('id').executeTakeFirst(), 'procure-to-pay flow definition'
+  );
+
   await db.insertInto('metric_definition').values({
     enterprise_id: enterprise.id,
     code: 'order-fulfillment-open-qty',
@@ -259,6 +276,7 @@ try {
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
   await command(inventoryVersion.id, 'receive-inventory', 'Receive Inventory (Legacy Demo)', 'inventory.received');
   await command(purchaseVersion.id, 'approve-purchase-order', 'Approve Purchase Order', 'purchase_order.approved');
+  await command(inventoryVersion.id, 'receive-purchase-order', 'Receive Purchase Order', 'goods_receipt.received');
 
   for (const [code, name] of [
     ['order_no','Order'],
@@ -300,7 +318,7 @@ try {
   };
   const inventoryPolicy = {
     required: ['product_id','warehouse'],
-    optional: ['order_no','customer','project','department','profit_center','cost_center']
+    optional: ['order_no','customer','supplier','project','department','profit_center','cost_center']
   };
   const receivablePolicy = {
     required: ['order_no','customer'],
@@ -375,6 +393,19 @@ try {
   });
   await rule(purchaseVersion.id,'purchase-payable',20,trueExpr,{
     ledgerCode:'payable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: purchaseDims
+  });
+
+  const purchaseReceiptInventoryDims = {
+    product_id: field('productId'), warehouse: field('warehouse'),
+    order_no: field('orderNo'), supplier: field('supplier'),
+    project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
+  await rule(inventoryVersion.id,'purchase-receipt-close-pending',30,eq('movementType','PURCHASE_RECEIPT'),{
+    ledgerCode:'pending_purchase', quantity: neg('quantity'), amount: { type:'literal', value:'0' }, dimensions: purchaseDims
+  });
+  await rule(inventoryVersion.id,'purchase-receipt-inventory',40,eq('movementType','PURCHASE_RECEIPT'),{
+    ledgerCode:'inventory', quantity: field('quantity'), amount: field('totalCost'), currency: field('currency'), dimensions: purchaseReceiptInventoryDims
   });
 
   const receiptDims = receivableDims;
@@ -577,7 +608,8 @@ try {
     enterpriseId: enterprise.id,
     enterpriseCode: 'EVO_DEMO',
     referenceItem: 'P-100',
-    referenceFlowId: flow.id
+    referenceFlowId: flow.id,
+    procureToPayFlowId: p2pFlow.id
   }, null, 2));
 } finally {
   await database.destroy();
