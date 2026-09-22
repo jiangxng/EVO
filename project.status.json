@@ -49,7 +49,7 @@
   ],
   "branchPolicy": {
     "authoritativeBranch": "main",
-    "workingRule": "Use short-lived work-packet branches. Merge a database-verified bounded slice to main before starting the next substantial slice when its evidence boundary is explicit.",
+    "workingRule": "Use short-lived work-packet branches by default. Closely related bounded slices inside one confirmed business loop MAY be combined into one bundle branch when they share the same acceptance story and can be proven by one coherent database-E2E scenario. Merge the bundle to main before starting the next substantial independent capability.",
     "historicalBranches": [
       "convergence/upstream-readiness-v0.2.1",
       "v0.3.0-apm-runtime",
@@ -65,7 +65,10 @@
       "evo/er-c05b4-4b-crash-retry-v0.1"
     ],
     "branchTopology": "branch.topology.json",
-    "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions."
+    "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions.",
+    "bundleRule": "A bundle branch is allowed only when: (1) one confirmed business outcome unifies the slices; (2) acceptance and non-goals are explicit; (3) failures can still be localized to named sub-gates; (4) the PR remains reviewable; (5) database evidence covers the whole bundle; and (6) it does not introduce unrelated platform/generalization work.",
+    "authorityRule": "main is the only authoritative integration branch. ACTIVE_WORK branches are provisional. Once merged, mark them MERGED_MILESTONE and never merge them again.",
+    "pacingRule": "Do not create a branch/PR merely because a numbered sub-slice exists. Prefer one evidence-complete bundle over several mechanically small PRs when doing so reduces coordination overhead without weakening auditability."
   },
   "markerPolicy": {
     "authoritativeProgressLocation": "project.status.json",
