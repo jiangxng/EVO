@@ -14,7 +14,7 @@
     "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Certify a bounded manufacturing execution loop where production demand, raw-material issue, production completion, inventory, production Work, cost lineage and Full Replay remain explicit and deterministic without introducing a manufacturing-specific Core Runtime.",
-    "activeBranch": "evo/eel-c04-production-demand-work-v0.1",
+    "activeBranch": "evo/eel-c04-manufacturing-execution-bundle-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C04 Manufacturing Execution Reference Loop",
     "closedGates": [
@@ -25,18 +25,15 @@
       "EEL-C04 selected from business/APQC capability gap rather than technical momentum",
       "existing enterprise-core-v1 already includes Production domain, production-planning/completion capability, pending-production, Inventory and Cost semantics",
       "legacy manufacturing/MRP/WMS semantics are evidence for Reference Enterprise Packs, not Core tables",
-      "C04.1 implementation prepared: independent production_demand.created → pending_production → PRODUCE Work OPEN"
+      "C04.1 Production Demand / Work — DATABASE E2E VERIFIED / CI #632",
+      "C04.2–C04.5 manufacturing execution bundle implemented: material issue, WIP valuation, partial/multiple production, finished-goods cost and Work closure"
     ],
     "openGates": [
-      "C04.1 Production Demand / Work — awaiting PostgreSQL 18 evidence",
-      "C04.2 Raw Material Issue",
-      "C04.3 Production Completion",
-      "C04.4 Manufacturing Cost",
-      "C04.5 Partial / Multiple Production",
+      "C04.2–C04.5 Manufacturing Execution Bundle — awaiting PostgreSQL 18 evidence",
       "C04.6 Full Replay Equality",
       "C04.7 Final Certification"
     ],
-    "nextAction": "Run isolated PostgreSQL 18 validation for C04.1; if green, merge and continue to C04.2 Raw Material Issue."
+    "nextAction": "Run isolated PostgreSQL 18 manufacturing bundle validation; if green, merge and move directly to C04.6 Full Replay + final certification."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
