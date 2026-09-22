@@ -5,7 +5,7 @@ import type { Database } from '../../../platform/database/src/types.js';
 import type { DatabaseTransactionRunner } from '../../../platform/database/src/transaction.js';
 import type {
   AccountingJournalService,
-  AccountingAccountingJsonObject,
+  AccountingJsonObject,
   PostJournalRequest,
   PostJournalResult
 } from '../api/contracts.js';
