@@ -256,9 +256,9 @@
     },
     "evo/financial-double-entry-integrity-v0.1": {
       "class": "EXPERIMENTAL",
-      "mergePolicy": "MANUAL_REVIEW_ONLY",
+      "mergePolicy": "NO_WHOLESALE_MERGE",
       "containedByMain": false,
-      "description": "Paused Financial Accounting Integrity documentation/invariant branch. Finance integrity requirements remain authoritative in merged main docs, but this branch is not the active Stage E business mainline and must not be merged wholesale without live review."
+      "description": "Historical/experimental financial-integrity branch. Requirements and audit findings are valid, but implementation is incomplete. Do not treat this branch as evidence that double-entry was implemented; recover selectively only."
     },
     "evo/eel-c03-customer-refund-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -354,13 +354,21 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 43,
-      "description": "EEL-C05 transfer quantity/value conservation bundle merged after CI #649."
+      "description": "EEL-C05 transfer conservation merged after CI #649."
     },
     "evo/eel-c05-full-replay-final-certification-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 44,
+      "description": "EEL-C05 Full Replay and final certification merged after CI #656."
+    },
+    "evo/fai-double-entry-alignment-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C05 Full Replay Equality + Final Certification bundle."
+      "description": "Active alignment branch making double-entry integrity the explicit post-EEL-C05 mainline."
     }
   },
   "requiredLLMProcedure": [
@@ -388,7 +396,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "c57ac5716aff743470e8d6b2ab98bc5e87a6aec7",
+  "lastReviewedMainCommit": "3a1a437d9e96a5e1b064649deb3ac31fe2ee5ce5",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -416,15 +424,15 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/eel-c05-full-replay-final-certification-v0.1",
+    "businessMainline": "evo/fai-double-entry-alignment-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "C05 Full Replay Equality",
-      "C05 Final Certification",
-      "status/evidence closure"
+      "mark 有借必有贷、借贷必相等 OPEN",
+      "mark old finance branch historical/experimental",
+      "select FAI-01 + FAI-02 as next mainline"
     ],
-    "evidenceTarget": "DATABASE E2E VERIFIED Full Replay MATCH + CERTIFIED",
-    "afterSuccess": "Merge to main, then run completed-loop requirement alignment before selecting new Stage E work.",
-    "rule": "Do not extend C05 into WMS/TMS or cross-entity transfer during final certification."
+    "evidenceTarget": "requirement/status alignment only",
+    "afterSuccess": "Merge alignment, then create a fresh FAI-01-02 implementation branch from latest main.",
+    "rule": "Do not infer strict double-entry from generic signed economic ledgers. Do not select another ordinary Stage E loop before FAI-01/02 unless explicitly re-prioritized."
   }
 }
