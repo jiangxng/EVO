@@ -10,6 +10,15 @@ The numbered architecture series below is a genealogy, not a mandatory reading
 sequence for every task. AI agents should start at `/AGENTS.md`, then use
 `/context.manifest.json` to select a task-specific profile and current pointers.
 
+Current business-finance architecture pointers:
+
+- `EVO-00-Core-Architecture-v0.1.md` — EVO is an enterprise operating foundation, not a finance-first platform.
+- `EVO-03-Ledger-Conditional-Posting-Model-v0.1.md` — operational/economic ledgers vs governed double-entry General Ledger.
+- `EVO-13-Enterprise-Operating-Model-Convergence-v0.2.md` — business/finance capabilities grow through installable applications/packages/plugins.
+- `../product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md` — authoritative business intent for 业财一体.
+- `status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-AUDIT-2026-09-22-v0.1.md` — double-entry readiness gate.
+- `status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md` — PRC accounting regulatory baseline.
+
 Current cross-model documentation rules:
 
 - `continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md`
