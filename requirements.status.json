@@ -48,11 +48,11 @@
       "existing runtime already has pending-production, production.completed, Inventory, Cost/Valuation, WorkProjection and Replay primitives",
       "legacy manufacturing/MRP/WMS semantics are to be recovered as Reference Enterprise Packs rather than promoted into Core",
       "C04.1 Production Demand / Work is DATABASE E2E VERIFIED by PostgreSQL 18 CI #632 and merged to main",
-      "C04.2–C04.5 Manufacturing Execution Bundle is DATABASE E2E VERIFIED on PostgreSQL 18.6 with raw-material inventory, WIP, finished-goods cost, partial completion, Work closure and explicit lineage evidence"
+      "C04.2–C04.5 Manufacturing Execution Bundle is DATABASE E2E VERIFIED on PostgreSQL 18.6 with raw-material inventory, WIP, finished-goods cost, partial completion, Work closure and explicit lineage evidence",
+      "C04.6 Full Replay Equality is DATABASE E2E VERIFIED locally on PostgreSQL 18.6; facts, relationships, Inventory, pending production, Cost, WIP and Work rebuild identically"
     ],
     "open": [
-      "C04.6 Full Replay Equality",
-      "C04.7 Final Certification"
+      "C04.7 Final Certification — remote CI and merge evidence pending"
     ],
     "deferred": [
       "full BOM platform",
@@ -70,7 +70,7 @@
       "advanced lot and serial traceability",
       "capacity optimization"
     ],
-    "currentWork": "C04.2–C04.5 Manufacturing Execution Bundle",
+    "currentWork": "C04.6 Full Replay Equality + C04.7 Final Certification",
     "status": "DATABASE E2E VERIFIED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md"
   },
@@ -119,7 +119,7 @@
     "selection": "EEL-C04 Manufacturing Execution Reference Loop",
     "rule": "Treat manufacturing execution as a bounded application/package capability first; do not conflate it with full BOM/MRP/APS/MES platforms unless current acceptance requires those."
   },
-  "currentWork": "C04.2–C04.5 Manufacturing Execution Bundle",
+  "currentWork": "C04.6 Full Replay Equality + C04.7 Final Certification",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [
