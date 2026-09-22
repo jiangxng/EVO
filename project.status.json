@@ -5,30 +5,32 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "11ee7618c12da214e8e0270b321e0f098a448488"
+    "lastVerifiedRuntimeMergeCommit": "6bc9be3223aa5b491f5219fcfe9e939ba8e25819"
   },
   "activeWorkPacket": {
-    "id": "EEL-C04",
-    "name": "Manufacturing Execution Reference Loop",
+    "id": "EEL-C05",
+    "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Certify a bounded manufacturing execution loop where production demand, raw-material issue, production completion, inventory, production Work, cost lineage and Full Replay remain explicit and deterministic without introducing a manufacturing-specific Core Runtime.",
-    "activeBranch": "evo/post-codex-eel-c04-alignment-v0.1",
-    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md",
-    "evidenceTarget": "CERTIFIED — EEL-C04 Manufacturing Execution Reference Loop",
+    "status": "DESIGN ONLY",
+    "overallClosed": false,
+    "businessGoal": "Certify intra-enterprise inventory transfer where location changes while enterprise-wide quantity and inventory value remain conserved, with explicit lineage, balance-driven Work and deterministic Full Replay.",
+    "activeBranch": "evo/post-eel-c04-alignment-eel-c05-selection-v0.1",
+    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md",
+    "evidenceTarget": "CERTIFIED — EEL-C05 Inventory Transfer & Warehouse Rebalancing",
     "closedGates": [
       "EEL-C01 Order-to-Cash certified",
       "EEL-C02 Procure-to-Pay certified",
-      "EEL-C03 Sales Return / Exchange / Refund / Red Invoice certified",
-      "C04.1 Production Demand / Work — DATABASE E2E VERIFIED / CI #632",
-      "C04.2–C04.5 Manufacturing Execution Bundle — DATABASE E2E VERIFIED / PR #39 / CI #640",
-      "C04.6 Full Replay Equality — DATABASE E2E VERIFIED / PR #40 / CI #642",
-      "C04.7 Final Certification — CERTIFIED in docs/architecture/certification/EEL-C04-MANUFACTURING-EXECUTION-CERTIFICATION-v0.2.md",
-      "Valuation replay ordering defect corrected and merged to main in 11ee7618"
+      "EEL-C03 customer-side reverse loop certified",
+      "EEL-C04 Manufacturing Execution certified",
+      "Post-EEL-C04 completed-loop alignment completed",
+      "EEL-C05 selected from inventory/warehouse internal-logistics capability gap",
+      "WMS/TMS/platform expansion explicitly deferred"
     ],
-    "openGates": [],
-    "nextAction": "Run completed-loop requirement alignment and select the next Stage E bounded business packet. Do not extend EEL-C04 by momentum."
+    "openGates": [
+      "C05 Bundle A — Transfer Execution",
+      "C05 Bundle B — Transfer Valuation + Full Replay + Final Certification"
+    ],
+    "nextAction": "Merge the EEL-C05 selection/business packet, then implement Bundle A: transfer facts, source/destination quantity movement, partial receipt, explicit relations and balance-driven TRANSFER Work."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -94,7 +96,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "EEL_C04_CERTIFIED_COMPLETED_LOOP_ALIGNMENT_REQUIRED",
+    "currentAssessment": "ALIGNED_EEL_C05_INVENTORY_TRANSFER_SELECTED",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
