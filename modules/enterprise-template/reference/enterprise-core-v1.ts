@@ -61,6 +61,8 @@ export const enterpriseCoreV1: JsonObject = {
     { code: 'supplier', name: 'Supplier', type: 'REFERENCE', reference: 'supplier' },
     { code: 'material', name: 'Material', type: 'REFERENCE', reference: 'material' },
     { code: 'warehouse', name: 'Warehouse', type: 'REFERENCE', reference: 'warehouse' },
+    { code: 'sourceWarehouse', name: 'Source Warehouse', type: 'REFERENCE', reference: 'warehouse' },
+    { code: 'destinationWarehouse', name: 'Destination Warehouse', type: 'REFERENCE', reference: 'warehouse' },
     { code: 'quantity', name: 'Quantity', type: 'DECIMAL', scale: 6 },
     { code: 'unitPrice', name: 'Unit Price', type: 'DECIMAL', scale: 6 },
     { code: 'amount', name: 'Amount', type: 'DECIMAL', scale: 6 },
@@ -102,6 +104,18 @@ export const enterpriseCoreV1: JsonObject = {
       commands: [{ code: 'move-inventory', permission: 'inventory.move', produces: 'inventory.moved', requiredFields: ['documentNo', 'material', 'warehouse', 'quantity'] }]
     },
     {
+      code: 'inventory-transfer', name: 'Inventory Transfer', domain: 'inventory', businessDataType: 'inventory_transfer.created',
+      fieldGroups: [{
+        code: 'transfer',
+        fields: ['documentNo', 'effectiveAt', 'material', 'sourceWarehouse', 'destinationWarehouse', 'quantity', 'project', 'department', 'costCenter']
+      }],
+      commands: [
+        { code: 'create-transfer', permission: 'inventory.transfer', produces: 'inventory_transfer.created', requiredFields: ['documentNo', 'material', 'sourceWarehouse', 'destinationWarehouse', 'quantity'] },
+        { code: 'issue-transfer', permission: 'inventory.transfer', produces: 'inventory_transfer.issued', requiredFields: ['documentNo', 'material', 'sourceWarehouse', 'destinationWarehouse', 'quantity'] },
+        { code: 'receive-transfer', permission: 'inventory.transfer', produces: 'inventory_transfer.received', requiredFields: ['documentNo', 'material', 'sourceWarehouse', 'destinationWarehouse', 'quantity'] }
+      ]
+    },
+    {
       code: 'sales-shipment', name: 'Sales Shipment', domain: 'sales', businessDataType: 'sales_shipment.created',
       fieldGroups: [{ code: 'shipment', fields: ['documentNo', 'effectiveAt', 'customer', 'material', 'warehouse', 'quantity', 'project', 'department', 'profitCenter', 'costCenter'] }],
       commands: [{ code: 'ship-sales-order', permission: 'inventory.ship', produces: 'sales_shipment.created', requiredFields: ['documentNo', 'customer', 'material', 'warehouse', 'quantity'] }]
@@ -127,6 +141,7 @@ export const enterpriseCoreV1: JsonObject = {
     { code: 'purchase-order-management', name: 'Purchase Order Management', transactionType: 'purchase-order', commands: ['approve-purchase-order'] },
     { code: 'production-completion', name: 'Production Completion', transactionType: 'production-completion', commands: ['complete-production'] },
     { code: 'inventory-movement', name: 'Inventory Movement', transactionType: 'inventory-movement', commands: ['move-inventory'] },
+    { code: 'inventory-transfer', name: 'Inventory Transfer', transactionType: 'inventory-transfer', commands: ['create-transfer', 'issue-transfer', 'receive-transfer'] },
     { code: 'sales-shipment', name: 'Sales Shipment', transactionType: 'sales-shipment', commands: ['ship-sales-order'] },
     { code: 'sales-return', name: 'Sales Return', transactionType: 'sales-return', commands: ['receive-sales-return'] },
     { code: 'cash-receipt', name: 'Cash Receipt', transactionType: 'receipt', commands: ['record-receipt'] },
@@ -136,6 +151,7 @@ export const enterpriseCoreV1: JsonObject = {
     { code: 'pending-production', name: 'Pending Production', class: 'OPERATIONAL', measure: 'QUANTITY', dimensions: { required: ['entity', 'material'], allowed: ['customer', 'warehouse', 'project', 'department'] } },
     { code: 'pending-purchase', name: 'Pending Purchase', class: 'OPERATIONAL', measure: 'QUANTITY', dimensions: { required: ['entity', 'material'], allowed: ['supplier', 'warehouse', 'project', 'department'] } },
     { code: 'pending-shipment', name: 'Pending Shipment', class: 'OPERATIONAL', measure: 'QUANTITY', dimensions: { required: ['entity', 'customer', 'material'], allowed: ['warehouse', 'project', 'department', 'profit-center'] } },
+    { code: 'pending-transfer', name: 'Pending Transfer Receipt', class: 'OPERATIONAL', measure: 'QUANTITY', dimensions: { required: ['entity', 'material'], allowed: ['warehouse', 'project', 'department', 'cost-center'] } },
     { code: 'receivable', name: 'Accounts Receivable', class: 'FINANCIAL', measure: 'AMOUNT', dimensions: { required: ['entity', 'customer'], allowed: ['project', 'department', 'profit-center'] } },
     { code: 'payable', name: 'Accounts Payable', class: 'FINANCIAL', measure: 'AMOUNT', dimensions: { required: ['entity', 'supplier'], allowed: ['project', 'department', 'cost-center'] } },
     { code: 'inventory', name: 'Inventory', class: 'FINANCIAL', measure: 'QUANTITY_AND_AMOUNT', dimensions: { required: ['entity', 'material', 'warehouse'], allowed: ['facility', 'project', 'department', 'cost-center'] } },

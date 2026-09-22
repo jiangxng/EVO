@@ -65,7 +65,20 @@ export class PostgresValuationPostingService implements ValuationPostingService 
       }
       const mapping=asJsonObject(rule.dimension_mapping,'valuation_rule.dimension_mapping');
       const payload=asJsonObject(business.payload,'business_data.payload');
-      const dimensions = this.resolveDimensions(mapping, payload);
+      const sourceMapping =
+        mapping.source !== null &&
+        typeof mapping.source === 'object' &&
+        !Array.isArray(mapping.source)
+          ? asJsonObject(mapping.source as Record<string, unknown>,'valuation_rule.dimension_mapping.source')
+          : mapping;
+      const targetMapping =
+        mapping.target !== null &&
+        typeof mapping.target === 'object' &&
+        !Array.isArray(mapping.target)
+          ? asJsonObject(mapping.target as Record<string, unknown>,'valuation_rule.dimension_mapping.target')
+          : mapping;
+      const sourceDimensions = this.resolveDimensions(sourceMapping, payload);
+      const targetDimensions = this.resolveDimensions(targetMapping, payload);
       const datasetId = await this.ensureDataset(
         trx,
         cost.enterprise_id,
@@ -74,15 +87,18 @@ export class PostgresValuationPostingService implements ValuationPostingService 
       );
       const knownRows = await trx.selectFrom('dimension_definition').select('code').where('status','=','PUBLISHED').where((eb)=>eb.or([eb('enterprise_id','is',null),eb('enterprise_id','=',cost.enterprise_id)])).execute();
       const known = new Set(knownRows.map((row)=>row.code));
-      const effects=[{ledgerCode:rule.inventory_ledger_code,amount:delta.negated()},{ledgerCode:rule.cogs_ledger_code,amount:delta}] as const;
+      const effects=[
+        {ledgerCode:rule.inventory_ledger_code,amount:delta.negated(),dimensions:sourceDimensions},
+        {ledgerCode:rule.cogs_ledger_code,amount:delta,dimensions:targetDimensions}
+      ] as const;
       for(let index=0;index<effects.length;index+=1){
         const effect=effects[index]!;
         const ledger=await trx.selectFrom('ledger_definition').select(['id','code','dimension_schema']).where('code','=',effect.ledgerCode).executeTakeFirst();
         if(ledger===undefined) throw new AppError({code:'VALUATION_LEDGER_NOT_FOUND',message:`Valuation rule targets unknown ledger ${effect.ledgerCode}.`,module:'valuation',operation:'postCostResult'});
-        validateDimensionPolicy(ledger.code,ledger.dimension_schema as unknown as LedgerDimensionPolicy,dimensions,known);
-        const hash=dimensionHash(dimensions);
-        await trx.insertInto('ledger_entry').values({enterprise_id:cost.enterprise_id,consistency_domain:postingInput.consistency_domain,ledger_dataset_id:datasetId,ledger_definition_id:ledger.id,posting_run_id:null,posting_input_id:null,business_data_id:cost.business_data_id,posting_rule_id:null,posting_rule_schema_version:0,effect_index:index,quantity:'0',amount:effect.amount.toString(),unit:null,currency:null,dimensions,dimension_hash:hash,effective_at:business.effective_at,posting_priority:postingInput.posting_priority+1000000,posting_sequence:postingInput.posting_sequence,entry_source_kind:'VALUATION',valuation_posting_run_id:run.id,cost_result_id:cost.id,valuation_rule_id:rule.id,valuation_rule_version:rule.version}).execute();
-        await trx.insertInto('ledger_balance').values({enterprise_id:cost.enterprise_id,consistency_domain:postingInput.consistency_domain,ledger_dataset_id:datasetId,ledger_definition_id:ledger.id,dimension_hash:hash,dimensions,quantity:'0',amount:effect.amount.toString(),last_effective_at:business.effective_at,last_posting_priority:postingInput.posting_priority+1000000,last_posting_sequence:postingInput.posting_sequence}).onConflict((oc)=>oc.columns(['ledger_dataset_id','ledger_definition_id','dimension_hash']).doUpdateSet({
+        validateDimensionPolicy(ledger.code,ledger.dimension_schema as unknown as LedgerDimensionPolicy,effect.dimensions,known);
+        const hash=dimensionHash(effect.dimensions);
+        await trx.insertInto('ledger_entry').values({enterprise_id:cost.enterprise_id,consistency_domain:postingInput.consistency_domain,ledger_dataset_id:datasetId,ledger_definition_id:ledger.id,posting_run_id:null,posting_input_id:null,business_data_id:cost.business_data_id,posting_rule_id:null,posting_rule_schema_version:0,effect_index:index,quantity:'0',amount:effect.amount.toString(),unit:null,currency:null,dimensions:effect.dimensions,dimension_hash:hash,effective_at:business.effective_at,posting_priority:postingInput.posting_priority+1000000,posting_sequence:postingInput.posting_sequence,entry_source_kind:'VALUATION',valuation_posting_run_id:run.id,cost_result_id:cost.id,valuation_rule_id:rule.id,valuation_rule_version:rule.version}).execute();
+        await trx.insertInto('ledger_balance').values({enterprise_id:cost.enterprise_id,consistency_domain:postingInput.consistency_domain,ledger_dataset_id:datasetId,ledger_definition_id:ledger.id,dimension_hash:hash,dimensions:effect.dimensions,quantity:'0',amount:effect.amount.toString(),last_effective_at:business.effective_at,last_posting_priority:postingInput.posting_priority+1000000,last_posting_sequence:postingInput.posting_sequence}).onConflict((oc)=>oc.columns(['ledger_dataset_id','ledger_definition_id','dimension_hash']).doUpdateSet({
           amount:sql`ledger_balance.amount + excluded.amount`,
           last_effective_at:sql`case when (excluded.last_effective_at, excluded.last_posting_priority, excluded.last_posting_sequence) > (ledger_balance.last_effective_at, ledger_balance.last_posting_priority, ledger_balance.last_posting_sequence) then excluded.last_effective_at else ledger_balance.last_effective_at end`,
           last_posting_priority:sql`case when (excluded.last_effective_at, excluded.last_posting_priority, excluded.last_posting_sequence) > (ledger_balance.last_effective_at, ledger_balance.last_posting_priority, ledger_balance.last_posting_sequence) then excluded.last_posting_priority else ledger_balance.last_posting_priority end`,

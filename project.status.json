@@ -11,10 +11,10 @@
     "id": "EEL-C05",
     "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DESIGN ONLY",
+    "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Certify intra-enterprise inventory transfer where location changes while enterprise-wide quantity and inventory value remain conserved, with explicit lineage, balance-driven Work and deterministic Full Replay.",
-    "activeBranch": "evo/post-eel-c04-alignment-eel-c05-selection-v0.1",
+    "activeBranch": "evo/eel-c05-transfer-execution-bundle-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C05 Inventory Transfer & Warehouse Rebalancing",
     "closedGates": [
@@ -24,13 +24,15 @@
       "EEL-C04 Manufacturing Execution certified",
       "Post-EEL-C04 completed-loop alignment completed",
       "EEL-C05 selected from inventory/warehouse internal-logistics capability gap",
-      "WMS/TMS/platform expansion explicitly deferred"
+      "WMS/TMS/platform expansion explicitly deferred",
+      "C05 implementation prepared as one conservation-safe bundle: create/issue/partial receipt, source/destination quantity movement, FIFO-derived value transfer, explicit lineage and TRANSFER Work",
+      "Bundle A/B intermediate merge plan collapsed because quantity-only transfer would create an economically incomplete main state"
     ],
     "openGates": [
-      "C05 Bundle A — Transfer Execution",
-      "C05 Bundle B — Transfer Valuation + Full Replay + Final Certification"
+      "C05 Inventory Transfer Conservation Bundle — awaiting PostgreSQL 18 evidence",
+      "C05 Full Replay Equality + Final Certification"
     ],
-    "nextAction": "Merge the EEL-C05 selection/business packet, then implement Bundle A: transfer facts, source/destination quantity movement, partial receipt, explicit relations and balance-driven TRANSFER Work."
+    "nextAction": "Run isolated PostgreSQL 18 transfer-conservation validation. If green, merge the complete quantity+value transfer bundle, then finish C05 with Full Replay + certification."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
