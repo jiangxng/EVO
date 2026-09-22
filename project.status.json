@@ -11,10 +11,10 @@
     "id": "EEL-C04",
     "name": "Manufacturing Execution Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "IMPLEMENTED",
+    "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Certify a bounded manufacturing execution loop where production demand, raw-material issue, production completion, inventory, production Work, cost lineage and Full Replay remain explicit and deterministic without introducing a manufacturing-specific Core Runtime.",
-    "activeBranch": "evo/eel-c04-production-demand-work-v0.1",
+    "activeBranch": "evo/eel-c04-manufacturing-execution-bundle-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C04 Manufacturing Execution Reference Loop",
     "closedGates": [
@@ -25,18 +25,15 @@
       "EEL-C04 selected from business/APQC capability gap rather than technical momentum",
       "existing enterprise-core-v1 already includes Production domain, production-planning/completion capability, pending-production, Inventory and Cost semantics",
       "legacy manufacturing/MRP/WMS semantics are evidence for Reference Enterprise Packs, not Core tables",
-      "C04.1 implementation prepared: independent production_demand.created → pending_production → PRODUCE Work OPEN"
+      "C04.1 Production Demand / Work — DATABASE E2E VERIFIED / CI #632",
+      "C04.2–C04.5 manufacturing execution bundle verified on PostgreSQL 18.6: material issue, WIP valuation, partial/multiple production, finished-goods cost and Work closure",
+      "full applicable local pipeline passed: migrate, validate:docs, typecheck, build, 31 test files / 84 tests, seed:demo, validate:demo and validate:eel-c04-manufacturing-execution-bundle"
     ],
     "openGates": [
-      "C04.1 Production Demand / Work — awaiting PostgreSQL 18 evidence",
-      "C04.2 Raw Material Issue",
-      "C04.3 Production Completion",
-      "C04.4 Manufacturing Cost",
-      "C04.5 Partial / Multiple Production",
       "C04.6 Full Replay Equality",
       "C04.7 Final Certification"
     ],
-    "nextAction": "Run isolated PostgreSQL 18 validation for C04.1; if green, merge and continue to C04.2 Raw Material Issue."
+    "nextAction": "Merge the database-verified C04.2–C04.5 bundle to main, then create a new bounded branch for C04.6 Full Replay + C04.7 Final Certification."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -52,7 +49,7 @@
   ],
   "branchPolicy": {
     "authoritativeBranch": "main",
-    "workingRule": "Use short-lived work-packet branches. Merge a database-verified bounded slice to main before starting the next substantial slice when its evidence boundary is explicit.",
+    "workingRule": "Use short-lived work-packet branches by default. Closely related bounded slices inside one confirmed business loop MAY be combined into one bundle branch when they share the same acceptance story and can be proven by one coherent database-E2E scenario. Merge the bundle to main before starting the next substantial independent capability.",
     "historicalBranches": [
       "convergence/upstream-readiness-v0.2.1",
       "v0.3.0-apm-runtime",
@@ -68,7 +65,10 @@
       "evo/er-c05b4-4b-crash-retry-v0.1"
     ],
     "branchTopology": "branch.topology.json",
-    "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions."
+    "analysisRule": "LLMs must use branch.topology.json plus live GitHub compare results before merge/delete/revival decisions.",
+    "bundleRule": "A bundle branch is allowed only when: (1) one confirmed business outcome unifies the slices; (2) acceptance and non-goals are explicit; (3) failures can still be localized to named sub-gates; (4) the PR remains reviewable; (5) database evidence covers the whole bundle; and (6) it does not introduce unrelated platform/generalization work.",
+    "authorityRule": "main is the only authoritative integration branch. ACTIVE_WORK branches are provisional. Once merged, mark them MERGED_MILESTONE and never merge them again.",
+    "pacingRule": "Do not create a branch/PR merely because a numbered sub-slice exists. Prefer one evidence-complete bundle over several mechanically small PRs when doing so reduces coordination overhead without weakening auditability."
   },
   "markerPolicy": {
     "authoritativeProgressLocation": "project.status.json",

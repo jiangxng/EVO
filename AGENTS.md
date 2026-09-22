@@ -70,6 +70,23 @@ memory are hints only.
 - **Candidate** means an isolated proposed derived generation, not canonical
   BusinessData.
 
+## Branch and PR pacing
+
+Use short-lived bounded work branches by default, but do not mechanically create one branch per numbered sub-slice.
+
+Closely related slices inside the same confirmed business loop may be combined into one **bundle branch** when:
+
+- they share one business acceptance story;
+- included sub-gates and non-goals are explicit;
+- one coherent database-E2E scenario can prove the bundle;
+- failures remain localizable;
+- the PR remains reviewable;
+- no unrelated platform/generalization work is mixed in.
+
+`main` is the only authoritative integration branch. ACTIVE_WORK branches are provisional. After merge, classify the source branch as MERGED_MILESTONE and never reuse it for new work.
+
+Before branch merge/delete/revival decisions, follow `branch.topology.json` and live GitHub reality.
+
 ## Validation commands
 
 Use Node `24.20.x` and PostgreSQL 18 for the certified pipeline.

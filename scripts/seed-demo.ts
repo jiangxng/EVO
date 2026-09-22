@@ -73,6 +73,7 @@ try {
   }
   const salesType = await txType(salesDomain.id, 'sales_order', 'Sales Order');
   const productionDemandType = await txType(productionDomain.id, 'production_demand', 'Production Demand');
+  const materialIssueType = await txType(productionDomain.id, 'material_issue', 'Material Issue');
   const productionType = await txType(productionDomain.id, 'production_completion', 'Production Completion');
   const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
   const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
@@ -94,6 +95,7 @@ try {
   }
   const salesApp = await app('sales_order', 'Sales Order', salesType.id);
   const productionDemandApp = await app('production_demand', 'Production Demand', productionDemandType.id);
+  const materialIssueApp = await app('material_issue', 'Material Issue', materialIssueType.id);
   const productionApp = await app('production_completion', 'Production Completion', productionType.id);
   const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
   const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
@@ -123,6 +125,7 @@ try {
   }
   const salesVersion = await version(salesApp.id);
   const productionDemandVersion = await version(productionDemandApp.id);
+  const materialIssueVersion = await version(materialIssueApp.id);
   const productionVersion = await version(productionApp.id);
   const inventoryVersion = await version(inventoryApp.id);
   const valuationVersion = await version(valuationApp.id);
@@ -150,6 +153,7 @@ try {
   }
   await instance(salesApp.id, 'sales', 'Sales');
   await instance(productionDemandApp.id, 'production-demand', 'Production Demand');
+  await instance(materialIssueApp.id, 'material-issue', 'Material Issue');
   await instance(productionApp.id, 'production', 'Production');
   await instance(inventoryApp.id, 'inventory', 'Inventory');
   await instance(valuationApp.id, 'valuation', 'Valuation');
@@ -229,6 +233,23 @@ try {
     })).returning('id').executeTakeFirst(), 'procure-to-pay flow definition'
   );
 
+  const manufacturingFlow = await one(
+    db.insertInto('flow_definition').values({
+      enterprise_id: enterprise.id,
+      code: 'manufacturing-execution',
+      name: 'Manufacturing Execution',
+      description: 'Reference manufacturing execution flow for EVO Stage E.',
+      version: 1,
+      status: 'PUBLISHED',
+      definition: {
+        steps: ['production-demand-created','material-issued','production-completed']
+      },
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name: 'Manufacturing Execution', status: 'PUBLISHED'
+    })).returning('id').executeTakeFirst(), 'manufacturing flow definition'
+  );
+
   await db.insertInto('metric_definition').values({
     enterprise_id: enterprise.id,
     code: 'order-fulfillment-open-qty',
@@ -302,6 +323,7 @@ try {
   await command(cashRefundVersion.id, 'record-customer-refund', 'Record Customer Refund', 'cash.refunded');
   await command(valuationVersion.id, 'request-valuation', 'Request Valuation', 'valuation.requested');
   await command(productionDemandVersion.id, 'create-production-demand', 'Create Production Demand', 'production_demand.created');
+  await command(materialIssueVersion.id, 'issue-material', 'Issue Material', 'material_issue.issued');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
@@ -383,6 +405,7 @@ try {
   await ledger('cash','现金', cashPolicy);
   await ledger('inventory','库存', inventoryPolicy);
   await ledger('cogs','销售成本', inventoryPolicy);
+  await ledger('manufacturing_wip','生产在制成本', inventoryPolicy);
   await ledger('sales_invoice_amount','销售开票金额', receivablePolicy);
   await ledger('pending_exchange','待换货', reverseWorkPolicy);
   await ledger('pending_refund','待退款', reverseWorkPolicy);
@@ -557,11 +580,32 @@ try {
     project: field('project'), department: field('department'),
     profit_center: field('profitCenter'), cost_center: field('costCenter')
   };
+  const materialIssueDims = {
+    product_id: field('productId'), warehouse: field('warehouse'),
+    order_no: field('orderNo'),
+    project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
+  await rule(materialIssueVersion.id,'material-issue-inventory',10,trueExpr,{
+    ledgerCode:'inventory', quantity:neg('quantity'), amount:{type:'literal',value:'0'}, dimensions:materialIssueDims
+  });
+
   await rule(productionVersion.id,'production-close-demand',10,trueExpr,{
     ledgerCode:'pending_production', quantity: neg('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
   await rule(productionVersion.id,'production-finished-goods',20,trueExpr,{
     ledgerCode:'inventory', quantity: field('quantity'), amount: field('totalCost'), dimensions: invDims
+  });
+  const productionWipDims = {
+    product_id: field('materialProductId'), warehouse: field('materialWarehouse'),
+    order_no: field('orderNo'),
+    project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
+  await rule(productionVersion.id,'production-clear-wip',30,{
+    type:'ne', left:field('materialProductId'), right:{type:'literal',value:null}
+  },{
+    ledgerCode:'manufacturing_wip', quantity:{type:'literal',value:0}, amount:neg('totalCost'), dimensions:productionWipDims
   });
 
   await rule(inventoryVersion.id,'shipment-inventory',10,eq('movementType','SHIP'),{
@@ -630,6 +674,28 @@ try {
 
   await db.insertInto('valuation_rule').values({
     enterprise_id: enterprise.id,
+    code: 'material-issue-inventory-to-wip',
+    name: 'Material Issue Inventory Value to Manufacturing WIP',
+    source_business_data_type: 'material_issue.issued',
+    inventory_ledger_code: 'inventory',
+    cogs_ledger_code: 'manufacturing_wip',
+    dimension_mapping: {
+      product_id: field('productId'),
+      warehouse: field('warehouse'),
+      order_no: field('orderNo'),
+      project: field('project'),
+      department: field('department'),
+      cost_center: field('costCenter')
+    },
+    version: 1,
+    status: 'PUBLISHED',
+    published_at: new Date()
+  }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+    status: 'PUBLISHED'
+  })).execute();
+
+  await db.insertInto('valuation_rule').values({
+    enterprise_id: enterprise.id,
     code: 'shipment-inventory-to-cogs',
     name: 'Shipment Inventory Value to COGS',
     source_business_data_type: 'sales_shipment.created',
@@ -653,8 +719,8 @@ try {
   })).execute();
 
   const costRuntimeConfig = {
-    inboundBusinessDataTypes: ['production.completed','inventory.received'],
-    outboundBusinessDataTypes: ['sales_shipment.created'],
+    inboundBusinessDataTypes: ['production.completed','inventory.received','goods_receipt.received'],
+    outboundBusinessDataTypes: ['sales_shipment.created','material_issue.issued'],
     quantityField: 'quantity',
     quantityUnit: 'EA',
     basisAmountField: 'totalCost',

@@ -12,7 +12,12 @@
     "If a branch diverged from main, do not wholesale merge unless this manifest explicitly allows it.",
     "For diverged historical branches, recover individual commits/files only after architecture and ownership review.",
     "Open PR does not imply current work; merged/closed PR history and this manifest take precedence.",
-    "main is the only authoritative integration branch unless this manifest is versioned to say otherwise; lastReviewedMainCommit is evidence of the last topology review, not a required equality with live main HEAD."
+    "main is the only authoritative integration branch unless this manifest is versioned to say otherwise; lastReviewedMainCommit is evidence of the last topology review, not a required equality with live main HEAD.",
+    "A branch does not need to correspond 1:1 with a numbered bounded slice. Multiple closely related slices may live in one bundle branch when one business acceptance story and one coherent evidence scenario cover them.",
+    "Bundle branches must remain business-bounded: do not mix unrelated capabilities, speculative platform work, broad refactors, or opportunistic cleanup into the same PR.",
+    "For an ACTIVE_WORK bundle, inspect project.status.json open/closed gates and the PR evidence to determine which sub-gates are implemented or verified; do not infer all numbered slices are complete merely because they share a branch.",
+    "Prefer fewer evidence-complete branches over mechanically tiny branches when auditability, rollback clarity, and failure localization remain intact.",
+    "After a bundle is merged, main becomes the only authoritative source of those capabilities; the source branch becomes MERGED_MILESTONE and must not be revived for new work."
   ],
   "branchClasses": {
     "main": {
@@ -220,10 +225,10 @@
       "description": "Paused horizontal API/capability-discovery work. Not current business mainline; do not extend while EEL-C02 is active unless explicitly resumed."
     },
     "evo/eel-c02-post-merge-pointer-cleanup-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "class": "DIVERGED_HISTORICAL",
+      "mergePolicy": "NO_WHOLESALE_MERGE",
       "containedByMain": false,
-      "description": "Short-lived post-merge status/topology cleanup for EEL-C02; no runtime behavior changes."
+      "description": "Historical post-EEL-C02 pointer-cleanup branch. It is not current Stage E work; inspect selectively only if status archaeology is required."
     },
     "evo/eel-c03-sales-return-refund-packet-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -250,10 +255,10 @@
       "description": "EEL-C03.2 Sales Exchange merged after PostgreSQL 18 E2E / CI #602."
     },
     "evo/financial-double-entry-integrity-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "class": "EXPERIMENTAL",
+      "mergePolicy": "MANUAL_REVIEW_ONLY",
       "containedByMain": false,
-      "description": "Financial Accounting Integrity audit: establishes explicit double-entry General Ledger gate before Trial Balance and financial statements; documentation/invariant slice only."
+      "description": "Paused Financial Accounting Integrity documentation/invariant branch. Finance integrity requirements remain authoritative in merged main docs, but this branch is not the active Stage E business mainline and must not be merged wholesale without live review."
     },
     "evo/eel-c03-customer-refund-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -304,10 +309,18 @@
       "description": "Post-EEL-C03 alignment and EEL-C04 Manufacturing Execution selection merged after CI #630."
     },
     "evo/eel-c04-production-demand-work-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 38,
+      "description": "EEL-C04.1 independent Production Demand / Work merged after PostgreSQL 18 E2E / CI #632."
+    },
+    "evo/eel-c04-manufacturing-execution-bundle-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C04.1 independent Production Demand → pending_production → balance-driven PRODUCE Work."
+      "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle verified locally on PostgreSQL 18.6: raw material issue, FIFO cost/WIP, partial completions, finished-goods inventory and Work closure; awaiting merge."
     }
   },
   "requiredLLMProcedure": [
@@ -335,5 +348,45 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "4988ccaed00714ad0532047b912e57138d14ca0a"
+  "lastReviewedMainCommit": "e4feaab132be1443b3a236f776d9758c6a4e011d",
+  "branchStrategy": {
+    "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
+    "bundleAllowed": true,
+    "bundleDefinition": "One short-lived branch may contain multiple strongly related bounded slices when they form one coherent business acceptance and database-evidence boundary.",
+    "bundleEntryCriteria": [
+      "same business loop and business outcome",
+      "explicit included sub-gates and non-goals",
+      "coherent end-to-end evidence scenario",
+      "failure remains localizable",
+      "reviewable PR size",
+      "no unrelated platform/generalization work"
+    ],
+    "bundleExitCriteria": [
+      "required sub-gates reach declared evidence level",
+      "full applicable CI passes",
+      "project.status.json and branch.topology.json reflect reality",
+      "merge to main before starting the next independent capability"
+    ],
+    "antiPattern": [
+      "one branch per task number by habit",
+      "long-lived integration branch competing with main",
+      "mixing unrelated business domains in one bundle",
+      "keeping merged branches active",
+      "using branch names or PR openness as authority"
+    ]
+  },
+  "currentBranchGuidance": {
+    "businessMainline": "evo/eel-c04-manufacturing-execution-bundle-v0.1",
+    "pullRequest": 39,
+    "includedGates": [
+      "C04.2 Raw Material Issue",
+      "C04.3 Production Completion",
+      "C04.4 Manufacturing Cost",
+      "C04.5 Partial / Multiple Production"
+    ],
+    "evidenceTarget": "DATABASE E2E VERIFIED manufacturing execution bundle",
+    "currentEvidence": "REACHED LOCALLY — PostgreSQL 18.6 full applicable pipeline passed",
+    "afterSuccess": "Merge to main, then use a new branch for C04.6 Full Replay + C04.7 Final Certification bundle.",
+    "rule": "Do not start another independent Stage E capability branch while this bundle is ACTIVE_WORK unless explicitly required for a blocking fix."
+  }
 }
