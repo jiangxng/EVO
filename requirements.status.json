@@ -26,58 +26,56 @@
     "businessGoal": "Prove complete real enterprise business loops on top of the certified Economic Runtime."
   },
   "activeRequirementSet": {
-    "id": "EEL-C03",
-    "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
+    "id": "EEL-C04",
+    "name": "Manufacturing Execution Reference Loop",
     "acceptance": [
-      "original Sales Order remains unchanged",
-      "original Shipment remains unchanged",
-      "original Customer Receipt remains unchanged",
-      "sales return appends canonical BusinessData and explicitly identifies its source",
-      "sales return restores Inventory quantity and replayable value",
-      "sales exchange appends canonical BusinessData and explicitly identifies original/return source",
-      "exchange expresses replacement movement through normal business facts without mutating original history",
-      "customer refund appends canonical BusinessData and decreases Cash",
-      "refund explicitly identifies original receipt and/or return source",
-      "red invoice appends canonical BusinessData and explicitly identifies original invoice/sales economic source",
-      "red invoice does not mutate or delete original invoice/business history",
-      "financial reversal from red invoice is expressed through explicit posting rules where applicable",
-      "reverse-flow completion is not inferred merely from matching quantities/amounts",
-      "relevant Work state closes from derived balance/projection state",
-      "Full Replay rebuilds identical official reverse-flow economic state",
-      "Full Replay does not execute Commands again",
-      "canonical forward/reverse BusinessData remains unchanged"
+      "production demand is explicit business source and creates pending production",
+      "raw material issue appends canonical BusinessData",
+      "raw material Inventory decreases through posting rather than direct mutation",
+      "production completion appends canonical BusinessData",
+      "finished goods Inventory increases through posting",
+      "material issue and production completion explicitly identify the production demand they serve",
+      "pending production decreases cumulatively and closes only at zero",
+      "PRODUCE Work is balance-driven",
+      "finished-goods manufacturing cost is explainable from explicit cost basis and lineage",
+      "partial/multiple issue/completion uses repeated facts rather than special runtime branches",
+      "Full Replay preserves canonical production facts and explicit relationships",
+      "Full Replay rebuilds Inventory, pending production, Cost and Work identically"
     ],
     "verified": [
-      "C03.1 Sales Return Economic Recognition — DATABASE E2E VERIFIED / CI #600",
-      "C03.2 Sales Exchange — DATABASE E2E VERIFIED / CI #602",
-      "C03.3 Customer Refund — DATABASE E2E VERIFIED / CI #614",
-      "C03.4 Red Invoice — DATABASE E2E VERIFIED / CI #620",
-      "C03.5 Work / Balance Closure — DATABASE E2E VERIFIED / CI #623",
-      "C03.6 Full Replay Equality — DATABASE E2E VERIFIED / CI #626",
-      "canonical forward/reverse BusinessData remains unchanged across Full Replay",
-      "explicit reverse-flow relationships survive Full Replay",
-      "reverse Work closes from balances rather than event existence"
+      "post-EEL-C03 completed-loop requirement alignment selected manufacturing execution",
+      "enterprise-core-v1 already defines Production domain, production-planning and production-completion capabilities",
+      "existing runtime already has pending-production, production.completed, Inventory, Cost/Valuation, WorkProjection and Replay primitives",
+      "legacy manufacturing/MRP/WMS semantics are to be recovered as Reference Enterprise Packs rather than promoted into Core"
     ],
-    "open": [],
+    "open": [
+      "C04.1 Production Demand / Work",
+      "C04.2 Raw Material Issue",
+      "C04.3 Production Completion",
+      "C04.4 Manufacturing Cost",
+      "C04.5 Partial / Multiple Production",
+      "C04.6 Full Replay Equality",
+      "C04.7 Final Certification"
+    ],
     "deferred": [
-      "RMA/after-sales platformization beyond the simple exchange event",
-      "tax-control integration and complex statutory tax calculation beyond the simple red-invoice event",
-      "RMA platform",
-      "repair flow",
-      "refund approval hierarchy",
-      "return freight",
-      "restocking fee",
-      "credit memo product workflow",
-      "chargeback",
-      "multi-order refund distribution",
-      "refund fees",
-      "cross-currency refund",
-      "customer service ticketing",
-      "reason-code analytics productization"
+      "full BOM platform",
+      "multi-level BOM explosion",
+      "MRP",
+      "APS",
+      "MES",
+      "routing and operation scheduling",
+      "shop-floor device integration",
+      "OEE",
+      "quality platform",
+      "subcontract manufacturing",
+      "co-product and by-product allocation",
+      "rework and scrap platform",
+      "advanced lot and serial traceability",
+      "capacity optimization"
     ],
-    "currentWork": "C03.7 Final Certification",
-    "status": "CERTIFIED",
-    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md"
+    "currentWork": "C04.1 Production Demand / Work",
+    "status": "DESIGN ONLY",
+    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -110,8 +108,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-22",
-    "reason": "EEL-C03 certification reached; completed-loop alignment is the next mandatory governance action.",
-    "result": "EEL-C03 business acceptance is satisfied. Reverse business events remain simple append-only capabilities; surrounding RMA/tax-control platformization remains deferred."
+    "reason": "EEL-C03 completed and mandatory completed-loop requirement-alignment trigger fired.",
+    "result": "Final goal and Stage E objective remain unchanged. EEL-C04 Manufacturing Execution selected because it adds new cross-domain evidence across production demand, material consumption, finished-goods output, cost, Work and Replay. Full MRP/MES platformization remains deferred."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -120,11 +118,11 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "RESELECT_REQUIRED_AFTER_CERTIFICATION",
-    "selection": null,
-    "rule": "Run completed-loop requirement alignment first, then choose the next Stage E bounded packet by business value/APQC capability gap rather than technical momentum."
+    "state": "SELECTED",
+    "selection": "EEL-C04 Manufacturing Execution Reference Loop",
+    "rule": "Treat manufacturing execution as a bounded application/package capability first; do not conflate it with full BOM/MRP/APS/MES platforms unless current acceptance requires those."
   },
-  "currentWork": "Completed-loop requirement alignment and next Stage E packet selection",
+  "currentWork": "C04.1 Production Demand / Work",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [
