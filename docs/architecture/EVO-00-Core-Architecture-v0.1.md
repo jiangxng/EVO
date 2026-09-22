@@ -412,3 +412,35 @@ Result
 ```
 
 财务报表、管理报表和 Work 不得成为脱离企业事实的第二套真相。
+
+## 10. 2026-09-22 Addendum — Platform、App 与 APQC 三层解释
+
+### 10.1 Platform 是组合视图，不是巨型业务实现
+
+在 EVO 中，“平台”优先理解为：Common Runtime / Protocols + Installable Applications / Packages / Plugins + Composition / Experience Layer。
+
+前端可以把多个独立应用组合成一个看起来统一的大应用，例如 Finance Platform、Supply Chain Platform、Manufacturing Platform、Sales Platform。
+
+但这些“平台”不应自动对应新的巨型 Core。底层仍由独立 Application / Package / Plugin 通过稳定公共协议协作。
+
+### 10.2 App 是主要业务实现边界
+
+具体业务语义优先落在 App：Commands、Business Events、Fields / Components、Rules、Relations、Ledgers / Accounts、Work / Projection、Capabilities。
+
+因此一个“平台”可以只是多个 App 的组合与统一体验。
+
+### 10.3 APQC 提供企业流程能力坐标系
+
+APQC 不是 Runtime，也不是 EVO App。它提供跨企业、跨行业的流程语言和能力坐标。
+
+推荐映射：APQC Process / Capability ↔ EVO Capability ↔ Installed Apps / Packages ↔ Business Events ↔ Ledgers / Work / Metrics。
+
+这让同一系统可以同时被解释为：技术视角（Core + App + Event + Rule + Ledger）、产品视角（销售平台 / 财务平台 / 制造平台）、流程视角（APQC Process / Process Group / Activity / Capability）。
+
+三种视角必须可以相互映射，但不得混成一个对象。
+
+### 10.4 平台能力覆盖应可计算
+
+未来 EVO 应能够回答：企业安装了哪些 App、这些 App 提供哪些 Capability、覆盖哪些 APQC Process、实际发生了哪些 Business Events、哪些 Ledger / Work / KPI 已经有运行证据、哪些流程节点仍缺能力。
+
+因此“平台完整度”不应只靠 UI 菜单判断，而应可以通过 Capability / Process / App / Event / Evidence 计算。

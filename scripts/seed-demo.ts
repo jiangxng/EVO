@@ -81,6 +81,7 @@ try {
   const purchaseType = await txType(procurementDomain.id, 'purchase_order', 'Purchase Order');
   const salesReturnType = await txType(salesDomain.id, 'sales_return', 'Sales Return');
   const salesExchangeType = await txType(salesDomain.id, 'sales_exchange', 'Sales Exchange');
+  const salesInvoiceType = await txType(salesDomain.id, 'sales_invoice', 'Sales Invoice');
 
   async function app(code: string, name: string, typeId: string) {
     return one(
@@ -100,6 +101,7 @@ try {
   const purchaseApp = await app('purchase_order', 'Purchase Order', purchaseType.id);
   const salesReturnApp = await app('sales_return', 'Sales Return', salesReturnType.id);
   const salesExchangeApp = await app('sales_exchange', 'Sales Exchange', salesExchangeType.id);
+  const salesInvoiceApp = await app('sales_invoice', 'Sales Invoice', salesInvoiceType.id);
 
   async function version(appId: string) {
     const existing = await db.selectFrom('application_definition_version')
@@ -127,6 +129,7 @@ try {
   const purchaseVersion = await version(purchaseApp.id);
   const salesReturnVersion = await version(salesReturnApp.id);
   const salesExchangeVersion = await version(salesExchangeApp.id);
+  const salesInvoiceVersion = await version(salesInvoiceApp.id);
 
   async function instance(appId: string, code: string, name: string) {
     return one(
@@ -152,6 +155,7 @@ try {
   await instance(purchaseApp.id, 'procurement', 'Procurement');
   await instance(salesReturnApp.id, 'sales-return', 'Sales Return');
   await instance(salesExchangeApp.id, 'sales-exchange', 'Sales Exchange');
+  await instance(salesInvoiceApp.id, 'sales-invoice', 'Sales Invoice');
 
   await db.insertInto('item_definition').values({
     enterprise_id: enterprise.id,
@@ -185,6 +189,7 @@ try {
   await capability('refund-customer', 'Refund Customer');
   await capability('return-sales', 'Return Sales');
   await capability('exchange-sales', 'Exchange Sales');
+  await capability('invoice-sales', 'Invoice Sales');
 
   const flow = await one(
     db.insertInto('flow_definition').values({
@@ -300,6 +305,8 @@ try {
   await command(inventoryVersion.id, 'receive-purchase-order', 'Receive Purchase Order', 'goods_receipt.received');
   await command(salesReturnVersion.id, 'receive-sales-return', 'Receive Sales Return', 'sales_return.received');
   await command(salesExchangeVersion.id, 'create-sales-exchange', 'Create Sales Exchange', 'sales_exchange.created');
+  await command(salesInvoiceVersion.id, 'issue-sales-invoice', 'Issue Sales Invoice', 'sales_invoice.issued');
+  await command(salesInvoiceVersion.id, 'issue-sales-red-invoice', 'Issue Sales Red Invoice', 'sales_red_invoice.issued');
 
   for (const [code, name] of [
     ['order_no','Order'],
@@ -367,6 +374,7 @@ try {
   await ledger('cash','现金', cashPolicy);
   await ledger('inventory','库存', inventoryPolicy);
   await ledger('cogs','销售成本', inventoryPolicy);
+  await ledger('sales_invoice_amount','销售开票金额', receivablePolicy);
 
   async function rule(
     versionId: string,
@@ -404,6 +412,18 @@ try {
   };
   await rule(salesVersion.id,'order-receivable',30,eq('eventKind','ORDER'),{
     ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: receivableDims
+  });
+
+  const salesInvoiceDims = {
+    order_no: field('orderNo'), customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
+  await rule(salesInvoiceVersion.id,'sales-invoice-amount-increase',10,eq('invoiceKind','BLUE'),{
+    ledgerCode:'sales_invoice_amount', quantity:{type:'literal',value:0}, amount:field('invoiceAmount'), currency:field('currency'), dimensions:salesInvoiceDims
+  });
+  await rule(salesInvoiceVersion.id,'sales-red-invoice-amount-decrease',20,eq('invoiceKind','RED'),{
+    ledgerCode:'sales_invoice_amount', quantity:{type:'literal',value:0}, amount:neg('invoiceAmount'), currency:field('currency'), dimensions:salesInvoiceDims
   });
 
   const purchaseDims = {

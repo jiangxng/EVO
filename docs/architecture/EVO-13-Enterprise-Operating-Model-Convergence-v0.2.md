@@ -2782,3 +2782,41 @@ Core 可以提供 accounting period infrastructure、balanced journal validation
 这一原则同样适用于 Revenue Recognition、Tax、Fixed Asset、General Ledger、Financial Reporting、Industry Accounting。
 
 因此 EVO 应持续朝“能力可安装、核心稳定”的方向演进。
+
+## 52. 2026-09-22 Addendum — APQC 作为 Enterprise Capability Coordinate System
+
+本节不改变前文对 Process 与 Capability 的区分，而是补充它们与 EVO App / Platform 的关系。
+
+### EO-33 — APQC Is A Coordinate System, Not Runtime
+
+APQC Process Classification Framework 用于回答：企业应该具备哪些流程能力？
+
+EVO Runtime 用于回答：这些能力如何被安装、执行、记录、记账、投影、重放和验证？
+
+两者职责不同。
+
+### EO-34 — Capability → App → Event → State
+
+推荐企业能力链：APQC Process / Capability → EVO Capability → Application / Package / Plugin → BusinessData / Event → Rules / Ledger / Work / Metrics。
+
+### EO-35 — Platform Is A Composition Boundary
+
+“财务平台”“供应链平台”“制造平台”等词首先是产品与体验层的能力组合边界。
+
+其底层可以由多个独立 App 组成。例如 Finance Platform 可以由 Accounting Period、General Ledger、Revenue Recognition、Expense Accrual、Bank Reconciliation、Tax、Financial Reporting 等 App 组成。
+
+这些 App 可以共享 Core Runtime，但不需要共享一个巨大业务实现模块。
+
+### EO-36 — Enterprise Capability Coverage Is Evidence-Based
+
+未来 Enterprise Template / Industry Template 应能够声明并证明：APQC node → required EVO Capability → installed App / Package → supported Event types → Ledger / Work / KPI projections → certification evidence。
+
+这可以用于企业能力盘点、Gap Analysis、行业模板比较、实施范围评估、AI 自动推荐安装包和缺失流程能力识别。
+
+### EO-37 — Process View Does Not Dictate App Boundaries
+
+一个 APQC Process 可以由多个 Apps 协作完成，一个 App 也可以服务多个 Process。
+
+因此：APQC Process ≠ App，Capability ≠ App，Platform ≠ single App。
+
+它们之间应使用显式 mapping，而不是对象合并。

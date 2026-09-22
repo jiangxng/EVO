@@ -256,10 +256,18 @@
       "description": "Financial Accounting Integrity audit: establishes explicit double-entry General Ledger gate before Trial Balance and financial statements; documentation/invariant slice only."
     },
     "evo/eel-c03-customer-refund-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 32,
+      "description": "EEL-C03.3 Customer Refund merged after PostgreSQL 18 E2E / CI #614."
+    },
+    "evo/eel-c03-red-invoice-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C03.3 Customer Refund simple-event implementation and isolated PostgreSQL evidence."
+      "description": "EEL-C03.4 Red Invoice simple-event + invoice-business-ledger implementation and isolated PostgreSQL evidence."
     }
   },
   "requiredLLMProcedure": [
@@ -287,5 +295,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "5bfb3bd1743b44b5b199fea8b9de3324427d762a"
+  "lastReviewedMainCommit": "fbc384f702edfa983d104825cc1968cc1dd9dd02"
 }

@@ -10,6 +10,12 @@ The numbered architecture series below is a genealogy, not a mandatory reading
 sequence for every task. AI agents should start at `/AGENTS.md`, then use
 `/context.manifest.json` to select a task-specific profile and current pointers.
 
+Current platform / application / APQC pointers:
+
+- `EVO-00-Core-Architecture-v0.1.md` — platform is a composition view; App is the primary business implementation boundary.
+- `EVO-13-Enterprise-Operating-Model-Convergence-v0.2.md` — APQC Process/Capability maps explicitly to EVO Capability, Apps, Events, Ledgers, Work and KPIs.
+- `../product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md` — product / implementation / APQC three-view business baseline.
+
 Current business-finance architecture pointers:
 
 - `EVO-00-Core-Architecture-v0.1.md` — EVO is an enterprise operating foundation, not a finance-first platform.
