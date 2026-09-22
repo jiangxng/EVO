@@ -26,50 +26,47 @@
     "businessGoal": "Prove complete real enterprise business loops on top of the certified Economic Runtime."
   },
   "activeRequirementSet": {
-    "id": "EEL-C01",
-    "name": "Order-to-Cash Settlement Reference Loop",
+    "id": "EEL-C02",
+    "name": "Procure-to-Pay Reference Loop",
     "acceptance": [
-      "sales order creates explicit receivable",
-      "production and shipment work close for the full-completion reference scenario",
-      "customer receipt increases actual cash",
-      "customer receipt explicitly identifies the receivable it settles",
-      "full settlement closes the receivable",
-      "cross-currency settlement produces explainable realized FX",
-      "receivable WorkItem closes after full settlement",
-      "Full Replay rebuilds the same official economic state",
-      "BusinessData history is unchanged by replay",
-      "legacy customer_payment.received remains replay-compatible"
+      "purchase order approval creates Pending Purchase",
+      "purchase order approval creates Payable",
+      "full goods receipt closes Pending Purchase",
+      "goods receipt increases Inventory quantity and amount",
+      "supplier payment decreases Cash",
+      "supplier payment explicitly settles the target Payable",
+      "full supplier payment closes Payable",
+      "RECEIVE and PAY WorkItems close at the correct business stages",
+      "Full Replay rebuilds the same official P2P economic state",
+      "BusinessData history remains unchanged by Replay"
     ],
     "verified": [
-      "sales order creates receivable",
-      "cash.received increases Cash by actual cash measurement",
-      "cash.received decreases Receivable by settled foreign measurement",
-      "customer receipt explicitly identifies the receivable it settles",
-      "cross-currency settlement produces explainable realized FX",
-      "production and shipment work close for the full-completion reference scenario",
-      "receivable WorkItem closes after full settlement",
-      "Full Replay equality",
-      "legacy customer_payment.received remains replay-compatible",
-      "BusinessData history is unchanged by replay"
+      "purchase order approval creates Pending Purchase and Payable",
+      "three cumulative goods receipts 30 + 20 + 50 close Pending Purchase and build Inventory to 100 / 1250",
+      "three cumulative supplier payments 300 + 400 + 550 reduce Payable to zero and Cash to -1250",
+      "explicit FULFILLS and ALLOCATES_TO / AllocationInstruction relationships are persisted",
+      "RECEIVE and PAY WorkItems close from balance state",
+      "Full Replay rebuilds identical P2P economic state",
+      "canonical BusinessData and explicit AllocationInstructions remain unchanged",
+      "PostgreSQL 18 CI #584 passed"
     ],
     "open": [],
     "deferred": [
-      "partial payment",
-      "overpayment and unapplied cash",
+      "partial/multiple receipt and payment are architecturally supported by cumulative facts/balances but are not separate product workflows in this packet",
+      "three-way matching",
+      "supplier invoice workflow",
+      "tax/VAT recovery",
+      "landed cost",
+      "purchase returns",
+      "supplier credit notes",
+      "prepayments",
+      "payment batches",
       "bank reconciliation",
-      "payment fees chargebacks refunds",
-      "credit and collections workflows",
-      "generic settlement framework",
-      "same-ledger multi-currency balance identity generalization",
-      "UI/report productization"
+      "cross-currency supplier payment"
     ],
-    "currentWork": null,
+    "currentWork": "C02.5 Final Certification",
     "status": "CERTIFIED",
-    "certification": "docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md",
-    "alignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C01-v0.1.md",
-    "verifiedHead": "3d679fae5c330ed223eb3f5ff49f1240df7acbf0",
-    "verifiedCiRun": 35669984475,
-    "mergeCommit": "9fdad572db9992ca0773b5cd637b41a57ccf80d8"
+    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C02-PROCURE-TO-PAY-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -102,8 +99,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-22",
-    "reason": "Completed EEL-C01 enterprise business loop and explicit human confidence/comprehension alignment trigger.",
-    "result": "EEL-C01 business outcomes are satisfied and certified; no current requirement drift or overdesign blocker found. Adjacent payment/banking/generalization scope remains deferred."
+    "reason": "EEL-C02 Procure-to-Pay reference loop completed and certified after cumulative receipt/payment and Full Replay evidence.",
+    "result": "Confirmed complex business behavior is expressible through BusinessData + Posting Rules + Ledger Balances + explicit relationships + WorkProjection without a procurement-specific core runtime."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -112,7 +109,8 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "BUSINESS_SELECTION_REQUIRED",
-    "rule": "Choose the next Stage E bounded packet from confirmed business value/coverage before introducing new technical abstractions."
+    "state": "SELECTED",
+    "selection": "EEL-C02 Procure-to-Pay Reference Loop",
+    "rule": "Implement only bounded acceptance-driven slices; reuse existing EVO mechanisms before adding new abstractions."
   }
 }

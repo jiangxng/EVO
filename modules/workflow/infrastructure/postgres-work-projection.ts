@@ -63,7 +63,9 @@ async function resolveCurrentWorkScope(
 const workTypeByLedger: Record<string, { type: string; title: string; priority: number }> = {
   pending_production: { type: 'PRODUCE', title: '待生产', priority: 30 },
   pending_shipment: { type: 'SHIP', title: '待出库/发货', priority: 20 },
-  receivable: { type: 'COLLECT', title: '待收款', priority: 10 }
+  receivable: { type: 'COLLECT', title: '待收款', priority: 10 },
+  pending_purchase: { type: 'RECEIVE', title: '待收货', priority: 30 },
+  payable: { type: 'PAY', title: '待付款', priority: 10 }
 };
 
 export class PostgresWorkProjection implements WorkProjection {
