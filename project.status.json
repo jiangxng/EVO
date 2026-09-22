@@ -5,7 +5,7 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "347baecc18819dca6b8d2f5467a3457b80f20f6a"
+    "lastVerifiedRuntimeMergeCommit": "43c23050b74819caf311535598808bdf5339d237"
   },
   "activeWorkPacket": {
     "id": "EEL-C02",
@@ -14,7 +14,7 @@
     "status": "CERTIFIED",
     "overallClosed": true,
     "businessGoal": "Certify a complete supplier-side procure-to-pay loop from purchase order through goods receipt, inventory recognition, payable settlement, cash payment, work closure, and Full Replay equality.",
-    "activeBranch": "evo/eel-c02-procure-to-pay-packet-v0.1",
+    "activeBranch": null,
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C02-PROCURE-TO-PAY-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C02 Procure-to-Pay Reference Loop",
     "closedGates": [
@@ -22,10 +22,12 @@
       "C02.2 Goods Receipt & Inventory — DATABASE E2E VERIFIED with cumulative 30 + 20 + 50 receipts",
       "C02.3 Supplier Payment & Explicit Settlement — DATABASE E2E VERIFIED with cumulative 300 + 400 + 550 payments",
       "C02.4 Full Replay Equality — DATABASE E2E VERIFIED on isolated PostgreSQL 18 evidence job",
-      "CI run 35679110487 / #584 completed successfully"
+      "CI run 35679110487 / #584 verified the isolated PostgreSQL 18 Full Replay evidence",
+      "Final certification CI run 35679264071 / #587 completed successfully",
+      "PR #26 merged to main at 43c23050b74819caf311535598808bdf5339d237"
     ],
     "openGates": [],
-    "nextAction": "Merge PR #26 to main, then select the next Stage E business loop or perform the scheduled requirement-alignment review."
+    "nextAction": "EEL-C02 is merged and certified on main. Perform the scheduled requirement-alignment review and select the next Stage E business loop."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
