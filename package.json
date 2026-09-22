@@ -34,7 +34,8 @@
     "validate:eel-c01-work-closure": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-work-closure.ts",
     "validate:eel-c01-full-replay": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-full-replay.ts",
     "validate:eel-c01-legacy-receipt-compat": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c01-legacy-receipt-compat.ts",
-    "validate:eel-c02-purchase-recognition": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c02-purchase-recognition.ts"
+    "validate:eel-c02-purchase-recognition": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c02-purchase-recognition.ts",
+    "validate:eel-c02-goods-receipt": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c02-goods-receipt.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",
