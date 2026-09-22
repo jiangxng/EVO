@@ -272,10 +272,18 @@
       "description": "EEL-C03.4 Red Invoice merged after PostgreSQL 18 E2E / CI #620."
     },
     "evo/eel-c03-work-balance-closure-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 34,
+      "description": "EEL-C03.5 balance-driven reverse Work merged after PostgreSQL 18 E2E / CI #623."
+    },
+    "evo/eel-c03-full-replay-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C03.5 reverse-flow Work/Balance closure using generic ledger-driven WorkProjection."
+      "description": "EEL-C03.6 Full Replay Equality for the complete customer-side reverse flow."
     }
   },
   "requiredLLMProcedure": [
@@ -303,5 +311,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "3536fa658235317dbaab14ea3251d7bc487b074a"
+  "lastReviewedMainCommit": "58c1621aaf6d3880f7e741ce3b86d369c5a34b35"
 }
