@@ -21,57 +21,51 @@
     ]
   },
   "currentStage": {
-    "id": "Stage E",
-    "name": "Enterprise Economic Loops",
-    "businessGoal": "Prove complete real enterprise business loops on top of the certified Economic Runtime."
+    "id": "Financial Accounting Integrity",
+    "name": "General Ledger Double-Entry Integrity",
+    "businessGoal": "Make financial accounting journals authoritative, explicit, balanced and replayable before financial statements."
   },
   "activeRequirementSet": {
-    "id": "EEL-C05",
-    "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
+    "id": "FAI-01-02",
+    "name": "Chart of Accounts + Journal Contract + Atomic Double-Entry Integrity",
     "acceptance": [
-      "transfer facts explicitly identify source and destination warehouse",
-      "source warehouse inventory quantity decreases",
-      "destination warehouse inventory quantity increases",
-      "source cost basis is used for transferred value",
-      "enterprise-wide inventory quantity is conserved",
-      "enterprise-wide inventory value is conserved",
-      "pure transfer creates no Revenue, COGS, Expense, Receivable, Payable or Cash side effect",
-      "partial/multiple receipt uses repeated canonical facts",
-      "pending transfer closes only when remaining quantity reaches zero",
-      "TRANSFER Work is balance-driven",
-      "transfer lineage is explicit and not inferred from matching quantity/time",
-      "Full Replay preserves canonical transfer facts and relationships",
-      "Full Replay rebuilds source/destination inventory, transfer valuation and Work identically"
+      "authoritative AccountingBook exists",
+      "authoritative Chart of Accounts / AccountingAccount exists",
+      "authoritative Journal exists",
+      "authoritative JournalLine exists",
+      "JournalLine side is explicitly DEBIT or CREDIT",
+      "journal has at least one DEBIT and at least one CREDIT line",
+      "sum(DEBIT) equals sum(CREDIT) under pinned precision policy",
+      "unbalanced journal rejects atomically with zero committed journal lines",
+      "Journal and lines retain source BusinessData / derived-result lineage",
+      "accounting rule/policy version is pinned",
+      "operational/economic ledgers remain increase/decrease based and are not redefined as General Ledger"
     ],
     "verified": [
-      "inventory domain and inventory-movement semantics already exist in enterprise-core-v1",
-      "warehouse/facility dimensions already exist",
-      "Inventory ledger and FIFO/LIFO/MWA/Specific-ID cost substrate already exist",
-      "C04 certified Cost/Valuation/Replay substrate can be reused",
-      "post-EEL-C04 alignment selected internal transfer for its conservation-value evidence",
-      "C05 transfer conservation is DATABASE E2E VERIFIED by PR #43 / CI #649 and merged at c57ac571",
-      "source/destination quantity and value conservation is proven",
-      "FIFO-derived transfer valuation is proven",
-      "pure internal transfer creates no P&L/AR/AP/Cash side effects",
-      "TRANSFER Work closes only when pending_transfer reaches zero",
-      "C05 Full Replay Equality + Final Certification is DATABASE E2E VERIFIED by PR #44 / CI #653"
+      "accounting integrity gap audit is merged on main",
+      "legacy debit/credit semantics are confirmed",
+      "current signed generic Ledger is not an authoritative double-entry General Ledger"
     ],
-    "open": [],
+    "open": [
+      "AccountingBook + Chart of Accounts runtime",
+      "Journal + JournalLine runtime",
+      "atomic DEBIT/CREDIT balance gate",
+      "database E2E balanced-journal success proof",
+      "database E2E one-sided/unbalanced rejection proof"
+    ],
     "deferred": [
-      "WMS platform",
-      "TMS platform",
-      "bin/location optimization",
-      "wave/pick/pack",
-      "carrier/shipping",
-      "cross-legal-entity transfer",
-      "transfer pricing",
-      "customs/bonded stock",
-      "advanced lot/serial productization",
-      "cycle count platform"
+      "Trial Balance implementation until FAI-01/02 closes",
+      "financial statements until Trial Balance + reconciliation + GL replay close",
+      "consolidation",
+      "multi-GAAP",
+      "tax engine",
+      "statutory filing",
+      "intercompany elimination",
+      "budgeting"
     ],
-    "currentWork": "Completed-loop requirement alignment / next Stage E packet selection",
-    "status": "CERTIFIED",
-    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md"
+    "currentWork": "FAI-01 + FAI-02 implementation",
+    "status": "DESIGN ONLY",
+    "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md"
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -114,13 +108,13 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "RESELECT_REQUIRED_AFTER_CERTIFICATION",
-    "selection": null,
-    "rule": "Run the mandatory completed-loop requirement alignment after EEL-C05, then choose the next bounded Stage E packet by business value and APQC capability gap."
+    "state": "SELECTED",
+    "selection": "FAI-01-02 Chart of Accounts + Journal + Atomic Double-Entry Integrity",
+    "rule": "This requirement has priority over selecting another ordinary Stage E business loop because it blocks authoritative GL, Trial Balance and financial statements."
   },
-  "currentWork": "Completed-loop requirement alignment / next Stage E packet selection",
+  "currentWork": "FAI-01 + FAI-02 implementation",
   "financialAccountingIntegrity": {
-    "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
+    "state": "OPEN_BLOCKING_FINANCIAL_STATEMENTS",
     "findings": [
       "legacy Asloop/bookkeeping semantics include explicit debit/credit concepts",
       "current EVO generic ledger uses signed quantity/amount and does not enforce balanced journals",
@@ -133,6 +127,8 @@
       "trial balance is independently verifiable",
       "financial statements derive from authoritative accounting state and never rewrite canonical BusinessData"
     ],
-    "nextPacket": "FAI-01 Chart of Accounts + Journal contract"
+    "nextPacket": "FAI-01-02",
+    "primaryRequirement": "有借必有贷、借贷必相等",
+    "implementationStatus": "NOT_IMPLEMENTED"
   }
 }
