@@ -420,3 +420,34 @@ jobs:
       - run: npm run migrate
       - run: npm run seed:demo
       - run: npm run validate:eel-c04-full-replay
+
+
+  eel-c05-inventory-transfer:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: evo
+          POSTGRES_PASSWORD: evo
+          POSTGRES_DB: evo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U evo -d evo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
+      NODE_ENV: test
+      LOG_LEVEL: silent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.20.0'
+      - run: npm install
+      - run: npm run migrate
+      - run: npm run seed:demo
+      - run: npm run validate:eel-c05-inventory-transfer
