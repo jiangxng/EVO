@@ -9,6 +9,26 @@ Public write APIs represent business Commands. They do not expose direct writes 
 
 A client may be a human UI, mobile tool, scanner, AI agent, automation, portal or external integration. Actor type does not bypass the Command boundary.
 
+## Application-Scoped API Principle
+
+EVO Core does not imply that every enterprise has every domain application.
+
+The effective public API of an enterprise is composed from:
+
+1. stable EVO Core APIs;
+2. APIs contributed by effectively installed and ACTIVE application instances;
+3. actor/permission filtering.
+
+Sales Order, Customer Receipt, Supplier Payment, Purchase Order, Production and similar domain APIs are application capabilities, not unconditional EVO Core guarantees.
+
+If the corresponding application is not effectively installed and active for the enterprise, EVO MUST NOT advertise or accept its domain capabilities as currently available.
+
+Application deactivation or uninstall removes current capability exposure but MUST NOT erase historical BusinessData or break deterministic historical reconstruction.
+
+The detailed normative contract is:
+
+- `docs/public-api/capability-and-application-contract-v0.1.md`
+
 ## Contract Requirements
 
 Every public Command request must define:
@@ -37,6 +57,8 @@ Reference business chain:
 4. `POST /api/v1/demo/cost/recalculate`
 5. `POST /api/v1/demo/replay`
 6. `GET /api/v1/demo/dashboard`
+
+These demo routes MUST NOT be interpreted as proof that EVO Core permanently owns those domain capabilities.
 
 Legacy generic inventory receipt/shipment endpoints from v0.9 are implementation-validation endpoints and must not be used as the semantic model for v1.0.
 
