@@ -387,10 +387,18 @@
       "description": "FAI-03~05 accounting recognition, rule trace, Trial Balance and GL Replay merged after CI #668."
     },
     "evo/fai-06-period-reconciliation-statement-metadata-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 48,
+      "description": "FAI-06 accounting periods, economic↔GL reconciliation and statement projection metadata merged after CI #670."
+    },
+    "evo/fai-07-three-financial-statements-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "FAI-06 large finance packet: accounting periods, economic-ledger ↔ GL reconciliation, and versioned statement projection metadata."
+      "description": "FAI-07 three core financial statements: BS/IS/CF projections, cross-statement reconciliation and deterministic statement replay."
     }
   },
   "requiredLLMProcedure": [
@@ -418,7 +426,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "8fbcf1ab6a19943f0d010b01ed5104df1e9e428f",
+  "lastReviewedMainCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -446,19 +454,18 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/fai-06-period-reconciliation-statement-metadata-v0.1",
+    "businessMainline": "evo/fai-07-three-financial-statements-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "Accounting Period OPEN/CLOSED governance",
-      "closed-period Journal rejection",
-      "Replay across closed periods",
-      "economic ledger ↔ GL reconciliation",
-      "balanced-but-wrong Journal mismatch detection",
-      "three-statement projection metadata",
-      "cash-flow classification metadata"
+      "Balance Sheet",
+      "Income Statement",
+      "Cash Flow Statement",
+      "cross-statement reconciliation",
+      "statement replay",
+      "broken mapping negative proof"
     ],
-    "evidenceTarget": "DATABASE E2E VERIFIED FAI-06 financial-statement readiness",
-    "afterSuccess": "Merge to main and immediately implement FAI-07 three core financial statements as versioned ledger/GL projections.",
-    "rule": "Do not create independent report facts or silently force differences into suspense accounts."
+    "evidenceTarget": "DATABASE E2E VERIFIED three core financial statements",
+    "afterSuccess": "Merge to main, certify the three-statement milestone, then perform a finance-gap alignment before adding broader statutory controls.",
+    "rule": "Statements are projections only. Never write independent authoritative report facts or hide mapping mismatches with manual balancing."
   }
 }
