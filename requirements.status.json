@@ -21,56 +21,42 @@
     ]
   },
   "currentStage": {
-    "id": "Financial Accounting Integrity",
-    "name": "Three Core Financial Statements",
-    "businessGoal": "Project authoritative GL and BusinessData lineage into Balance Sheet, Income Statement and Cash Flow Statement with cross-statement reconciliation and deterministic regeneration."
+    "id": "Post-FAI-07 Finance Integrity",
+    "name": "Accounting Evidence and Journal Governance",
+    "businessGoal": "Make authoritative journals reviewable, attributable and traceable to governed accounting evidence after completion of the three core financial statements."
   },
   "activeRequirementSet": {
-    "id": "FAI-07",
-    "name": "Balance Sheet + Income Statement + Cash Flow Statement",
+    "id": "POST-FAI-07-ALIGNMENT",
+    "name": "Finance Gap Alignment",
     "acceptance": [
-      "Balance Sheet is derived from ending GL balances and versioned statement mappings",
-      "Income Statement is derived from period GL movements and versioned statement mappings",
-      "Cash Flow Statement classifies cash-equivalent Journal movements using BusinessData lineage and CashFlowClassificationRule",
-      "cash movement without lineage is rejected from statement projection",
-      "unclassified or ambiguously classified cash movement is rejected",
-      "statement hierarchy and subtotal lines are deterministic",
-      "Assets equal Liabilities + Equity",
-      "Income Statement net income equals Balance Sheet current-period earnings presentation",
-      "Opening Cash + Net Cash Change equals Closing Cash",
-      "Cash Flow closing cash equals Balance Sheet cash",
-      "each statement projection has a stable semantic digest",
-      "re-projecting the same facts/rules/mappings yields identical digest",
-      "broken statement mappings are detected by cross-statement reconciliation",
-      "financial statements remain derived projections and do not rewrite BusinessData or GL"
+      "three core statements are treated as completed certified capability",
+      "remaining finance requirements are separated into Core, installable Finance Apps and regulatory packs",
+      "next work does not extend the report engine unnecessarily",
+      "next packet targets the highest remaining accounting-integrity risk"
     ],
     "verified": [
-      "FAI-01/02 strict double-entry is DATABASE E2E VERIFIED",
-      "FAI-03~05 recognition / trace / Trial Balance / GL Replay is DATABASE E2E VERIFIED",
-      "FAI-06 period governance / economic↔GL reconciliation / statement metadata is DATABASE E2E VERIFIED by PR #48 / CI #670",
-      "Asloop semantics confirm statements as account/ledger projections",
-      "FAI-07 three core financial statements are DATABASE E2E VERIFIED by PR #49 / CI #672",
-      "Balance Sheet equation matches",
-      "Income Statement net income reconciles to Balance Sheet current-period earnings",
-      "Cash Flow roll-forward matches",
-      "Cash Flow closing cash reconciles to Balance Sheet cash",
-      "all three statement semantic replays match",
-      "broken statement mapping is detected as MISMATCH"
+      "FAI-01 through FAI-07 are merged and database verified/certified",
+      "PR #49 merged to main at 223b058e149f9d45bcad278797d0444c7375b567",
+      "three core statements are deterministic ledger/GL projections",
+      "post-FAI-07 gap analysis selects evidence/governance before more reporting"
     ],
-    "open": [],
+    "open": [
+      "merge post-FAI-07 alignment",
+      "activate FAI-08 Accounting Evidence + Journal Governance"
+    ],
     "deferred": [
-      "full statutory statement package",
-      "notes to financial statements",
-      "ownership-equity statement beyond core three reports",
-      "bank statement reconciliation",
-      "electronic voucher archival controls",
+      "bank reconciliation packet",
+      "physical inventory/cash reconciliation",
+      "Statement of Changes in Equity",
+      "Notes / Disclosures",
       "statutory filing",
       "consolidation",
-      "multi-GAAP"
+      "multi-GAAP",
+      "tax engine"
     ],
-    "currentWork": "Post-FAI-07 finance-gap alignment",
-    "status": "CERTIFIED",
-    "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md"
+    "currentWork": "Post-FAI-07 alignment",
+    "status": "DESIGN ONLY",
+    "packet": "docs/architecture/status/EVO-POST-FAI-07-FINANCE-GAP-ALIGNMENT-v0.1.md"
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -103,8 +89,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-22",
-    "reason": "EEL-C04 completed and mandatory completed-loop requirement-alignment trigger fired.",
-    "result": "EEL-C05 Inventory Transfer selected because it adds a new internal-asset conservation proof without requiring statutory accounting expansion or WMS/TMS platformization."
+    "reason": "FAI-07 three core financial statements certified and merged; stage-transition alignment trigger fired.",
+    "result": "Three core statements are closed. Remaining finance work is re-layered into Core accounting integrity, installable Finance Apps and regulatory packs. FAI-08 Accounting Evidence + Journal Governance selected as the next recommended packet."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -113,13 +99,13 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "RESELECT_REQUIRED_AFTER_CERTIFICATION",
-    "selection": null,
-    "rule": "The three core financial statements are now certified. Reassess remaining statutory-accounting and finance-control gaps before selecting the next packet."
+    "state": "SELECTED",
+    "selection": "FAI-08 Accounting Evidence + Journal Governance",
+    "rule": "Prioritize evidence lineage, journal lifecycle, review/authorization and posted-history integrity before adding more statutory reports or broad finance applications."
   },
-  "currentWork": "Post-FAI-07 finance-gap alignment",
+  "currentWork": "Post-FAI-07 alignment / prepare FAI-08",
   "financialAccountingIntegrity": {
-    "state": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
+    "state": "THREE_CORE_STATEMENTS_CERTIFIED",
     "findings": [
       "legacy Asloop/bookkeeping semantics include explicit debit/credit concepts",
       "current EVO generic ledger uses signed quantity/amount and does not enforce balanced journals",
@@ -132,8 +118,8 @@
       "trial balance is independently verifiable",
       "financial statements derive from authoritative accounting state and never rewrite canonical BusinessData"
     ],
-    "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT",
-    "primaryRequirement": "有借必有贷、借贷必相等",
-    "implementationStatus": "FAI_07_DATABASE_VERIFIED"
+    "nextPacket": "FAI-08",
+    "primaryRequirement": "Accounting evidence + journal governance",
+    "implementationStatus": "FAI_07_CERTIFIED_MERGED"
   }
 }
