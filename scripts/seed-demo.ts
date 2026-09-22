@@ -233,6 +233,23 @@ try {
     })).returning('id').executeTakeFirst(), 'procure-to-pay flow definition'
   );
 
+  const manufacturingFlow = await one(
+    db.insertInto('flow_definition').values({
+      enterprise_id: enterprise.id,
+      code: 'manufacturing-execution',
+      name: 'Manufacturing Execution',
+      description: 'Reference manufacturing execution flow for EVO Stage E.',
+      version: 1,
+      status: 'PUBLISHED',
+      definition: {
+        steps: ['production-demand-created','material-issued','production-completed']
+      },
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name: 'Manufacturing Execution', status: 'PUBLISHED'
+    })).returning('id').executeTakeFirst(), 'manufacturing flow definition'
+  );
+
   await db.insertInto('metric_definition').values({
     enterprise_id: enterprise.id,
     code: 'order-fulfillment-open-qty',
