@@ -354,3 +354,47 @@ EVO 不以“财务模块统领其他模块”为产品结构。财务能力与�
 而是：同一 BusinessData 可以被可解释地投影为业务账本、财务确认 / GL，并都能够追溯回同一企业事实。
 
 业务人员、会计人员、管理者和 AI 应能够从不同视角看到同一企业现实，而不是维护多套互相同步的真相。
+
+## 13. Platform / Application / APQC 三视角原则
+
+EVO 允许同一企业能力被不同角色用不同语言理解。
+
+### 13.1 产品视角
+
+用户可以看到销售平台、供应链平台、制造平台、财务平台等统一工作区。
+
+这些“平台”可以在前端呈现为一个大的统一产品体验。
+
+### 13.2 实现视角
+
+底层优先是多个独立 Application / Package / Plugin 的组合。
+
+每个 App 拥有明确业务边界、事件和接口，并通过 EVO 公共协议协作。
+
+因此：平台可以是应用集合的统一体验，但不能因此要求 Core 增加对应的巨大业务模块。
+
+### 13.3 APQC 视角
+
+APQC 用于描述企业端到端流程和能力覆盖。
+
+推荐统一映射：APQC Process / Capability ↔ EVO Capability ↔ Installed Application / Package ↔ Business Event ↔ Ledger / Work / KPI。
+
+### 13.4 企业能力盘点目标
+
+未来 EVO 应能用数据回答：
+- 某企业有哪些业务能力；
+- 哪些能力已安装；
+- 哪些能力正在实际使用；
+- 覆盖哪些 APQC 流程；
+- 哪些流程缺 App；
+- 哪些 App 已安装但没有运行证据；
+- 哪些 Ledger / Work / KPI 支撑某个流程；
+- 哪些行业模板可以补齐差距。
+
+### 13.5 行业模板的含义
+
+行业模板不应只是菜单和字段模板。
+
+它可以被定义为：APQC 基础流程 / 行业扩展流程 + EVO Capabilities + Apps / Packages + Event Types + Posting Rules + Ledgers + Work / SOP + KPIs + Experience / UI Composition。
+
+这使行业模板既能描述企业“应该具备什么”，也能落到 EVO “实际安装和运行了什么”。
