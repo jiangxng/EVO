@@ -529,7 +529,7 @@ try {
   await rule(inventoryTransferVersion.id,'transfer-open-pending',10,eq('transferEvent','CREATE'),{
     ledgerCode:'pending_transfer', quantity:field('quantity'), amount:{type:'literal',value:'0'}, dimensions:transferWorkDims
   });
-  await rule(inventoryTransferVersion.id,'transfer-issue-source-quantity',20,eq('transferEvent','ISSUE'),{
+  await rule(inventoryTransferVersion.id,'transfer-receive-source-quantity',20,eq('transferEvent','RECEIVE'),{
     ledgerCode:'inventory', quantity:neg('quantity'), amount:{type:'literal',value:'0'}, dimensions:transferSourceInventoryDims
   });
   await rule(inventoryTransferVersion.id,'transfer-receive-destination-quantity',30,eq('transferEvent','RECEIVE'),{
@@ -739,6 +739,38 @@ try {
 
   await db.insertInto('valuation_rule').values({
     enterprise_id: enterprise.id,
+    code: 'inventory-transfer-source-to-destination',
+    name: 'Inventory Transfer Source to Destination',
+    source_business_data_type: 'inventory_transfer.received',
+    inventory_ledger_code: 'inventory',
+    cogs_ledger_code: 'inventory',
+    dimension_mapping: {
+      source: {
+        product_id: field('productId'),
+        warehouse: field('sourceWarehouse'),
+        order_no: field('transferNo'),
+        project: field('project'),
+        department: field('department'),
+        cost_center: field('costCenter')
+      },
+      target: {
+        product_id: field('productId'),
+        warehouse: field('destinationWarehouse'),
+        order_no: field('transferNo'),
+        project: field('project'),
+        department: field('department'),
+        cost_center: field('costCenter')
+      }
+    },
+    version: 1,
+    status: 'PUBLISHED',
+    published_at: new Date()
+  }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+    status: 'PUBLISHED'
+  })).execute();
+
+  await db.insertInto('valuation_rule').values({
+    enterprise_id: enterprise.id,
     code: 'shipment-inventory-to-cogs',
     name: 'Shipment Inventory Value to COGS',
     source_business_data_type: 'sales_shipment.created',
@@ -763,7 +795,7 @@ try {
 
   const costRuntimeConfig = {
     inboundBusinessDataTypes: ['production.completed','inventory.received','goods_receipt.received'],
-    outboundBusinessDataTypes: ['sales_shipment.created','material_issue.issued'],
+    outboundBusinessDataTypes: ['sales_shipment.created','material_issue.issued','inventory_transfer.received'],
     quantityField: 'quantity',
     quantityUnit: 'EA',
     basisAmountField: 'totalCost',
