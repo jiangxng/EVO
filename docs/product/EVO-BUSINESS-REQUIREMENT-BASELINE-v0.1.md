@@ -398,3 +398,79 @@ APQC 用于描述企业端到端流程和能力覆盖。
 它可以被定义为：APQC 基础流程 / 行业扩展流程 + EVO Capabilities + Apps / Packages + Event Types + Posting Rules + Ledgers + Work / SOP + KPIs + Experience / UI Composition。
 
 这使行业模板既能描述企业“应该具备什么”，也能落到 EVO “实际安装和运行了什么”。
+
+
+## 14. 横向 / 纵向扩展验证原则
+
+EVO 不仅要验证少数业务闭环能够运行，还必须持续验证其核心抽象具有足够的横向广度与纵向深度。
+
+### 14.1 横向扩展
+
+横向扩展用于验证：
+
+> 新增 Transaction Type、Application、Field / Field Group、Ledger、Posting Rule、Work / Projection 和 APQC Capability 时，是否仍能复用同一套 Runtime，而不是为每一种业务继续扩展专用 Core。
+
+企业模板是这项能力的主要验收载体。Asloop 已积累的大量真实企业应用应作为第一批 Enterprise Application Corpus，持续压测 EVO 的交易类型、应用设计、字段设计、条件式记账和账本抽象。
+
+长期目标不是只安装几个 Demo App，而是逐步覆盖销售、采购、库存、生产、资金、费用、资产、项目、MRP、质量等主要企业流程，并进一步映射 APQC 和多行业模板。
+
+### 14.2 Ledger 横向扩展
+
+Ledger 本身必须可横向扩展。
+
+新增 Pending Production、Pending Purchase、Receivable、Payable、Inventory、Cash、WIP、Fixed Asset、Depreciation、Project Cost、Quality Hold 或行业专用 Ledger，原则上不得要求修改 Ledger Core。
+
+Ledger 的语义、维度和 measurement 由定义与契约决定。
+
+### 14.3 纵向扩展
+
+纵向扩展用于验证：
+
+> 同一 canonical BusinessData 是否可以在不修改历史事实的前提下，通过增加或版本化 Conditional Posting / Accounting Recognition / Cost / Valuation / Report rules，继续投影到更多业务、管理、成本和财务层次。
+
+典型路径：
+
+```text
+BusinessData
+→ Operational Ledger / Work
+→ Cost / Valuation
+→ Accounting Recognition
+→ Journal / GL
+→ Trial Balance
+→ Financial Statements
+→ Future Management / Regulatory Projections
+```
+
+纵向扩展的默认方式是增加条件、规则、维度、目标 Ledger 或版本化 Projection，而不是增加与具体业务名称绑定的硬编码处理器。
+
+### 14.4 Application Expansion Without Core Modification
+
+新增企业业务能力时，默认优先：
+
+1. 新 Transaction Type；
+2. 新 Application；
+3. 新 Field / Field Group；
+4. 新 Rule；
+5. 新 Ledger；
+6. 复用现有 Runtime。
+
+只有现有原语无法表达真实业务验收时，才允许新增 Core abstraction，并必须证明该能力具有跨多个应用的通用性。
+
+### 14.5 Enterprise Template 的长期验收意义
+
+Enterprise Template 不只是导入 / 导出格式，而是完整 Enterprise Definition Dataset。
+
+它用于证明：
+
+- 应用可安装；
+- 交易类型可安装；
+- 字段 / 字段组可安装；
+- Ledger 可安装；
+- Conditional Posting Rules 可安装；
+- 安装后的企业可以真实运行；
+- 同一套 Core 可以持续承载更多业务；
+- 模板可逐步覆盖 Asloop application corpus、APQC-like 企业流程和多行业能力。
+
+详细架构验证规则：
+
+`docs/architecture/EVO-HORIZONTAL-VERTICAL-EXPANSION-VALIDATION-v0.1.md`
