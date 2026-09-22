@@ -14,7 +14,7 @@
     "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Certify a complete customer-side reverse economic loop where return, exchange, refund, and red invoice are new immutable facts that adjust inventory/cash/economic state without mutating original sales, shipment, receipt, or invoice history, and remain deterministic under Full Replay.",
-    "activeBranch": "evo/eel-c03-sales-return-recognition-v0.1",
+    "activeBranch": "evo/eel-c03-sales-exchange-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "closedGates": [
@@ -24,18 +24,18 @@
       "EEL-C03 selected because it tests reverse business facts and append-only correction semantics",
       "enterprise-core-v1 already contains sales-return semantic assets",
       "Human requirement correction: exchange and red invoice are current simple business events, not deferred platform features",
-      "C03.1 implementation prepared: sales_return.received + inventory posting + explicit source relation"
+      "C03.1 Sales Return Economic Recognition — DATABASE E2E VERIFIED / CI #600",
+      "C03.2 implementation prepared: sales_exchange.created + replacement inventory posting + explicit source relation"
     ],
     "openGates": [
-      "C03.1 Sales Return Economic Recognition",
-      "C03.2 Sales Exchange",
+      "C03.2 Sales Exchange — awaiting PostgreSQL 18 evidence",
       "C03.3 Customer Refund",
       "C03.4 Red Invoice",
       "C03.5 Work / Balance Closure",
       "C03.6 Full Replay Equality",
       "C03.7 Final Certification"
     ],
-    "nextAction": "Run isolated PostgreSQL 18 validation for C03.1; if green, mark DATABASE E2E VERIFIED and merge before C03.2 Sales Exchange."
+    "nextAction": "Run isolated PostgreSQL 18 validation for C03.2; if green, mark DATABASE E2E VERIFIED and merge before C03.3 Customer Refund."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
