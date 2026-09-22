@@ -6,7 +6,7 @@ export type AccountingJsonValue =
   | readonly AccountingJsonValue[]
   | { readonly [key:string]: AccountingJsonValue };
 
-export type AccountingAccountingJsonObject = Readonly<Record<string,AccountingJsonValue>>;
+export type AccountingJsonObject = Readonly<Record<string,AccountingJsonValue>>;
 
 export type JournalSide = 'DEBIT' | 'CREDIT';
 
