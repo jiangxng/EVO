@@ -282,3 +282,63 @@ PR #21 在独立 PostgreSQL 18 环境证明：
 - CI: `35667578606 — SUCCESS`
 
 当前 EEL-C01 只剩最终 certification。
+
+
+## 12. 2026-09-22 — EEL-C02 完成与 EEL-C03 选择
+
+### EEL-C02 已认证
+
+Procure-to-Pay 已在 PostgreSQL 18 证据环境证明：
+
+- Purchase Order → Pending Purchase / Payable；
+- 30 + 20 + 50 多次收货累计关闭 Pending Purchase；
+- Inventory 累计到 100 / 1250；
+- 300 + 400 + 550 多次付款累计关闭 Payable；
+- Cash 累计到 -1250；
+- FULFILLS / ALLOCATES_TO / AllocationInstruction 显式关系成立；
+- RECEIVE / PAY 由余额驱动关闭；
+- Full Replay 后 canonical BusinessData 与正式经济状态一致。
+
+正式认证：
+
+`docs/architecture/certification/EEL-C02-PROCURE-TO-PAY-CERTIFICATION-v0.1.md`
+
+业务结论：
+
+> 正向采购业务中的多次收货、多次付款不需要采购专用核心引擎，可以由事实、规则、账本、关系、Projection 和 Replay 自然表达。
+
+### 下一业务闭环：EEL-C03 Sales Return & Refund
+
+选择原因：
+
+- EEL-C01 / C02 已经覆盖两条主要正向经济闭环；
+- 下一步最需要验证的是“反向业务事实”；
+- 退货/退款直接挑战 EVO 的 append-only 历史原则；
+- enterprise-core-v1 已经存在 `sales-return` 语义，可优先复用；
+- 相比继续扩大采购/生产正向流程，反向业务更能检验底座通用性。
+
+EEL-C03 当前业务目标：
+
+```text
+Original Sale / Shipment / Receipt remain unchanged
+→ Sales Return appended
+→ Inventory restored
+→ Customer Refund appended
+→ Cash reduced
+→ explicit relationships
+→ Work closure
+→ Full Replay equality
+```
+
+当前状态：**DESIGN ONLY / BUSINESS PACKET SELECTED**
+
+当前第一门：
+
+`C03.1 — Sales Return Economic Recognition`
+
+反过度设计约束：
+
+- 不建设通用 Reversal Engine；
+- 不建设完整 RMA / After-sales Platform；
+- 不建设 Credit Memo / Tax Red Invoice 平台；
+- 先证明现有 BusinessData + Posting + Ledger + Relation + Replay 是否已经足够。
