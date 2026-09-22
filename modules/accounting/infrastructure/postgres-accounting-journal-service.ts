@@ -128,6 +128,31 @@ export class PostgresAccountingJournalService implements AccountingJournalServic
           });
         }
 
+        const anyPeriod=await trx.selectFrom('accounting_period')
+          .select('id')
+          .where('accounting_book_id','=',book.id)
+          .executeTakeFirst();
+        if(anyPeriod!==undefined){
+          const period=await trx.selectFrom('accounting_period')
+            .select(['id','code','status','starts_at','ends_at'])
+            .where('accounting_book_id','=',book.id)
+            .where('starts_at','<=',request.effectiveAt)
+            .where('ends_at','>',request.effectiveAt)
+            .executeTakeFirst();
+          if(period===undefined){
+            fail('JOURNAL_PERIOD_NOT_DEFINED','Journal effective time is not covered by any accounting period.',{
+              effectiveAt:request.effectiveAt.toISOString()
+            });
+          }
+          if(period.status!=='OPEN'){
+            fail('JOURNAL_PERIOD_CLOSED','Journal may not be posted into a closed accounting period.',{
+              periodId:period.id,
+              periodCode:period.code,
+              effectiveAt:request.effectiveAt.toISOString()
+            });
+          }
+        }
+
         const quantizer=new Decimal(1).div(new Decimal(10).pow(book.amount_scale));
         const roundedDebit=computed!.debit.toDecimalPlaces(book.amount_scale);
         const roundedCredit=computed!.credit.toDecimalPlaces(book.amount_scale);
