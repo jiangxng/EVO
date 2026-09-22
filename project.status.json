@@ -5,33 +5,40 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "3a1a437d9e96a5e1b064649deb3ac31fe2ee5ce5"
+    "lastVerifiedRuntimeMergeCommit": "2a227fedabf8c30f35253e15f4b886453f5bb71c"
   },
   "activeWorkPacket": {
     "id": "FAI-01-02",
     "name": "Chart of Accounts + Journal Contract + Atomic Double-Entry Integrity",
     "stage": "Financial Accounting Integrity",
-    "status": "DESIGN ONLY",
+    "status": "IMPLEMENTED",
     "overallClosed": false,
     "businessGoal": "Make '有借必有贷、借贷必相等' a machine-enforced General Ledger invariant without changing operational/economic ledgers into debit/credit ledgers.",
-    "activeBranch": "evo/fai-double-entry-alignment-v0.1",
+    "activeBranch": "evo/fai-01-02-double-entry-runtime-v0.1",
     "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md",
     "evidenceTarget": "DATABASE E2E VERIFIED authoritative balanced Journal runtime",
     "closedGates": [
       "Financial accounting integrity gap audited and architecture boundary defined",
       "legacy debit/credit semantics confirmed",
       "EEL-C01 through EEL-C05 business/economic loops certified",
-      "current generic Ledger explicitly classified as operational/economic rather than authoritative General Ledger"
+      "current generic Ledger explicitly classified as operational/economic rather than authoritative General Ledger",
+      "AccountingBook schema implemented",
+      "Chart of Accounts / AccountingAccount schema implemented",
+      "Journal / JournalLine schema implemented",
+      "DEBIT/CREDIT sides implemented",
+      "pre-commit at-least-one-debit/credit validation implemented",
+      "pre-commit ΣDebit == ΣCredit validation implemented",
+      "transactional atomic Journal + JournalLine commit implemented",
+      "durable rejected-journal diagnostic implemented with rule/version/context/line plan",
+      "runtime exposes accounting journal service"
     ],
     "openGates": [
-      "FAI-01 Chart of Accounts + Accounting Book + Journal contract",
-      "FAI-02 DEBIT/CREDIT JournalLine runtime",
-      "FAI-02 atomic journal balance validation",
-      "FAI-02 reject one-sided journals",
-      "FAI-02 reject ΣDebit != ΣCredit",
-      "FAI-02 database E2E proof"
+      "FAI-01/02 PostgreSQL 18 database E2E proof",
+      "balanced Journal success proof",
+      "missing-credit zero-commit rejection proof",
+      "unbalanced extra-effect zero-commit rejection proof"
     ],
-    "nextAction": "Implement FAI-01 + FAI-02 as one bounded bundle. Do not start another ordinary Stage E business loop first."
+    "nextAction": "Run isolated PostgreSQL 18 FAI double-entry validator. Fix only evidence/runtime defects found by CI; do not advance to Trial Balance before FAI-01/02 is database verified."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
