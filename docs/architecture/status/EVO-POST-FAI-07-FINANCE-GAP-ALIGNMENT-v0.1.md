@@ -4,6 +4,9 @@
 **Date:** 2026-09-22
 **Baseline:** main @ 223b058e149f9d45bcad278797d0444c7375b567
 
+
+> **Design principle:** EVO does not digitize paper-era accounting artifacts by default. It preserves the accounting/audit semantics those artifacts carried and prefers machine-readable facts, lineage, controls, reconciliation and projections over duplicated source-of-truth tables. See `docs/architecture/principles/EVO-ACCOUNTING-AUDIT-SEMANTICS-PRINCIPLE-v0.1.md`.
+
 ## 0. Current truth
 
 FAI-01 through FAI-07 are complete for the certified core accounting/reporting path.
