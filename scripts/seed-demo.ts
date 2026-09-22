@@ -366,6 +366,10 @@ try {
     required: [],
     optional: ['order_no','customer','supplier','project','department','profit_center','cost_center']
   };
+  const reverseWorkPolicy = {
+    required: ['order_no','customer'],
+    optional: ['project','department','profit_center','cost_center']
+  };
   await ledger('pending_production','待生产', operationalOrderPolicy);
   await ledger('pending_shipment','待出库/发货', operationalOrderPolicy);
   await ledger('receivable','待收款', receivablePolicy);
@@ -375,6 +379,9 @@ try {
   await ledger('inventory','库存', inventoryPolicy);
   await ledger('cogs','销售成本', inventoryPolicy);
   await ledger('sales_invoice_amount','销售开票金额', receivablePolicy);
+  await ledger('pending_exchange','待换货', reverseWorkPolicy);
+  await ledger('pending_refund','待退款', reverseWorkPolicy);
+  await ledger('pending_red_invoice','待红字发票', reverseWorkPolicy);
 
   async function rule(
     versionId: string,
@@ -425,6 +432,9 @@ try {
   await rule(salesInvoiceVersion.id,'sales-red-invoice-amount-decrease',20,eq('invoiceKind','RED'),{
     ledgerCode:'sales_invoice_amount', quantity:{type:'literal',value:0}, amount:neg('invoiceAmount'), currency:field('currency'), dimensions:salesInvoiceDims
   });
+  await rule(salesInvoiceVersion.id,'sales-red-invoice-close-work',30,eq('invoiceKind','RED'),{
+    ledgerCode:'pending_red_invoice', quantity:{type:'literal',value:0}, amount:neg('invoiceAmount'), currency:field('currency'), dimensions:reverseWorkDims
+  });
 
   const purchaseDims = {
     order_no: field('orderNo'), supplier: field('supplier'), product_id: field('productId'),
@@ -466,6 +476,21 @@ try {
     ledgerCode:'inventory', quantity: field('quantity'), amount: field('returnCost'), currency: field('currency'), dimensions: salesReturnInventoryDims
   });
 
+  const reverseWorkDims = {
+    order_no: field('orderNo'), customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
+  await rule(salesReturnVersion.id,'sales-return-open-exchange-work',20,eq('requiresExchange',true),{
+    ledgerCode:'pending_exchange', quantity:field('exchangeQuantity'), amount:{type:'literal',value:0}, dimensions:reverseWorkDims
+  });
+  await rule(salesReturnVersion.id,'sales-return-open-refund-work',30,eq('requiresRefund',true),{
+    ledgerCode:'pending_refund', quantity:{type:'literal',value:0}, amount:field('refundAmount'), currency:field('currency'), dimensions:reverseWorkDims
+  });
+  await rule(salesReturnVersion.id,'sales-return-open-red-invoice-work',40,eq('requiresRedInvoice',true),{
+    ledgerCode:'pending_red_invoice', quantity:{type:'literal',value:0}, amount:field('redInvoiceAmount'), currency:field('currency'), dimensions:reverseWorkDims
+  });
+
   const salesExchangeInventoryDims = {
     product_id: field('replacementProductId'), warehouse: field('warehouse'),
     order_no: field('orderNo'), customer: field('customer'),
@@ -474,6 +499,9 @@ try {
   };
   await rule(salesExchangeVersion.id,'sales-exchange-replacement-out',10,trueExpr,{
     ledgerCode:'inventory', quantity: neg('replacementQuantity'), amount: neg('replacementCost'), currency: field('currency'), dimensions: salesExchangeInventoryDims
+  });
+  await rule(salesExchangeVersion.id,'sales-exchange-close-work',20,trueExpr,{
+    ledgerCode:'pending_exchange', quantity:neg('replacementQuantity'), amount:{type:'literal',value:0}, dimensions:reverseWorkDims
   });
 
   const receiptDims = receivableDims;
@@ -500,6 +528,9 @@ try {
   };
   await rule(cashRefundVersion.id,'refund-decrease-cash',10,trueExpr,{
     ledgerCode:'cash', quantity: { type:'literal', value:0 }, amount: neg('refundAmount'), currency: field('currency'), dimensions: refundCashDims
+  });
+  await rule(cashRefundVersion.id,'refund-close-work',20,trueExpr,{
+    ledgerCode:'pending_refund', quantity:{type:'literal',value:0}, amount:neg('refundAmount'), currency:field('currency'), dimensions:reverseWorkDims
   });
   await rule(cashPaymentVersion.id,'payment-clear-payable',20,trueExpr,{
     ledgerCode:'payable', quantity: { type:'literal', value:0 }, amount: neg('settledAmount'), currency: field('currency'), dimensions: payableDims
