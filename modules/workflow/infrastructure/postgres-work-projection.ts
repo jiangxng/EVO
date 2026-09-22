@@ -68,7 +68,8 @@ const workTypeByLedger: Record<string, { type: string; title: string; priority: 
   payable: { type: 'PAY', title: '待付款', priority: 10 },
   pending_exchange: { type: 'EXCHANGE', title: '待换货', priority: 20 },
   pending_refund: { type: 'REFUND', title: '待退款', priority: 10 },
-  pending_red_invoice: { type: 'RED_INVOICE', title: '待红字发票', priority: 10 }
+  pending_red_invoice: { type: 'RED_INVOICE', title: '待红字发票', priority: 10 },
+  pending_transfer: { type: 'TRANSFER', title: '待调拨收货', priority: 20 }
 };
 
 export class PostgresWorkProjection implements WorkProjection {
