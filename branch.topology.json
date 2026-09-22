@@ -296,10 +296,18 @@
       "description": "EEL-C03 final certification merged after CI #628."
     },
     "evo/post-eel-c03-alignment-eel-c04-selection-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 37,
+      "description": "Post-EEL-C03 alignment and EEL-C04 Manufacturing Execution selection merged after CI #630."
+    },
+    "evo/eel-c04-production-demand-work-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "Post-EEL-C03 completed-loop requirement alignment and EEL-C04 Manufacturing Execution selection/business packet."
+      "description": "EEL-C04.1 independent Production Demand → pending_production → balance-driven PRODUCE Work."
     }
   },
   "requiredLLMProcedure": [
@@ -327,5 +335,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "c59fe3bb61df5534745e2611deff452269358e9d"
+  "lastReviewedMainCommit": "4988ccaed00714ad0532047b912e57138d14ca0a"
 }

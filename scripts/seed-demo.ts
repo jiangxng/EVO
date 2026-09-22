@@ -72,6 +72,7 @@ try {
     );
   }
   const salesType = await txType(salesDomain.id, 'sales_order', 'Sales Order');
+  const productionDemandType = await txType(productionDomain.id, 'production_demand', 'Production Demand');
   const productionType = await txType(productionDomain.id, 'production_completion', 'Production Completion');
   const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
   const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
@@ -92,6 +93,7 @@ try {
     );
   }
   const salesApp = await app('sales_order', 'Sales Order', salesType.id);
+  const productionDemandApp = await app('production_demand', 'Production Demand', productionDemandType.id);
   const productionApp = await app('production_completion', 'Production Completion', productionType.id);
   const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
   const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
@@ -120,6 +122,7 @@ try {
     );
   }
   const salesVersion = await version(salesApp.id);
+  const productionDemandVersion = await version(productionDemandApp.id);
   const productionVersion = await version(productionApp.id);
   const inventoryVersion = await version(inventoryApp.id);
   const valuationVersion = await version(valuationApp.id);
@@ -146,6 +149,7 @@ try {
     );
   }
   await instance(salesApp.id, 'sales', 'Sales');
+  await instance(productionDemandApp.id, 'production-demand', 'Production Demand');
   await instance(productionApp.id, 'production', 'Production');
   await instance(inventoryApp.id, 'inventory', 'Inventory');
   await instance(valuationApp.id, 'valuation', 'Valuation');
@@ -297,6 +301,7 @@ try {
   await command(cashPaymentVersion.id, 'record-payment', 'Record Supplier Payment', 'cash.paid');
   await command(cashRefundVersion.id, 'record-customer-refund', 'Record Customer Refund', 'cash.refunded');
   await command(valuationVersion.id, 'request-valuation', 'Request Valuation', 'valuation.requested');
+  await command(productionDemandVersion.id, 'create-production-demand', 'Create Production Demand', 'production_demand.created');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
@@ -406,6 +411,16 @@ try {
     project: field('project'), department: field('department'),
     profit_center: field('profitCenter'), cost_center: field('costCenter')
   };
+  const productionDemandDims = {
+    order_no: field('demandNo'), product_id: field('productId'),
+    customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
+  await rule(productionDemandVersion.id,'production-demand-pending',10,trueExpr,{
+    ledgerCode:'pending_production', quantity:field('quantity'), amount:{type:'literal',value:'0'}, dimensions:productionDemandDims
+  });
+
   await rule(salesVersion.id,'order-pending-production',10,eq('eventKind','ORDER'),{
     ledgerCode:'pending_production', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: orderDims
   });
