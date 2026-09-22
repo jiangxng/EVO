@@ -264,10 +264,18 @@
       "description": "EEL-C03.3 Customer Refund merged after PostgreSQL 18 E2E / CI #614."
     },
     "evo/eel-c03-red-invoice-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 33,
+      "description": "EEL-C03.4 Red Invoice merged after PostgreSQL 18 E2E / CI #620."
+    },
+    "evo/eel-c03-work-balance-closure-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C03.4 Red Invoice simple-event + invoice-business-ledger implementation and isolated PostgreSQL evidence."
+      "description": "EEL-C03.5 reverse-flow Work/Balance closure using generic ledger-driven WorkProjection."
     }
   },
   "requiredLLMProcedure": [
@@ -295,5 +303,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "fbc384f702edfa983d104825cc1968cc1dd9dd02"
+  "lastReviewedMainCommit": "3536fa658235317dbaab14ea3251d7bc487b074a"
 }
