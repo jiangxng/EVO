@@ -1,16 +1,16 @@
-# EVO Stage E — EEL-C03 Sales Return & Refund Reference Loop Packet v0.1
+# EVO Stage E — EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop Packet v0.1
 
 **Status:** BUSINESS PACKET / READY FOR IMPLEMENTATION  
 **Date:** 2026-09-22  
 **Stage:** Stage E — Enterprise Economic Loops  
 **Packet:** EEL-C03  
-**Name:** Sales Return & Refund Reference Loop
+**Name:** Sales Return / Exchange / Refund / Red Invoice Reference Loop
 
 ## 0. 60 秒业务摘要
 
 EEL-C03 要证明：
 
-> 已经完成的销售、发货和收款发生反向业务时，EVO 不修改历史，而是通过新的退货和退款事实，把库存、现金和相关业务状态正确调整，并且 Full Replay 后结果仍然一致。
+> 已经完成的销售、发货和收款发生反向业务时，EVO 不修改历史，而是通过新的退货、换货、退款、红字发票事实表达业务变化，把库存、现金、票据/经济状态正确调整，并且 Full Replay 后结果仍然一致。
 
 参考故事：
 
@@ -18,10 +18,11 @@ EEL-C03 要证明：
 Sales Order
 → Shipment
 → Customer Payment
-→ Sales Return
-→ Inventory Increase
+→ Sales Return / Exchange
+→ Inventory / Replacement Movement
 → Customer Refund
 → Cash Decrease
+→ Red Invoice
 → Work Closure
 → Full Replay Equality
 ```
@@ -53,13 +54,14 @@ Prove one complete customer-side reverse economic loop on the certified EVO Econ
 - 原销售已发货；
 - 原销售已收款；
 - 一次退货；
+- 一次换货事件；
 - 一次退款；
+- 一次红字发票事件；
 - 同币种；
-- 不含税务复杂性；
-- 不含换货；
+- 不含复杂税务计算/税控接口；
 - 不含跨币种退款。
 
-参考认证数据可以简单，但底层实现不得写死“一次退货/一次退款”。
+参考认证数据可以简单，但底层实现不得写死“一次退货/一次换货/一次退款/一次红字发票”。
 
 ## 3. Required Canonical Facts
 
@@ -89,7 +91,25 @@ Expected effect:
 - explicit relation points to original sale/shipment;
 - original sale/shipment facts remain unchanged.
 
-### 3.3 Customer Refund
+### 3.3 Sales Exchange
+
+Exchange MUST be represented as a new canonical business fact, not as mutation of the original sale/shipment/return.
+
+Preferred semantic direction:
+
+```text
+sales_exchange.created
+```
+
+Expected effect:
+
+- explicit relation identifies the returned/original business and replacement intent;
+- inventory/replacement movement is expressed through normal posting/business facts;
+- original sale/shipment/return facts remain unchanged.
+
+A simple exchange event does NOT imply an RMA platform.
+
+### 3.4 Customer Refund
 
 Refund MUST be a new canonical business fact.
 
@@ -109,6 +129,25 @@ Expected effect:
 
 Do not reuse supplier-payment semantics merely because both reduce cash unless the semantic contract explicitly supports customer refunds.
 
+### 3.5 Red Invoice
+
+A red invoice MUST be represented as a new canonical business fact.
+
+Preferred semantic direction:
+
+```text
+sales_red_invoice.issued
+```
+
+Expected effect:
+
+- explicitly references the original invoice/sales economic source;
+- does not mutate or delete the original invoice/business fact;
+- any financial reversal is expressed through explicit posting rules;
+- remains replayable and explainable.
+
+A red-invoice event does NOT imply that EEL-C03 must build a tax-control integration, invoice approval platform, or full statutory tax engine.
+
 ## 4. Acceptance Criteria
 
 EEL-C03 can be CERTIFIED only if:
@@ -120,15 +159,20 @@ EEL-C03 can be CERTIFIED only if:
 5. Sales Return explicitly identifies its source business.
 6. Inventory quantity increases correctly after return.
 7. Inventory value is handled by an explicit, replayable valuation rule.
-8. Customer Refund appends canonical BusinessData.
-9. Customer Refund decreases Cash correctly.
-10. Refund explicitly identifies the original receipt/return source.
-11. No return/refund completion is inferred merely because amounts happen to match.
-12. Relevant Work state closes from derived state/rules.
-13. Full Replay rebuilds the same official reverse-flow economic state.
-14. Full Replay does not re-execute Commands.
-15. Canonical forward and reverse BusinessData remain unchanged.
-16. Result lineage can explain why inventory/cash changed.
+8. Sales Exchange appends canonical BusinessData and explicitly identifies original/returned business.
+9. Exchange does not mutate original Sales Order / Shipment / Return.
+10. Customer Refund appends canonical BusinessData.
+11. Customer Refund decreases Cash correctly.
+12. Refund explicitly identifies the original receipt/return source.
+13. Red Invoice appends canonical BusinessData.
+14. Red Invoice explicitly identifies the original invoice/sales economic source.
+15. Red Invoice never rewrites the original invoice/business fact.
+16. No return/exchange/refund/red-invoice completion is inferred merely because quantities/amounts happen to match.
+17. Relevant Work state closes from derived state/rules.
+18. Full Replay rebuilds the same official reverse-flow economic state.
+19. Full Replay does not re-execute Commands.
+20. Canonical forward and reverse BusinessData remain unchanged.
+21. Result lineage can explain why inventory/cash/financial reversal changed.
 
 ## 5. Core Architecture Rule
 
@@ -206,13 +250,13 @@ Full Replay MUST:
 
 Not part of EEL-C03:
 
-- exchange/replacement;
 - RMA platform;
 - repair flow;
 - refund approval hierarchy;
 - return freight;
 - restocking fee;
-- tax red invoice;
+- tax-control / e-invoice external integration;
+- complex tax calculation / statutory reporting;
 - credit memo product workflow;
 - chargeback;
 - multi-order refund distribution;
@@ -240,23 +284,35 @@ If it is mainly future platform speculation, defer it.
 - inventory restoration;
 - forward facts unchanged.
 
-### C03.2 — Customer Refund
+### C03.2 — Sales Exchange
+- canonical exchange fact;
+- explicit source/replacement relation;
+- replacement movement expressed through existing facts/rules;
+- original facts unchanged.
+
+### C03.3 — Customer Refund
 - canonical customer refund fact;
 - cash decrease;
 - explicit source relationship;
 - original receipt unchanged.
 
-### C03.3 — Work / Balance Closure
+### C03.4 — Red Invoice
+- canonical red-invoice fact;
+- explicit original-source relation;
+- explicit financial reversal posting where applicable;
+- original invoice/business fact unchanged.
+
+### C03.5 — Work / Balance Closure
 - reverse-flow tasks close from derived state.
 
-### C03.4 — Full Replay Equality
+### C03.6 — Full Replay Equality
 - official reverse-flow state reconstructed exactly.
 
-### C03.5 — Final Certification
+### C03.7 — Final Certification
 - certification + requirement alignment.
 
 ## 12. Done Definition
 
 EEL-C03 is done only when the enterprise can truthfully say:
 
-> “客户退货和退款不会把原订单、原发货或原收款改掉；系统会新增可追溯的退货/退款事实，库存和现金因此正确变化，相关待办正确关闭，并且删除派生状态后可以完整重建同样结果。”
+> “客户退货、换货、退款和红字发票都不会改写原订单、原发货、原收款或原票据；系统用新的可追溯业务事实表达变化，库存、现金和相关经济状态因此正确变化，并且删除派生状态后可以完整重建同样结果。”
