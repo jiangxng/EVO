@@ -270,7 +270,7 @@ try {
 
   const trueExpr = { type: 'literal', value: true };
   const field = (path: string) => ({ type: 'field', path });
-  const eq = (path: string, value: string) => ({
+  const eq = (path: string, value: string | boolean | number) => ({
     type: 'eq', left: field(path), right: { type: 'literal', value }
   });
   const neg = (path: string) => ({
