@@ -1,5 +1,5 @@
 import { Decimal } from 'decimal.js';
-import type { Kysely } from 'kysely';
+import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type {
@@ -213,7 +213,7 @@ export class PostgresAccountingRecognitionService implements AccountingRecogniti
         const currency=currencyField===null
           ?(typeof effect.currency==='string'?effect.currency:'')
           :String(valueAt(payload,currencyField)??'');
-        lines.push({accountId,side,amount,currency,memo:typeof effect.memo==='string'?effect.memo:undefined});
+        lines.push({accountId,side,amount,currency,...(typeof effect.memo==='string'?{memo:effect.memo}:{})});
         trace.push({effectIndex:index,accountCode,accountId,side,amount,currency});
       }
       perRuleEffects.set(rule.id,trace);
@@ -272,7 +272,7 @@ export class PostgresAccountingRecognitionService implements AccountingRecogniti
         business_data_id:business.id,
         matched:rule.matched,
         condition_trace:rule.conditionTrace as unknown as Record<string,unknown>,
-        generated_effects:(perRuleEffects.get(rule.id)??[]) as unknown as readonly unknown[],
+        generated_effects:sql<readonly unknown[]>`${JSON.stringify(perRuleEffects.get(rule.id)??[])}::jsonb`,
         journal_id:status==='POSTED'?journalId??null:null,
         status,
         error_code:status==='REJECTED'?failureCode??'ACCOUNTING_RECOGNITION_FAILED':null
