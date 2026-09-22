@@ -53,11 +53,10 @@
       "source/destination quantity and value conservation is proven",
       "FIFO-derived transfer valuation is proven",
       "pure internal transfer creates no P&L/AR/AP/Cash side effects",
-      "TRANSFER Work closes only when pending_transfer reaches zero"
+      "TRANSFER Work closes only when pending_transfer reaches zero",
+      "C05 Full Replay Equality + Final Certification is DATABASE E2E VERIFIED by PR #44 / CI #653"
     ],
-    "open": [
-      "Full Replay Equality + Final Certification — awaiting PostgreSQL 18 CI"
-    ],
+    "open": [],
     "deferred": [
       "WMS platform",
       "TMS platform",
@@ -70,8 +69,8 @@
       "advanced lot/serial productization",
       "cycle count platform"
     ],
-    "currentWork": "C05 Full Replay Equality + Final Certification",
-    "status": "IMPLEMENTED",
+    "currentWork": "Completed-loop requirement alignment / next Stage E packet selection",
+    "status": "CERTIFIED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
@@ -115,11 +114,11 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "SELECTED",
-    "selection": "EEL-C05 Inventory Transfer & Warehouse Rebalancing Reference Loop",
-    "rule": "Keep C05 bounded to intra-enterprise warehouse transfer, explicit lineage, quantity/value conservation, Work and Replay. Defer WMS/TMS and cross-entity transfer."
+    "state": "RESELECT_REQUIRED_AFTER_CERTIFICATION",
+    "selection": null,
+    "rule": "Run the mandatory completed-loop requirement alignment after EEL-C05, then choose the next bounded Stage E packet by business value and APQC capability gap."
   },
-  "currentWork": "C05 Full Replay Equality + Final Certification",
+  "currentWork": "Completed-loop requirement alignment / next Stage E packet selection",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [
