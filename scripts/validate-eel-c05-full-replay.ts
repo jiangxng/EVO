@@ -338,8 +338,8 @@ try{
   if(JSON.stringify(before)!==JSON.stringify(after)){
     throw new Error(`Transfer state changed across Full Replay: before=${JSON.stringify(before)} after=${JSON.stringify(after)}`);
   }
-  if(before.source.quantity!=='60.000000000000'||before.source.amount!=='600.000000000000'||
-    before.destination.quantity!=='40.000000000000'||before.destination.amount!=='400.000000000000'){
+  if(!new Decimal(before.source.quantity).eq(60)||!new Decimal(before.source.amount).eq(600)||
+    !new Decimal(before.destination.quantity).eq(40)||!new Decimal(before.destination.amount).eq(400)){
     throw new Error(`Certified warehouse result mismatch: ${JSON.stringify(before)}`);
   }
   if(before.pending===null||!new Decimal(before.pending.quantity).eq(0)||before.work?.status!=='DONE'){
