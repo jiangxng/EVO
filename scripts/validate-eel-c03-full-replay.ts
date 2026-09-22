@@ -72,18 +72,20 @@ async function snapshot(
   return {balances:scopedBalances,work,facts,links};
 }
 
-function amount(snapshot:Awaited<ReturnType<typeof snapshot>>,ledger:string){
-  const row=snapshot.balances.find(r=>r.ledger===ledger);
+type ReverseFlowSnapshot = Awaited<ReturnType<typeof snapshot>>;
+
+function amount(state:ReverseFlowSnapshot,ledger:string){
+  const row=state.balances.find(r=>r.ledger===ledger);
   if(row===undefined) throw new Error(`Missing balance ${ledger}`);
   return new Decimal(row.amount);
 }
-function quantity(snapshot:Awaited<ReturnType<typeof snapshot>>,ledger:string){
-  const row=snapshot.balances.find(r=>r.ledger===ledger);
+function quantity(state:ReverseFlowSnapshot,ledger:string){
+  const row=state.balances.find(r=>r.ledger===ledger);
   if(row===undefined) throw new Error(`Missing balance ${ledger}`);
   return new Decimal(row.quantity);
 }
 
-function assertClosed(s:Awaited<ReturnType<typeof snapshot>>,label:string){
+function assertClosed(s:ReverseFlowSnapshot,label:string){
   if(!quantity(s,'pending_production').eq(0)) throw new Error(`${label} pending_production not closed`);
   if(!quantity(s,'pending_shipment').eq(0)) throw new Error(`${label} pending_shipment not closed`);
   if(!amount(s,'receivable').eq(0)) throw new Error(`${label} receivable not closed`);
