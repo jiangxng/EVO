@@ -72,6 +72,8 @@ try{
 
   const ar=await account('1122','Accounts Receivable','ASSET','DEBIT');
   const revenue=await account('6001','Revenue','REVENUE','CREDIT');
+  const ap=await account('2202','Accounts Payable','LIABILITY','CREDIT');
+  const inventory=await account('1405','Inventory','ASSET','DEBIT');
   const expense=await account('6601','Operating Expense','EXPENSE','DEBIT');
 
   const balanced=await service.post({
@@ -143,9 +145,9 @@ try{
       ]
     },
     lines:[
-      {accountId:ar.id,side:'DEBIT',amount:'1000.00',currency:'CNY'},
+      {accountId:inventory.id,side:'DEBIT',amount:'1000.00',currency:'CNY'},
       {accountId:expense.id,side:'DEBIT',amount:'200.00',currency:'CNY'},
-      {accountId:revenue.id,side:'CREDIT',amount:'1000.00',currency:'CNY'}
+      {accountId:ap.id,side:'CREDIT',amount:'1000.00',currency:'CNY'}
     ]
   });
 
