@@ -27,7 +27,7 @@ EEL-C02 已证明：
 因此选择：
 
 ```text
-EEL-C03 — Sales Return & Refund Reference Loop
+EEL-C03 — Sales Return / Exchange / Refund / Red Invoice Reference Loop
 ```
 
 ## 1. 最终目标有没有变化？
@@ -56,9 +56,11 @@ Stage E 仍然验证：
 但企业系统必须同样处理“业务反向发生”：
 
 - 客户退货；
+- 客户换货；
 - 商品重新进入库存；
 - 原销售相关义务/经济状态被反向抵消；
 - 如果客户已经付款，企业需要退款；
+- 如果原销售需要反向票据表达，企业需要新增红字发票事件；
 - 原订单、原发货、原收款历史不能被修改；
 - 退货和退款必须明确关联原业务；
 - Replay 后结果仍必须一致。
@@ -95,10 +97,11 @@ Stage E 仍然验证：
 Sales Order
 → Shipment
 → Customer Payment
-→ Sales Return
-→ Inventory Increase
+→ Sales Return / Exchange
+→ Inventory / Replacement Movement
 → Customer Refund
 → Cash Decrease
+→ Red Invoice
 → Return / Refund Work Closure
 → Full Replay Equality
 ```
@@ -109,12 +112,15 @@ Sales Order
 2. 原 Shipment 不修改；
 3. 原 Customer Receipt 不修改；
 4. Sales Return 是新的 BusinessData；
-5. Customer Refund 是新的 BusinessData；
-6. Return 必须明确指向被退的原销售/发货；
-7. Refund 必须明确指向被退款的原收款/客户经济来源；
-8. 库存通过新增事实恢复；
-9. 现金通过新增退款事实减少；
-10. Replay 后正式经济结果一致。
+5. Sales Exchange 是新的 BusinessData；
+6. Customer Refund 是新的 BusinessData；
+7. Red Invoice 是新的 BusinessData；
+8. Return / Exchange 必须明确指向原销售/发货/退货来源；
+9. Refund 必须明确指向被退款的原收款/客户经济来源；
+10. Red Invoice 必须明确指向原票据/原销售经济来源；
+11. 库存通过新增事实恢复或发生替换移动；
+12. 现金通过新增退款事实减少；
+13. Replay 后正式经济结果一致。
 
 ## 6. 当前先不要求
 
@@ -122,11 +128,10 @@ EEL-C03 暂不扩展为完整售后平台。
 
 不要求：
 
-- 换货；
 - 维修；
 - RMA 审批平台；
 - 退货运费；
-- 税务红字发票；
+- 税控接口与复杂法定税务计算；
 - 信用票据/credit memo 产品化；
 - 多订单混合退款；
 - 部分商品多次退款的复杂分摊；
@@ -170,6 +175,11 @@ EEL-C03 暂不扩展为完整售后平台。
 
 不需要。
 
+但这不代表换货和红字发票延后。二者作为简单业务事件当前就要进入 EEL-C03：
+
+- 换货：新增 exchange fact + 显式关联 + 正常库存/发货事实；
+- 红字发票：新增 red-invoice fact + 显式关联 + 需要时通过 Posting Rule 表达经济冲回。
+
 只有当前验收无法通过时才允许扩展。
 
 ## 8. EEL-C03 建议 bounded slices
@@ -183,7 +193,15 @@ EEL-C03 暂不扩展为完整售后平台。
 - Inventory 增加；
 - 原销售/发货 BusinessData 不变。
 
-### C03.2 — Customer Refund
+### C03.2 — Sales Exchange
+
+证明：
+- canonical exchange fact；
+- 明确关联原销售/退货；
+- 替换发货/库存变化通过现有业务事实表达；
+- 原业务事实不修改。
+
+### C03.3 — Customer Refund
 
 证明：
 
@@ -192,14 +210,22 @@ EEL-C03 暂不扩展为完整售后平台。
 - 明确关联原收款/退货；
 - 不修改原 `cash.received`。
 
-### C03.3 — Balance / Work Closure
+### C03.4 — Red Invoice
+
+证明：
+- canonical red-invoice fact；
+- 明确关联原票据/销售来源；
+- 原票据/原业务事实不修改；
+- 如需经济冲回，由明确 Posting Rule 表达。
+
+### C03.5 — Balance / Work Closure
 
 证明：
 
 - 退货/退款相关待办由余额或 Projection 正确关闭；
 - 不以“存在退货事件”代替余额状态。
 
-### C03.4 — Full Replay Equality
+### C03.6 — Full Replay Equality
 
 证明：
 
@@ -207,7 +233,7 @@ EEL-C03 暂不扩展为完整售后平台。
 - canonical BusinessData 不变；
 - explicit relations 保持。
 
-### C03.5 — Final Certification
+### C03.7 — Final Certification
 
 形成 EEL-C03 certification 与最终需求对齐。
 
