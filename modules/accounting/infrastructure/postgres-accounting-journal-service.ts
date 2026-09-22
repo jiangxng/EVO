@@ -3,9 +3,9 @@ import type { Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { DatabaseTransactionRunner } from '../../../platform/database/src/transaction.js';
-import type { JsonObject } from '../../metadata/api/contracts.js';
 import type {
   AccountingJournalService,
+  AccountingAccountingJsonObject,
   PostJournalRequest,
   PostJournalResult
 } from '../api/contracts.js';
@@ -17,7 +17,7 @@ type Totals = {
   readonly creditLines: number;
 };
 
-function fail(code:string,message:string,details?:JsonObject):never{
+function fail(code:string,message:string,details?:AccountingJsonObject):never{
   throw new AppError({
     code,
     message,
@@ -222,7 +222,7 @@ export class PostgresAccountingJournalService implements AccountingJournalServic
         difference:debit.minus(credit).toString(),
         details:{
           message:appError.message,
-          errorDetails:(appError.details??{}) as JsonObject,
+          errorDetails:(appError.details??{}) as AccountingJsonObject,
           diagnosticContext:request.diagnosticContext??{},
           linePlan:request.lines.map((line,index)=>({
             index,
