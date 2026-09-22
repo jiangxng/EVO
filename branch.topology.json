@@ -325,10 +325,18 @@
       "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle merged by PR #39 after PostgreSQL 18.6 database E2E and CI verification."
     },
     "evo/eel-c04-full-replay-final-certification-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 40,
+      "description": "EEL-C04.6 Full Replay Equality and C04.7 final certification evidence merged by PR #40 after CI #642."
+    },
+    "evo/post-codex-eel-c04-alignment-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C04.6 Full Replay Equality and C04.7 Final Certification bounded bundle."
+      "description": "Post-Codex status/context alignment after PR #39/#40; no runtime behavior changes."
     }
   },
   "requiredLLMProcedure": [
@@ -356,7 +364,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "8f58664b697ca785884e1b093f4275f01cf62889",
+  "lastReviewedMainCommit": "11ee7618c12da214e8e0270b321e0f098a448488",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -384,15 +392,15 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/eel-c04-full-replay-final-certification-v0.1",
+    "businessMainline": "evo/post-codex-eel-c04-alignment-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "C04.6 Full Replay Equality",
-      "C04.7 Final Certification"
+      "repair STATUS_DRIFT after EEL-C04 certification",
+      "promote EEL-C04 v0.2 certification",
+      "promote v1.5 context checkpoint"
     ],
-    "evidenceTarget": "CERTIFIED — EEL-C04 Manufacturing Execution Reference Loop",
-    "currentEvidence": "C04.6 Full Replay reached locally on PostgreSQL 18.6; C04.7 remote CI and merge evidence pending",
-    "afterSuccess": "Merge to main, mark EEL-C04 closed, and perform the mandatory completed-loop requirement-alignment review before selecting the next Stage E packet.",
-    "rule": "Do not start another independent Stage E capability branch while C04 Full Replay and final certification remain open."
+    "evidenceTarget": "documentation/status alignment only",
+    "afterSuccess": "Merge to main, then run completed-loop requirement alignment before selecting new Stage E implementation work.",
+    "rule": "No new business capability implementation should start from the stale C04 branch; main already contains the certified C04 runtime."
   }
 }

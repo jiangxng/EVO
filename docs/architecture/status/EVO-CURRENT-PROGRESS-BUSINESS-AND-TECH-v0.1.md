@@ -6,6 +6,50 @@
 
 ---
 
+## 当前权威摘要 — 2026-09-22
+
+> **本节是当前状态入口。本文后续较早章节保留为追加式历史记录，不应覆盖本节、`project.status.json`、`requirements.status.json` 与最新 Context Checkpoint 的当前指针。**
+
+当前 authoritative integration branch：`main`。
+
+当前已认证的 Stage E 企业闭环：
+
+```text
+EEL-C01  Order-to-Cash                         CERTIFIED
+EEL-C02  Procure-to-Pay                       CERTIFIED
+EEL-C03  Return / Exchange / Refund / Red     CERTIFIED
+EEL-C04  Manufacturing Execution              CERTIFIED
+```
+
+EEL-C04 最终远程证据：
+
+- PR #39 / CI #640：C04.2–C04.5 Manufacturing Execution Bundle；
+- PR #40 / CI #642：C04.6 Full Replay + C04.7 Final Certification；
+- main merge commit：`11ee7618c12da214e8e0270b321e0f098a448488`；
+- 正式认证：`docs/architecture/certification/EEL-C04-MANUFACTURING-EXECUTION-CERTIFICATION-v0.2.md`；
+- 当前 handoff checkpoint：`docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-22-v1.5.md`。
+
+制造闭环已经证明：
+
+```text
+Production Demand
+→ Material Issue
+→ FIFO Cost / Manufacturing WIP
+→ Partial + Final Completion
+→ Finished Goods Inventory
+→ PRODUCE Work Closure
+→ Full Replay Equality
+```
+
+并修复了一项真实 Replay 缺陷：Valuation 在 Replay 中晚执行时，Ledger Balance 的最新排序元数据现在按
+`(effective_at, posting_priority, posting_sequence)` 保持语义上的最新值，不再倒退。
+
+**当前下一步不是继续扩 EEL-C04。**
+
+completed-loop requirement-alignment trigger 已触发。下一项 Stage E 实现必须先从业务价值 / APQC capability gap 重新选择，避免因技术惯性继续制造域扩展。
+
+---
+
 ## 0. 为什么需要这份文档
 
 EVO 是大模型原生项目，但项目最终不是为了展示技术，而是为了让企业真实业务可以长期、稳定、可解释地运行。

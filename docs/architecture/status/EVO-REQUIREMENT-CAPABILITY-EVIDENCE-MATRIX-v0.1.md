@@ -426,3 +426,57 @@ EVO 已经证明：
 EEL-C03 完成后，不应因为当前 Runtime 已经熟悉就继续扩售后功能。
 
 下一步必须先执行 completed-loop requirement alignment，再从业务价值 / APQC 能力缺口选择下一个 Stage E bounded packet。
+
+## 14. 2026-09-22 — EEL-C04 Manufacturing Execution 完成与认证
+
+EEL-C04 已完成 PostgreSQL 18 数据库证据、Full Replay 以及最终远程 CI 认证。
+
+### 14.1 企业新增能力
+
+| 业务需求 | 企业应该看到的结果 | 当前能力 | 证据 | 状态 |
+|---|---|---|---|---|
+| 独立生产需求 | 不依赖 Sales Order 也能形成生产需求和待生产任务 | production_demand.created → pending_production → PRODUCE Work | PR #38 / CI #632 | 已验证 |
+| 原料领用 | 原料库存数量减少且业务事实可追溯 | material_issue.issued + Inventory posting | PR #39 / CI #640 | 已验证 |
+| 原料实际成本 | 领料成本来自 FIFO CostResult，不靠隐藏手工值 | Cost / Valuation | PR #39 / CI #640 | 已验证 |
+| 在制成本 | 原料成本进入 Manufacturing WIP，完工后归零 | manufacturing_wip ledger | PR #39 / CI #640 | 已验证 |
+| 部分/多次完工 | 20 + 30 累计完成 50；未完成前 Work 保持 OPEN | repeated production.completed + balance-derived Work | PR #39 / CI #640 | 已验证 |
+| 成品库存与成本 | 最终成品 50 / 200，成本来源可解释 | production.completed → Finished Goods Inventory | PR #39 / CI #640 | 已验证 |
+| 制造闭环完整重放 | 删除派生状态后 Inventory / Cost / WIP / Work 重建一致 | Full Replay equality | PR #40 / CI #642 | 已验证 |
+| Replay 元数据不倒退 | 历史 Valuation 晚执行也不会把 Balance 最新顺序倒退 | semantic ordering tuple fix | PR #40 / CI #642 | 已验证 |
+
+### 14.2 正式认证
+
+`docs/architecture/certification/EEL-C04-MANUFACTURING-EXECUTION-CERTIFICATION-v0.2.md`
+
+最终 merge commit：
+
+`11ee7618c12da214e8e0270b321e0f098a448488`
+
+### 14.3 当前业务结论
+
+EVO 目前已经用同一套 canonical runtime 证明：
+
+```text
+客户正向业务
++ 供应商正向业务
++ 客户反向业务
++ 制造执行业务
+```
+
+制造域并没有要求引入新的 Manufacturing Core Runtime。
+
+### 14.4 下一步治理
+
+EEL-C04 已关闭。当前必须先执行 completed-loop requirement alignment，再选择下一条 Stage E 业务主线。
+
+仍然明确延后：
+
+- BOM / multi-level BOM；
+- MRP；
+- APS；
+- MES；
+- routing / operation scheduling；
+- OEE；
+- full quality platform；
+- subcontract manufacturing；
+- advanced traceability。
