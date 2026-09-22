@@ -5,29 +5,36 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "43c23050b74819caf311535598808bdf5339d237"
+    "lastVerifiedRuntimeMergeCommit": "9573a5c80871553784eac0e76b447f3e51276e1f"
   },
   "activeWorkPacket": {
-    "id": "EEL-C02",
-    "name": "Procure-to-Pay Reference Loop",
+    "id": "EEL-C03",
+    "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Certify a complete supplier-side procure-to-pay loop from purchase order through goods receipt, inventory recognition, payable settlement, cash payment, work closure, and Full Replay equality.",
-    "activeBranch": null,
-    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C02-PROCURE-TO-PAY-PACKET-v0.1.md",
-    "evidenceTarget": "CERTIFIED — EEL-C02 Procure-to-Pay Reference Loop",
+    "status": "DESIGN ONLY",
+    "overallClosed": false,
+    "businessGoal": "Certify a complete customer-side reverse economic loop where return, exchange, refund, and red invoice are new immutable facts that adjust inventory/cash/economic state without mutating original sales, shipment, receipt, or invoice history, and remain deterministic under Full Replay.",
+    "activeBranch": "evo/eel-c03-sales-return-refund-packet-v0.1",
+    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md",
+    "evidenceTarget": "CERTIFIED — EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "closedGates": [
-      "C02.1 Purchase Order Economic Recognition — DATABASE E2E VERIFIED",
-      "C02.2 Goods Receipt & Inventory — DATABASE E2E VERIFIED with cumulative 30 + 20 + 50 receipts",
-      "C02.3 Supplier Payment & Explicit Settlement — DATABASE E2E VERIFIED with cumulative 300 + 400 + 550 payments",
-      "C02.4 Full Replay Equality — DATABASE E2E VERIFIED on isolated PostgreSQL 18 evidence job",
-      "CI run 35679110487 / #584 verified the isolated PostgreSQL 18 Full Replay evidence",
-      "Final certification CI run 35679264071 / #587 completed successfully",
-      "PR #26 merged to main at 43c23050b74819caf311535598808bdf5339d237"
+      "EEL-C01 Order-to-Cash certified",
+      "EEL-C02 Procure-to-Pay certified",
+      "Post-EEL-C02 formal requirement alignment completed",
+      "EEL-C03 selected because it tests reverse business facts and append-only correction semantics",
+      "enterprise-core-v1 already contains sales-return semantic assets",
+      "Human requirement correction: exchange and red invoice are current simple business events, not deferred platform features"
     ],
-    "openGates": [],
-    "nextAction": "EEL-C02 is merged and certified on main. Perform the scheduled requirement-alignment review and select the next Stage E business loop."
+    "openGates": [
+      "C03.1 Sales Return Economic Recognition",
+      "C03.2 Sales Exchange",
+      "C03.3 Customer Refund",
+      "C03.4 Red Invoice",
+      "C03.5 Work / Balance Closure",
+      "C03.6 Full Replay Equality",
+      "C03.7 Final Certification"
+    ],
+    "nextAction": "Implement C03.1 first, then C03.2 exchange and C03.4 red invoice as simple canonical events using existing primitives before considering any RMA/tax-control platform abstraction."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -77,13 +84,12 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "EEL-C01",
-    "name": "Order-to-Cash Settlement Reference Loop",
+    "id": "EEL-C02",
+    "name": "Procure-to-Pay Reference Loop",
     "status": "CERTIFIED",
-    "certification": "docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md",
-    "verifiedHead": "3d679fae5c330ed223eb3f5ff49f1240df7acbf0",
-    "verifiedCiRun": 35669984475,
-    "mergeCommit": "9fdad572db9992ca0773b5cd637b41a57ccf80d8"
+    "certification": "docs/architecture/certification/EEL-C02-PROCURE-TO-PAY-CERTIFICATION-v0.1.md",
+    "verifiedCiRun": 35679264071,
+    "mergeCommit": "43c23050b74819caf311535598808bdf5339d237"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -91,8 +97,8 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "ALIGNED_EEL_C02_CERTIFIED",
-    "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred.",
+    "currentAssessment": "ALIGNED_EEL_C03_BUSINESS_EVENT_LEDGER_BALANCE_STATEMENT_MAINLINE",
+    "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
       "rule": "Perform a formal requirement-alignment review after every 3 merged DATABASE E2E VERIFIED/CERTIFIED bounded slices since the last review, or immediately when any mandatory trigger fires, whichever comes first."

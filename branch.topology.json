@@ -224,6 +224,12 @@
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
       "description": "Short-lived post-merge status/topology cleanup for EEL-C02; no runtime behavior changes."
+    },
+    "evo/eel-c03-sales-return-refund-packet-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Stage E / EEL-C03 Sales Return & Refund business packet and formal post-EEL-C02 requirement-alignment selection branch."
     }
   },
   "requiredLLMProcedure": [
@@ -251,5 +257,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "43c23050b74819caf311535598808bdf5339d237"
+  "lastReviewedMainCommit": "9573a5c80871553784eac0e76b447f3e51276e1f"
 }
