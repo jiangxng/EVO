@@ -151,7 +151,19 @@ try {
 
     const work = await workForOrder(ids.enterpriseId,orderNo);
     const payWork = work.find((row)=>row.source_ledger_code==='payable');
-    if (payWork === undefined) throw new Error('PAY work missing.');
+    if (payWork === undefined) {
+      const allWork = await runtime.db.selectFrom('work_item')
+        .select(['work_type','status','source_ledger_code','source_dimensions','source_quantity','source_amount'])
+        .where('enterprise_id','=',ids.enterpriseId)
+        .execute();
+      const payableBalances = await runtime.db.selectFrom('ledger_balance as b')
+        .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
+        .select(['d.code as ledger_code','b.dimensions','b.dimension_hash','b.quantity','b.amount'])
+        .where('b.enterprise_id','=',ids.enterpriseId)
+        .where('d.code','=','payable')
+        .execute();
+      throw new Error('PAY work missing. diagnostics=' + JSON.stringify({ orderNo, work, allWork, payableBalances }));
+    }
 
     if (!new Decimal(payWork.source_amount).eq(expectedPayable[index]!)) {
       throw new Error(`Payable after payment ${index+1} must be ${expectedPayable[index]}, got ${payWork.source_amount}`);
