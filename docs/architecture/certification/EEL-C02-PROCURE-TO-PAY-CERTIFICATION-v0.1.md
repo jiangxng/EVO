@@ -4,7 +4,8 @@
 **Date:** 2026-09-22  
 **Stage:** Stage E — Enterprise Economic Loops  
 **Packet:** EEL-C02  
-**CI Evidence:** GitHub Actions CI #584 / run 35679110487 — SUCCESS  
+**Replay Evidence:** GitHub Actions CI #584 / run 35679110487 — SUCCESS  
+**Final Certification CI:** GitHub Actions CI #587 / run 35679264071 — SUCCESS  
 **Evidence Environment:** PostgreSQL 18
 
 ## 1. Certified Business Outcome
@@ -239,9 +240,9 @@ validate:eel-c02-full-replay
 Certified CI:
 
 ```text
-GitHub Actions CI #584
-run id: 35679110487
-conclusion: success
+Replay evidence: GitHub Actions CI #584 / run 35679110487 / success
+Final certification: GitHub Actions CI #587 / run 35679264071 / success
+Merge commit: 43c23050b74819caf311535598808bdf5339d237
 ```
 
 ## 9. Final Certification Decision
