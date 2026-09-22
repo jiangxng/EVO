@@ -513,3 +513,43 @@ Authoritative Ledger / GL State
 
 Financial statements are derived projections, not an independent fact source.
 
+
+
+## 16. 2026-09-22 — Horizontal / Vertical Expansion Validation Baseline
+
+本轮需求对齐新增一条长期架构验收主线：
+
+| Requirement | Validation Target | Current Evidence | Status |
+|---|---|---|---|
+| Application 横向扩展 | 新 Transaction Type / App / Field / Rule 不依赖专用 Core | EEL-C01~C04 已证明多个异构闭环复用 canonical runtime | PARTIALLY PROVEN |
+| Ledger 横向扩展 | 新业务状态可新增 Ledger 而不修改 Ledger Core | Receivable / Payable / Inventory / Cash / WIP / pending_* 等已存在 | PARTIALLY PROVEN |
+| Conditional Posting 横向扩展 | 不同业务规则共享同一 Posting runtime | Sales / Procurement / Return / Manufacturing 已有数据库证据 | PARTIALLY PROVEN |
+| Posting / Projection 纵向扩展 | 同一 BusinessData 可继续投影到 Cost / Accounting / GL / Statements | EEL + FAI-01~07 已形成纵向证据链 | PARTIALLY PROVEN |
+| Enterprise Template 安装验证 | Transaction Type + Application + Fields + Ledgers + Rules 可整体安装并运行 | Template model / version / binding 已有；全量安装认证尚未完成 | OPEN |
+| Asloop corpus 横向压力测试 | 使用 Asloop 大量真实应用验证抽象通用性 | Asloop 已被确认作为 Enterprise Application Corpus | OPEN |
+| APQC-like 全企业覆盖 | 用数据回答已安装能力、流程覆盖和缺口 | business baseline 已定义映射原则 | OPEN |
+| Application Expansion Without Core Modification | 新应用原则上只增加定义，不修改 EVO Core | Manufacturing 等已有正向证据，但尚未做规模化统计 | OPEN |
+
+正式原则文档：
+
+`docs/architecture/EVO-HORIZONTAL-VERTICAL-EXPANSION-VALIDATION-v0.1.md`
+
+以后企业模板的成功不能只以“文件可导入 / 导出”判定。必须继续验证：
+
+```text
+横向：
+更多 Transaction Types
++ 更多 Applications
++ 更多 Fields
++ 更多 Ledgers
++ 更多流程
+而 Core 保持稳定
+
+纵向：
+同一 BusinessData
++ 更多条件式规则
++ 更多 Ledger / Cost / Accounting / Report projections
+而历史事实保持稳定
+```
+
+Asloop 的主要定位是 Enterprise Application Corpus：提炼真实业务语义并重新表达为 EVO primitives，用执行证据验证，不机械复制 legacy schema。
