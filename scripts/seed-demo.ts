@@ -254,6 +254,23 @@ try {
     })).returning('id').executeTakeFirst(), 'manufacturing flow definition'
   );
 
+  const inventoryTransferFlow = await one(
+    db.insertInto('flow_definition').values({
+      enterprise_id: enterprise.id,
+      code: 'inventory-transfer',
+      name: 'Inventory Transfer',
+      description: 'Reference intra-enterprise warehouse transfer flow for EVO Stage E.',
+      version: 1,
+      status: 'PUBLISHED',
+      definition: {
+        steps: ['transfer-created','transfer-issued','transfer-received']
+      },
+      published_at: new Date()
+    }).onConflict((oc) => oc.columns(['enterprise_id','code','version']).doUpdateSet({
+      name: 'Inventory Transfer', status: 'PUBLISHED'
+    })).returning('id').executeTakeFirst(), 'inventory transfer flow definition'
+  );
+
   await db.insertInto('metric_definition').values({
     enterprise_id: enterprise.id,
     code: 'order-fulfillment-open-qty',
