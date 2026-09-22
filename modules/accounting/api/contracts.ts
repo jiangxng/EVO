@@ -20,6 +20,7 @@ export interface JournalLineInput {
 }
 
 export interface PostJournalRequest {
+  readonly mode?: 'NORMAL'|'REPLAY';
   readonly enterpriseId: string;
   readonly accountingBookId: string;
   readonly journalNo: string;
@@ -67,7 +68,8 @@ export interface AccountingRecognitionService {
   recognizeBusinessData(
     enterpriseId: string,
     accountingBookId: string,
-    businessDataId: string
+    businessDataId: string,
+    mode?: 'NORMAL'|'REPLAY'
   ): Promise<readonly RecognitionResult[]>;
 }
 
