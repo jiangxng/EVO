@@ -5,32 +5,37 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "73974207b47fbe956c7c6c51d69e367e1737d48b"
+    "lastVerifiedRuntimeMergeCommit": "c59fe3bb61df5534745e2611deff452269358e9d"
   },
   "activeWorkPacket": {
-    "id": "EEL-C03",
-    "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
+    "id": "EEL-C04",
+    "name": "Manufacturing Execution Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Certify a complete customer-side reverse economic loop where return, exchange, refund, and red invoice are new immutable facts that adjust inventory/cash/economic state without mutating original sales, shipment, receipt, or invoice history, and remain deterministic under Full Replay.",
-    "activeBranch": "evo/eel-c03-final-certification-v0.1",
-    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md",
-    "evidenceTarget": "CERTIFIED — EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
+    "status": "DESIGN ONLY",
+    "overallClosed": false,
+    "businessGoal": "Certify a bounded manufacturing execution loop where production demand, raw-material issue, production completion, inventory, production Work, cost lineage and Full Replay remain explicit and deterministic without introducing a manufacturing-specific Core Runtime.",
+    "activeBranch": "evo/post-eel-c03-alignment-eel-c04-selection-v0.1",
+    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md",
+    "evidenceTarget": "CERTIFIED — EEL-C04 Manufacturing Execution Reference Loop",
     "closedGates": [
       "EEL-C01 Order-to-Cash certified",
       "EEL-C02 Procure-to-Pay certified",
-      "Post-EEL-C02 formal requirement alignment completed",
-      "C03.1 Sales Return Economic Recognition — DATABASE E2E VERIFIED / CI #600",
-      "C03.2 Sales Exchange — DATABASE E2E VERIFIED / CI #602",
-      "C03.3 Customer Refund — DATABASE E2E VERIFIED / CI #614",
-      "C03.4 Red Invoice — DATABASE E2E VERIFIED / CI #620",
-      "C03.5 Work / Balance Closure — DATABASE E2E VERIFIED / CI #623",
-      "C03.6 Full Replay Equality — DATABASE E2E VERIFIED / CI #626",
-      "C03.7 Final Certification — certification document prepared"
+      "EEL-C03 Sales Return / Exchange / Refund / Red Invoice certified",
+      "Completed-loop requirement alignment after EEL-C03 completed",
+      "EEL-C04 selected from business/APQC capability gap rather than technical momentum",
+      "existing enterprise-core-v1 already includes Production domain, production-planning/completion capability, pending-production, Inventory and Cost semantics",
+      "legacy manufacturing/MRP/WMS semantics are evidence for Reference Enterprise Packs, not Core tables"
     ],
-    "openGates": [],
-    "nextAction": "Complete final certification CI/merge, then run completed-loop requirement alignment and select the next Stage E bounded packet from business value."
+    "openGates": [
+      "C04.1 Production Demand / Work",
+      "C04.2 Raw Material Issue",
+      "C04.3 Production Completion",
+      "C04.4 Manufacturing Cost",
+      "C04.5 Partial / Multiple Production",
+      "C04.6 Full Replay Equality",
+      "C04.7 Final Certification"
+    ],
+    "nextAction": "Merge the EEL-C04 selection/business packet, then implement C04.1 Production Demand / Work on latest main."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -84,8 +89,8 @@
     "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "status": "CERTIFIED",
     "certification": "docs/architecture/certification/EEL-C03-SALES-RETURN-EXCHANGE-REFUND-RED-INVOICE-CERTIFICATION-v0.1.md",
-    "verifiedCiRun": 35686286743,
-    "mergeCommit": "73974207b47fbe956c7c6c51d69e367e1737d48b"
+    "verifiedCiRun": 35686593826,
+    "mergeCommit": "c59fe3bb61df5534745e2611deff452269358e9d"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -93,7 +98,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "EEL_C03_CERTIFIED_PENDING_COMPLETED_LOOP_ALIGNMENT",
+    "currentAssessment": "ALIGNED_EEL_C04_MANUFACTURING_EXECUTION_SELECTED",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
