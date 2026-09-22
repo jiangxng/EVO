@@ -225,10 +225,10 @@
       "description": "Paused horizontal API/capability-discovery work. Not current business mainline; do not extend while EEL-C02 is active unless explicitly resumed."
     },
     "evo/eel-c02-post-merge-pointer-cleanup-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "class": "DIVERGED_HISTORICAL",
+      "mergePolicy": "NO_WHOLESALE_MERGE",
       "containedByMain": false,
-      "description": "Short-lived post-merge status/topology cleanup for EEL-C02; no runtime behavior changes."
+      "description": "Historical post-EEL-C02 pointer-cleanup branch. It is not current Stage E work; inspect selectively only if status archaeology is required."
     },
     "evo/eel-c03-sales-return-refund-packet-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -255,10 +255,10 @@
       "description": "EEL-C03.2 Sales Exchange merged after PostgreSQL 18 E2E / CI #602."
     },
     "evo/financial-double-entry-integrity-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "class": "EXPERIMENTAL",
+      "mergePolicy": "MANUAL_REVIEW_ONLY",
       "containedByMain": false,
-      "description": "Financial Accounting Integrity audit: establishes explicit double-entry General Ledger gate before Trial Balance and financial statements; documentation/invariant slice only."
+      "description": "Paused Financial Accounting Integrity documentation/invariant branch. Finance integrity requirements remain authoritative in merged main docs, but this branch is not the active Stage E business mainline and must not be merged wholesale without live review."
     },
     "evo/eel-c03-customer-refund-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -374,5 +374,18 @@
       "keeping merged branches active",
       "using branch names or PR openness as authority"
     ]
+  },
+  "currentBranchGuidance": {
+    "businessMainline": "evo/eel-c04-manufacturing-execution-bundle-v0.1",
+    "pullRequest": 39,
+    "includedGates": [
+      "C04.2 Raw Material Issue",
+      "C04.3 Production Completion",
+      "C04.4 Manufacturing Cost",
+      "C04.5 Partial / Multiple Production"
+    ],
+    "evidenceTarget": "DATABASE E2E VERIFIED manufacturing execution bundle",
+    "afterSuccess": "Merge to main, then use a new branch for C04.6 Full Replay + C04.7 Final Certification bundle.",
+    "rule": "Do not start another independent Stage E capability branch while this bundle is ACTIVE_WORK unless explicitly required for a blocking fix."
   }
 }
