@@ -320,11 +320,13 @@ Procure-to-Pay 已在 PostgreSQL 18 证据环境证明：
 EEL-C03 当前业务目标：
 
 ```text
-Original Sale / Shipment / Receipt remain unchanged
+Original Sale / Shipment / Receipt / Invoice remain unchanged
 → Sales Return appended
-→ Inventory restored
+→ Sales Exchange appended
+→ Inventory / replacement movement
 → Customer Refund appended
 → Cash reduced
+→ Red Invoice appended
 → explicit relationships
 → Work closure
 → Full Replay equality
@@ -340,5 +342,42 @@ Original Sale / Shipment / Receipt remain unchanged
 
 - 不建设通用 Reversal Engine；
 - 不建设完整 RMA / After-sales Platform；
-- 不建设 Credit Memo / Tax Red Invoice 平台；
+- 红字发票作为简单业务事件当前就做，但不建设税控/复杂税务平台；
 - 先证明现有 BusinessData + Posting + Ledger + Relation + Replay 是否已经足够。
+
+
+### EEL-C03 范围修正：换货与红字发票
+
+用户明确确认：
+
+> 换货和红字发票都是当前需要的简单业务事件。
+
+因此 EEL-C03 不再把它们列为 deferred。
+
+当前建模原则：
+
+```text
+换货
+= 新增 exchange BusinessData
++ 显式关联原销售/退货
++ 用正常库存/发货事实表达替换移动
+```
+
+```text
+红字发票
+= 新增 red-invoice BusinessData
++ 显式关联原票据/销售来源
++ 需要时通过 Posting Rule 表达经济冲回
+```
+
+仍然延后的，是它们周边的平台化复杂度：
+
+- RMA / 售后审批平台；
+- 税控接口；
+- 复杂法定税务计算；
+- 完整 Credit Memo 产品平台；
+- 复杂多单分摊。
+
+业务结论：
+
+> **简单业务事件不应因为现实系统常把它们包在复杂模块里，就被错误归类为复杂底层能力。**
