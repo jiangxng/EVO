@@ -11,25 +11,21 @@
     "id": "EEL-C02",
     "name": "Procure-to-Pay Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DESIGN ONLY",
-    "overallClosed": false,
+    "status": "CERTIFIED",
+    "overallClosed": true,
     "businessGoal": "Certify a complete supplier-side procure-to-pay loop from purchase order through goods receipt, inventory recognition, payable settlement, cash payment, work closure, and Full Replay equality.",
     "activeBranch": "evo/eel-c02-procure-to-pay-packet-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C02-PROCURE-TO-PAY-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C02 Procure-to-Pay Reference Loop",
     "closedGates": [
-      "EEL-C01 Order-to-Cash reference loop certified",
-      "EEL-C02 business packet selected from confirmed Stage E business coverage",
-      "enterprise-core-v1 already contains purchase-order, pending-purchase, payable, cash-payment semantic assets"
+      "C02.1 Purchase Order Economic Recognition — DATABASE E2E VERIFIED",
+      "C02.2 Goods Receipt & Inventory — DATABASE E2E VERIFIED with cumulative 30 + 20 + 50 receipts",
+      "C02.3 Supplier Payment & Explicit Settlement — DATABASE E2E VERIFIED with cumulative 300 + 400 + 550 payments",
+      "C02.4 Full Replay Equality — DATABASE E2E VERIFIED on isolated PostgreSQL 18 evidence job",
+      "CI run 35679110487 / #584 completed successfully"
     ],
-    "openGates": [
-      "C02.1 Purchase Order Economic Recognition",
-      "C02.2 Goods Receipt & Inventory",
-      "C02.3 Supplier Payment & Explicit Settlement",
-      "C02.4 Full Replay Equality",
-      "C02.5 Final Certification"
-    ],
-    "nextAction": "Implement and database-verify C02.1 Purchase Order Economic Recognition without introducing future-only procurement abstractions."
+    "openGates": [],
+    "nextAction": "Merge PR #26 to main, then select the next Stage E business loop or perform the scheduled requirement-alignment review."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -93,7 +89,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "ALIGNED_EEL_C02_SELECTED_BUSINESS_FIRST",
+    "currentAssessment": "ALIGNED_EEL_C02_CERTIFIED",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes; future-use-only complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
