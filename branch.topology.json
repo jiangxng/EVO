@@ -317,10 +317,18 @@
       "description": "EEL-C04.1 independent Production Demand / Work merged after PostgreSQL 18 E2E / CI #632."
     },
     "evo/eel-c04-manufacturing-execution-bundle-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 39,
+      "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle merged by PR #39 after PostgreSQL 18.6 database E2E and CI verification."
+    },
+    "evo/eel-c04-full-replay-final-certification-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle verified locally on PostgreSQL 18.6: raw material issue, FIFO cost/WIP, partial completions, finished-goods inventory and Work closure; awaiting merge."
+      "description": "EEL-C04.6 Full Replay Equality and C04.7 Final Certification bounded bundle."
     }
   },
   "requiredLLMProcedure": [
@@ -348,7 +356,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "e4feaab132be1443b3a236f776d9758c6a4e011d",
+  "lastReviewedMainCommit": "8f58664b697ca785884e1b093f4275f01cf62889",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -376,17 +384,15 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/eel-c04-manufacturing-execution-bundle-v0.1",
-    "pullRequest": 39,
+    "businessMainline": "evo/eel-c04-full-replay-final-certification-v0.1",
+    "pullRequest": null,
     "includedGates": [
-      "C04.2 Raw Material Issue",
-      "C04.3 Production Completion",
-      "C04.4 Manufacturing Cost",
-      "C04.5 Partial / Multiple Production"
+      "C04.6 Full Replay Equality",
+      "C04.7 Final Certification"
     ],
-    "evidenceTarget": "DATABASE E2E VERIFIED manufacturing execution bundle",
-    "currentEvidence": "REACHED LOCALLY — PostgreSQL 18.6 full applicable pipeline passed",
-    "afterSuccess": "Merge to main, then use a new branch for C04.6 Full Replay + C04.7 Final Certification bundle.",
-    "rule": "Do not start another independent Stage E capability branch while this bundle is ACTIVE_WORK unless explicitly required for a blocking fix."
+    "evidenceTarget": "CERTIFIED — EEL-C04 Manufacturing Execution Reference Loop",
+    "currentEvidence": "C04.6 Full Replay reached locally on PostgreSQL 18.6; C04.7 remote CI and merge evidence pending",
+    "afterSuccess": "Merge to main, mark EEL-C04 closed, and perform the mandatory completed-loop requirement-alignment review before selecting the next Stage E packet.",
+    "rule": "Do not start another independent Stage E capability branch while C04 Full Replay and final certification remain open."
   }
 }

@@ -256,3 +256,23 @@ Compatibility corrections discovered by database evidence:
 - raw-material inventory is asserted at the product/warehouse aggregate while preserving source-order lineage rows.
 
 C04.6 Full Replay Equality and C04.7 Final Certification remain open.
+
+## 14. C04.6 Full Replay Evidence — 2026-09-22
+
+**Evidence level:** DATABASE E2E VERIFIED — LOCAL POSTGRESQL 18.6
+
+The isolated manufacturing reference loop now passes Full Replay equality for:
+
+- canonical purchase, receipt, production-demand, material-issue and completion facts;
+- explicit BusinessObjectLink relationships;
+- raw-material Inventory 80 / 800;
+- finished-goods Inventory 50 / 200;
+- manufacturing WIP 0;
+- pending production 0;
+- FIFO material-issue CostResult 200;
+- PRODUCE Work `DONE`;
+- replay-input and full economic-runtime digests.
+
+The proof exposed a balance-metadata ordering defect: late Cost/Valuation execution during Replay could overwrite WIP `last_posting_sequence` with an earlier semantic event. Valuation balance upsert now retains the maximum `(effective_at, posting_priority, posting_sequence)` tuple. The clean rerun then produced an identical before/after digest and persisted Replay `MATCH`.
+
+C04.6 is locally closed. C04.7 remains open until the branch passes remote CI and merges to `main`.
