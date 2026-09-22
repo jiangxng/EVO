@@ -40,9 +40,7 @@ create table account_reconciliation_rule (
   status text not null check (status in ('DRAFT','PUBLISHED','RETIRED')),
   published_at timestamptz,
   created_at timestamptz not null default now(),
-  unique (enterprise_id, accounting_book_id, code, version),
-  foreign key (statement_definition_id, statement_line_code)
-    references statement_line_definition(statement_definition_id, code)
+  unique (enterprise_id, accounting_book_id, code, version)
 );
 
 create table account_reconciliation_run (
@@ -117,7 +115,9 @@ create table cash_flow_classification_rule (
   status text not null check (status in ('DRAFT','PUBLISHED','RETIRED')),
   published_at timestamptz,
   created_at timestamptz not null default now(),
-  unique (enterprise_id, accounting_book_id, code, version)
+  unique (enterprise_id, accounting_book_id, code, version),
+  foreign key (statement_definition_id, statement_line_code)
+    references statement_line_definition(statement_definition_id, code)
 );
 
 update evo_runtime_info
