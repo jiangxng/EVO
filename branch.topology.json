@@ -280,10 +280,18 @@
       "description": "EEL-C03.5 balance-driven reverse Work merged after PostgreSQL 18 E2E / CI #623."
     },
     "evo/eel-c03-full-replay-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 35,
+      "description": "EEL-C03.6 Full Replay Equality merged after PostgreSQL 18 E2E / CI #626."
+    },
+    "evo/eel-c03-final-certification-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C03.6 Full Replay Equality for the complete customer-side reverse flow."
+      "description": "EEL-C03.7 final certification, evidence-matrix and machine-status closure."
     }
   },
   "requiredLLMProcedure": [
@@ -311,5 +319,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "58c1621aaf6d3880f7e741ce3b86d369c5a34b35"
+  "lastReviewedMainCommit": "73974207b47fbe956c7c6c51d69e367e1737d48b"
 }
