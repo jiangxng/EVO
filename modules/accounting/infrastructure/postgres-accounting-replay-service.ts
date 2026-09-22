@@ -49,13 +49,14 @@ export class PostgresAccountingReplayService implements AccountingReplayService 
 
     const journalIds=journals.map(j=>j.id);
     const lines=journalIds.length===0?[]:await this.db.selectFrom('accounting_journal_line as l')
+      .innerJoin('accounting_journal as j','j.id','l.journal_id')
       .innerJoin('accounting_account as a','a.id','l.accounting_account_id')
       .select([
-        'l.journal_id','l.line_no','a.code as account_code','l.side',
+        'j.journal_no','l.line_no','a.code as account_code','l.side',
         'l.amount','l.currency','l.dimensions','l.memo'
       ])
       .where('l.journal_id','in',journalIds)
-      .orderBy('l.journal_id')
+      .orderBy('j.journal_no')
       .orderBy('l.line_no')
       .execute();
 
