@@ -20,6 +20,7 @@ export interface JournalLineInput {
 }
 
 export interface PostJournalRequest {
+  readonly mode?: 'NORMAL'|'REPLAY';
   readonly enterpriseId: string;
   readonly accountingBookId: string;
   readonly journalNo: string;
@@ -67,7 +68,8 @@ export interface AccountingRecognitionService {
   recognizeBusinessData(
     enterpriseId: string,
     accountingBookId: string,
-    businessDataId: string
+    businessDataId: string,
+    mode?: 'NORMAL'|'REPLAY'
   ): Promise<readonly RecognitionResult[]>;
 }
 
@@ -112,5 +114,58 @@ export interface AccountingReplayService {
     enterpriseId: string,
     accountingBookId: string
   ): Promise<AccountingReplayResult>;
+}
+
+export interface AccountingPeriodInput {
+  readonly enterpriseId: string;
+  readonly accountingBookId: string;
+  readonly fiscalYear: number;
+  readonly periodNo: number;
+  readonly code: string;
+  readonly name: string;
+  readonly startsAt: Date;
+  readonly endsAt: Date;
+}
+
+export interface AccountingPeriodService {
+  createOpenPeriod(input: AccountingPeriodInput): Promise<{ readonly periodId: string }>;
+  closePeriod(
+    enterpriseId: string,
+    accountingBookId: string,
+    periodId: string,
+    closedBy: string,
+    reason: string
+  ): Promise<void>;
+  reopenPeriod(
+    enterpriseId: string,
+    accountingBookId: string,
+    periodId: string
+  ): Promise<void>;
+}
+
+export interface ReconciliationRuleResult {
+  readonly ruleCode: string;
+  readonly sourceLedgerCode: string;
+  readonly sourceAmount: string;
+  readonly targetAccountCode: string;
+  readonly targetAmount: string;
+  readonly difference: string;
+  readonly matched: boolean;
+}
+
+export interface ReconciliationRunResult {
+  readonly runId: string;
+  readonly status: 'MATCH'|'MISMATCH';
+  readonly checkedRuleCount: number;
+  readonly mismatchCount: number;
+  readonly results: readonly ReconciliationRuleResult[];
+}
+
+export interface AccountingReconciliationService {
+  run(
+    enterpriseId: string,
+    accountingBookId: string,
+    accountingPeriodId?: string
+  ): Promise<ReconciliationRunResult>;
 }
 

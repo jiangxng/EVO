@@ -5,37 +5,39 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "503d6c7a8def290589fae26792f11d1b3bb0ef7c"
+    "lastVerifiedRuntimeMergeCommit": "8fbcf1ab6a19943f0d010b01ed5104df1e9e428f"
   },
   "activeWorkPacket": {
-    "id": "FAI-03-05",
-    "name": "Accounting Recognition + Rule Trace + Trial Balance + General Ledger Replay",
+    "id": "FAI-06",
+    "name": "Accounting Period + Reconciliation + Statement Projection Metadata",
     "stage": "Financial Accounting Integrity",
     "status": "IMPLEMENTED",
     "overallClosed": false,
-    "businessGoal": "Turn certified BusinessData into explainable double-entry General Ledger journals, diagnose rule-condition/effect mistakes, independently verify Trial Balance, and reproduce the GL deterministically from canonical facts.",
-    "activeBranch": "evo/fai-03-05-accounting-recognition-trial-balance-replay-v0.1",
-    "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md",
-    "evidenceTarget": "DATABASE E2E VERIFIED accounting recognition + diagnostic trace + Trial Balance + GL Replay MATCH",
+    "businessGoal": "Prepare trustworthy financial statements by governing accounting periods, reconciling economic/subledger state to the General Ledger, and defining versioned statement projection metadata informed by Asloop semantics.",
+    "activeBranch": "evo/fai-06-period-reconciliation-statement-metadata-v0.1",
+    "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md",
+    "evidenceTarget": "DATABASE E2E VERIFIED period governance + reconciliation + statement metadata",
     "closedGates": [
-      "FAI-01/02 authoritative AccountingBook / Chart of Accounts / Journal / JournalLine merged at 503d6c7a",
-      "有借必有贷、借贷必相等 is machine-enforced",
-      "one-sided and unbalanced journals reject atomically",
-      "AccountingRule schema implemented",
-      "AccountingRuleExecution trace implemented",
-      "all matched rules for one BusinessData aggregate into one Accounting Plan / Journal",
-      "condition matched/not-matched trace implemented",
-      "generated accounting effects are traceable to rule code/version",
-      "Trial Balance service implemented",
-      "General Ledger replay service implemented using stable journal identity"
+      "FAI-03~05 Accounting Recognition / Rule Trace / Trial Balance / GL Replay merged by PR #47 after CI #668",
+      "AccountingPeriod schema and OPEN/CLOSED governance implemented",
+      "normal Journal writes are blocked in CLOSED periods",
+      "GL Replay uses explicit REPLAY mode and may rebuild closed periods",
+      "Economic Ledger ↔ GL reconciliation rules/runs implemented",
+      "balanced-but-wrong Journal can be detected by reconciliation",
+      "StatementDefinition / StatementLineDefinition implemented",
+      "AccountStatementMapping implemented",
+      "CashFlowClassificationRule implemented and bound to versioned statement lines",
+      "Asloop semantic convergence documented: statements are ledger/account projections, not independent facts"
     ],
     "openGates": [
-      "FAI-03~05 PostgreSQL 18 database E2E proof",
-      "rule-condition misconfiguration diagnosis proof",
-      "Trial Balance independent equality proof",
-      "General Ledger replay digest MATCH proof"
+      "FAI-06 PostgreSQL 18 database E2E proof",
+      "closed-period rejection proof",
+      "replay-across-closed-period proof",
+      "economic-ledger ↔ GL MATCH proof",
+      "balanced-but-wrong GL MISMATCH proof",
+      "three-statement projection metadata integrity proof"
     ],
-    "nextAction": "Run the isolated FAI-03~05 PostgreSQL 18 validator. If green, close FAI-03~05 and assess the remaining accounting-period/reconciliation/financial-statement readiness gaps as the next large finance packet."
+    "nextAction": "Run isolated PostgreSQL 18 FAI-06 validator. If green, merge FAI-06 and implement FAI-07 as one large packet: Balance Sheet + Income Statement + Cash Flow Statement + cross-statement reconciliation + deterministic statement replay."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -88,11 +90,11 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "FAI-01-02",
-    "name": "Chart of Accounts + Journal Contract + Atomic Double-Entry Integrity",
+    "id": "FAI-03-05",
+    "name": "Accounting Recognition + Rule Trace + Trial Balance + General Ledger Replay",
     "status": "DATABASE E2E VERIFIED",
-    "verifiedCiRun": 35720963059,
-    "mergeCommit": "503d6c7a8def290589fae26792f11d1b3bb0ef7c"
+    "verifiedCiRun": 35724480602,
+    "mergeCommit": "8fbcf1ab6a19943f0d010b01ed5104df1e9e428f"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -108,7 +110,7 @@
     }
   },
   "financialAccountingIntegrity": {
-    "status": "IN_PROGRESS_FAI_03_05",
+    "status": "IN_PROGRESS_FAI_06",
     "authority": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-AUDIT-2026-09-22-v0.1.md",
     "currentRuntime": "generic signed operational/economic Ledger",
     "requiredBeforeFinancialStatements": [
@@ -142,8 +144,8 @@
       "Replay of current Economic Runtime"
     ],
     "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md",
-    "primaryOpenRequirement": "有借必有贷、借贷必相等",
-    "implementationStatus": "FAI_01_02_DATABASE_VERIFIED",
-    "nextPacket": "FAI-03-05 Accounting Recognition + Rule Trace + Trial Balance + GL Replay"
+    "primaryOpenRequirement": "Financial statement readiness: period governance + GL reconciliation + statement projection metadata",
+    "implementationStatus": "FAI_03_05_DATABASE_VERIFIED",
+    "nextPacket": "FAI-06 Accounting Period + Reconciliation + Statement Projection Metadata"
   }
 }

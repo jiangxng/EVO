@@ -115,7 +115,8 @@ export class PostgresAccountingRecognitionService implements AccountingRecogniti
   async recognizeBusinessData(
     enterpriseId:string,
     accountingBookId:string,
-    businessDataId:string
+    businessDataId:string,
+    mode:'NORMAL'|'REPLAY'='NORMAL'
   ):Promise<readonly RecognitionResult[]>{
     const business=await this.db.selectFrom('business_data')
       .select(['id','business_data_type','effective_at','payload'])
@@ -226,6 +227,7 @@ export class PostgresAccountingRecognitionService implements AccountingRecogniti
     if(matched.length>0){
       try{
         const journal=await this.journals.post({
+          mode,
           enterpriseId,
           accountingBookId,
           journalNo:`GL:${business.id}`,

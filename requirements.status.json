@@ -22,52 +22,51 @@
   },
   "currentStage": {
     "id": "Financial Accounting Integrity",
-    "name": "Accounting Recognition / Trial Balance / GL Replay",
-    "businessGoal": "Make General Ledger results explainable, independently balanced and replayable from canonical BusinessData."
+    "name": "Financial Statement Readiness",
+    "businessGoal": "Govern accounting periods, reconcile economic ledgers to GL, and define versioned projection metadata so the three core financial statements can be generated from authoritative accounting state."
   },
   "activeRequirementSet": {
-    "id": "FAI-03-05",
-    "name": "Accounting Recognition + Rule Execution Trace + Trial Balance + GL Replay",
+    "id": "FAI-06",
+    "name": "Accounting Period + Reconciliation + Statement Projection Metadata",
     "acceptance": [
-      "all published AccountingRules for one BusinessData are evaluated before journal commit",
-      "matched and non-matched rule conditions retain explicit trace",
-      "all matched rule effects aggregate into one Accounting Plan",
-      "a missing debit/credit effect caused by a condition error rejects the whole Journal atomically",
-      "diagnostics identify matched/not-matched rules and generated effects before suspecting source data",
-      "Trial Balance independently recomputes debit and credit totals from authoritative JournalLines",
-      "Trial Balance debit total equals credit total",
-      "General Ledger replay deletes derived accounting state and rebuilds from canonical BusinessData + published accounting rules",
-      "GL replay does not rewrite BusinessData",
-      "GL replay reproduces identical Journal/Trial-Balance semantic digest"
+      "configured accounting periods do not overlap",
+      "normal journal posting requires an OPEN accounting period",
+      "closed period rejects new Journal/JournalLine atomically",
+      "explicit REPLAY mode may rebuild derived GL state across closed periods",
+      "economic/subledger amount is aggregated independently from ledger_entry",
+      "GL account amount is aggregated independently from JournalLine",
+      "reconciliation detects balanced-but-business-wrong journals",
+      "Balance Sheet, Income Statement and Cash Flow Statement definitions are versioned metadata",
+      "statement lines support hierarchy/order/indent/aggregation/value semantics",
+      "account-to-statement mappings reference real versioned statement lines",
+      "cash-flow classification is driven by BusinessData/accounting lineage semantics and references a versioned cash-flow statement line",
+      "financial statements remain projections and never become an independent fact source"
     ],
     "verified": [
-      "FAI-01/02 AccountingBook / Chart of Accounts / Journal / JournalLine are merged",
-      "DEBIT/CREDIT sides are explicit",
-      "at least one debit and one credit are enforced",
-      "sum(DEBIT) == sum(CREDIT) is enforced",
-      "unbalanced journal is rejected atomically",
-      "rejection diagnostics retain rule/version/context/line plan"
+      "FAI-01/02 strict double-entry is DATABASE E2E VERIFIED",
+      "FAI-03~05 recognition / trace / Trial Balance / GL Replay is DATABASE E2E VERIFIED by PR #47 / CI #668",
+      "Asloop legacy semantics confirm account-balance + report-mapping projection design"
     ],
     "open": [
-      "FAI-03~05 PostgreSQL 18 database E2E proof",
-      "wrong-condition missing-effect diagnosis proof",
-      "Trial Balance proof",
-      "General Ledger Replay MATCH proof"
+      "FAI-06 PostgreSQL 18 database E2E proof",
+      "period close/reopen proof",
+      "replay across closed period proof",
+      "GL/economic reconciliation MATCH and MISMATCH proof",
+      "statement metadata integrity proof"
     ],
     "deferred": [
-      "full accounting period close/reopen",
-      "bank reconciliation",
-      "broad subledger reconciliation",
-      "financial statement generation",
-      "consolidation",
-      "multi-GAAP",
-      "tax engine",
+      "actual Balance Sheet projection until FAI-06 closes",
+      "actual Income Statement projection until FAI-06 closes",
+      "actual Cash Flow Statement projection until FAI-06 closes",
+      "bank reconciliation beyond core ledger-to-GL proof",
       "statutory filing",
-      "intercompany elimination"
+      "notes to financial statements",
+      "consolidation",
+      "multi-GAAP"
     ],
-    "currentWork": "FAI-03~05 database verification",
+    "currentWork": "FAI-06 database verification",
     "status": "IMPLEMENTED",
-    "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md"
+    "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md"
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -111,12 +110,12 @@
   },
   "nextRequirementSelection": {
     "state": "SELECTED",
-    "selection": "FAI-03-05 Accounting Recognition + Rule Trace + Trial Balance + GL Replay",
-    "rule": "Keep the packet focused on explainable accounting recognition, independent balance verification and deterministic GL replay. Financial statements remain blocked until this evidence is green."
+    "selection": "FAI-06 Accounting Period + Reconciliation + Statement Projection Metadata",
+    "rule": "After FAI-06 is green, move directly to FAI-07 three core financial statements as ledger/GL projections."
   },
-  "currentWork": "FAI-03~05 database verification",
+  "currentWork": "FAI-06 database verification",
   "financialAccountingIntegrity": {
-    "state": "IN_PROGRESS_FAI_03_05",
+    "state": "IN_PROGRESS_FAI_06",
     "findings": [
       "legacy Asloop/bookkeeping semantics include explicit debit/credit concepts",
       "current EVO generic ledger uses signed quantity/amount and does not enforce balanced journals",
@@ -129,8 +128,8 @@
       "trial balance is independently verifiable",
       "financial statements derive from authoritative accounting state and never rewrite canonical BusinessData"
     ],
-    "nextPacket": "FAI-03-05",
+    "nextPacket": "FAI-06",
     "primaryRequirement": "有借必有贷、借贷必相等",
-    "implementationStatus": "FAI_01_02_DATABASE_VERIFIED"
+    "implementationStatus": "FAI_03_05_DATABASE_VERIFIED"
   }
 }
