@@ -234,10 +234,18 @@
       "description": "EEL-C03 reverse-sales business packet and business-finance mainline merged by PR #28."
     },
     "evo/eel-c03-sales-return-recognition-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 29,
+      "description": "EEL-C03.1 Sales Return Economic Recognition merged after PostgreSQL 18 E2E / CI #600."
+    },
+    "evo/eel-c03-sales-exchange-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C03.1 Sales Return Economic Recognition implementation and isolated PostgreSQL evidence."
+      "description": "EEL-C03.2 Sales Exchange simple-event implementation and isolated PostgreSQL evidence."
     }
   },
   "requiredLLMProcedure": [
@@ -265,5 +273,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "157c80743e3a648a88406baa721999d4cf75b1b2"
+  "lastReviewedMainCommit": "a3de17437f7ebdb6c5eca248cfc3bfdf20914065"
 }
