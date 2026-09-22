@@ -77,6 +77,7 @@ try {
   const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
   const cashReceiptType = await txType(cashDomain.id, 'cash_receipt', 'Cash Receipt');
   const cashPaymentType = await txType(cashDomain.id, 'cash_payment', 'Cash Payment');
+  const cashRefundType = await txType(cashDomain.id, 'cash_refund', 'Customer Refund');
   const purchaseType = await txType(procurementDomain.id, 'purchase_order', 'Purchase Order');
   const salesReturnType = await txType(salesDomain.id, 'sales_return', 'Sales Return');
   const salesExchangeType = await txType(salesDomain.id, 'sales_exchange', 'Sales Exchange');
@@ -95,6 +96,7 @@ try {
   const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
   const cashReceiptApp = await app('cash_receipt', 'Cash Receipt', cashReceiptType.id);
   const cashPaymentApp = await app('cash_payment', 'Cash Payment', cashPaymentType.id);
+  const cashRefundApp = await app('cash_refund', 'Customer Refund', cashRefundType.id);
   const purchaseApp = await app('purchase_order', 'Purchase Order', purchaseType.id);
   const salesReturnApp = await app('sales_return', 'Sales Return', salesReturnType.id);
   const salesExchangeApp = await app('sales_exchange', 'Sales Exchange', salesExchangeType.id);
@@ -121,6 +123,7 @@ try {
   const valuationVersion = await version(valuationApp.id);
   const cashReceiptVersion = await version(cashReceiptApp.id);
   const cashPaymentVersion = await version(cashPaymentApp.id);
+  const cashRefundVersion = await version(cashRefundApp.id);
   const purchaseVersion = await version(purchaseApp.id);
   const salesReturnVersion = await version(salesReturnApp.id);
   const salesExchangeVersion = await version(salesExchangeApp.id);
@@ -145,6 +148,7 @@ try {
   await instance(valuationApp.id, 'valuation', 'Valuation');
   await instance(cashReceiptApp.id, 'cash', 'Cash');
   await instance(cashPaymentApp.id, 'cash-payment', 'Cash Payment');
+  await instance(cashRefundApp.id, 'cash-refund', 'Customer Refund');
   await instance(purchaseApp.id, 'procurement', 'Procurement');
   await instance(salesReturnApp.id, 'sales-return', 'Sales Return');
   await instance(salesExchangeApp.id, 'sales-exchange', 'Sales Exchange');
@@ -178,6 +182,7 @@ try {
   await capability('collect', 'Collect');
   await capability('procure', 'Procure');
   await capability('pay', 'Pay Supplier');
+  await capability('refund-customer', 'Refund Customer');
   await capability('return-sales', 'Return Sales');
   await capability('exchange-sales', 'Exchange Sales');
 
@@ -285,6 +290,7 @@ try {
   await command(salesVersion.id, 'record-customer-payment', 'Record Customer Payment', 'customer_payment.received');
   await command(cashReceiptVersion.id, 'record-receipt', 'Record Cash Receipt', 'cash.received');
   await command(cashPaymentVersion.id, 'record-payment', 'Record Supplier Payment', 'cash.paid');
+  await command(cashRefundVersion.id, 'record-customer-refund', 'Record Customer Refund', 'cash.refunded');
   await command(valuationVersion.id, 'request-valuation', 'Request Valuation', 'valuation.requested');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
@@ -465,6 +471,15 @@ try {
   };
   await rule(cashPaymentVersion.id,'payment-decrease-cash',10,trueExpr,{
     ledgerCode:'cash', quantity: { type:'literal', value:0 }, amount: neg('settledAmount'), currency: field('currency'), dimensions: paymentCashDims
+  });
+
+  const refundCashDims = {
+    order_no: field('orderNo'), customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
+  await rule(cashRefundVersion.id,'refund-decrease-cash',10,trueExpr,{
+    ledgerCode:'cash', quantity: { type:'literal', value:0 }, amount: neg('refundAmount'), currency: field('currency'), dimensions: refundCashDims
   });
   await rule(cashPaymentVersion.id,'payment-clear-payable',20,trueExpr,{
     ledgerCode:'payable', quantity: { type:'literal', value:0 }, amount: neg('settledAmount'), currency: field('currency'), dimensions: payableDims
