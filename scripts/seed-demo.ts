@@ -61,6 +61,7 @@ try {
   const inventoryDomain = await domain('inventory', 'Inventory');
   const valuationDomain = await domain('valuation', 'Valuation');
   const cashDomain = await domain('cash', 'Cash');
+  const procurementDomain = await domain('procurement', 'Procurement');
 
   async function txType(domainId: string, code: string, name: string) {
     return one(
@@ -75,6 +76,7 @@ try {
   const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
   const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
   const cashReceiptType = await txType(cashDomain.id, 'cash_receipt', 'Cash Receipt');
+  const purchaseType = await txType(procurementDomain.id, 'purchase_order', 'Purchase Order');
 
   async function app(code: string, name: string, typeId: string) {
     return one(
@@ -89,6 +91,7 @@ try {
   const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
   const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
   const cashReceiptApp = await app('cash_receipt', 'Cash Receipt', cashReceiptType.id);
+  const purchaseApp = await app('purchase_order', 'Purchase Order', purchaseType.id);
 
   async function version(appId: string) {
     const existing = await db.selectFrom('application_definition_version')
@@ -111,6 +114,7 @@ try {
   const inventoryVersion = await version(inventoryApp.id);
   const valuationVersion = await version(valuationApp.id);
   const cashReceiptVersion = await version(cashReceiptApp.id);
+  const purchaseVersion = await version(purchaseApp.id);
 
   async function instance(appId: string, code: string, name: string) {
     return one(
@@ -131,6 +135,7 @@ try {
   await instance(inventoryApp.id, 'inventory', 'Inventory');
   await instance(valuationApp.id, 'valuation', 'Valuation');
   await instance(cashReceiptApp.id, 'cash', 'Cash');
+  await instance(purchaseApp.id, 'procurement', 'Procurement');
 
   await db.insertInto('item_definition').values({
     enterprise_id: enterprise.id,
@@ -159,6 +164,8 @@ try {
   await capability('produce', 'Produce');
   await capability('deliver', 'Deliver');
   await capability('collect', 'Collect');
+  await capability('procure', 'Procure');
+  await capability('pay', 'Pay Supplier');
 
   const flow = await one(
     db.insertInto('flow_definition').values({
@@ -251,10 +258,12 @@ try {
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
   await command(inventoryVersion.id, 'receive-inventory', 'Receive Inventory (Legacy Demo)', 'inventory.received');
+  await command(purchaseVersion.id, 'approve-purchase-order', 'Approve Purchase Order', 'purchase_order.approved');
 
   for (const [code, name] of [
     ['order_no','Order'],
     ['customer','Customer'],
+    ['supplier','Supplier'],
     ['product_id','Product'],
     ['warehouse','Warehouse'],
     ['project','Project'],
@@ -297,6 +306,14 @@ try {
     required: ['order_no','customer'],
     optional: ['product_id','project','department','profit_center','cost_center']
   };
+  const procurementPolicy = {
+    required: ['order_no','supplier','product_id'],
+    optional: ['warehouse','project','department','cost_center']
+  };
+  const payablePolicy = {
+    required: ['order_no','supplier'],
+    optional: ['product_id','project','department','cost_center']
+  };
   const cashPolicy = {
     required: [],
     optional: ['order_no','customer','project','department','profit_center','cost_center']
@@ -304,6 +321,8 @@ try {
   await ledger('pending_production','待生产', operationalOrderPolicy);
   await ledger('pending_shipment','待出库/发货', operationalOrderPolicy);
   await ledger('receivable','待收款', receivablePolicy);
+  await ledger('pending_purchase','待采购/收货', procurementPolicy);
+  await ledger('payable','应付账款', payablePolicy);
   await ledger('cash','现金', cashPolicy);
   await ledger('inventory','库存', inventoryPolicy);
   await ledger('cogs','销售成本', inventoryPolicy);
@@ -344,6 +363,18 @@ try {
   };
   await rule(salesVersion.id,'order-receivable',30,eq('eventKind','ORDER'),{
     ledgerCode:'receivable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: receivableDims
+  });
+
+  const purchaseDims = {
+    order_no: field('orderNo'), supplier: field('supplier'), product_id: field('productId'),
+    warehouse: field('warehouse'), project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
+  await rule(purchaseVersion.id,'purchase-pending-receipt',10,trueExpr,{
+    ledgerCode:'pending_purchase', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: purchaseDims
+  });
+  await rule(purchaseVersion.id,'purchase-payable',20,trueExpr,{
+    ledgerCode:'payable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: purchaseDims
   });
 
   const receiptDims = receivableDims;
