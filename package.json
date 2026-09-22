@@ -43,7 +43,8 @@
     "validate:eel-c03-customer-refund": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c03-customer-refund.ts",
     "validate:eel-c03-red-invoice": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c03-red-invoice.ts",
     "validate:eel-c03-work-balance-closure": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c03-work-balance-closure.ts",
-    "validate:eel-c03-full-replay": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c03-full-replay.ts"
+    "validate:eel-c03-full-replay": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c03-full-replay.ts",
+    "validate:eel-c04-production-demand-work": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c04-production-demand-work.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",
