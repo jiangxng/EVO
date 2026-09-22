@@ -44,14 +44,17 @@
     "verified": [
       "accounting integrity gap audit is merged on main",
       "legacy debit/credit semantics are confirmed",
-      "current signed generic Ledger is not an authoritative double-entry General Ledger"
+      "current signed generic Ledger is not an authoritative double-entry General Ledger",
+      "AccountingBook / AccountingAccount / Journal / JournalLine runtime implemented",
+      "Journal service enforces at least one DEBIT and one CREDIT before commit",
+      "Journal service enforces ΣDebit == ΣCredit before commit",
+      "rejected journal attempts persist diagnostic context without committing Journal/JournalLine"
     ],
     "open": [
-      "AccountingBook + Chart of Accounts runtime",
-      "Journal + JournalLine runtime",
-      "atomic DEBIT/CREDIT balance gate",
-      "database E2E balanced-journal success proof",
-      "database E2E one-sided/unbalanced rejection proof"
+      "FAI-01/02 PostgreSQL 18 database E2E proof",
+      "balanced journal success",
+      "one-sided journal atomic rejection",
+      "unbalanced multi-effect journal atomic rejection"
     ],
     "deferred": [
       "Trial Balance implementation until FAI-01/02 closes",
@@ -64,7 +67,7 @@
       "budgeting"
     ],
     "currentWork": "FAI-01 + FAI-02 implementation",
-    "status": "DESIGN ONLY",
+    "status": "IMPLEMENTED",
     "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md"
   },
   "antiOverdesignQuestions": [
@@ -112,7 +115,7 @@
     "selection": "FAI-01-02 Chart of Accounts + Journal + Atomic Double-Entry Integrity",
     "rule": "This requirement has priority over selecting another ordinary Stage E business loop because it blocks authoritative GL, Trial Balance and financial statements."
   },
-  "currentWork": "FAI-01 + FAI-02 implementation",
+  "currentWork": "FAI-01/02 PostgreSQL 18 database verification",
   "financialAccountingIntegrity": {
     "state": "OPEN_BLOCKING_FINANCIAL_STATEMENTS",
     "findings": [
