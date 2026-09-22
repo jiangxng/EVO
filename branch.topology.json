@@ -12,7 +12,12 @@
     "If a branch diverged from main, do not wholesale merge unless this manifest explicitly allows it.",
     "For diverged historical branches, recover individual commits/files only after architecture and ownership review.",
     "Open PR does not imply current work; merged/closed PR history and this manifest take precedence.",
-    "main is the only authoritative integration branch unless this manifest is versioned to say otherwise; lastReviewedMainCommit is evidence of the last topology review, not a required equality with live main HEAD."
+    "main is the only authoritative integration branch unless this manifest is versioned to say otherwise; lastReviewedMainCommit is evidence of the last topology review, not a required equality with live main HEAD.",
+    "A branch does not need to correspond 1:1 with a numbered bounded slice. Multiple closely related slices may live in one bundle branch when one business acceptance story and one coherent evidence scenario cover them.",
+    "Bundle branches must remain business-bounded: do not mix unrelated capabilities, speculative platform work, broad refactors, or opportunistic cleanup into the same PR.",
+    "For an ACTIVE_WORK bundle, inspect project.status.json open/closed gates and the PR evidence to determine which sub-gates are implemented or verified; do not infer all numbered slices are complete merely because they share a branch.",
+    "Prefer fewer evidence-complete branches over mechanically tiny branches when auditability, rollback clarity, and failure localization remain intact.",
+    "After a bundle is merged, main becomes the only authoritative source of those capabilities; the source branch becomes MERGED_MILESTONE and must not be revived for new work."
   ],
   "branchClasses": {
     "main": {
@@ -343,5 +348,31 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "e4feaab132be1443b3a236f776d9758c6a4e011d"
+  "lastReviewedMainCommit": "e4feaab132be1443b3a236f776d9758c6a4e011d",
+  "branchStrategy": {
+    "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
+    "bundleAllowed": true,
+    "bundleDefinition": "One short-lived branch may contain multiple strongly related bounded slices when they form one coherent business acceptance and database-evidence boundary.",
+    "bundleEntryCriteria": [
+      "same business loop and business outcome",
+      "explicit included sub-gates and non-goals",
+      "coherent end-to-end evidence scenario",
+      "failure remains localizable",
+      "reviewable PR size",
+      "no unrelated platform/generalization work"
+    ],
+    "bundleExitCriteria": [
+      "required sub-gates reach declared evidence level",
+      "full applicable CI passes",
+      "project.status.json and branch.topology.json reflect reality",
+      "merge to main before starting the next independent capability"
+    ],
+    "antiPattern": [
+      "one branch per task number by habit",
+      "long-lived integration branch competing with main",
+      "mixing unrelated business domains in one bundle",
+      "keeping merged branches active",
+      "using branch names or PR openness as authority"
+    ]
+  }
 }
