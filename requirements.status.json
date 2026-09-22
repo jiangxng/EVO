@@ -126,5 +126,21 @@
     "selection": "EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "rule": "Treat exchange and red invoice as simple canonical events first; do not conflate them with RMA, credit-memo platforms, tax-control integrations, or generic reversal engines unless current acceptance requires those."
   },
-  "currentWork": "C03.1 Sales Return Economic Recognition"
+  "currentWork": "C03.1 Sales Return Economic Recognition",
+  "financialAccountingIntegrity": {
+    "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
+    "findings": [
+      "legacy Asloop/bookkeeping semantics include explicit debit/credit concepts",
+      "current EVO generic ledger uses signed quantity/amount and does not enforce balanced journals",
+      "financial accounting must be layered as an explicit General Ledger projection rather than forcing operational ledgers into debit/credit terminology"
+    ],
+    "invariants": [
+      "each General Ledger journal has at least one debit and one credit line",
+      "sum(debit) equals sum(credit) under pinned accounting precision",
+      "unbalanced journal fails atomically",
+      "trial balance is independently verifiable",
+      "financial statements derive from authoritative accounting state and never rewrite canonical BusinessData"
+    ],
+    "nextPacket": "FAI-01 Chart of Accounts + Journal contract"
+  }
 }
