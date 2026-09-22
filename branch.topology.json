@@ -320,7 +320,7 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle: raw material issue, FIFO cost/WIP, partial completions, finished-goods inventory and Work closure."
+      "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle verified locally on PostgreSQL 18.6: raw material issue, FIFO cost/WIP, partial completions, finished-goods inventory and Work closure; awaiting merge."
     }
   },
   "requiredLLMProcedure": [
@@ -385,6 +385,7 @@
       "C04.5 Partial / Multiple Production"
     ],
     "evidenceTarget": "DATABASE E2E VERIFIED manufacturing execution bundle",
+    "currentEvidence": "REACHED LOCALLY — PostgreSQL 18.6 full applicable pipeline passed",
     "afterSuccess": "Merge to main, then use a new branch for C04.6 Full Replay + C04.7 Final Certification bundle.",
     "rule": "Do not start another independent Stage E capability branch while this bundle is ACTIVE_WORK unless explicitly required for a blocking fix."
   }

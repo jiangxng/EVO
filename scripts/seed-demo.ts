@@ -602,7 +602,9 @@ try {
     project: field('project'), department: field('department'),
     cost_center: field('costCenter')
   };
-  await rule(productionVersion.id,'production-clear-wip',30,trueExpr,{
+  await rule(productionVersion.id,'production-clear-wip',30,{
+    type:'ne', left:field('materialProductId'), right:{type:'literal',value:null}
+  },{
     ledgerCode:'manufacturing_wip', quantity:{type:'literal',value:0}, amount:neg('totalCost'), dimensions:productionWipDims
   });
 

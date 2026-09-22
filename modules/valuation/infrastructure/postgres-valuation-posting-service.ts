@@ -152,9 +152,13 @@ export class PostgresValuationPostingService implements ValuationPostingService 
       .where('consistency_domain','=',consistencyDomain)
       .where('status','=','ACTIVE');
 
-    query = materialization === undefined
-      ? query.where('economic_runtime_dataset_id','is',null)
-      : query.where('economic_runtime_dataset_id','=',materialization.runtimeDatasetId);
+    if (materialization !== undefined) {
+      query = query.where(
+        'economic_runtime_dataset_id',
+        '=',
+        materialization.runtimeDatasetId
+      );
+    }
 
     const existing = await query.executeTakeFirst();
     if(existing!==undefined)return existing.id;

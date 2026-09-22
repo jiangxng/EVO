@@ -29,6 +29,26 @@ async function balance(enterpriseId:string,ledger:string,orderNo:string,productI
   );
 }
 
+async function inventoryTotal(enterpriseId:string,productId:string,warehouse:string){
+  const rows=await runtime.db.selectFrom('ledger_balance as b')
+    .innerJoin('ledger_definition as d','d.id','b.ledger_definition_id')
+    .innerJoin('ledger_dataset as ds','ds.id','b.ledger_dataset_id')
+    .select(['b.quantity','b.amount','b.dimensions'])
+    .where('b.enterprise_id','=',enterpriseId)
+    .where('d.code','=','inventory')
+    .where('ds.kind','=','CURRENT')
+    .where('ds.status','=','ACTIVE')
+    .execute();
+  const matching=rows.filter(r=>
+    dimValue(r.dimensions,'product_id')===productId &&
+    dimValue(r.dimensions,'warehouse')===warehouse
+  );
+  return {
+    quantity:matching.reduce((total,row)=>total.plus(row.quantity),new Decimal(0)).toString(),
+    amount:matching.reduce((total,row)=>total.plus(row.amount),new Decimal(0)).toString()
+  };
+}
+
 async function productionWork(enterpriseId:string,demandNo:string){
   const rows=await runtime.db.selectFrom('work_item')
     .select(['work_type','status','source_ledger_code','source_quantity','source_dimensions'])
@@ -126,11 +146,17 @@ try{
   const materialRule=await runtime.db.selectFrom('valuation_rule').select(['id','version'])
     .where('enterprise_id','=',ids.enterpriseId).where('source_business_data_type','=','material_issue.issued')
     .where('status','=','PUBLISHED').orderBy('version','desc').executeTakeFirstOrThrow();
+  const shipmentRule=await runtime.db.selectFrom('valuation_rule').select(['id','version'])
+    .where('enterprise_id','=',ids.enterpriseId).where('source_business_data_type','=','sales_shipment.created')
+    .where('status','=','PUBLISHED').orderBy('version','desc').executeTakeFirstOrThrow();
 
   await runtime.cost.recalculate(ids.enterpriseId,'FIFO',{
     valuationPolicyId:fifoPolicy.id,valuationPolicyVersion:fifoPolicy.version,
     allocationPolicyId:fifoAllocation.id,allocationPolicyVersion:fifoAllocation.version,
-    valuationRules:{'material_issue.issued':{id:materialRule.id,version:materialRule.version}}
+    valuationRules:{
+      'material_issue.issued':{id:materialRule.id,version:materialRule.version},
+      'sales_shipment.created':{id:shipmentRule.id,version:shipmentRule.version}
+    }
   });
   await runtime.work.refresh(ids.enterpriseId);
 
@@ -142,12 +168,12 @@ try{
     .orderBy('r.started_at','desc')
     .executeTakeFirstOrThrow();
 
-  if(!new Decimal(issueCost.total_cost).eq(200)){
+  if(issueCost.total_cost===null||!new Decimal(issueCost.total_cost).eq(200)){
     throw new Error(`Expected material issue FIFO cost 200, got ${issueCost.total_cost}`);
   }
 
-  const rawAfterIssue=await balance(ids.enterpriseId,'inventory',poNo,raw);
-  if(rawAfterIssue===undefined||!new Decimal(rawAfterIssue.quantity).eq(80)||!new Decimal(rawAfterIssue.amount).eq(800)){
+  const rawAfterIssue=await inventoryTotal(ids.enterpriseId,raw,rawWarehouse);
+  if(!new Decimal(rawAfterIssue.quantity).eq(80)||!new Decimal(rawAfterIssue.amount).eq(800)){
     throw new Error(`Raw inventory after issue must be 80 / 800: ${JSON.stringify(rawAfterIssue)}`);
   }
 

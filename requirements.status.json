@@ -46,14 +46,11 @@
       "post-EEL-C03 completed-loop requirement alignment selected manufacturing execution",
       "enterprise-core-v1 already defines Production domain, production-planning and production-completion capabilities",
       "existing runtime already has pending-production, production.completed, Inventory, Cost/Valuation, WorkProjection and Replay primitives",
-      "legacy manufacturing/MRP/WMS semantics are to be recovered as Reference Enterprise Packs rather than promoted into Core"
+      "legacy manufacturing/MRP/WMS semantics are to be recovered as Reference Enterprise Packs rather than promoted into Core",
+      "C04.1 Production Demand / Work is DATABASE E2E VERIFIED by PostgreSQL 18 CI #632 and merged to main",
+      "C04.2–C04.5 Manufacturing Execution Bundle is DATABASE E2E VERIFIED on PostgreSQL 18.6 with raw-material inventory, WIP, finished-goods cost, partial completion, Work closure and explicit lineage evidence"
     ],
     "open": [
-      "C04.1 Production Demand / Work",
-      "C04.2 Raw Material Issue",
-      "C04.3 Production Completion",
-      "C04.4 Manufacturing Cost",
-      "C04.5 Partial / Multiple Production",
       "C04.6 Full Replay Equality",
       "C04.7 Final Certification"
     ],
@@ -73,8 +70,8 @@
       "advanced lot and serial traceability",
       "capacity optimization"
     ],
-    "currentWork": "C04.1 Production Demand / Work",
-    "status": "DESIGN ONLY",
+    "currentWork": "C04.2–C04.5 Manufacturing Execution Bundle",
+    "status": "DATABASE E2E VERIFIED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
@@ -122,7 +119,7 @@
     "selection": "EEL-C04 Manufacturing Execution Reference Loop",
     "rule": "Treat manufacturing execution as a bounded application/package capability first; do not conflate it with full BOM/MRP/APS/MES platforms unless current acceptance requires those."
   },
-  "currentWork": "C04.1 Production Demand / Work",
+  "currentWork": "C04.2–C04.5 Manufacturing Execution Bundle",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [

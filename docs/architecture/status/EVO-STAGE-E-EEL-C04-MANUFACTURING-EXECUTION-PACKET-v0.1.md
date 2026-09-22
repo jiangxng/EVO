@@ -205,3 +205,54 @@ Before adding any new abstraction:
 EEL-C04 is done only when the enterprise can truthfully say:
 
 > “生产需求、原料消耗、成品完工、库存、生产待办和成本都来自可追溯业务事实；部分生产不会提前关闭任务；删除派生状态后可以完整重建同样的制造经济结果。”
+
+## 13. C04.2–C04.5 Database Evidence — 2026-09-22
+
+**Evidence level:** DATABASE E2E VERIFIED
+
+**Database:** PostgreSQL 18.6
+
+**Branch:** `evo/eel-c04-manufacturing-execution-bundle-v0.1`
+
+Full applicable local pipeline:
+
+```text
+migrate                                            PASS
+validate:docs                                      PASS
+typecheck                                          PASS
+build                                              PASS
+test — 31 files / 84 tests                         PASS
+seed:demo                                          PASS
+validate:demo                                      PASS
+validate:eel-c04-manufacturing-execution-bundle   PASS
+```
+
+Verified manufacturing result:
+
+```text
+Raw material receipt             100 units / CNY 1,000
+Material issue                    20 units / FIFO CNY 200
+Raw material remaining            80 units / CNY 800
+
+Production demand                 50 units
+Partial completions               20 + 30 units
+Finished goods                    50 units / CNY 200
+Manufacturing WIP final value      0
+Pending production sequence       50 → 30 → 0
+PRODUCE Work final state           DONE
+```
+
+Lineage evidence:
+
+- one explicit material-issue `REFERENCES` relation to the production demand;
+- two explicit completion `FULFILLS` relations to the production demand;
+- no relationship inferred from equal quantity or timestamps.
+
+Compatibility corrections discovered by database evidence:
+
+- legacy `production.completed` facts without manufacturing-material fields no longer trigger WIP clearing;
+- the manufacturing cost run explicitly pins both material-issue and existing sales-shipment valuation rules;
+- valuation posting reuses the unique ACTIVE Ledger dataset after governed CURRENT activation;
+- raw-material inventory is asserted at the product/warehouse aggregate while preserving source-order lineage rows.
+
+C04.6 Full Replay Equality and C04.7 Final Certification remain open.

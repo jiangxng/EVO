@@ -11,7 +11,7 @@
     "id": "EEL-C04",
     "name": "Manufacturing Execution Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "IMPLEMENTED",
+    "status": "DATABASE E2E VERIFIED",
     "overallClosed": false,
     "businessGoal": "Certify a bounded manufacturing execution loop where production demand, raw-material issue, production completion, inventory, production Work, cost lineage and Full Replay remain explicit and deterministic without introducing a manufacturing-specific Core Runtime.",
     "activeBranch": "evo/eel-c04-manufacturing-execution-bundle-v0.1",
@@ -26,14 +26,14 @@
       "existing enterprise-core-v1 already includes Production domain, production-planning/completion capability, pending-production, Inventory and Cost semantics",
       "legacy manufacturing/MRP/WMS semantics are evidence for Reference Enterprise Packs, not Core tables",
       "C04.1 Production Demand / Work — DATABASE E2E VERIFIED / CI #632",
-      "C04.2–C04.5 manufacturing execution bundle implemented: material issue, WIP valuation, partial/multiple production, finished-goods cost and Work closure"
+      "C04.2–C04.5 manufacturing execution bundle verified on PostgreSQL 18.6: material issue, WIP valuation, partial/multiple production, finished-goods cost and Work closure",
+      "full applicable local pipeline passed: migrate, validate:docs, typecheck, build, 31 test files / 84 tests, seed:demo, validate:demo and validate:eel-c04-manufacturing-execution-bundle"
     ],
     "openGates": [
-      "C04.2–C04.5 Manufacturing Execution Bundle — awaiting PostgreSQL 18 evidence",
       "C04.6 Full Replay Equality",
       "C04.7 Final Certification"
     ],
-    "nextAction": "Run isolated PostgreSQL 18 manufacturing bundle validation; if green, merge and move directly to C04.6 Full Replay + final certification."
+    "nextAction": "Merge the database-verified C04.2–C04.5 bundle to main, then create a new bounded branch for C04.6 Full Replay + C04.7 Final Certification."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
