@@ -198,16 +198,19 @@
       "description": "Final EEL-C01 certification and completed-loop Human–LLM requirement alignment merged by PR #22."
     },
     "evo/eel-c01-post-cert-pointer-fix-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "Post-certification pointer cleanup only; no runtime behavior changes."
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "Historical EEL-C01 post-certification pointer cleanup branch. Live compare against main on 2026-09-22 shows ahead_by=0; do not revive."
     },
     "evo/eel-c02-procure-to-pay-packet-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "Stage E / EEL-C02 Procure-to-Pay business packet and current business-mainline planning branch."
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 26,
+      "description": "EEL-C02 Procure-to-Pay reference loop certified and merged by PR #26 at 43c23050b74819caf311535598808bdf5339d237."
     },
     "evo/effective-capability-discovery-v0.1": {
       "class": "EXPERIMENTAL",
@@ -215,6 +218,12 @@
       "containedByMain": false,
       "pr": 25,
       "description": "Paused horizontal API/capability-discovery work. Not current business mainline; do not extend while EEL-C02 is active unless explicitly resumed."
+    },
+    "evo/eel-c02-post-merge-pointer-cleanup-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Short-lived post-merge status/topology cleanup for EEL-C02; no runtime behavior changes."
     }
   },
   "requiredLLMProcedure": [
@@ -242,5 +251,5 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "af6a7ff5abc1d2a9e3e2fed4c4c1a699d787098c"
+  "lastReviewedMainCommit": "43c23050b74819caf311535598808bdf5339d237"
 }
