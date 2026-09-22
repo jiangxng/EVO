@@ -133,7 +133,7 @@ export class PostgresAccountingReplayService implements AccountingReplayService 
           .orderBy('id')
           .execute();
         for(const fact of business){
-          await this.recognition.recognizeBusinessData(enterpriseId,accountingBookId,fact.id);
+          await this.recognition.recognizeBusinessData(enterpriseId,accountingBookId,fact.id,'REPLAY');
         }
       }
 
