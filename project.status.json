@@ -91,8 +91,9 @@
     "name": "Order-to-Cash Settlement Reference Loop",
     "status": "CERTIFIED",
     "certification": "docs/architecture/certification/EEL-C01-ORDER-TO-CASH-SETTLEMENT-CERTIFICATION-v0.1.md",
-    "verifiedHead": "347baecc18819dca6b8d2f5467a3457b80f20f6a",
-    "verifiedCiRun": 35667720747
+    "verifiedHead": "3d679fae5c330ed223eb3f5ff49f1240df7acbf0",
+    "verifiedCiRun": 35669984475,
+    "mergeCommit": "9fdad572db9992ca0773b5cd637b41a57ccf80d8"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
