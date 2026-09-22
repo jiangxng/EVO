@@ -123,6 +123,29 @@ Use `project.status.json` as the only authoritative machine-readable current pro
 Before branch merge/delete/revival decisions, read `branch.topology.json`. Branch authority must not be inferred from branch names, age, commit counts, or PR openness. Use GitHub compare results plus the topology class. If GitHub reality conflicts with the topology file, report `BRANCH_TOPOLOGY_DRIFT` and repair the topology before recommending a merge.
 
 
+## Branch / Bundle Determinism
+
+Branch size is determined by evidence and business boundaries, not by task numbering.
+
+A fresh model must not assume:
+
+```text
+one numbered slice = one branch = one PR
+```
+
+The preferred rule is:
+
+```text
+one coherent business/evidence boundary
+→ one short-lived branch or bundle
+→ verified PR
+→ merge to main
+```
+
+Multiple adjacent bounded slices may share one bundle branch when the repository records their individual gates and one coherent E2E scenario proves the combined outcome.
+
+Do not use bundle branches to justify unrelated refactors, speculative platform work, or long-lived integration branches. `main` remains the only authoritative integration branch.
+
 ## Human–LLM Requirement Alignment
 
 LLMs own technology selection and implementation inside confirmed business intent.
