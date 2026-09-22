@@ -1,4 +1,12 @@
-import type { JsonObject } from '../../metadata/api/contracts.js';
+export type AccountingJsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | readonly AccountingJsonValue[]
+  | { readonly [key:string]: AccountingJsonValue };
+
+export type AccountingAccountingJsonObject = Readonly<Record<string,AccountingJsonValue>>;
 
 export type JournalSide = 'DEBIT' | 'CREDIT';
 
@@ -7,7 +15,7 @@ export interface JournalLineInput {
   readonly side: JournalSide;
   readonly amount: string;
   readonly currency: string;
-  readonly dimensions?: JsonObject;
+  readonly dimensions?: AccountingJsonObject;
   readonly memo?: string;
 }
 
@@ -20,7 +28,7 @@ export interface PostJournalRequest {
   readonly sourceBusinessDataId?: string;
   readonly accountingRuleCode?: string;
   readonly accountingRuleVersion?: number;
-  readonly diagnosticContext?: JsonObject;
+  readonly diagnosticContext?: AccountingJsonObject;
   readonly lines: readonly JournalLineInput[];
 }
 
