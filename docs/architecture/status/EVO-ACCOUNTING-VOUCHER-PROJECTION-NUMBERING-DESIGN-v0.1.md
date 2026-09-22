@@ -4,6 +4,9 @@
 **Date:** 2026-09-22
 **Legacy semantic source:** Asloop-Backend
 
+
+> **Design principle:** EVO does not digitize paper-era accounting artifacts by default. It preserves the accounting/audit semantics those artifacts carried and prefers machine-readable facts, lineage, controls, reconciliation and projections over duplicated source-of-truth tables. See `docs/architecture/principles/EVO-ACCOUNTING-AUDIT-SEMANTICS-PRINCIPLE-v0.1.md`.
+
 ## 0. Decision
 
 In EVO, an accounting voucher is not a new authoritative accounting fact layer.
