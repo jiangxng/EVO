@@ -40,7 +40,9 @@ create table account_reconciliation_rule (
   status text not null check (status in ('DRAFT','PUBLISHED','RETIRED')),
   published_at timestamptz,
   created_at timestamptz not null default now(),
-  unique (enterprise_id, accounting_book_id, code, version)
+  unique (enterprise_id, accounting_book_id, code, version),
+  foreign key (statement_definition_id, statement_line_code)
+    references statement_line_definition(statement_definition_id, code)
 );
 
 create table account_reconciliation_run (
@@ -93,13 +95,16 @@ create table account_statement_mapping (
   balance_basis text not null check (balance_basis in ('NET_DEBIT','NET_CREDIT','MOVEMENT_DEBIT','MOVEMENT_CREDIT','MOVEMENT_NET_DEBIT','MOVEMENT_NET_CREDIT')),
   multiplier numeric(18,6) not null default 1,
   created_at timestamptz not null default now(),
-  unique (statement_definition_id, statement_line_code, accounting_account_code, balance_basis)
+  unique (statement_definition_id, statement_line_code, accounting_account_code, balance_basis),
+  foreign key (statement_definition_id, statement_line_code)
+    references statement_line_definition(statement_definition_id, code)
 );
 
 create table cash_flow_classification_rule (
   id uuid primary key default uuidv7(),
   enterprise_id uuid not null references enterprise(id),
   accounting_book_id uuid not null references accounting_book(id),
+  statement_definition_id uuid not null references statement_definition(id),
   code text not null,
   name text not null,
   source_business_data_type text not null,
