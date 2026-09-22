@@ -41,19 +41,18 @@
       "BusinessData history remains unchanged by Replay"
     ],
     "verified": [
-      "business packet selected",
-      "enterprise-core-v1 contains reusable purchase-order/payable/payment semantic definitions"
+      "purchase order approval creates Pending Purchase and Payable",
+      "three cumulative goods receipts 30 + 20 + 50 close Pending Purchase and build Inventory to 100 / 1250",
+      "three cumulative supplier payments 300 + 400 + 550 reduce Payable to zero and Cash to -1250",
+      "explicit FULFILLS and ALLOCATES_TO / AllocationInstruction relationships are persisted",
+      "RECEIVE and PAY WorkItems close from balance state",
+      "Full Replay rebuilds identical P2P economic state",
+      "canonical BusinessData and explicit AllocationInstructions remain unchanged",
+      "PostgreSQL 18 CI #584 passed"
     ],
-    "open": [
-      "C02.1 Purchase Order Economic Recognition",
-      "C02.2 Goods Receipt & Inventory",
-      "C02.3 Supplier Payment & Explicit Settlement",
-      "C02.4 Full Replay Equality",
-      "C02.5 Final Certification"
-    ],
+    "open": [],
     "deferred": [
-      "partial receipt",
-      "partial payment",
+      "partial/multiple receipt and payment are architecturally supported by cumulative facts/balances but are not separate product workflows in this packet",
       "three-way matching",
       "supplier invoice workflow",
       "tax/VAT recovery",
@@ -65,8 +64,8 @@
       "bank reconciliation",
       "cross-currency supplier payment"
     ],
-    "currentWork": "C02.1 Purchase Order Economic Recognition",
-    "status": "DESIGN ONLY",
+    "currentWork": "C02.5 Final Certification",
+    "status": "CERTIFIED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C02-PROCURE-TO-PAY-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
@@ -100,8 +99,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-22",
-    "reason": "Completed EEL-C01 enterprise business loop and explicit human confidence/comprehension alignment trigger.",
-    "result": "EEL-C01 business outcomes are satisfied and certified; no current requirement drift or overdesign blocker found. Adjacent payment/banking/generalization scope remains deferred."
+    "reason": "EEL-C02 Procure-to-Pay reference loop completed and certified after cumulative receipt/payment and Full Replay evidence.",
+    "result": "Confirmed complex business behavior is expressible through BusinessData + Posting Rules + Ledger Balances + explicit relationships + WorkProjection without a procurement-specific core runtime."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
