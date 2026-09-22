@@ -5,36 +5,30 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "c59fe3bb61df5534745e2611deff452269358e9d"
+    "lastVerifiedRuntimeMergeCommit": "11ee7618c12da214e8e0270b321e0f098a448488"
   },
   "activeWorkPacket": {
     "id": "EEL-C04",
     "name": "Manufacturing Execution Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "DATABASE E2E VERIFIED",
-    "overallClosed": false,
+    "status": "CERTIFIED",
+    "overallClosed": true,
     "businessGoal": "Certify a bounded manufacturing execution loop where production demand, raw-material issue, production completion, inventory, production Work, cost lineage and Full Replay remain explicit and deterministic without introducing a manufacturing-specific Core Runtime.",
-    "activeBranch": "evo/eel-c04-full-replay-final-certification-v0.1",
+    "activeBranch": "evo/post-codex-eel-c04-alignment-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C04 Manufacturing Execution Reference Loop",
     "closedGates": [
       "EEL-C01 Order-to-Cash certified",
       "EEL-C02 Procure-to-Pay certified",
       "EEL-C03 Sales Return / Exchange / Refund / Red Invoice certified",
-      "Completed-loop requirement alignment after EEL-C03 completed",
-      "EEL-C04 selected from business/APQC capability gap rather than technical momentum",
-      "existing enterprise-core-v1 already includes Production domain, production-planning/completion capability, pending-production, Inventory and Cost semantics",
-      "legacy manufacturing/MRP/WMS semantics are evidence for Reference Enterprise Packs, not Core tables",
       "C04.1 Production Demand / Work — DATABASE E2E VERIFIED / CI #632",
-      "C04.2–C04.5 manufacturing execution bundle verified on PostgreSQL 18.6: material issue, WIP valuation, partial/multiple production, finished-goods cost and Work closure",
-      "full applicable local pipeline passed: migrate, validate:docs, typecheck, build, 31 test files / 84 tests, seed:demo, validate:demo and validate:eel-c04-manufacturing-execution-bundle",
-      "C04.2–C04.5 manufacturing execution bundle merged to main through PR #39 at 8f58664",
-      "C04.6 Full Replay Equality — DATABASE E2E VERIFIED locally on PostgreSQL 18.6 with canonical facts, relationships, Inventory, Cost, WIP, pending production and Work rebuilt identically"
+      "C04.2–C04.5 Manufacturing Execution Bundle — DATABASE E2E VERIFIED / PR #39 / CI #640",
+      "C04.6 Full Replay Equality — DATABASE E2E VERIFIED / PR #40 / CI #642",
+      "C04.7 Final Certification — CERTIFIED in docs/architecture/certification/EEL-C04-MANUFACTURING-EXECUTION-CERTIFICATION-v0.2.md",
+      "Valuation replay ordering defect corrected and merged to main in 11ee7618"
     ],
-    "openGates": [
-      "C04.7 Final Certification — remote CI and merge evidence pending"
-    ],
-    "nextAction": "Push the C04 Full Replay/final-certification branch, pass the complete CI matrix, merge to main, then record final certification and run completed-loop requirement alignment."
+    "openGates": [],
+    "nextAction": "Run completed-loop requirement alignment and select the next Stage E bounded business packet. Do not extend EEL-C04 by momentum."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -87,12 +81,12 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "EEL-C03",
-    "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
+    "id": "EEL-C04",
+    "name": "Manufacturing Execution Reference Loop",
     "status": "CERTIFIED",
-    "certification": "docs/architecture/certification/EEL-C03-SALES-RETURN-EXCHANGE-REFUND-RED-INVOICE-CERTIFICATION-v0.1.md",
-    "verifiedCiRun": 35686593826,
-    "mergeCommit": "c59fe3bb61df5534745e2611deff452269358e9d"
+    "certification": "docs/architecture/certification/EEL-C04-MANUFACTURING-EXECUTION-CERTIFICATION-v0.2.md",
+    "verifiedCiRun": 35703911233,
+    "mergeCommit": "11ee7618c12da214e8e0270b321e0f098a448488"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -100,7 +94,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "ALIGNED_EEL_C04_MANUFACTURING_EXECUTION_SELECTED",
+    "currentAssessment": "EEL_C04_CERTIFIED_COMPLETED_LOOP_ALIGNMENT_REQUIRED",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
