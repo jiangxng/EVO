@@ -143,3 +143,22 @@ EVO 应逐步能够从机器可读数据回答：当前有多少 Transaction Typ
 纵向成功：同一 BusinessData + 更多条件式规则 + 更多 Ledger / Cost / Accounting / Report projection，而历史事实保持稳定。
 
 > **横向扩展用于证明 EVO 的业务抽象广度；纵向扩展用于证明 EVO 的记账 / 投影深度；Enterprise Template 用于把两种能力组合成可安装、可复制、可验证的完整企业定义。**
+
+## 13. Asloop 元数据 / 字段设计语义基线
+
+横向扩展验证在分析 Asloop application corpus 时，必须同时参考：
+
+`docs/architecture/EVO-ASLOOP-METADATA-FIELD-DESIGN-UNDERSTANDING-v0.1.md`
+
+该文档记录了当前已经确认的历史设计意图，包括：
+
+- 六大基础对象及后续对象扩展；
+- SharePoint 2017 风格的字段组合思想；
+- Object → Field → Transaction Type → Application；
+- Field authored once, projected many times；
+- Object current value 与 Transaction historical snapshot 的不同时间语义；
+- Reference Identity + Historical Snapshot；
+- Application Field Binding；
+- DW / Reporting Pack 的可安装派生定位。
+
+后续用户继续补充 Asloop 设计思想时，优先按新增法补充该语义基线，并用代码 / 配置 / 数据证据交叉验证。
