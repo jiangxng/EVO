@@ -104,6 +104,7 @@ try {
         paymentNo,
         orderNo,
         supplier,
+        productId:'P-100',
         settledAmount:payment.amount,
         currency:'CNY',
         project,
