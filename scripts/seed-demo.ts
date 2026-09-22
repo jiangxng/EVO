@@ -76,6 +76,7 @@ try {
   const materialIssueType = await txType(productionDomain.id, 'material_issue', 'Material Issue');
   const productionType = await txType(productionDomain.id, 'production_completion', 'Production Completion');
   const inventoryType = await txType(inventoryDomain.id, 'inventory_movement', 'Inventory Movement');
+  const inventoryTransferType = await txType(inventoryDomain.id, 'inventory_transfer', 'Inventory Transfer');
   const valuationType = await txType(valuationDomain.id, 'valuation_request', 'Valuation Request');
   const cashReceiptType = await txType(cashDomain.id, 'cash_receipt', 'Cash Receipt');
   const cashPaymentType = await txType(cashDomain.id, 'cash_payment', 'Cash Payment');
@@ -98,6 +99,7 @@ try {
   const materialIssueApp = await app('material_issue', 'Material Issue', materialIssueType.id);
   const productionApp = await app('production_completion', 'Production Completion', productionType.id);
   const inventoryApp = await app('inventory_movement', 'Inventory Movement', inventoryType.id);
+  const inventoryTransferApp = await app('inventory_transfer', 'Inventory Transfer', inventoryTransferType.id);
   const valuationApp = await app('valuation_request', 'Valuation Request', valuationType.id);
   const cashReceiptApp = await app('cash_receipt', 'Cash Receipt', cashReceiptType.id);
   const cashPaymentApp = await app('cash_payment', 'Cash Payment', cashPaymentType.id);
@@ -128,6 +130,7 @@ try {
   const materialIssueVersion = await version(materialIssueApp.id);
   const productionVersion = await version(productionApp.id);
   const inventoryVersion = await version(inventoryApp.id);
+  const inventoryTransferVersion = await version(inventoryTransferApp.id);
   const valuationVersion = await version(valuationApp.id);
   const cashReceiptVersion = await version(cashReceiptApp.id);
   const cashPaymentVersion = await version(cashPaymentApp.id);
@@ -156,6 +159,7 @@ try {
   await instance(materialIssueApp.id, 'material-issue', 'Material Issue');
   await instance(productionApp.id, 'production', 'Production');
   await instance(inventoryApp.id, 'inventory', 'Inventory');
+  await instance(inventoryTransferApp.id, 'inventory-transfer', 'Inventory Transfer');
   await instance(valuationApp.id, 'valuation', 'Valuation');
   await instance(cashReceiptApp.id, 'cash', 'Cash');
   await instance(cashPaymentApp.id, 'cash-payment', 'Cash Payment');
@@ -324,6 +328,9 @@ try {
   await command(valuationVersion.id, 'request-valuation', 'Request Valuation', 'valuation.requested');
   await command(productionDemandVersion.id, 'create-production-demand', 'Create Production Demand', 'production_demand.created');
   await command(materialIssueVersion.id, 'issue-material', 'Issue Material', 'material_issue.issued');
+  await command(inventoryTransferVersion.id, 'create-transfer', 'Create Inventory Transfer', 'inventory_transfer.created');
+  await command(inventoryTransferVersion.id, 'issue-transfer', 'Issue Inventory Transfer', 'inventory_transfer.issued');
+  await command(inventoryTransferVersion.id, 'receive-transfer', 'Receive Inventory Transfer', 'inventory_transfer.received');
   await command(productionVersion.id, 'complete-production', 'Complete Production', 'production.completed');
   await command(inventoryVersion.id, 'ship-sales-order', 'Ship Sales Order', 'sales_shipment.created');
   // v0.9 compatibility-only technical command. Not part of the v1 semantic reference flow.
@@ -397,6 +404,10 @@ try {
     required: ['order_no','customer'],
     optional: ['project','department','profit_center','cost_center']
   };
+  const transferWorkPolicy = {
+    required: ['order_no','product_id'],
+    optional: ['warehouse','project','department','cost_center']
+  };
   await ledger('pending_production','待生产', operationalOrderPolicy);
   await ledger('pending_shipment','待出库/发货', operationalOrderPolicy);
   await ledger('receivable','待收款', receivablePolicy);
@@ -410,6 +421,7 @@ try {
   await ledger('pending_exchange','待换货', reverseWorkPolicy);
   await ledger('pending_refund','待退款', reverseWorkPolicy);
   await ledger('pending_red_invoice','待红字发票', reverseWorkPolicy);
+  await ledger('pending_transfer','待调拨收货', transferWorkPolicy);
 
   async function rule(
     versionId: string,
@@ -494,6 +506,37 @@ try {
   });
   await rule(purchaseVersion.id,'purchase-payable',20,trueExpr,{
     ledgerCode:'payable', quantity: { type:'literal', value:0 }, amount: field('totalAmount'), currency: field('currency'), dimensions: payableDims
+  });
+
+  const transferWorkDims = {
+    order_no: field('transferNo'), product_id: field('productId'),
+    warehouse: field('destinationWarehouse'),
+    project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
+  const transferSourceInventoryDims = {
+    product_id: field('productId'), warehouse: field('sourceWarehouse'),
+    order_no: field('transferNo'),
+    project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
+  const transferDestinationInventoryDims = {
+    product_id: field('productId'), warehouse: field('destinationWarehouse'),
+    order_no: field('transferNo'),
+    project: field('project'), department: field('department'),
+    cost_center: field('costCenter')
+  };
+  await rule(inventoryTransferVersion.id,'transfer-open-pending',10,eq('transferEvent','CREATE'),{
+    ledgerCode:'pending_transfer', quantity:field('quantity'), amount:{type:'literal',value:'0'}, dimensions:transferWorkDims
+  });
+  await rule(inventoryTransferVersion.id,'transfer-issue-source-quantity',20,eq('transferEvent','ISSUE'),{
+    ledgerCode:'inventory', quantity:neg('quantity'), amount:{type:'literal',value:'0'}, dimensions:transferSourceInventoryDims
+  });
+  await rule(inventoryTransferVersion.id,'transfer-receive-destination-quantity',30,eq('transferEvent','RECEIVE'),{
+    ledgerCode:'inventory', quantity:field('quantity'), amount:{type:'literal',value:'0'}, dimensions:transferDestinationInventoryDims
+  });
+  await rule(inventoryTransferVersion.id,'transfer-close-pending',40,eq('transferEvent','RECEIVE'),{
+    ledgerCode:'pending_transfer', quantity:neg('quantity'), amount:{type:'literal',value:'0'}, dimensions:transferWorkDims
   });
 
   const purchaseReceiptInventoryDims = {
