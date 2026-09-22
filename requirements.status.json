@@ -48,11 +48,15 @@
       "warehouse/facility dimensions already exist",
       "Inventory ledger and FIFO/LIFO/MWA/Specific-ID cost substrate already exist",
       "C04 certified Cost/Valuation/Replay substrate can be reused",
-      "post-EEL-C04 alignment selected internal transfer for its conservation-value evidence"
+      "post-EEL-C04 alignment selected internal transfer for its conservation-value evidence",
+      "C05 transfer conservation is DATABASE E2E VERIFIED by PR #43 / CI #649 and merged at c57ac571",
+      "source/destination quantity and value conservation is proven",
+      "FIFO-derived transfer valuation is proven",
+      "pure internal transfer creates no P&L/AR/AP/Cash side effects",
+      "TRANSFER Work closes only when pending_transfer reaches zero"
     ],
     "open": [
-      "Inventory Transfer Conservation Bundle — PostgreSQL 18 evidence",
-      "Full Replay Equality + Final Certification"
+      "Full Replay Equality + Final Certification — awaiting PostgreSQL 18 CI"
     ],
     "deferred": [
       "WMS platform",
@@ -66,7 +70,7 @@
       "advanced lot/serial productization",
       "cycle count platform"
     ],
-    "currentWork": "C05 Inventory Transfer Conservation Bundle",
+    "currentWork": "C05 Full Replay Equality + Final Certification",
     "status": "IMPLEMENTED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md"
   },
@@ -115,7 +119,7 @@
     "selection": "EEL-C05 Inventory Transfer & Warehouse Rebalancing Reference Loop",
     "rule": "Keep C05 bounded to intra-enterprise warehouse transfer, explicit lineage, quantity/value conservation, Work and Replay. Defer WMS/TMS and cross-entity transfer."
   },
-  "currentWork": "C05 Inventory Transfer Conservation Bundle",
+  "currentWork": "C05 Full Replay Equality + Final Certification",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [
