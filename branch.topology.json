@@ -187,7 +187,13 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 21,
-      "description": "EEL-C01 legacy customer_payment.received replay compatibility proof; PostgreSQL 18 isolated E2E verifies history and FX semantics survive unchanged."
+      "description": "EEL-C01 legacy receipt replay compatibility proof merged by PR #21."
+    },
+    "evo/eel-c01-final-certification-alignment-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Final EEL-C01 certification, completed-loop requirement alignment, and status-drift repair."
     }
   },
   "requiredLLMProcedure": [
