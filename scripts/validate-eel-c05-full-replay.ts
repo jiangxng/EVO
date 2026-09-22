@@ -210,8 +210,8 @@ try{
 
   const parts=[15,25];
   const expected=[
-    {aq:85,aa:850,bq:15,ba:150,pending:25,status:'OPEN'},
-    {aq:60,aa:600,bq:40,ba:400,pending:0,status:'DONE'}
+    {aq:85,bq:15,pending:25,status:'OPEN'},
+    {aq:60,bq:40,pending:0,status:'DONE'}
   ];
 
   const receiptFactIds:string[]=[];
@@ -234,35 +234,45 @@ try{
       .where('command_execution_id','=',received.commandExecutionId).executeTakeFirstOrThrow();
     receiptFactIds.push(receivedFact.id);
 
-    await recalcCost(ids.enterpriseId);
-
     const a=await inventoryByWarehouse(ids.enterpriseId,productId,sourceWarehouse);
     const b=await inventoryByWarehouse(ids.enterpriseId,productId,destinationWarehouse);
     pending=await pendingTransfer(ids.enterpriseId,transferNo);
     work=await transferWork(ids.enterpriseId,transferNo);
     const e=expected[i]!;
 
-    if(!a.quantity.eq(e.aq)||!a.amount.eq(e.aa)||!b.quantity.eq(e.bq)||!b.amount.eq(e.ba)){
-      throw new Error(`Warehouse balances mismatch after receipt ${i+1}: A=${a.quantity}/${a.amount}, B=${b.quantity}/${b.amount}`);
+    if(!a.quantity.eq(e.aq)||!b.quantity.eq(e.bq)){
+      throw new Error(`Warehouse quantities mismatch after receipt ${i+1}: A=${a.quantity}, B=${b.quantity}`);
     }
     if(pending===undefined||!new Decimal(pending.quantity).eq(e.pending)||work?.status!==e.status){
       throw new Error(`Pending/Work mismatch after receipt ${i+1}: ${JSON.stringify({pending,work})}`);
     }
-    if(!a.quantity.plus(b.quantity).eq(100)||!a.amount.plus(b.amount).eq(1000)){
-      throw new Error(`Enterprise inventory conservation failed after receipt ${i+1}.`);
+    if(!a.quantity.plus(b.quantity).eq(100)){
+      throw new Error(`Enterprise inventory quantity conservation failed after receipt ${i+1}.`);
     }
+  }
 
+  // Full Replay certification uses one authoritative cost materialization for the complete
+  // canonical fact set. PR #43 / CI #649 separately proves the intermediate 15-unit value state.
+  await recalcCost(ids.enterpriseId);
+
+  const valuedA=await inventoryByWarehouse(ids.enterpriseId,productId,sourceWarehouse);
+  const valuedB=await inventoryByWarehouse(ids.enterpriseId,productId,destinationWarehouse);
+  if(!valuedA.quantity.eq(60)||!valuedA.amount.eq(600)||!valuedB.quantity.eq(40)||!valuedB.amount.eq(400)){
+    throw new Error(`Final valued warehouse state mismatch: A=${valuedA.quantity}/${valuedA.amount}, B=${valuedB.quantity}/${valuedB.amount}`);
+  }
+  if(!valuedA.quantity.plus(valuedB.quantity).eq(100)||!valuedA.amount.plus(valuedB.amount).eq(1000)){
+    throw new Error('Final enterprise inventory quantity/value conservation failed.');
+  }
+
+  for(let i=0;i<receiptFactIds.length;i+=1){
     const cost=await runtime.db.selectFrom('cost_result as c')
       .innerJoin('cost_run as r','r.id','c.cost_run_id')
       .select(['c.quantity','c.total_cost'])
       .where('r.enterprise_id','=',ids.enterpriseId)
-      .where('c.business_data_id','=',receivedFact.id)
+      .where('c.business_data_id','=',receiptFactIds[i]!)
       .orderBy('r.started_at','desc').executeTakeFirstOrThrow();
     const expectedCost=i===0?150:250;
-    if(cost.total_cost===null){
-      throw new Error(`Receipt ${i+1} cost result must contain total_cost.`);
-    }
-    if(!new Decimal(cost.total_cost).eq(expectedCost)){
+    if(cost.total_cost===null||!new Decimal(cost.total_cost).eq(expectedCost)){
       throw new Error(`Receipt ${i+1} must derive FIFO cost ${expectedCost}, got ${cost.total_cost}`);
     }
   }
