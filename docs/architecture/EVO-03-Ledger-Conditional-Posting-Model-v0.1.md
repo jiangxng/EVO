@@ -653,3 +653,100 @@ EVO-04 will define cost layers, cost dimensions, valuation policies, matching an
 ---
 
 **End of EVO-03 v0.1**
+
+## 26. 2026-09-22 Addendum — 业务账本、财务总账与可安装记账包
+
+本节对第 22 节 “Financial Accounting as a Ledger Family” 作进一步澄清。
+
+### 26.1 Generic Ledger 与 General Ledger 共享基础，但不是同一个约束层
+
+Generic Ledger 继续服务：
+
+```text
+待生产
+待采购
+待发货
+库存数量
+库存价值
+应收/应付经营余额
+现金经营位置
+其他经营状态
+```
+
+它使用：
+
+```text
+INCREASE / DECREASE
+signed quantity / amount
+```
+
+这类业务/经济账本不需要人为制造借贷双方。
+
+General Ledger 则是建立在同一事实和规则基础之上的**受更严格约束的会计投影**：
+
+```text
+Accounting Recognition
+→ Journal
+→ Debit / Credit Journal Lines
+→ Balanced General Ledger
+```
+
+General Ledger 必须满足 EVO Financial Accounting Integrity invariants，包括：
+
+```text
+at least one Debit
+at least one Credit
+Σ Debit = Σ Credit
+atomic failure when unbalanced
+```
+
+因此：
+
+> **共享 Posting/Ledger 基础设施，不等于把 Operational Ledger 直接当成法定总账。**
+
+### 26.2 条件式记账可以由安装包扩展
+
+PostingRule / AccountingRecognitionRule 可以随应用或包安装。
+
+示例：
+
+```text
+Revenue Recognition Package
+    条件：满足收入确认政策
+    结果：生成正式 GL Journal
+```
+
+```text
+Expense Accrual Package
+    条件：期间末满足计提条件
+    结果：生成费用/负债会计分录
+```
+
+```text
+Tax Package
+    条件：满足特定税务事件
+    结果：生成税务相关业务事实 / 会计投影
+```
+
+Core 不硬编码“什么时候确认收入”“什么时候计提费用”等具体企业会计判断。
+
+### 26.3 Ledger Pack / Accounting Pack 是可安装企业能力
+
+可安装包可以携带：
+
+```text
+Ledger Definitions
+Accounting Accounts
+Posting Rules
+Accounting Recognition Rules
+Dimension Policies
+Work / Projection Definitions
+Report Mappings
+Permissions / Capabilities
+Validation Rules
+Version / Migration Metadata
+```
+
+安装包改变企业当前拥有的能力，但不改变 canonical historical facts。
+
+卸载/停用能力也不得删除历史 BusinessData、Ledger lineage 或 Accounting evidence.
