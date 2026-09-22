@@ -54,7 +54,7 @@ try {
       quantity:100,unitPrice:'12.50',totalAmount:'1250.00',currency:'CNY',
       project,department:'PROCUREMENT',costCenter:'CC-PROCUREMENT'
     },
-    effectiveAt:new Date('2026-09-22T09:00:00.000Z'),
+    effectiveAt:new Date('2026-09-22T16:00:00.000Z'),
     businessObjectKey:orderNo,
     lineage:{
       flowDefinitionId:ids.procureToPayFlowDefinitionId,
@@ -79,9 +79,9 @@ try {
     .executeTakeFirstOrThrow();
 
   const payments = [
-    { amount:'300.00', at:'2026-09-22T13:00:00.000Z' },
-    { amount:'400.00', at:'2026-09-22T14:00:00.000Z' },
-    { amount:'550.00', at:'2026-09-22T15:00:00.000Z' }
+    { amount:'300.00', at:'2026-09-22T17:00:00.000Z' },
+    { amount:'400.00', at:'2026-09-22T18:00:00.000Z' },
+    { amount:'550.00', at:'2026-09-22T19:00:00.000Z' }
   ];
   const expectedPayable = ['950','550','0'];
   const expectedCash = ['-300','-700','-1250'];
