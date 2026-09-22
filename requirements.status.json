@@ -51,8 +51,8 @@
       "post-EEL-C04 alignment selected internal transfer for its conservation-value evidence"
     ],
     "open": [
-      "C05 Bundle A — Transfer Execution",
-      "C05 Bundle B — Transfer Valuation + Full Replay + Final Certification"
+      "Inventory Transfer Conservation Bundle — PostgreSQL 18 evidence",
+      "Full Replay Equality + Final Certification"
     ],
     "deferred": [
       "WMS platform",
@@ -66,8 +66,8 @@
       "advanced lot/serial productization",
       "cycle count platform"
     ],
-    "currentWork": "C05 Bundle A — Transfer Execution",
-    "status": "DESIGN ONLY",
+    "currentWork": "C05 Inventory Transfer Conservation Bundle",
+    "status": "IMPLEMENTED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
@@ -115,7 +115,7 @@
     "selection": "EEL-C05 Inventory Transfer & Warehouse Rebalancing Reference Loop",
     "rule": "Keep C05 bounded to intra-enterprise warehouse transfer, explicit lineage, quantity/value conservation, Work and Replay. Defer WMS/TMS and cross-entity transfer."
   },
-  "currentWork": "C05 Bundle A — Transfer Execution",
+  "currentWork": "C05 Inventory Transfer Conservation Bundle",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [
