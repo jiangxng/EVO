@@ -5,34 +5,33 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "c57ac5716aff743470e8d6b2ab98bc5e87a6aec7"
+    "lastVerifiedRuntimeMergeCommit": "3a1a437d9e96a5e1b064649deb3ac31fe2ee5ce5"
   },
   "activeWorkPacket": {
-    "id": "EEL-C05",
-    "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
-    "stage": "Stage E — Enterprise Economic Loops",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Certify intra-enterprise inventory transfer where location changes while enterprise-wide quantity and inventory value remain conserved, with explicit lineage, balance-driven Work and deterministic Full Replay.",
-    "activeBranch": "evo/eel-c05-full-replay-final-certification-v0.1",
-    "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md",
-    "evidenceTarget": "CERTIFIED — EEL-C05 Inventory Transfer & Warehouse Rebalancing",
+    "id": "FAI-01-02",
+    "name": "Chart of Accounts + Journal Contract + Atomic Double-Entry Integrity",
+    "stage": "Financial Accounting Integrity",
+    "status": "DESIGN ONLY",
+    "overallClosed": false,
+    "businessGoal": "Make '有借必有贷、借贷必相等' a machine-enforced General Ledger invariant without changing operational/economic ledgers into debit/credit ledgers.",
+    "activeBranch": "evo/fai-double-entry-alignment-v0.1",
+    "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md",
+    "evidenceTarget": "DATABASE E2E VERIFIED authoritative balanced Journal runtime",
     "closedGates": [
-      "EEL-C01 Order-to-Cash certified",
-      "EEL-C02 Procure-to-Pay certified",
-      "EEL-C03 customer-side reverse loop certified",
-      "EEL-C04 Manufacturing Execution certified",
-      "Post-EEL-C04 completed-loop alignment completed",
-      "EEL-C05 selected from inventory/warehouse internal-logistics capability gap",
-      "WMS/TMS/platform expansion explicitly deferred",
-      "C05 implementation prepared as one conservation-safe bundle: create/issue/partial receipt, source/destination quantity movement, FIFO-derived value transfer, explicit lineage and TRANSFER Work",
-      "Bundle A/B intermediate merge plan collapsed because quantity-only transfer would create an economically incomplete main state",
-      "C05 Inventory Transfer Conservation Bundle — DATABASE E2E VERIFIED / PR #43 / CI #649 / merge c57ac571",
-      "C05 Inventory Transfer Conservation Bundle — DATABASE E2E VERIFIED / PR #43 / CI #649 / merge c57ac571",
-      "C05 Full Replay Equality + Final Certification — DATABASE E2E VERIFIED / PR #44 / CI #653"
+      "Financial accounting integrity gap audited and architecture boundary defined",
+      "legacy debit/credit semantics confirmed",
+      "EEL-C01 through EEL-C05 business/economic loops certified",
+      "current generic Ledger explicitly classified as operational/economic rather than authoritative General Ledger"
     ],
-    "openGates": [],
-    "nextAction": "Merge PR #44, then run completed-loop requirement alignment and select the next Stage E bounded business packet."
+    "openGates": [
+      "FAI-01 Chart of Accounts + Accounting Book + Journal contract",
+      "FAI-02 DEBIT/CREDIT JournalLine runtime",
+      "FAI-02 atomic journal balance validation",
+      "FAI-02 reject one-sided journals",
+      "FAI-02 reject ΣDebit != ΣCredit",
+      "FAI-02 database E2E proof"
+    ],
+    "nextAction": "Implement FAI-01 + FAI-02 as one bounded bundle. Do not start another ordinary Stage E business loop first."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -89,8 +88,8 @@
     "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
     "status": "CERTIFIED",
     "certification": "docs/architecture/certification/EEL-C05-INVENTORY-TRANSFER-CERTIFICATION-v0.1.md",
-    "verifiedCiRun": 35711266390,
-    "mergeCommit": "PENDING_PR44_MERGE"
+    "verifiedCiRun": 35711593469,
+    "mergeCommit": "3a1a437d9e96a5e1b064649deb3ac31fe2ee5ce5"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -106,7 +105,7 @@
     }
   },
   "financialAccountingIntegrity": {
-    "status": "GAP_CONFIRMED",
+    "status": "OPEN_BLOCKING_FINANCIAL_STATEMENTS",
     "authority": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-AUDIT-2026-09-22-v0.1.md",
     "currentRuntime": "generic signed operational/economic Ledger",
     "requiredBeforeFinancialStatements": [
@@ -139,6 +138,9 @@
       "settlement/allocation",
       "Replay of current Economic Runtime"
     ],
-    "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md"
+    "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md",
+    "primaryOpenRequirement": "有借必有贷、借贷必相等",
+    "implementationStatus": "NOT_IMPLEMENTED",
+    "nextPacket": "FAI-01-02 Chart of Accounts + Journal + Atomic Double-Entry Integrity"
   }
 }
