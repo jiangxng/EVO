@@ -395,10 +395,18 @@
       "description": "FAI-06 accounting periods, economic↔GL reconciliation and statement projection metadata merged after CI #670."
     },
     "evo/fai-07-three-financial-statements-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 49,
+      "description": "FAI-07 Balance Sheet / Income Statement / Cash Flow Statement, cross-statement reconciliation and statement replay merged after CI #677."
+    },
+    "evo/post-fai-07-finance-gap-alignment-v0.1": {
       "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "mergePolicy": "MERGE_WHEN_ALIGNED",
       "containedByMain": false,
-      "description": "FAI-07 three core financial statements: BS/IS/CF projections, cross-statement reconciliation and deterministic statement replay."
+      "description": "Post-FAI-07 finance-gap alignment: reclassify remaining finance work and select FAI-08 Accounting Evidence + Journal Governance."
     }
   },
   "requiredLLMProcedure": [
@@ -426,7 +434,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf",
+  "lastReviewedMainCommit": "223b058e149f9d45bcad278797d0444c7375b567",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -454,18 +462,15 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/fai-07-three-financial-statements-v0.1",
-    "pullRequest": 49,
+    "businessMainline": "evo/post-fai-07-finance-gap-alignment-v0.1",
+    "pullRequest": null,
     "includedGates": [
-      "Balance Sheet",
-      "Income Statement",
-      "Cash Flow Statement",
-      "cross-statement reconciliation",
-      "statement replay",
-      "broken mapping negative proof"
+      "correct FAI-07 merge/status drift",
+      "separate Core vs Finance Apps vs jurisdiction packs",
+      "select next finance integrity packet"
     ],
-    "evidenceTarget": "CERTIFIED — three core financial statements / CI #672",
-    "afterSuccess": "Merge PR #49, then run post-three-statement finance-gap alignment before selecting broader statutory controls.",
-    "rule": "Do not extend the report engine into independent accounting truth. Statements remain projections of authoritative GL and BusinessData lineage."
+    "evidenceTarget": "AUTHORITATIVE ALIGNMENT",
+    "afterSuccess": "Merge alignment and start FAI-08 Accounting Evidence + Journal Governance.",
+    "rule": "Do not resume report-engine expansion merely because statutory reporting has more outputs."
   }
 }
