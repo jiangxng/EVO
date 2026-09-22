@@ -22,51 +22,50 @@
   },
   "currentStage": {
     "id": "Financial Accounting Integrity",
-    "name": "General Ledger Double-Entry Integrity",
-    "businessGoal": "Make financial accounting journals authoritative, explicit, balanced and replayable before financial statements."
+    "name": "Accounting Recognition / Trial Balance / GL Replay",
+    "businessGoal": "Make General Ledger results explainable, independently balanced and replayable from canonical BusinessData."
   },
   "activeRequirementSet": {
-    "id": "FAI-01-02",
-    "name": "Chart of Accounts + Journal Contract + Atomic Double-Entry Integrity",
+    "id": "FAI-03-05",
+    "name": "Accounting Recognition + Rule Execution Trace + Trial Balance + GL Replay",
     "acceptance": [
-      "authoritative AccountingBook exists",
-      "authoritative Chart of Accounts / AccountingAccount exists",
-      "authoritative Journal exists",
-      "authoritative JournalLine exists",
-      "JournalLine side is explicitly DEBIT or CREDIT",
-      "journal has at least one DEBIT and at least one CREDIT line",
-      "sum(DEBIT) equals sum(CREDIT) under pinned precision policy",
-      "unbalanced journal rejects atomically with zero committed journal lines",
-      "Journal and lines retain source BusinessData / derived-result lineage",
-      "accounting rule/policy version is pinned",
-      "operational/economic ledgers remain increase/decrease based and are not redefined as General Ledger"
+      "all published AccountingRules for one BusinessData are evaluated before journal commit",
+      "matched and non-matched rule conditions retain explicit trace",
+      "all matched rule effects aggregate into one Accounting Plan",
+      "a missing debit/credit effect caused by a condition error rejects the whole Journal atomically",
+      "diagnostics identify matched/not-matched rules and generated effects before suspecting source data",
+      "Trial Balance independently recomputes debit and credit totals from authoritative JournalLines",
+      "Trial Balance debit total equals credit total",
+      "General Ledger replay deletes derived accounting state and rebuilds from canonical BusinessData + published accounting rules",
+      "GL replay does not rewrite BusinessData",
+      "GL replay reproduces identical Journal/Trial-Balance semantic digest"
     ],
     "verified": [
-      "accounting integrity gap audit is merged on main",
-      "legacy debit/credit semantics are confirmed",
-      "current signed generic Ledger is not an authoritative double-entry General Ledger",
-      "AccountingBook / AccountingAccount / Journal / JournalLine runtime implemented",
-      "Journal service enforces at least one DEBIT and one CREDIT before commit",
-      "Journal service enforces ΣDebit == ΣCredit before commit",
-      "rejected journal attempts persist diagnostic context without committing Journal/JournalLine"
+      "FAI-01/02 AccountingBook / Chart of Accounts / Journal / JournalLine are merged",
+      "DEBIT/CREDIT sides are explicit",
+      "at least one debit and one credit are enforced",
+      "sum(DEBIT) == sum(CREDIT) is enforced",
+      "unbalanced journal is rejected atomically",
+      "rejection diagnostics retain rule/version/context/line plan"
     ],
     "open": [
-      "FAI-01/02 PostgreSQL 18 database E2E proof",
-      "balanced journal success",
-      "one-sided journal atomic rejection",
-      "unbalanced multi-effect journal atomic rejection"
+      "FAI-03~05 PostgreSQL 18 database E2E proof",
+      "wrong-condition missing-effect diagnosis proof",
+      "Trial Balance proof",
+      "General Ledger Replay MATCH proof"
     ],
     "deferred": [
-      "Trial Balance implementation until FAI-01/02 closes",
-      "financial statements until Trial Balance + reconciliation + GL replay close",
+      "full accounting period close/reopen",
+      "bank reconciliation",
+      "broad subledger reconciliation",
+      "financial statement generation",
       "consolidation",
       "multi-GAAP",
       "tax engine",
       "statutory filing",
-      "intercompany elimination",
-      "budgeting"
+      "intercompany elimination"
     ],
-    "currentWork": "FAI-01 + FAI-02 implementation",
+    "currentWork": "FAI-03~05 database verification",
     "status": "IMPLEMENTED",
     "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md"
   },
@@ -112,12 +111,12 @@
   },
   "nextRequirementSelection": {
     "state": "SELECTED",
-    "selection": "FAI-01-02 Chart of Accounts + Journal + Atomic Double-Entry Integrity",
-    "rule": "This requirement has priority over selecting another ordinary Stage E business loop because it blocks authoritative GL, Trial Balance and financial statements."
+    "selection": "FAI-03-05 Accounting Recognition + Rule Trace + Trial Balance + GL Replay",
+    "rule": "Keep the packet focused on explainable accounting recognition, independent balance verification and deterministic GL replay. Financial statements remain blocked until this evidence is green."
   },
-  "currentWork": "FAI-01/02 PostgreSQL 18 database verification",
+  "currentWork": "FAI-03~05 database verification",
   "financialAccountingIntegrity": {
-    "state": "OPEN_BLOCKING_FINANCIAL_STATEMENTS",
+    "state": "IN_PROGRESS_FAI_03_05",
     "findings": [
       "legacy Asloop/bookkeeping semantics include explicit debit/credit concepts",
       "current EVO generic ledger uses signed quantity/amount and does not enforce balanced journals",
@@ -130,8 +129,8 @@
       "trial balance is independently verifiable",
       "financial statements derive from authoritative accounting state and never rewrite canonical BusinessData"
     ],
-    "nextPacket": "FAI-01-02",
+    "nextPacket": "FAI-03-05",
     "primaryRequirement": "有借必有贷、借贷必相等",
-    "implementationStatus": "NOT_IMPLEMENTED"
+    "implementationStatus": "FAI_01_02_DATABASE_VERIFIED"
   }
 }

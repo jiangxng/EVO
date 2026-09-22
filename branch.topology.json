@@ -369,6 +369,20 @@
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
       "description": "Active alignment branch making double-entry integrity the explicit post-EEL-C05 mainline."
+    },
+    "evo/fai-01-02-double-entry-runtime-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 46,
+      "description": "FAI-01/02 authoritative double-entry journal runtime merged after CI #664."
+    },
+    "evo/fai-03-05-accounting-recognition-trial-balance-replay-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "FAI-03~05 large finance packet: AccountingRule execution trace, aggregate accounting plan, Trial Balance and deterministic GL Replay."
     }
   },
   "requiredLLMProcedure": [
@@ -396,7 +410,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "3a1a437d9e96a5e1b064649deb3ac31fe2ee5ce5",
+  "lastReviewedMainCommit": "503d6c7a8def290589fae26792f11d1b3bb0ef7c",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -424,15 +438,17 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/fai-double-entry-alignment-v0.1",
+    "businessMainline": "evo/fai-03-05-accounting-recognition-trial-balance-replay-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "mark 有借必有贷、借贷必相等 OPEN",
-      "mark old finance branch historical/experimental",
-      "select FAI-01 + FAI-02 as next mainline"
+      "Accounting Rule Execution Trace",
+      "aggregate matched rules into one Journal plan",
+      "rule-condition mismatch diagnosis",
+      "Trial Balance",
+      "General Ledger Full Replay"
     ],
-    "evidenceTarget": "requirement/status alignment only",
-    "afterSuccess": "Merge alignment, then create a fresh FAI-01-02 implementation branch from latest main.",
-    "rule": "Do not infer strict double-entry from generic signed economic ledgers. Do not select another ordinary Stage E loop before FAI-01/02 unless explicitly re-prioritized."
+    "evidenceTarget": "DATABASE E2E VERIFIED FAI-03~05 accounting loop with GL replay MATCH",
+    "afterSuccess": "Merge to main, then reassess remaining Financial Accounting Integrity gaps as one larger accounting-period/reconciliation/financial-statements-readiness packet.",
+    "rule": "Do not bypass failed rule traces by force-balancing with suspense/difference accounts. Source data is not the default suspect."
   }
 }

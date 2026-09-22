@@ -42,3 +42,75 @@ export interface PostJournalResult {
 export interface AccountingJournalService {
   post(request: PostJournalRequest): Promise<PostJournalResult>;
 }
+
+export interface AccountingRuleEffectInput {
+  readonly accountCode: string;
+  readonly side: JournalSide;
+  readonly amount: AccountingJsonObject;
+  readonly currencyField?: string;
+  readonly dimensions?: AccountingJsonObject;
+  readonly memo?: string;
+}
+
+export interface RecognitionResult {
+  readonly businessDataId: string;
+  readonly ruleCode: string;
+  readonly ruleVersion: number;
+  readonly matched: boolean;
+  readonly status: 'NOT_MATCHED'|'POSTED'|'REJECTED';
+  readonly journalId?: string;
+  readonly conditionTrace: AccountingJsonObject;
+  readonly generatedEffects: readonly AccountingJsonObject[];
+}
+
+export interface AccountingRecognitionService {
+  recognizeBusinessData(
+    enterpriseId: string,
+    accountingBookId: string,
+    businessDataId: string
+  ): Promise<readonly RecognitionResult[]>;
+}
+
+export interface TrialBalanceRow {
+  readonly accountId: string;
+  readonly accountCode: string;
+  readonly accountName: string;
+  readonly debitTotal: string;
+  readonly creditTotal: string;
+  readonly netDebit: string;
+  readonly netCredit: string;
+}
+
+export interface TrialBalance {
+  readonly enterpriseId: string;
+  readonly accountingBookId: string;
+  readonly currency: string;
+  readonly rows: readonly TrialBalanceRow[];
+  readonly debitTotal: string;
+  readonly creditTotal: string;
+  readonly balanced: boolean;
+}
+
+export interface TrialBalanceService {
+  compute(
+    enterpriseId: string,
+    accountingBookId: string
+  ): Promise<TrialBalance>;
+}
+
+export interface AccountingReplayResult {
+  readonly replayRunId: string;
+  readonly beforeDigest: string;
+  readonly afterDigest: string;
+  readonly journalCountBefore: number;
+  readonly journalCountAfter: number;
+  readonly validationStatus: 'MATCH'|'MISMATCH';
+}
+
+export interface AccountingReplayService {
+  replay(
+    enterpriseId: string,
+    accountingBookId: string
+  ): Promise<AccountingReplayResult>;
+}
+

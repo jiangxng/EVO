@@ -5,40 +5,37 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "2a227fedabf8c30f35253e15f4b886453f5bb71c"
+    "lastVerifiedRuntimeMergeCommit": "503d6c7a8def290589fae26792f11d1b3bb0ef7c"
   },
   "activeWorkPacket": {
-    "id": "FAI-01-02",
-    "name": "Chart of Accounts + Journal Contract + Atomic Double-Entry Integrity",
+    "id": "FAI-03-05",
+    "name": "Accounting Recognition + Rule Trace + Trial Balance + General Ledger Replay",
     "stage": "Financial Accounting Integrity",
     "status": "IMPLEMENTED",
     "overallClosed": false,
-    "businessGoal": "Make '有借必有贷、借贷必相等' a machine-enforced General Ledger invariant without changing operational/economic ledgers into debit/credit ledgers.",
-    "activeBranch": "evo/fai-01-02-double-entry-runtime-v0.1",
+    "businessGoal": "Turn certified BusinessData into explainable double-entry General Ledger journals, diagnose rule-condition/effect mistakes, independently verify Trial Balance, and reproduce the GL deterministically from canonical facts.",
+    "activeBranch": "evo/fai-03-05-accounting-recognition-trial-balance-replay-v0.1",
     "packet": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-ACTIVE-REQUIREMENT-v0.1.md",
-    "evidenceTarget": "DATABASE E2E VERIFIED authoritative balanced Journal runtime",
+    "evidenceTarget": "DATABASE E2E VERIFIED accounting recognition + diagnostic trace + Trial Balance + GL Replay MATCH",
     "closedGates": [
-      "Financial accounting integrity gap audited and architecture boundary defined",
-      "legacy debit/credit semantics confirmed",
-      "EEL-C01 through EEL-C05 business/economic loops certified",
-      "current generic Ledger explicitly classified as operational/economic rather than authoritative General Ledger",
-      "AccountingBook schema implemented",
-      "Chart of Accounts / AccountingAccount schema implemented",
-      "Journal / JournalLine schema implemented",
-      "DEBIT/CREDIT sides implemented",
-      "pre-commit at-least-one-debit/credit validation implemented",
-      "pre-commit ΣDebit == ΣCredit validation implemented",
-      "transactional atomic Journal + JournalLine commit implemented",
-      "durable rejected-journal diagnostic implemented with rule/version/context/line plan",
-      "runtime exposes accounting journal service"
+      "FAI-01/02 authoritative AccountingBook / Chart of Accounts / Journal / JournalLine merged at 503d6c7a",
+      "有借必有贷、借贷必相等 is machine-enforced",
+      "one-sided and unbalanced journals reject atomically",
+      "AccountingRule schema implemented",
+      "AccountingRuleExecution trace implemented",
+      "all matched rules for one BusinessData aggregate into one Accounting Plan / Journal",
+      "condition matched/not-matched trace implemented",
+      "generated accounting effects are traceable to rule code/version",
+      "Trial Balance service implemented",
+      "General Ledger replay service implemented using stable journal identity"
     ],
     "openGates": [
-      "FAI-01/02 PostgreSQL 18 database E2E proof",
-      "balanced Journal success proof",
-      "missing-credit zero-commit rejection proof",
-      "unbalanced extra-effect zero-commit rejection proof"
+      "FAI-03~05 PostgreSQL 18 database E2E proof",
+      "rule-condition misconfiguration diagnosis proof",
+      "Trial Balance independent equality proof",
+      "General Ledger replay digest MATCH proof"
     ],
-    "nextAction": "Run isolated PostgreSQL 18 FAI double-entry validator. Fix only evidence/runtime defects found by CI; do not advance to Trial Balance before FAI-01/02 is database verified."
+    "nextAction": "Run the isolated FAI-03~05 PostgreSQL 18 validator. If green, close FAI-03~05 and assess the remaining accounting-period/reconciliation/financial-statement readiness gaps as the next large finance packet."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -91,12 +88,11 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "EEL-C05",
-    "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
-    "status": "CERTIFIED",
-    "certification": "docs/architecture/certification/EEL-C05-INVENTORY-TRANSFER-CERTIFICATION-v0.1.md",
-    "verifiedCiRun": 35711593469,
-    "mergeCommit": "3a1a437d9e96a5e1b064649deb3ac31fe2ee5ce5"
+    "id": "FAI-01-02",
+    "name": "Chart of Accounts + Journal Contract + Atomic Double-Entry Integrity",
+    "status": "DATABASE E2E VERIFIED",
+    "verifiedCiRun": 35720963059,
+    "mergeCommit": "503d6c7a8def290589fae26792f11d1b3bb0ef7c"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -112,7 +108,7 @@
     }
   },
   "financialAccountingIntegrity": {
-    "status": "OPEN_BLOCKING_FINANCIAL_STATEMENTS",
+    "status": "IN_PROGRESS_FAI_03_05",
     "authority": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-AUDIT-2026-09-22-v0.1.md",
     "currentRuntime": "generic signed operational/economic Ledger",
     "requiredBeforeFinancialStatements": [
@@ -147,7 +143,7 @@
     ],
     "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md",
     "primaryOpenRequirement": "有借必有贷、借贷必相等",
-    "implementationStatus": "NOT_IMPLEMENTED",
-    "nextPacket": "FAI-01-02 Chart of Accounts + Journal + Atomic Double-Entry Integrity"
+    "implementationStatus": "FAI_01_02_DATABASE_VERIFIED",
+    "nextPacket": "FAI-03-05 Accounting Recognition + Rule Trace + Trial Balance + GL Replay"
   }
 }
