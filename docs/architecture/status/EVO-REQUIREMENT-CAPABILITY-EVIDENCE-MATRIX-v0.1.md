@@ -381,3 +381,48 @@ Original Sale / Shipment / Receipt / Invoice remain unchanged
 业务结论：
 
 > **简单业务事件不应因为现实系统常把它们包在复杂模块里，就被错误归类为复杂底层能力。**
+
+## 13. 2026-09-22 — EEL-C03 完成与认证
+
+EEL-C03 已完成 PostgreSQL 18 数据库证据与 Full Replay 认证。
+
+### 13.1 企业新增能力
+
+| 业务需求 | 企业应该看到的结果 | 当前能力 | 证据 | 状态 |
+|---|---|---|---|---|
+| 客户退货 | 原销售/发货不被改写，库存恢复 | sales_return.received + Inventory posting | PR #29 / CI #600 | 已验证 |
+| 客户换货 | 换货作为新事件，替换商品正常出库 | sales_exchange.created + Inventory posting | PR #30 / CI #602 | 已验证 |
+| 客户退款 | 现金减少，原收款不改写 | cash.refunded → Cash decrease | PR #32 / CI #614 | 已验证 |
+| 红字发票 | 原蓝票不改写，开票余额减少 | sales_red_invoice.issued + sales_invoice_amount | PR #33 / CI #620 | 已验证 |
+| 售后待办按剩余量关闭 | 部分处理仍 OPEN，余额归零才 DONE | pending_exchange / pending_refund / pending_red_invoice + WorkProjection | PR #34 / CI #623 | 已验证 |
+| 整条反向业务可重放 | 删除派生状态后结果完全一致 | Full Replay equality | PR #35 / CI #626 | 已验证 |
+
+### 13.2 认证后的业务结论
+
+EVO 已经证明：
+
+```text
+正向客户业务闭环
++ 供应商采购付款闭环
++ 客户侧反向业务闭环
+```
+
+都可以在同一套 BusinessData + Posting + Ledger + Relation + Work + Replay Runtime 上表达。
+
+尤其证明了：
+
+- 反向业务不需要改写原历史；
+- 退货、换货、退款、红票可以是独立可安装能力，而不是一个巨型售后平台；
+- Work 可以从待办账本余额自然派生；
+- 红字发票业务事件不等于自动收入确认或法定总账冲回；
+- Full Replay 后 canonical facts 与显式关系不变，派生经济状态可重建。
+
+正式认证：
+
+`docs/architecture/certification/EEL-C03-SALES-RETURN-EXCHANGE-REFUND-RED-INVOICE-CERTIFICATION-v0.1.md`
+
+### 13.3 下一步治理要求
+
+EEL-C03 完成后，不应因为当前 Runtime 已经熟悉就继续扩售后功能。
+
+下一步必须先执行 completed-loop requirement alignment，再从业务价值 / APQC 能力缺口选择下一个 Stage E bounded packet。

@@ -48,19 +48,17 @@
       "canonical forward/reverse BusinessData remains unchanged"
     ],
     "verified": [
-      "formal post-EEL-C02 alignment selected reverse-flow business coverage",
-      "enterprise-core-v1 already defines sales-return transaction/application and inventory/receivable posting intent",
-      "existing BusinessData, Posting, Ledger, Relation, WorkProjection and Replay primitives are preferred before new abstractions"
+      "C03.1 Sales Return Economic Recognition — DATABASE E2E VERIFIED / CI #600",
+      "C03.2 Sales Exchange — DATABASE E2E VERIFIED / CI #602",
+      "C03.3 Customer Refund — DATABASE E2E VERIFIED / CI #614",
+      "C03.4 Red Invoice — DATABASE E2E VERIFIED / CI #620",
+      "C03.5 Work / Balance Closure — DATABASE E2E VERIFIED / CI #623",
+      "C03.6 Full Replay Equality — DATABASE E2E VERIFIED / CI #626",
+      "canonical forward/reverse BusinessData remains unchanged across Full Replay",
+      "explicit reverse-flow relationships survive Full Replay",
+      "reverse Work closes from balances rather than event existence"
     ],
-    "open": [
-      "C03.1 Sales Return Economic Recognition",
-      "C03.2 Sales Exchange",
-      "C03.3 Customer Refund",
-      "C03.4 Red Invoice",
-      "C03.5 Work / Balance Closure",
-      "C03.6 Full Replay Equality",
-      "C03.7 Final Certification"
-    ],
+    "open": [],
     "deferred": [
       "RMA/after-sales platformization beyond the simple exchange event",
       "tax-control integration and complex statutory tax calculation beyond the simple red-invoice event",
@@ -77,8 +75,8 @@
       "customer service ticketing",
       "reason-code analytics productization"
     ],
-    "currentWork": "C03.1 Sales Return Economic Recognition",
-    "status": "DESIGN ONLY",
+    "currentWork": "C03.7 Final Certification",
+    "status": "CERTIFIED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
@@ -112,8 +110,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-22",
-    "reason": "EEL-C02 completed and mandatory completed-loop requirement-alignment trigger fired.",
-    "result": "Final goal and Stage E objective remain unchanged. EEL-C03 now includes sales return, exchange, customer refund, and red invoice as simple append-only business events; platformization (RMA/tax-control) remains deferred."
+    "reason": "EEL-C03 certification reached; completed-loop alignment is the next mandatory governance action.",
+    "result": "EEL-C03 business acceptance is satisfied. Reverse business events remain simple append-only capabilities; surrounding RMA/tax-control platformization remains deferred."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -122,11 +120,11 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "SELECTED",
-    "selection": "EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
-    "rule": "Treat exchange and red invoice as simple canonical events first; do not conflate them with RMA, credit-memo platforms, tax-control integrations, or generic reversal engines unless current acceptance requires those."
+    "state": "RESELECT_REQUIRED_AFTER_CERTIFICATION",
+    "selection": null,
+    "rule": "Run completed-loop requirement alignment first, then choose the next Stage E bounded packet by business value/APQC capability gap rather than technical momentum."
   },
-  "currentWork": "C03.1 Sales Return Economic Recognition",
+  "currentWork": "Completed-loop requirement alignment and next Stage E packet selection",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [

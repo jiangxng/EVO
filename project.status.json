@@ -5,37 +5,32 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "9573a5c80871553784eac0e76b447f3e51276e1f"
+    "lastVerifiedRuntimeMergeCommit": "73974207b47fbe956c7c6c51d69e367e1737d48b"
   },
   "activeWorkPacket": {
     "id": "EEL-C03",
     "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "IMPLEMENTED",
-    "overallClosed": false,
+    "status": "CERTIFIED",
+    "overallClosed": true,
     "businessGoal": "Certify a complete customer-side reverse economic loop where return, exchange, refund, and red invoice are new immutable facts that adjust inventory/cash/economic state without mutating original sales, shipment, receipt, or invoice history, and remain deterministic under Full Replay.",
-    "activeBranch": "evo/eel-c03-full-replay-v0.1",
+    "activeBranch": "evo/eel-c03-final-certification-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C03-SALES-RETURN-REFUND-PACKET-v0.1.md",
     "evidenceTarget": "CERTIFIED — EEL-C03 Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "closedGates": [
       "EEL-C01 Order-to-Cash certified",
       "EEL-C02 Procure-to-Pay certified",
       "Post-EEL-C02 formal requirement alignment completed",
-      "EEL-C03 selected because it tests reverse business facts and append-only correction semantics",
-      "enterprise-core-v1 already contains sales-return semantic assets",
-      "Human requirement correction: exchange and red invoice are current simple business events, not deferred platform features",
       "C03.1 Sales Return Economic Recognition — DATABASE E2E VERIFIED / CI #600",
       "C03.2 Sales Exchange — DATABASE E2E VERIFIED / CI #602",
       "C03.3 Customer Refund — DATABASE E2E VERIFIED / CI #614",
       "C03.4 Red Invoice — DATABASE E2E VERIFIED / CI #620",
       "C03.5 Work / Balance Closure — DATABASE E2E VERIFIED / CI #623",
-      "C03.6 implementation prepared: full reverse-flow replay validator covers canonical facts, explicit relations, balances, Work and economic digest"
+      "C03.6 Full Replay Equality — DATABASE E2E VERIFIED / CI #626",
+      "C03.7 Final Certification — certification document prepared"
     ],
-    "openGates": [
-      "C03.6 Full Replay Equality — awaiting PostgreSQL 18 evidence",
-      "C03.7 Final Certification"
-    ],
-    "nextAction": "Run isolated PostgreSQL 18 validation for C03.6; if green, merge and complete EEL-C03 final certification."
+    "openGates": [],
+    "nextAction": "Complete final certification CI/merge, then run completed-loop requirement alignment and select the next Stage E bounded packet from business value."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -85,12 +80,12 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "EEL-C02",
-    "name": "Procure-to-Pay Reference Loop",
+    "id": "EEL-C03",
+    "name": "Sales Return / Exchange / Refund / Red Invoice Reference Loop",
     "status": "CERTIFIED",
-    "certification": "docs/architecture/certification/EEL-C02-PROCURE-TO-PAY-CERTIFICATION-v0.1.md",
-    "verifiedCiRun": 35679264071,
-    "mergeCommit": "43c23050b74819caf311535598808bdf5339d237"
+    "certification": "docs/architecture/certification/EEL-C03-SALES-RETURN-EXCHANGE-REFUND-RED-INVOICE-CERTIFICATION-v0.1.md",
+    "verifiedCiRun": 35686286743,
+    "mergeCommit": "73974207b47fbe956c7c6c51d69e367e1737d48b"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -98,7 +93,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "ALIGNED_EEL_C03_BUSINESS_EVENT_LEDGER_BALANCE_STATEMENT_MAINLINE",
+    "currentAssessment": "EEL_C03_CERTIFIED_PENDING_COMPLETED_LOOP_ALIGNMENT",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
