@@ -1,6 +1,6 @@
 # EEL-C05 — Inventory Transfer & Warehouse Rebalancing Certification v0.1
 
-**Status:** CERTIFICATION CANDIDATE / AWAITING FINAL CI  
+**Status:** CERTIFIED  
 **Date:** 2026-09-22  
 **Stage:** Stage E — Enterprise Economic Loops  
 **Packet:** EEL-C05  
@@ -171,7 +171,7 @@ Full Replay must prove:
 ### Full Replay + Final Certification
 
 - current branch: `evo/eel-c05-full-replay-final-certification-v0.1`
-- final CI evidence pending.
+- CI #653 / workflow run 35711266390 — SUCCESS.
 
 ## 9. Explicitly Not Certified
 
@@ -191,8 +191,17 @@ EEL-C05 does not certify:
 
 ## 10. Final Decision
 
-Pending final Full Replay CI.
+**EEL-C05 — Inventory Transfer & Warehouse Rebalancing Reference Loop: CERTIFIED.**
 
-When the Full Replay validator is green and the branch is merged, EEL-C05 may be promoted to:
+Final evidence:
 
-**CERTIFIED — Inventory Transfer & Warehouse Rebalancing Reference Loop.**
+- PR #44;
+- CI #653 / workflow run 35711266390 — SUCCESS;
+- canonical transfer facts and explicit relationships preserved;
+- source/destination Inventory quantity and value rebuilt identically;
+- FIFO transfer CostResults rebuilt identically;
+- pending_transfer rebuilt to zero;
+- TRANSFER Work rebuilt as DONE;
+- canonical replay-input digest unchanged;
+- economic-runtime digest unchanged;
+- replay_run persisted COMPLETED / MATCH.
