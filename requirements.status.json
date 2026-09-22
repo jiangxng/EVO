@@ -22,49 +22,51 @@
   },
   "currentStage": {
     "id": "Financial Accounting Integrity",
-    "name": "Financial Statement Readiness",
-    "businessGoal": "Govern accounting periods, reconcile economic ledgers to GL, and define versioned projection metadata so the three core financial statements can be generated from authoritative accounting state."
+    "name": "Three Core Financial Statements",
+    "businessGoal": "Project authoritative GL and BusinessData lineage into Balance Sheet, Income Statement and Cash Flow Statement with cross-statement reconciliation and deterministic regeneration."
   },
   "activeRequirementSet": {
-    "id": "FAI-06",
-    "name": "Accounting Period + Reconciliation + Statement Projection Metadata",
+    "id": "FAI-07",
+    "name": "Balance Sheet + Income Statement + Cash Flow Statement",
     "acceptance": [
-      "configured accounting periods do not overlap",
-      "normal journal posting requires an OPEN accounting period",
-      "closed period rejects new Journal/JournalLine atomically",
-      "explicit REPLAY mode may rebuild derived GL state across closed periods",
-      "economic/subledger amount is aggregated independently from ledger_entry",
-      "GL account amount is aggregated independently from JournalLine",
-      "reconciliation detects balanced-but-business-wrong journals",
-      "Balance Sheet, Income Statement and Cash Flow Statement definitions are versioned metadata",
-      "statement lines support hierarchy/order/indent/aggregation/value semantics",
-      "account-to-statement mappings reference real versioned statement lines",
-      "cash-flow classification is driven by BusinessData/accounting lineage semantics and references a versioned cash-flow statement line",
-      "financial statements remain projections and never become an independent fact source"
+      "Balance Sheet is derived from ending GL balances and versioned statement mappings",
+      "Income Statement is derived from period GL movements and versioned statement mappings",
+      "Cash Flow Statement classifies cash-equivalent Journal movements using BusinessData lineage and CashFlowClassificationRule",
+      "cash movement without lineage is rejected from statement projection",
+      "unclassified or ambiguously classified cash movement is rejected",
+      "statement hierarchy and subtotal lines are deterministic",
+      "Assets equal Liabilities + Equity",
+      "Income Statement net income equals Balance Sheet current-period earnings presentation",
+      "Opening Cash + Net Cash Change equals Closing Cash",
+      "Cash Flow closing cash equals Balance Sheet cash",
+      "each statement projection has a stable semantic digest",
+      "re-projecting the same facts/rules/mappings yields identical digest",
+      "broken statement mappings are detected by cross-statement reconciliation",
+      "financial statements remain derived projections and do not rewrite BusinessData or GL"
     ],
     "verified": [
       "FAI-01/02 strict double-entry is DATABASE E2E VERIFIED",
-      "FAI-03~05 recognition / trace / Trial Balance / GL Replay is DATABASE E2E VERIFIED by PR #47 / CI #668",
-      "Asloop legacy semantics confirm account-balance + report-mapping projection design"
+      "FAI-03~05 recognition / trace / Trial Balance / GL Replay is DATABASE E2E VERIFIED",
+      "FAI-06 period governance / economic↔GL reconciliation / statement metadata is DATABASE E2E VERIFIED by PR #48 / CI #670",
+      "Asloop semantics confirm statements as account/ledger projections"
     ],
     "open": [
-      "FAI-06 PostgreSQL 18 database E2E proof",
-      "period close/reopen proof",
-      "replay across closed period proof",
-      "GL/economic reconciliation MATCH and MISMATCH proof",
-      "statement metadata integrity proof"
+      "FAI-07 PostgreSQL 18 database E2E proof",
+      "three-statement cross-reconciliation MATCH",
+      "three statement replay MATCH",
+      "broken mapping MISMATCH"
     ],
     "deferred": [
-      "actual Balance Sheet projection until FAI-06 closes",
-      "actual Income Statement projection until FAI-06 closes",
-      "actual Cash Flow Statement projection until FAI-06 closes",
-      "bank reconciliation beyond core ledger-to-GL proof",
-      "statutory filing",
+      "full statutory statement package",
       "notes to financial statements",
+      "ownership-equity statement beyond core three reports",
+      "bank statement reconciliation",
+      "electronic voucher archival controls",
+      "statutory filing",
       "consolidation",
       "multi-GAAP"
     ],
-    "currentWork": "FAI-06 database verification",
+    "currentWork": "FAI-07 database verification",
     "status": "IMPLEMENTED",
     "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md"
   },
@@ -110,12 +112,12 @@
   },
   "nextRequirementSelection": {
     "state": "SELECTED",
-    "selection": "FAI-06 Accounting Period + Reconciliation + Statement Projection Metadata",
-    "rule": "After FAI-06 is green, move directly to FAI-07 three core financial statements as ledger/GL projections."
+    "selection": "FAI-07 Three Core Financial Statements",
+    "rule": "Complete the three core statements first. After certification, reassess remaining statutory-accounting gaps separately; do not turn the report layer into a second accounting engine."
   },
-  "currentWork": "FAI-06 database verification",
+  "currentWork": "FAI-07 database verification",
   "financialAccountingIntegrity": {
-    "state": "IN_PROGRESS_FAI_06",
+    "state": "IN_PROGRESS_FAI_07",
     "findings": [
       "legacy Asloop/bookkeeping semantics include explicit debit/credit concepts",
       "current EVO generic ledger uses signed quantity/amount and does not enforce balanced journals",
@@ -128,8 +130,8 @@
       "trial balance is independently verifiable",
       "financial statements derive from authoritative accounting state and never rewrite canonical BusinessData"
     ],
-    "nextPacket": "FAI-06",
+    "nextPacket": "FAI-07",
     "primaryRequirement": "有借必有贷、借贷必相等",
-    "implementationStatus": "FAI_03_05_DATABASE_VERIFIED"
+    "implementationStatus": "FAI_06_DATABASE_VERIFIED"
   }
 }
