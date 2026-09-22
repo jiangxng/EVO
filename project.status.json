@@ -5,41 +5,29 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf"
+    "lastVerifiedRuntimeMergeCommit": "223b058e149f9d45bcad278797d0444c7375b567"
   },
   "activeWorkPacket": {
-    "id": "FAI-07",
-    "name": "Three Core Financial Statements",
+    "id": "POST-FAI-07-ALIGNMENT",
+    "name": "Post-Three-Statement Finance Gap Alignment",
     "stage": "Financial Accounting Integrity",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Generate Balance Sheet, Income Statement and Cash Flow Statement as deterministic versioned projections of authoritative GL/BusinessData lineage, reconcile the three statements, and reproduce them identically.",
-    "activeBranch": "evo/fai-07-three-financial-statements-v0.1",
-    "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md",
-    "evidenceTarget": "DATABASE E2E VERIFIED Balance Sheet + Income Statement + Cash Flow Statement + cross-statement MATCH + statement replay MATCH",
+    "status": "DESIGN ONLY",
+    "overallClosed": false,
+    "businessGoal": "Reclassify remaining finance capabilities after certification of the three core statements and select the next high-value accounting integrity packet without overextending the report engine.",
+    "activeBranch": "evo/post-fai-07-finance-gap-alignment-v0.1",
+    "packet": "docs/architecture/status/EVO-POST-FAI-07-FINANCE-GAP-ALIGNMENT-v0.1.md",
+    "evidenceTarget": "AUTHORITATIVE ALIGNMENT",
     "closedGates": [
-      "FAI-06 financial-statement readiness merged by PR #48 after CI #670",
-      "statement projection run/line schema implemented",
-      "statement semantic roles implemented",
-      "cash-equivalent account marker implemented",
-      "Balance Sheet account-balance projection implemented",
-      "Income Statement period-movement projection implemented",
-      "Cash Flow Statement BusinessData-lineage classification implemented",
-      "statement hierarchy / SUM_CHILDREN implemented",
-      "statement semantic digest implemented",
-      "deterministic statement replay implemented",
-      "cross-statement reconciliation implemented",
-      "broken report mapping negative proof implemented",
-      "FAI-07 PostgreSQL 18 database E2E proof — PR #49 / CI #672",
-      "Balance Sheet equation MATCH",
-      "Net Income ↔ Current Period Earnings MATCH",
-      "Cash Flow roll-forward MATCH",
-      "Cash Flow closing cash ↔ Balance Sheet cash MATCH",
-      "Balance Sheet / Income Statement / Cash Flow Statement replay MATCH",
-      "broken statement mapping negative proof returns MISMATCH"
+      "FAI-07 three core financial statements certified by PR #49 / CI #672 and merged to main",
+      "main now contains Balance Sheet / Income Statement / Cash Flow Statement projection and replay",
+      "remaining finance capabilities separated into Core runtime, installable Finance Apps, and jurisdiction/regulatory packs",
+      "next recommended packet identified as FAI-08 Accounting Evidence + Journal Governance"
     ],
-    "openGates": [],
-    "nextAction": "Merge PR #49, then run a post-three-statement finance-gap alignment. Treat broader statutory-accounting controls as a separate next stage rather than extending the report engine."
+    "openGates": [
+      "review and merge post-FAI-07 alignment",
+      "activate FAI-08 implementation packet"
+    ],
+    "nextAction": "Merge the alignment packet, then implement FAI-08 Accounting Evidence + Journal Governance as the next large finance packet."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -97,7 +85,7 @@
     "status": "CERTIFIED",
     "certification": "docs/architecture/certification/FAI-07-THREE-CORE-FINANCIAL-STATEMENTS-CERTIFICATION-v0.1.md",
     "verifiedCiRun": 35727780787,
-    "mergeCommit": "PENDING_PR49_MERGE"
+    "mergeCommit": "223b058e149f9d45bcad278797d0444c7375b567"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -105,7 +93,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "EEL_C05_CERTIFIED_COMPLETED_LOOP_ALIGNMENT_REQUIRED",
+    "currentAssessment": "FAI_07_CERTIFIED_POST_FINANCE_GAP_ALIGNMENT",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
@@ -113,31 +101,29 @@
     }
   },
   "financialAccountingIntegrity": {
-    "status": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
+    "status": "THREE_CORE_STATEMENTS_CERTIFIED",
     "authority": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-AUDIT-2026-09-22-v0.1.md",
     "currentRuntime": "generic signed operational/economic Ledger",
     "requiredBeforeFinancialStatements": [
-      "explicit General Ledger journal contract",
-      "explicit DEBIT/CREDIT journal lines",
-      "atomic journal balance validation",
-      "sum(debit) == sum(credit)",
-      "accounting evidence / original-voucher chain",
-      "accounting book + accounting year/period + close/reopen governance",
-      "accounting currency / RMB statutory presentation rules",
-      "trial balance certification",
-      "subledger/economic-ledger reconciliation",
-      "bank reconciliation",
-      "electronic accounting voucher + archive controls",
-      "deterministic General Ledger replay"
+      "COMPLETED: explicit General Ledger journal contract",
+      "COMPLETED: explicit DEBIT/CREDIT journal lines",
+      "COMPLETED: atomic journal balance validation",
+      "COMPLETED: sum(debit) == sum(credit)",
+      "OPEN: accounting evidence / original-voucher chain",
+      "COMPLETED: accounting book + accounting year/period + close/reopen baseline",
+      "PARTIAL: accounting currency / RMB statutory presentation rules",
+      "COMPLETED: trial balance certification",
+      "COMPLETED: subledger/economic-ledger reconciliation baseline",
+      "OPEN: bank reconciliation",
+      "OPEN: electronic accounting voucher + archive controls",
+      "COMPLETED: deterministic General Ledger replay",
+      "COMPLETED: three core financial statements"
     ],
     "rule": "Operational/economic ledgers remain increase/decrease based. Only the General Ledger accounting projection is subject to double-entry debit/credit integrity.",
     "blocks": [
-      "certified General Ledger claim",
-      "certified Trial Balance claim",
-      "Balance Sheet readiness claim",
-      "Income Statement readiness claim",
-      "Cash Flow Statement readiness claim",
-      "complete statutory financial statement package readiness claim"
+      "complete statutory financial statement package readiness claim",
+      "electronic accounting evidence/archive readiness claim",
+      "complete finance-control readiness claim"
     ],
     "doesNotBlock": [
       "Stage E business-event certification",
@@ -147,8 +133,8 @@
       "Replay of current Economic Runtime"
     ],
     "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md",
-    "primaryOpenRequirement": "Post-three-statement statutory/accounting control gap alignment",
-    "implementationStatus": "FAI_07_DATABASE_VERIFIED",
-    "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT"
+    "primaryOpenRequirement": "Accounting evidence + journal governance + authorization/review integrity",
+    "implementationStatus": "FAI_07_CERTIFIED_MERGED",
+    "nextPacket": "FAI-08 Accounting Evidence + Journal Governance"
   }
 }
