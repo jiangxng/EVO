@@ -202,6 +202,19 @@
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
       "description": "Post-certification pointer cleanup only; no runtime behavior changes."
+    },
+    "evo/eel-c02-procure-to-pay-packet-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Stage E / EEL-C02 Procure-to-Pay business packet and current business-mainline planning branch."
+    },
+    "evo/effective-capability-discovery-v0.1": {
+      "class": "EXPERIMENTAL",
+      "mergePolicy": "MANUAL_REVIEW_ONLY",
+      "containedByMain": false,
+      "pr": 25,
+      "description": "Paused horizontal API/capability-discovery work. Not current business mainline; do not extend while EEL-C02 is active unless explicitly resumed."
     }
   },
   "requiredLLMProcedure": [
