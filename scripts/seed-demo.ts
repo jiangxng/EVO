@@ -78,6 +78,7 @@ try {
   const cashReceiptType = await txType(cashDomain.id, 'cash_receipt', 'Cash Receipt');
   const cashPaymentType = await txType(cashDomain.id, 'cash_payment', 'Cash Payment');
   const purchaseType = await txType(procurementDomain.id, 'purchase_order', 'Purchase Order');
+  const salesReturnType = await txType(salesDomain.id, 'sales_return', 'Sales Return');
 
   async function app(code: string, name: string, typeId: string) {
     return one(
@@ -94,6 +95,7 @@ try {
   const cashReceiptApp = await app('cash_receipt', 'Cash Receipt', cashReceiptType.id);
   const cashPaymentApp = await app('cash_payment', 'Cash Payment', cashPaymentType.id);
   const purchaseApp = await app('purchase_order', 'Purchase Order', purchaseType.id);
+  const salesReturnApp = await app('sales_return', 'Sales Return', salesReturnType.id);
 
   async function version(appId: string) {
     const existing = await db.selectFrom('application_definition_version')
@@ -118,6 +120,7 @@ try {
   const cashReceiptVersion = await version(cashReceiptApp.id);
   const cashPaymentVersion = await version(cashPaymentApp.id);
   const purchaseVersion = await version(purchaseApp.id);
+  const salesReturnVersion = await version(salesReturnApp.id);
 
   async function instance(appId: string, code: string, name: string) {
     return one(
@@ -140,6 +143,7 @@ try {
   await instance(cashReceiptApp.id, 'cash', 'Cash');
   await instance(cashPaymentApp.id, 'cash-payment', 'Cash Payment');
   await instance(purchaseApp.id, 'procurement', 'Procurement');
+  await instance(salesReturnApp.id, 'sales-return', 'Sales Return');
 
   await db.insertInto('item_definition').values({
     enterprise_id: enterprise.id,
@@ -170,6 +174,7 @@ try {
   await capability('collect', 'Collect');
   await capability('procure', 'Procure');
   await capability('pay', 'Pay Supplier');
+  await capability('return-sales', 'Return Sales');
 
   const flow = await one(
     db.insertInto('flow_definition').values({
@@ -282,6 +287,7 @@ try {
   await command(inventoryVersion.id, 'receive-inventory', 'Receive Inventory (Legacy Demo)', 'inventory.received');
   await command(purchaseVersion.id, 'approve-purchase-order', 'Approve Purchase Order', 'purchase_order.approved');
   await command(inventoryVersion.id, 'receive-purchase-order', 'Receive Purchase Order', 'goods_receipt.received');
+  await command(salesReturnVersion.id, 'receive-sales-return', 'Receive Sales Return', 'sales_return.received');
 
   for (const [code, name] of [
     ['order_no','Order'],
@@ -416,6 +422,16 @@ try {
   });
   await rule(inventoryVersion.id,'purchase-receipt-inventory',40,eq('movementType','PURCHASE_RECEIPT'),{
     ledgerCode:'inventory', quantity: field('quantity'), amount: field('totalCost'), currency: field('currency'), dimensions: purchaseReceiptInventoryDims
+  });
+
+  const salesReturnInventoryDims = {
+    product_id: field('productId'), warehouse: field('warehouse'),
+    order_no: field('orderNo'), customer: field('customer'),
+    project: field('project'), department: field('department'),
+    profit_center: field('profitCenter'), cost_center: field('costCenter')
+  };
+  await rule(salesReturnVersion.id,'sales-return-to-inventory',10,trueExpr,{
+    ledgerCode:'inventory', quantity: field('quantity'), amount: field('returnCost'), currency: field('currency'), dimensions: salesReturnInventoryDims
   });
 
   const receiptDims = receivableDims;
