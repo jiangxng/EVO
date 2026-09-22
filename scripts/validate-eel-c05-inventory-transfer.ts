@@ -213,6 +213,9 @@ try{
       .where('c.business_data_id','=',receivedFact.id)
       .orderBy('r.started_at','desc').executeTakeFirstOrThrow();
     const expectedCost=i===0?150:250;
+    if(cost.total_cost===null){
+      throw new Error(`Receipt ${i+1} cost result must contain total_cost.`);
+    }
     if(!new Decimal(cost.total_cost).eq(expectedCost)){
       throw new Error(`Receipt ${i+1} must derive FIFO cost ${expectedCost}, got ${cost.total_cost}`);
     }
