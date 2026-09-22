@@ -15,3 +15,34 @@ Idempotency: same reflected target cost => NO_CHANGE.
 Consistency: same active ledger dataset as operational posting.
 Error Contract: structured AppError for missing rules/ledgers/dimensions.
 Versioning: valuation_rule.version is persisted on run and ledger entries.
+
+## Dimension mapping modes
+
+A ValuationRule may use the historical flat mapping form when both valuation legs share the same dimensions:
+
+```json
+{
+  "product_id": { "type": "field", "path": "productId" },
+  "warehouse": { "type": "field", "path": "warehouse" }
+}
+```
+
+For value transfer between different dimensional identities, the rule may use an explicit two-leg form:
+
+```json
+{
+  "source": {
+    "product_id": { "type": "field", "path": "productId" },
+    "warehouse": { "type": "field", "path": "sourceWarehouse" }
+  },
+  "target": {
+    "product_id": { "type": "field", "path": "productId" },
+    "warehouse": { "type": "field", "path": "destinationWarehouse" }
+  }
+}
+```
+
+The first valuation leg uses `source`; the second uses `target`.
+
+This is a dimension-aware value-transfer primitive, not an inventory-transfer-specific runtime. Existing flat rules remain backward compatible.
+
