@@ -11,8 +11,8 @@
     "id": "EEL-C05",
     "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
     "stage": "Stage E — Enterprise Economic Loops",
-    "status": "IMPLEMENTED",
-    "overallClosed": false,
+    "status": "CERTIFIED",
+    "overallClosed": true,
     "businessGoal": "Certify intra-enterprise inventory transfer where location changes while enterprise-wide quantity and inventory value remain conserved, with explicit lineage, balance-driven Work and deterministic Full Replay.",
     "activeBranch": "evo/eel-c05-full-replay-final-certification-v0.1",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C05-INVENTORY-TRANSFER-PACKET-v0.1.md",
@@ -28,12 +28,11 @@
       "C05 implementation prepared as one conservation-safe bundle: create/issue/partial receipt, source/destination quantity movement, FIFO-derived value transfer, explicit lineage and TRANSFER Work",
       "Bundle A/B intermediate merge plan collapsed because quantity-only transfer would create an economically incomplete main state",
       "C05 Inventory Transfer Conservation Bundle — DATABASE E2E VERIFIED / PR #43 / CI #649 / merge c57ac571",
-      "C05 Full Replay + Final Certification implementation prepared"
+      "C05 Inventory Transfer Conservation Bundle — DATABASE E2E VERIFIED / PR #43 / CI #649 / merge c57ac571",
+      "C05 Full Replay Equality + Final Certification — DATABASE E2E VERIFIED / PR #44 / CI #653"
     ],
-    "openGates": [
-      "C05 Full Replay Equality + Final Certification — awaiting PostgreSQL 18 CI"
-    ],
-    "nextAction": "Run isolated PostgreSQL 18 Full Replay validation. If green, promote EEL-C05 certification to CERTIFIED and merge this final bundle."
+    "openGates": [],
+    "nextAction": "Merge PR #44, then run completed-loop requirement alignment and select the next Stage E bounded business packet."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -86,12 +85,12 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "EEL-C04",
-    "name": "Manufacturing Execution Reference Loop",
+    "id": "EEL-C05",
+    "name": "Inventory Transfer & Warehouse Rebalancing Reference Loop",
     "status": "CERTIFIED",
-    "certification": "docs/architecture/certification/EEL-C04-MANUFACTURING-EXECUTION-CERTIFICATION-v0.2.md",
-    "verifiedCiRun": 35703911233,
-    "mergeCommit": "11ee7618c12da214e8e0270b321e0f098a448488"
+    "certification": "docs/architecture/certification/EEL-C05-INVENTORY-TRANSFER-CERTIFICATION-v0.1.md",
+    "verifiedCiRun": 35711266390,
+    "mergeCommit": "PENDING_PR44_MERGE"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -99,7 +98,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "ALIGNED_EEL_C05_INVENTORY_TRANSFER_SELECTED",
+    "currentAssessment": "EEL_C05_CERTIFIED_COMPLETED_LOOP_ALIGNMENT_REQUIRED",
     "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
