@@ -49,11 +49,12 @@
       "legacy manufacturing/MRP/WMS semantics are to be recovered as Reference Enterprise Packs rather than promoted into Core",
       "C04.1 Production Demand / Work is DATABASE E2E VERIFIED by PostgreSQL 18 CI #632 and merged to main",
       "C04.2–C04.5 Manufacturing Execution Bundle is DATABASE E2E VERIFIED on PostgreSQL 18.6 with raw-material inventory, WIP, finished-goods cost, partial completion, Work closure and explicit lineage evidence",
-      "C04.6 Full Replay Equality is DATABASE E2E VERIFIED locally on PostgreSQL 18.6; facts, relationships, Inventory, pending production, Cost, WIP and Work rebuild identically"
+      "C04.1 Production Demand / Work is DATABASE E2E VERIFIED by PostgreSQL 18 CI #632 and merged to main",
+      "C04.2–C04.5 Manufacturing Execution Bundle is DATABASE E2E VERIFIED by PR #39 / CI #640 and merged at 8f58664b",
+      "C04.6 Full Replay Equality and C04.7 Final Certification are verified by PR #40 / CI #642 and merged at 11ee7618",
+      "valuation replay preserves semantically latest Ledger Balance ordering metadata using effective_at + posting_priority + posting_sequence"
     ],
-    "open": [
-      "C04.7 Final Certification — remote CI and merge evidence pending"
-    ],
+    "open": [],
     "deferred": [
       "full BOM platform",
       "multi-level BOM explosion",
@@ -70,8 +71,8 @@
       "advanced lot and serial traceability",
       "capacity optimization"
     ],
-    "currentWork": "C04.6 Full Replay Equality + C04.7 Final Certification",
-    "status": "DATABASE E2E VERIFIED",
+    "currentWork": "Completed-loop requirement alignment / next Stage E packet selection",
+    "status": "CERTIFIED",
     "packet": "docs/architecture/status/EVO-STAGE-E-EEL-C04-MANUFACTURING-EXECUTION-PACKET-v0.1.md"
   },
   "antiOverdesignQuestions": [
@@ -105,8 +106,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-22",
-    "reason": "EEL-C03 completed and mandatory completed-loop requirement-alignment trigger fired.",
-    "result": "Final goal and Stage E objective remain unchanged. EEL-C04 Manufacturing Execution selected because it adds new cross-domain evidence across production demand, material consumption, finished-goods output, cost, Work and Replay. Full MRP/MES platformization remains deferred."
+    "reason": "EEL-C04 reached CERTIFIED after PR #40 / CI #642 and the completed-loop alignment trigger fired.",
+    "result": "Manufacturing execution acceptance is satisfied. Further BOM/MRP/APS/MES scope remains deferred. Next Stage E work requires a new business selection."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -115,11 +116,11 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "SELECTED",
-    "selection": "EEL-C04 Manufacturing Execution Reference Loop",
-    "rule": "Treat manufacturing execution as a bounded application/package capability first; do not conflate it with full BOM/MRP/APS/MES platforms unless current acceptance requires those."
+    "state": "RESELECT_REQUIRED_AFTER_CERTIFICATION",
+    "selection": null,
+    "rule": "Run the mandatory completed-loop requirement alignment after EEL-C04, then choose the next bounded Stage E packet by business value and APQC capability gap rather than technical momentum."
   },
-  "currentWork": "C04.6 Full Replay Equality + C04.7 Final Certification",
+  "currentWork": "Completed-loop requirement alignment / next Stage E packet selection",
   "financialAccountingIntegrity": {
     "state": "REQUIRED_BEFORE_FINANCIAL_STATEMENTS",
     "findings": [
