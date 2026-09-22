@@ -379,10 +379,18 @@
       "description": "FAI-01/02 authoritative double-entry journal runtime merged after CI #664."
     },
     "evo/fai-03-05-accounting-recognition-trial-balance-replay-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 47,
+      "description": "FAI-03~05 accounting recognition, rule trace, Trial Balance and GL Replay merged after CI #668."
+    },
+    "evo/fai-06-period-reconciliation-statement-metadata-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "FAI-03~05 large finance packet: AccountingRule execution trace, aggregate accounting plan, Trial Balance and deterministic GL Replay."
+      "description": "FAI-06 large finance packet: accounting periods, economic-ledger ↔ GL reconciliation, and versioned statement projection metadata."
     }
   },
   "requiredLLMProcedure": [
@@ -410,7 +418,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "503d6c7a8def290589fae26792f11d1b3bb0ef7c",
+  "lastReviewedMainCommit": "8fbcf1ab6a19943f0d010b01ed5104df1e9e428f",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -438,17 +446,19 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/fai-03-05-accounting-recognition-trial-balance-replay-v0.1",
+    "businessMainline": "evo/fai-06-period-reconciliation-statement-metadata-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "Accounting Rule Execution Trace",
-      "aggregate matched rules into one Journal plan",
-      "rule-condition mismatch diagnosis",
-      "Trial Balance",
-      "General Ledger Full Replay"
+      "Accounting Period OPEN/CLOSED governance",
+      "closed-period Journal rejection",
+      "Replay across closed periods",
+      "economic ledger ↔ GL reconciliation",
+      "balanced-but-wrong Journal mismatch detection",
+      "three-statement projection metadata",
+      "cash-flow classification metadata"
     ],
-    "evidenceTarget": "DATABASE E2E VERIFIED FAI-03~05 accounting loop with GL replay MATCH",
-    "afterSuccess": "Merge to main, then reassess remaining Financial Accounting Integrity gaps as one larger accounting-period/reconciliation/financial-statements-readiness packet.",
-    "rule": "Do not bypass failed rule traces by force-balancing with suspense/difference accounts. Source data is not the default suspect."
+    "evidenceTarget": "DATABASE E2E VERIFIED FAI-06 financial-statement readiness",
+    "afterSuccess": "Merge to main and immediately implement FAI-07 three core financial statements as versioned ledger/GL projections.",
+    "rule": "Do not create independent report facts or silently force differences into suspense accounts."
   }
 }
