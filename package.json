@@ -47,7 +47,8 @@
     "validate:eel-c04-production-demand-work": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c04-production-demand-work.ts",
     "validate:eel-c04-manufacturing-execution-bundle": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c04-manufacturing-execution-bundle.ts",
     "validate:eel-c04-full-replay": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c04-full-replay.ts",
-    "validate:eel-c05-inventory-transfer": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c05-inventory-transfer.ts"
+    "validate:eel-c05-inventory-transfer": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c05-inventory-transfer.ts",
+    "validate:eel-c05-full-replay": "node --env-file-if-exists=.env --import tsx scripts/validate-eel-c05-full-replay.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",

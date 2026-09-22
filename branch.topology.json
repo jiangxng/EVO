@@ -349,10 +349,18 @@
       "description": "Post-EEL-C04 alignment and EEL-C05 Inventory Transfer selection merged after CI #646."
     },
     "evo/eel-c05-transfer-execution-bundle-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 43,
+      "description": "EEL-C05 transfer quantity/value conservation bundle merged after CI #649."
+    },
+    "evo/eel-c05-full-replay-final-certification-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "EEL-C05 conservation-safe inventory transfer bundle: canonical transfer facts, partial receipt, source/destination quantity+value migration, explicit lineage and TRANSFER Work."
+      "description": "EEL-C05 Full Replay Equality + Final Certification bundle."
     }
   },
   "requiredLLMProcedure": [
@@ -380,7 +388,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "001a30d5612a7ba09fd1a7e8bfdd86a44fc6d195",
+  "lastReviewedMainCommit": "c57ac5716aff743470e8d6b2ab98bc5e87a6aec7",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -408,19 +416,15 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/eel-c05-transfer-execution-bundle-v0.1",
+    "businessMainline": "evo/eel-c05-full-replay-final-certification-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "inventory transfer canonical facts",
-      "partial receipt 15 + 25",
-      "source/destination warehouse quantity conservation",
-      "FIFO-derived source/target value conservation",
-      "no P&L/AR/AP/Cash side effects",
-      "explicit transfer lineage",
-      "balance-driven TRANSFER Work"
+      "C05 Full Replay Equality",
+      "C05 Final Certification",
+      "status/evidence closure"
     ],
-    "evidenceTarget": "DATABASE E2E VERIFIED transfer conservation",
-    "afterSuccess": "Merge to main, then use a final C05 branch for Full Replay + Final Certification.",
-    "rule": "Do not split quantity and value transfer across separate main merges; the official inventory state must remain economically coherent."
+    "evidenceTarget": "DATABASE E2E VERIFIED Full Replay MATCH + CERTIFIED",
+    "afterSuccess": "Merge to main, then run completed-loop requirement alignment before selecting new Stage E work.",
+    "rule": "Do not extend C05 into WMS/TMS or cross-entity transfer during final certification."
   }
 }
