@@ -5,39 +5,41 @@
   "updatedAt": "2026-09-22",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "8fbcf1ab6a19943f0d010b01ed5104df1e9e428f"
+    "lastVerifiedRuntimeMergeCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf"
   },
   "activeWorkPacket": {
-    "id": "FAI-06",
-    "name": "Accounting Period + Reconciliation + Statement Projection Metadata",
+    "id": "FAI-07",
+    "name": "Three Core Financial Statements",
     "stage": "Financial Accounting Integrity",
-    "status": "IMPLEMENTED",
-    "overallClosed": false,
-    "businessGoal": "Prepare trustworthy financial statements by governing accounting periods, reconciling economic/subledger state to the General Ledger, and defining versioned statement projection metadata informed by Asloop semantics.",
-    "activeBranch": "evo/fai-06-period-reconciliation-statement-metadata-v0.1",
+    "status": "CERTIFIED",
+    "overallClosed": true,
+    "businessGoal": "Generate Balance Sheet, Income Statement and Cash Flow Statement as deterministic versioned projections of authoritative GL/BusinessData lineage, reconcile the three statements, and reproduce them identically.",
+    "activeBranch": "evo/fai-07-three-financial-statements-v0.1",
     "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md",
-    "evidenceTarget": "DATABASE E2E VERIFIED period governance + reconciliation + statement metadata",
+    "evidenceTarget": "DATABASE E2E VERIFIED Balance Sheet + Income Statement + Cash Flow Statement + cross-statement MATCH + statement replay MATCH",
     "closedGates": [
-      "FAI-03~05 Accounting Recognition / Rule Trace / Trial Balance / GL Replay merged by PR #47 after CI #668",
-      "AccountingPeriod schema and OPEN/CLOSED governance implemented",
-      "normal Journal writes are blocked in CLOSED periods",
-      "GL Replay uses explicit REPLAY mode and may rebuild closed periods",
-      "Economic Ledger ↔ GL reconciliation rules/runs implemented",
-      "balanced-but-wrong Journal can be detected by reconciliation",
-      "StatementDefinition / StatementLineDefinition implemented",
-      "AccountStatementMapping implemented",
-      "CashFlowClassificationRule implemented and bound to versioned statement lines",
-      "Asloop semantic convergence documented: statements are ledger/account projections, not independent facts"
+      "FAI-06 financial-statement readiness merged by PR #48 after CI #670",
+      "statement projection run/line schema implemented",
+      "statement semantic roles implemented",
+      "cash-equivalent account marker implemented",
+      "Balance Sheet account-balance projection implemented",
+      "Income Statement period-movement projection implemented",
+      "Cash Flow Statement BusinessData-lineage classification implemented",
+      "statement hierarchy / SUM_CHILDREN implemented",
+      "statement semantic digest implemented",
+      "deterministic statement replay implemented",
+      "cross-statement reconciliation implemented",
+      "broken report mapping negative proof implemented",
+      "FAI-07 PostgreSQL 18 database E2E proof — PR #49 / CI #672",
+      "Balance Sheet equation MATCH",
+      "Net Income ↔ Current Period Earnings MATCH",
+      "Cash Flow roll-forward MATCH",
+      "Cash Flow closing cash ↔ Balance Sheet cash MATCH",
+      "Balance Sheet / Income Statement / Cash Flow Statement replay MATCH",
+      "broken statement mapping negative proof returns MISMATCH"
     ],
-    "openGates": [
-      "FAI-06 PostgreSQL 18 database E2E proof",
-      "closed-period rejection proof",
-      "replay-across-closed-period proof",
-      "economic-ledger ↔ GL MATCH proof",
-      "balanced-but-wrong GL MISMATCH proof",
-      "three-statement projection metadata integrity proof"
-    ],
-    "nextAction": "Run isolated PostgreSQL 18 FAI-06 validator. If green, merge FAI-06 and implement FAI-07 as one large packet: Balance Sheet + Income Statement + Cash Flow Statement + cross-statement reconciliation + deterministic statement replay."
+    "openGates": [],
+    "nextAction": "Merge PR #49, then run a post-three-statement finance-gap alignment. Treat broader statutory-accounting controls as a separate next stage rather than extending the report engine."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -90,11 +92,12 @@
     ]
   },
   "previousCertifiedPacket": {
-    "id": "FAI-03-05",
-    "name": "Accounting Recognition + Rule Trace + Trial Balance + General Ledger Replay",
-    "status": "DATABASE E2E VERIFIED",
-    "verifiedCiRun": 35724480602,
-    "mergeCommit": "8fbcf1ab6a19943f0d010b01ed5104df1e9e428f"
+    "id": "FAI-07",
+    "name": "Three Core Financial Statements",
+    "status": "CERTIFIED",
+    "certification": "docs/architecture/certification/FAI-07-THREE-CORE-FINANCIAL-STATEMENTS-CERTIFICATION-v0.1.md",
+    "verifiedCiRun": 35727780787,
+    "mergeCommit": "PENDING_PR49_MERGE"
   },
   "requirementAlignment": {
     "requirementStatus": "requirements.status.json",
@@ -110,7 +113,7 @@
     }
   },
   "financialAccountingIntegrity": {
-    "status": "IN_PROGRESS_FAI_06",
+    "status": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
     "authority": "docs/architecture/status/EVO-FINANCIAL-ACCOUNTING-INTEGRITY-AUDIT-2026-09-22-v0.1.md",
     "currentRuntime": "generic signed operational/economic Ledger",
     "requiredBeforeFinancialStatements": [
@@ -144,8 +147,8 @@
       "Replay of current Economic Runtime"
     ],
     "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md",
-    "primaryOpenRequirement": "Financial statement readiness: period governance + GL reconciliation + statement projection metadata",
-    "implementationStatus": "FAI_03_05_DATABASE_VERIFIED",
-    "nextPacket": "FAI-06 Accounting Period + Reconciliation + Statement Projection Metadata"
+    "primaryOpenRequirement": "Post-three-statement statutory/accounting control gap alignment",
+    "implementationStatus": "FAI_07_DATABASE_VERIFIED",
+    "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT"
   }
 }

@@ -480,3 +480,36 @@ EEL-C04 已关闭。当前必须先执行 completed-loop requirement alignment�
 - full quality platform；
 - subcontract manufacturing；
 - advanced traceability。
+
+## 15. 2026-09-22 — Financial Accounting Integrity FAI-01~07
+
+| Requirement | Current Capability | Evidence | Status |
+|---|---|---|---|
+| 有借必有贷、借贷必相等 | Journal + JournalLine DEBIT/CREDIT, atomic balance gate | PR #46 / CI #664 | 已验证 |
+| 记账条件/多记少记诊断 | AccountingRuleExecution MATCH/NOT_MATCHED + generated effects trace | PR #47 / CI #668 | 已验证 |
+| Trial Balance | independent debit/credit recomputation | PR #47 / CI #668 | 已验证 |
+| General Ledger Replay | rebuild Journal/JournalLine from BusinessData + published rules | PR #47 / CI #668 | 已验证 |
+| Accounting Period | OPEN/CLOSED + closed-period rejection + replay mode | PR #48 / CI #670 | 已验证 |
+| Economic Ledger ↔ GL 对账 | independent reconciliation; balanced-but-wrong GL detected | PR #48 / CI #670 | 已验证 |
+| 三大报表元数据 | versioned Statement/Line/Account Mapping/CashFlow rules | PR #48 / CI #670 | 已验证 |
+| 资产负债表 | ending-balance projection | PR #49 / CI #672 | 已验证 |
+| 利润表 | period-movement projection | PR #49 / CI #672 | 已验证 |
+| 现金流量表 | BusinessData-lineage cash classification | PR #49 / CI #672 | 已验证 |
+| 三表交叉校验 | BS equation / net-income bridge / cash roll-forward / cash-to-BS | PR #49 / CI #672 | 已验证 |
+| 报表 Replay | all three semantic digests reproduce identically | PR #49 / CI #672 | 已验证 |
+| 错误报表映射检测 | deliberately broken Balance Sheet mapping → MISMATCH | PR #49 / CI #672 | 已验证 |
+
+Formal certification:
+
+`docs/architecture/certification/FAI-07-THREE-CORE-FINANCIAL-STATEMENTS-CERTIFICATION-v0.1.md`
+
+Design principle retained from Asloop semantic convergence:
+
+```text
+Authoritative Ledger / GL State
++ Versioned Report Mapping Metadata
+→ Financial Statements
+```
+
+Financial statements are derived projections, not an independent fact source.
+

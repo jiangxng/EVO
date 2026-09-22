@@ -169,3 +169,67 @@ export interface AccountingReconciliationService {
   ): Promise<ReconciliationRunResult>;
 }
 
+export type FinancialStatementType = 'BALANCE_SHEET'|'INCOME_STATEMENT'|'CASH_FLOW_STATEMENT';
+
+export interface StatementProjectionLine {
+  readonly code: string;
+  readonly name: string;
+  readonly amount: string;
+  readonly semanticRole?: string;
+  readonly components: readonly AccountingJsonObject[];
+}
+
+export interface StatementProjection {
+  readonly runId: string;
+  readonly statementDefinitionId: string;
+  readonly statementType: FinancialStatementType;
+  readonly statementCode: string;
+  readonly statementVersion: number;
+  readonly accountingPeriodId: string;
+  readonly digest: string;
+  readonly lines: readonly StatementProjectionLine[];
+}
+
+export interface StatementReplayResult {
+  readonly replayRunId: string;
+  readonly beforeProjectionRunId: string;
+  readonly afterProjectionRunId: string;
+  readonly beforeDigest: string;
+  readonly afterDigest: string;
+  readonly validationStatus: 'MATCH'|'MISMATCH';
+}
+
+export interface CoreStatementReconciliationResult {
+  readonly runId: string;
+  readonly status: 'MATCH'|'MISMATCH';
+  readonly checks: readonly AccountingJsonObject[];
+  readonly balanceSheet: StatementProjection;
+  readonly incomeStatement: StatementProjection;
+  readonly cashFlowStatement: StatementProjection;
+}
+
+export interface FinancialStatementProjectionService {
+  project(
+    enterpriseId: string,
+    accountingBookId: string,
+    accountingPeriodId: string,
+    statementDefinitionId: string
+  ): Promise<StatementProjection>;
+
+  replay(
+    enterpriseId: string,
+    accountingBookId: string,
+    accountingPeriodId: string,
+    statementDefinitionId: string
+  ): Promise<StatementReplayResult>;
+
+  reconcileCoreStatements(
+    enterpriseId: string,
+    accountingBookId: string,
+    accountingPeriodId: string,
+    balanceSheetDefinitionId: string,
+    incomeStatementDefinitionId: string,
+    cashFlowDefinitionId: string
+  ): Promise<CoreStatementReconciliationResult>;
+}
+
