@@ -223,7 +223,7 @@
       "containedByMain": false,
       "pr": 25,
       "description": "Superseded capability-discovery experiment. Capability/Application discovery is now a Host/App Platform responsibility; useful ideas were already reimplemented for compatibility in main.",
-      "prDisposition": "CLOSE_SUPERSEDED"
+      "prDisposition": "CLOSED_SUPERSEDED_BY_PR56"
     },
     "evo/eel-c02-post-merge-pointer-cleanup-v0.1": {
       "class": "DIVERGED_HISTORICAL",
@@ -409,14 +409,15 @@
       "containedByMain": false,
       "pr": 50,
       "description": "Superseded documentation alignment. The newer minimal-runtime-plugin boundary moves General Ledger/statutory accounting and broader finance governance outside mandatory EVO Core.",
-      "prDisposition": "CLOSE_SUPERSEDED"
+      "prDisposition": "CLOSED_SUPERSEDED_BY_PR56"
     },
     "evo/minimal-runtime-plugin-boundary-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
       "pr": 56,
-      "description": "Current architecture-convergence branch redefining EVO as a lightweight BusinessData→PostingRule→Ledger→Balance runtime plugin and externalizing platform/governance/domain concerns."
+      "description": "Minimal EVO Runtime Plugin boundary merged by PR #56 after CI #738. Defines EVO as lightweight BusinessData→supplied PostingRules→Ledger/Balance runtime with platform/governance/domain concerns externalized."
     }
   },
   "requiredLLMProcedure": [
@@ -444,7 +445,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "1c58b0526415f4ad4a81b8f83721d71bea25b7eb",
+  "lastReviewedMainCommit": "81fbec46419dc53f33d21ad0eb0fc586a1ce1979",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -472,17 +473,16 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/minimal-runtime-plugin-boundary-v0.1",
-    "pullRequest": 56,
+    "businessMainline": "main",
+    "pullRequest": null,
     "includedGates": [
-      "freeze minimal EVO Runtime Plugin boundary",
-      "remove identity/permissions/application/capability ownership from Core target",
-      "make BusinessData submission the target Core ingestion boundary",
-      "externalize rule lifecycle and higher-order engines by default",
-      "classify current broad modules as compatibility/plugin extraction assets"
+      "minimal EVO Runtime Plugin boundary is merged",
+      "next bounded runtime slice is generic BusinessData submission convergence",
+      "keep current Proof C /commands path temporarily as compatibility adapter",
+      "do not begin broad module extraction before the minimal submission contract is proven"
     ],
-    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no runtime behavior change",
-    "afterSuccess": "Merge PR #56 after CI. Close superseded PR #25 and PR #50. Then converge runtime incrementally: define minimal BusinessData submission contract first, without breaking current Proof C compatibility path.",
-    "rule": "Do not add new Core responsibilities unless generic BusinessData → supplied PostingRules → Ledger → Balance cannot function without them."
+    "evidenceTarget": "NEXT: IMPLEMENTED + UNIT/DB E2E for generic BusinessData submission adapter",
+    "afterSuccess": "Route App Platform/Trading Lite through Host-owned adapter to generic EVO BusinessData submission, then retire platform concerns from EVO API incrementally.",
+    "rule": "EVO Core remains BusinessData → supplied PostingRules → Ledger/Balance plus recalc/clear/export/query. Default everything else outside Core."
   }
 }
