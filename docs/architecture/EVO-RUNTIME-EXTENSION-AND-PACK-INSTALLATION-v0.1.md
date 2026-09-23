@@ -235,3 +235,203 @@ provided Public Protocol remains compatible
 ```
 
 这才是真正的低耦合。
+
+
+## 14. Architecture Decision — LLM-Native Extension Model
+
+**Decision: APPROVED TARGET ARCHITECTURE**
+
+EVO 不采用“所有扩展都通过代码 import”的插件模型，也不采用“所有模块都拆成微服务”的模型。
+
+最终采用：
+
+> **Modular Core Service + Protocol-Isolated Extensions + Declarative Packages**
+
+即：
+
+```text
+                 ┌─────────────────────────┐
+                 │      EVO Core Service   │
+                 │                         │
+                 │ BusinessData            │
+                 │ Posting Rules           │
+                 │ Ledger                  │
+                 │ Balance                 │
+                 │ Replay                  │
+                 └────────────┬────────────┘
+                              │
+          Public API / Events / Package Protocol
+                              │
+          ┌───────────────────┼───────────────────┐
+          │                   │                   │
+ Definition Packages   External Runtime      Consumers
+ App/Field/Rules       Cost/Valuation        Reporting/Eidos/EC
+```
+
+### 14.1 Where code import IS allowed
+
+在 EVO Core Service 内部，Kernel 自身实现可以使用代码级模块化与静态 import。
+
+例如：
+
+```text
+posting application service
+→ BusinessData port
+→ LedgerWriter port
+```
+
+允许 import：
+
+- stable internal interfaces / ports；
+- domain value objects；
+- Kernel-owned contracts；
+- generated protocol types used internally。
+
+但必须保持依赖方向和 architecture tests。
+
+Core 内部不需要为了“纯粹解耦”强行经过网络。
+
+原因：
+
+- Posting / Ledger / Balance 存在强事务和低延迟要求；
+- 分布式事务会增加错误面；
+- Replay deterministic execution 更适合明确的本地执行边界；
+- 不应为尚不存在的规模问题增加网络 hop。
+
+### 14.2 Where implementation import IS forbidden
+
+只要能力是“可选安装 / 可卸载”的，就不能依赖 EVO Core 的实现代码。
+
+禁止：
+
+```text
+Finance Reporting
+→ import PostgresLedgerReader
+
+Cost extension
+→ import PostingService
+
+Eidos
+→ import EVO database repository
+```
+
+允许：
+
+```text
+Finance Reporting
+→ generated EVO API client
+
+Cost Extension
+→ versioned runtime protocol
+
+Eidos
+→ Public API / Event Contract
+```
+
+### 14.3 Microservice is a deployment choice, not the primary abstraction
+
+EVO 不把“微服务”本身作为架构目标。
+
+首要目标是：
+
+```text
+semantic ownership
++ protocol boundary
++ independent lifecycle
++ failure isolation where needed
+```
+
+只有满足以下一项或多项时，才值得独立成 Runtime Service：
+
+- 需要独立扩容；
+- 需要异步长时间执行；
+- 需要独立故障隔离；
+- 需要独立技术栈；
+- 第三方提供；
+- 需要独立发布；
+- 生命周期与 Core 显著不同；
+- 计算资源特征与 Core 显著不同。
+
+否则优先选择 Definition Package，而不是新增服务。
+
+### 14.4 LLM-Native reason
+
+LLM-native 的关键不是“更多微服务”，而是：
+
+- contract machine-readable；
+- ownership machine-readable；
+- dependency direction machine-checkable；
+- package manifest machine-readable；
+- compatibility machine-verifiable；
+- tests/certifications executable；
+- module context small enough for independent reasoning。
+
+因此对 LLM 最友好的系统是：
+
+> **边界非常硬，但运行拓扑不过度复杂。**
+
+### 14.5 Official packs and third-party packs obey the same rule
+
+官方 Pack 不能因为“和 EVO 是同一个团队”就获得私有访问权。
+
+长期原则：
+
+```text
+Official Pack
+Third-party Pack
+Eidos
+EC
+External Integration
+```
+
+在 Core 边界外的访问规则相同。
+
+这可以防止“官方代码先偷用内部实现，第三方永远无法真正扩展”的架构腐化。
+
+### 14.6 Repository topology does not define runtime topology
+
+可以长期保持 monorepo：
+
+```text
+/EVO
+  /core-service
+  /packs
+  /services
+  /contracts
+  /sdk
+```
+
+但 CI 必须证明：
+
+- external pack 不 import Core implementation；
+- external service 不使用 Core private DB schema；
+- contracts/sdk 可独立构建；
+- 可选能力缺失时 Core 可独立启动。
+
+是否物理拆 GitHub repository，由发布、权限、规模和组织需求决定，不作为低耦合前提。
+
+### 14.7 Decision summary
+
+最终拍板：
+
+```text
+Inside EVO Core:
+    code import through strict internal interfaces is GOOD.
+
+Across EVO Core boundary:
+    implementation import is FORBIDDEN.
+
+Most business extensibility:
+    declarative installation package.
+
+Executable optional capabilities:
+    protocol-isolated runtime extension.
+
+Reporting / Eidos / EC:
+    independent consumers/services.
+
+Microservices:
+    used only when lifecycle/performance/isolation justifies them.
+```
+
+这条决策优先于此前任何“所有插件都必须微服务化”或“所有插件都通过代码 import”的理解。
