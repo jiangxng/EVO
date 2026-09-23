@@ -15,28 +15,23 @@
    = 负责存储和积累这个 LLM 的长期知识、行业知识、经验、方法和组件使用知识
 
 3. 3EC
-   = EC Project LLM 利用 EC 中的知识，以及 EVO / Eidos 公布的能力，写出来的文章 / 实例化产物
+   = 当前开发阶段用于 EVO / Eidos / EC 三个项目 LLM 协调、对齐和集成验证的临时工作区 / 聊天容器
 ```
 
 因此：
 
-> **3EC 不是一个运行时系统，也不是 API Consumer Agent。**
+> **3EC 不是长期产品，也不是知识库，更不是运行时系统。**
 
-真正读取 EVO Public API / Capability Catalog 的角色，是 **EC Project LLM**。
+它当前的价值是开发阶段的跨项目协调与集成验证，例如：
 
-3EC 可以包含：
+- 让 EVO / Eidos / EC 项目负责 LLM 对齐接口与边界；
+- 汇总跨项目集成问题；
+- 承载联合测试场景；
+- 记录尚未归属到单一项目的集成决策。
 
-- 选用了哪些 EVO 能力；
-- 选用了哪些 Eidos 组件；
-- 为什么这样选择；
-- 安装组合；
-- 配置；
-- 业务实例；
-- 测试用例；
-- 验收条件；
-- 已知缺口。
+真正长期保存企业背景、项目知识、行业学习和 LLM 经验的是 **EC Project**。
 
-但 3EC 本身不负责执行 HTTP 请求。
+当 EVO / Eidos 的契约、Catalog、集成测试和项目文档足够成熟后，3EC 应当可以缩减、归档甚至取消。
 
 ## 2. Relationship
 
@@ -48,11 +43,18 @@
                   │
                   │
 Eidos ─ Component Catalog ─┐
-                           │
-EC Knowledge ──────────────┼→ EC Project LLM
-                           │        │
-                           │        ↓
-                           └────→ 3EC Article
+EC Project
+(long-term knowledge)
+        │
+        ▼
+EC Project LLM
+        │
+        ├─ reads EVO contracts/catalog
+        ├─ reads Eidos contracts/catalog
+        └─ coordinates with EVO/Eidos project LLMs
+                 │
+                 ▼
+        3EC temporary workspace
 ```
 
 EC Project LLM 是真正的“选择者”。
@@ -144,7 +146,7 @@ read Eidos Component Catalog
         ↓
 choose existing capabilities/components
         ↓
-write 3EC article
+write/update enterprise knowledge and, when cross-project coordination is needed, use the 3EC temporary workspace
 ```
 
 3EC 文章可以写成：
@@ -232,3 +234,31 @@ EC Project LLM
 EVO 和 Eidos 是否对 LLM 友好，一个重要判断标准就是：
 
 > EC Project LLM 能否只看 Catalog / Contract，就完成高质量选择，而无需深入阅读底层实现。
+
+
+## 10. 3EC Sunset Principle
+
+3EC should exist only while it provides unique development-stage coordination value.
+
+It can be retired when:
+
+- EVO Public API / Capability Catalog is authoritative and machine-readable;
+- Eidos Component Catalog is authoritative and machine-readable;
+- EC contains durable enterprise / industry / learned knowledge;
+- cross-project interface tests run automatically;
+- capability-gap requests have a standard machine-readable format;
+- project LLMs can recover the necessary cross-project state from repositories and contracts without relying on a separate coordination workspace.
+
+At that point, keeping 3EC as a permanent third product would create duplicate context and unclear ownership.
+
+The desired long-term shape is:
+
+```text
+EVO   = durable backend/runtime product
+Eidos = durable experience/UI product
+EC    = durable knowledge/learning project
+
+3EC   = temporary development integration workspace
+        → shrink
+        → archive/retire when no longer uniquely useful
+```
