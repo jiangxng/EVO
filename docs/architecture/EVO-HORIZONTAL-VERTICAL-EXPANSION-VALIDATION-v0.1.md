@@ -505,3 +505,182 @@ EVO 应借鉴经典 SharePoint Package 的以下思想：
 - UI 与数据 schema 的历史技术耦合。
 
 EVO 的目标是把这一思想提升为适合 AI-native ERP 的、版本化、可解释、可组合、可升级的企业安装包。
+
+
+## 16. Usage Telemetry 与 EC 持续学习边界
+
+Asloop 过去已经收集过用户使用数据，用于分析用户使用习惯。EVO 应保留“采集可治理的使用行为数据”这一能力，但必须明确职责边界：
+
+> **EVO 负责采集、规范化、治理并对外提供使用行为数据；EC 负责分析、长期学习、习惯建模、经验沉淀与知识演进。**
+
+EVO 本身不应把持续学习能力做进 Core，也不应因为引入 AI 而把运行时行为分析逻辑散落到各个 Application。
+
+### 16.1 EVO 的职责
+
+EVO 负责产生和保存可解释的 Usage Telemetry / Interaction Events，例如：
+
+- Application 打开 / 关闭；
+- Form / List / Editable Grid 使用；
+- View / Visualization 使用；
+- Search / Filter / Sort / Group 行为；
+- Field 修改、取消、提交；
+- Work / 待办进入、完成、跳转；
+- 上下游 Relation Navigation；
+- Ledger / Journal / Voucher 查看；
+- 用户在不同 Application 之间的导航路径；
+- 功能使用频率；
+- 操作耗时与失败 / 放弃；
+- 可选的匿名化 UI interaction signals。
+
+这些事件必须通过稳定、版本化的 Event Contract 表达，而不是由 EC 直接读取 EVO 内部表。
+
+推荐链路：
+
+```text
+EVO Runtime
+→ Usage Event Contract
+→ Governed Telemetry Store / Stream
+→ Public Export / Connector Contract
+→ EC
+```
+
+### 16.2 EC 的职责
+
+EC 负责消费 EVO 输出的 Usage Events，并进行：
+
+- 使用习惯分析；
+- 用户 / 角色工作模式分析；
+- 高频路径发现；
+- 低效步骤识别；
+- Experience 改进建议；
+- 企业行为模式总结；
+- 跨时间持续学习；
+- 跨项目经验沉淀；
+- 行业知识学习；
+- 将可复用经验形成新的 Experience / Template / Recommendation 资产。
+
+EC 的学习结果如需回到 EVO，必须通过正式、版本化的公开契约返回，不能直接修改 EVO 内部数据结构或规则。
+
+### 16.3 Development Intelligence 与 Runtime Learning 分离
+
+EVO 项目开发过程中使用的 LLM 智能，仅用于：
+
+- 架构；
+- 编码；
+- 测试；
+- 调试；
+- 文档；
+- 迁移；
+- 认证；
+- 设计验证。
+
+不得把当前开发对话中的模型记忆或隐式推理，当成 EVO 产品运行后的持续学习机制。
+
+产品运行后的长期学习职责属于 EC。
+
+因此：
+
+```text
+LLM for EVO Development
+≠
+EC Runtime Learning
+```
+
+### 16.4 Telemetry 不是 BusinessData
+
+Usage Telemetry 必须和企业业务事实分离。
+
+```text
+BusinessData
+= 企业发生了什么
+
+Usage Telemetry
+= 用户如何使用 EVO
+```
+
+Usage Telemetry 不得成为 Ledger / Journal / Balance 的权威事实来源，也不得通过删除或重建 Usage 数据改变企业业务结果。
+
+### 16.5 隐私与治理
+
+EVO 的 Usage Telemetry 必须是可治理能力，至少支持：
+
+- tenant / enterprise isolation；
+- purpose tagging；
+- schema version；
+- retention policy；
+- access control；
+- pseudonymization / anonymization where appropriate；
+- export / deletion policy；
+- sensitive field exclusion；
+- audit of data access；
+- configurable telemetry levels。
+
+默认不应把 Form 中的完整业务字段值无差别复制到使用日志。
+
+优先采集：
+
+```text
+event type
+application / view / field semantic id
+action
+timestamp
+duration
+result
+relation / navigation context
+role / permission context
+non-sensitive dimensions
+```
+
+只有明确业务目的和治理策略允许时，才采集必要的值级数据。
+
+### 16.6 EC 不得成为 EVO 的隐藏强依赖
+
+EVO 应在没有 EC 的情况下仍然完整运行。
+
+推荐依赖方向：
+
+```text
+EVO → Public Telemetry Contract → EC
+EC → Public Recommendation / Experience Contract → EVO
+```
+
+而禁止：
+
+```text
+EVO Core → EC internal database
+EC → EVO internal tables
+```
+
+这与 Eidos / EVO / EC 的既有项目边界一致：互相知道公开能力和契约，但不依赖对方内部实现。
+
+### 16.7 Enterprise Template 与 Usage Telemetry
+
+Enterprise Template 可以声明：
+
+- 哪些 Application / View 开启 Usage Telemetry；
+- 哪些事件允许采集；
+- telemetry purpose；
+- retention class；
+- EC consumption policy；
+- 是否允许用于跨企业匿名经验学习。
+
+但模板不得把真实用户行为历史打包进 Enterprise Definition Package。
+
+### 16.8 长期目标
+
+长期架构应形成：
+
+```text
+EVO
+负责企业运行
+
+Eidos
+负责 Experience Runtime / UI
+
+EC
+负责长期学习 / 经验沉淀 / 行业知识 / 使用习惯分析
+```
+
+三者通过公开、版本化、可审计契约协作。
+
+EVO 应主动产生足够高质量、可解释的 telemetry，让 EC 能学习；但“如何学习、学习出什么、长期如何演化”属于 EC，而不是 EVO Core。
