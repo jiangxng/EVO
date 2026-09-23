@@ -71,10 +71,22 @@ Before changing code, state internally:
 
 Do not create a new core concept solely to simplify implementation.
 
+For Core-boundary decisions, the default is **outside EVO Core** unless the capability is required for generic BusinessData → PostingRule → Ledger → Balance execution.
+
 Before a material change, classify the evidence target as one of:
 
 `DESIGN ONLY`, `IMPLEMENTED`, `STATIC VERIFIED`, `UNIT VERIFIED`,
 `DATABASE E2E VERIFIED`, or `CERTIFIED — named scenario/boundary`.
+
+## Minimal EVO Runtime Plugin Boundary
+
+- EVO is a lightweight runtime plugin, not the enterprise/application platform.
+- Identity, users, roles, permissions and authorization policy are Host/plugin responsibilities.
+- Enterprise/Application/Package/Feature definitions and capability discovery are Host/App Platform responsibilities.
+- Command is an optional Host/compatibility adapter; EVO Core's canonical input is generic BusinessData submission.
+- PostingRule lifecycle/versioning is plugin-owned; Core only evaluates the supplied rule set.
+- Cost, valuation, statutory accounting, financial statements, workflow, SOP, metrics and audit/archive default to plugins.
+- Repository location is not proof of Core ownership; current broad modules are migration assets until explicitly retained in the minimal boundary.
 
 ## Forbidden Assumptions
 
@@ -90,7 +102,7 @@ Before a material change, classify the evidence target as one of:
 - Do not collapse explicit Posting/PostingRun APIs into ordinary business submission; they remain valid for re-posting, Replay, bulk work, recovery and governed platform control.
 - Do not infer special EVO semantics from an Application calling an operation recalculation; Application-side recalculation is ordinary data resubmission unless an explicit EVO platform-control API is invoked.
 - Treat EVO Runtime Cache as the clearable business runtime dataset. It may include BusinessData and all derived runtime results.
-- A cache clear must be explicit, authorized and scoped; it may destructively remove BusinessData and derived runtime results. It MUST preserve PostingRules and other system/configuration definitions.
+- A cache clear must be explicit and scoped; it may destructively remove BusinessData and derived runtime results. Rules/application/permission definitions are external to EVO Core and therefore are not cache contents.
 - Do not make permanent accounting/audit retention a hidden Core responsibility. Core provides full data export; long-term retention belongs to plugins/packages or user-managed archives.
 - Do not preserve hidden copies of cleared BusinessData merely for audit convenience unless an installed retention plugin explicitly owns that policy.
 - Do not create a PostingRule version manager inside Core. Draft/publish/version/effective-date/rollback semantics belong to the rule-owning plugin/package.
