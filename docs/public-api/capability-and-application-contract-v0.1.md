@@ -243,6 +243,36 @@ CommandExecutor
 BusinessData / PostingInput / governed runtime
 ```
 
+## 6.1 Automatic Initial Posting
+
+Successful public business submission transfers responsibility for the first posting lifecycle to EVO.
+
+```text
+Application
+→ governed Command
+→ accepted BusinessData
+→ EVO-owned posting lifecycle
+```
+
+The Application MUST NOT be required to call a second posting-start operation for the newly accepted fact.
+
+This ownership rule is independent from response timing:
+
+- synchronous completion MAY return `POSTED` / `COMPLETED`;
+- asynchronous completion MAY return `ACCEPTED` / `QUEUED` / `RUNNING`.
+
+For asynchronous completion, the response semantics MUST make it possible to correlate and observe a terminal posting result. `QUEUED` means EVO has already accepted responsibility for continuation.
+
+An explicit Posting / PostingRun API remains a valid Core/platform capability for re-posting, Replay, batch execution, recovery, repair and other governed operational control. It is not part of the normal first-posting obligation of an Application.
+
+Applications submit business semantics, not ledger-entry instructions. The current effective PostingRules determine derived ledger effects.
+
+Normative authority:
+
+- `INVARIANTS.md` INV-046 through INV-050;
+- `PUBLIC-API.md` Automatic Initial Posting Semantics;
+- `docs/architecture/decisions/2026-09-23-automatic-initial-posting-and-async-results-v0.1.md`.
+
 ## 7. Query Boundary
 
 Application APIs MAY expose domain-specific reads.
