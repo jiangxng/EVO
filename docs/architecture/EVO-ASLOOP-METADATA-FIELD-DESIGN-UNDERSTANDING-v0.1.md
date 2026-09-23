@@ -1209,3 +1209,101 @@ Projection / Report
 这样 EVO 才能真正做到：
 
 > 一个业务事实从发生，到被后续业务处理，到进入账本，到形成余额和报表，全链路可导航、可解释、可审计。
+
+
+## 45. 业务详情页中的记账凭证导航
+
+Asloop 在查看 Application 的业务数据详情时，可以直接查看这笔业务数据对应的记账凭证 / 会计凭证。
+
+这说明旧系统并不是把业务和财务完全割裂成两个独立模块，而是允许从具体业务事实直接进入其财务解释结果。
+
+推荐理解：
+
+```text
+Application Business Data
+        ↓
+Business Detail View
+        ↓
+Accounting / Posting Evidence
+        ↓
+Journal / Voucher
+```
+
+这里的核心价值不是“详情页多一个按钮”，而是：
+
+> 用户可以从业务事实直接追溯到这笔业务产生的财务记账结果。
+
+## 46. EVO 中的业务 → 记账凭证可追溯关系
+
+EVO 应将该能力建立在显式 Lineage 上，而不是通过单号、时间或金额临时查询匹配。
+
+推荐关系：
+
+```text
+BusinessData
+   ↓ posting lineage
+Ledger Entry
+   ↓ accounting recognition
+Journal Entry / Journal
+   ↓ archival / print representation
+Voucher
+```
+
+因此在 Application Detail Experience 中，可以自然展示：
+
+- 该业务产生了哪些业务账本分录；
+- 哪些分录进一步进入 GL；
+- 对应哪个 Journal；
+- 是否已经生成 Voucher；
+- Voucher 当前编号 / 归档状态；
+- 是否存在冲销 / 更正 / 重记账版本；
+- 当前看到的是哪一个规则版本产生的结果。
+
+## 47. 业务详情中的“业财同屏”
+
+EVO 后续应支持一种统一详情体验：
+
+```text
+Business Detail
+├─ Business Facts
+├─ Master / Detail Data
+├─ Upstream / Downstream Relations
+├─ Ledger Impact
+├─ Work / Balance Impact
+├─ Journal / Voucher
+└─ Report / Projection Trace
+```
+
+这样业务人员、财务人员和 AI 都能围绕同一 BusinessData 查看不同层次的解释，而不是维护多套互相割裂的页面。
+
+## 48. Voucher 与 Journal 的边界
+
+结合当前 EVO 财务设计，必须继续区分：
+
+- Journal / 会计分录：正式、可审计的会计记录；
+- Voucher / 凭证：面向编号、打印、归档、纸质/电子档案要求的表现与归档对象。
+
+业务详情页可以查看 Voucher，但底层 lineage 应优先追溯到 Journal / Ledger Entry，而不是把 Voucher 当成唯一财务事实源。
+
+推荐：
+
+```text
+BusinessData
+→ Ledger Entry
+→ Journal
+→ Voucher / Print / Archive Representation
+```
+
+这样即使后续 Voucher 编号、打印格式或归档政策变化，也不会破坏业务事实与会计事实之间的权威关系。
+
+## 49. AI-Native 业务到财务解释
+
+有了显式 BusinessData → Ledger → Journal → Voucher lineage，AI 可以可靠回答：
+
+- “这张销售订单产生了哪些会计影响？”
+- “为什么这笔业务借记这个科目、贷记那个科目？”
+- “这张单据对应哪张凭证？”
+- “这张凭证又来自哪些业务数据？”
+- “如果重新记账，这笔业务的凭证发生了什么变化？”
+
+AI 的解释必须基于正式 lineage、规则版本和记账结果，而不是根据业务类型名称猜测会计处理。
