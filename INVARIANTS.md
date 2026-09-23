@@ -91,6 +91,10 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-060 — Long-Term Audit Retention Is Optional Policy: EVO Core MUST NOT silently preserve hidden audit copies after Clear Cache. Long-term accounting-voucher/statutory/audit retention belongs to optional plugins/packages or customer-managed export retention.
 - INV-061 — Cache Clear Preserves Rebuild Semantics: After Clear Cache, the selected runtime scope MUST be empty of business/runtime results while retaining the rules and definitions required for resubmitted data to be processed deterministically.
 
+- INV-062 — PostingRule Versioning Is Not a Core Concern: EVO Core MUST NOT own PostingRule draft/publish/version/effective-date/rollback history. A rule-owning plugin/package may implement those lifecycle semantics and supplies the rule set Core should execute.
+- INV-063 — Core Executes Supplied Rules: Posting Core evaluates the currently supplied governed PostingRules deterministically. It MAY record stable rule identity/hash for diagnostics and reproducibility, but MUST NOT interpret that identity as a Core-managed rule version lifecycle.
+- INV-064 — Rule Change Is Plugin Configuration: Changing PostingRules is a plugin/package configuration operation, not Clear Cache and not a special Core recalculation mode. After rules change, callers/plugins may request EVO recalculation or clear-and-resubmit as appropriate.
+
 ## Alpha.2 Dimensions + Valuation Posting
 
 ### DIM-01 — Explicit Dimension Definition
