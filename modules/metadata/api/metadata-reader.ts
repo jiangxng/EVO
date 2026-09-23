@@ -1,4 +1,5 @@
 import type {
+  ApplicationDefinition,
   ApplicationDefinitionVersion,
   ApplicationInstance,
   CommandDefinition,
@@ -10,6 +11,14 @@ import type {
 
 export interface MetadataReader {
   getEnterprise(enterpriseId: string): Promise<Enterprise | null>;
+
+  getApplicationDefinition(
+    applicationDefinitionId: string
+  ): Promise<ApplicationDefinition | null>;
+
+  listApplicationInstances(
+    enterpriseId: string
+  ): Promise<readonly ApplicationInstance[]>;
 
   getApplicationInstance(
     enterpriseId: string,
