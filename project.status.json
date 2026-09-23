@@ -14,7 +14,7 @@
     "stage": "Runtime Convergence",
     "status": "SELECTED_NOT_STARTED",
     "overallClosed": false,
-    "businessGoal": "Introduce the smallest generic EVO BusinessData submission boundary so Host/App Platform can submit facts without EVO owning permissions, applications, capabilities or Command orchestration, while preserving current compatibility behavior.",
+    "businessGoal": "Introduce the smallest generic EVO BusinessData submission boundary with mandatory applicationId routing so EVO can select the correct current PostingRules without owning rich application lifecycle, permissions, capabilities or Command orchestration.",
     "activeBranch": null,
     "packet": null,
     "evidenceTarget": "IMPLEMENTED + UNIT VERIFIED + PostgreSQL E2E before replacing current compatibility path",
@@ -24,14 +24,16 @@
       "superseded finance-Core alignment PR #50 closed"
     ],
     "openGates": [
-      "define minimal BusinessDataSubmission contract",
+      "define minimal ApplicationAnchor/applicationId contract",
+      "define BusinessDataSubmission with mandatory applicationId",
+      "define current PostingRule registration keyed by applicationId",
       "implement compatibility adapter from current /commands path",
       "prove automatic Posting remains unchanged",
       "add Host/App Platform adapter that owns application/capability/permission semantics",
       "prove Trading Lite works through Host → BusinessDataSubmission → EVO",
       "only after replacement proof, deprecate platform-oriented EVO endpoints"
     ],
-    "nextAction": "Create a bounded CORE-MIN-02 branch for generic BusinessData submission; do not perform broad repository extraction yet."
+    "nextAction": "Implement CORE-MIN-02 around ApplicationAnchor + BusinessDataSubmission.applicationId + PostingRule.applicationId routing; preserve current /commands compatibility until the new path is PostgreSQL E2E verified."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -98,7 +100,7 @@
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
     "currentAssessment": "MINIMAL_EVO_RUNTIME_PLUGIN_BOUNDARY_MERGED",
-    "rule": "Technical design must keep EVO as a lightweight runtime plugin. Under uncertainty, move identity/application/governance/domain capabilities to Host/plugins; Core stays BusinessData → supplied PostingRules → Ledger/Balance plus runtime control/export.",
+    "rule": "Keep EVO lightweight, but retain the minimal ApplicationAnchor/applicationId required to route BusinessData to current PostingRules. Rich application lifecycle, permissions, capabilities and rule-version governance remain outside Core.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
       "rule": "Perform a formal requirement-alignment review after every 3 merged DATABASE E2E VERIFIED/CERTIFIED bounded slices since the last review, or immediately when any mandatory trigger fires, whichever comes first."
@@ -159,8 +161,10 @@
       "replay/materialization runtime state tied to cleared dataset"
     ],
     "clearCachePreserves": [
-      "nothing inside EVO runtime dataset except operational reset/status metadata required by the clear operation",
-      "rules/application/permission/package definitions are external to EVO Core and therefore not cache targets"
+      "ApplicationAnchor/applicationId routing configuration",
+      "current PostingRules",
+      "generic Ledger/runtime definitions required to process new BusinessData",
+      "Host permissions, rich Application metadata and Package/Feature state are external to EVO Core and are not cache contents"
     ],
     "postingRuleChange": "plugin/package-owned rule lifecycle; Core consumes supplied current/governed rules and does not manage PostingRule versions",
     "coreExportTarget": [
@@ -177,6 +181,8 @@
     "status": "DESIGN_MERGED_IMPLEMENTATION_CONVERGENCE_PENDING",
     "model": "LIGHTWEIGHT_EVO_RUNTIME_PLUGIN",
     "coreResponsibilities": [
+      "maintain minimal ApplicationAnchor/applicationId routing registry",
+      "store/evaluate current PostingRules keyed by applicationId",
       "accept generic BusinessData under opaque runtime scope",
       "deterministically evaluate supplied PostingRules",
       "persist current runtime BusinessData",
@@ -188,7 +194,7 @@
     ],
     "notCore": [
       "identity/users/roles/permissions",
-      "Enterprise/Application definitions",
+      "rich Enterprise/Application definitions and lifecycle",
       "Package/Feature lifecycle",
       "capability discovery",
       "Command authorization/orchestration",
