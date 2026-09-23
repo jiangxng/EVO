@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "EVO",
   "authority": "machine-readable-branch-analysis-contract",
-  "updatedAt": "2026-09-22",
+  "updatedAt": "2026-09-23",
   "authoritativeBranch": "main",
   "analysisRules": [
     "Never infer branch authority from branch name, commit count, age, or open/closed PR state alone.",
@@ -395,10 +395,19 @@
       "description": "FAI-06 accounting periods, economic↔GL reconciliation and statement projection metadata merged after CI #670."
     },
     "evo/fai-07-three-financial-statements-v0.1": {
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 49,
+      "description": "FAI-07 three core financial statements merged by PR #49; three-statement projections, reconciliation and deterministic replay are contained in main."
+    },
+    "evo/post-fai-07-finance-gap-alignment-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "FAI-07 three core financial statements: BS/IS/CF projections, cross-statement reconciliation and deterministic statement replay."
+      "pr": 50,
+      "description": "Post-FAI-07 finance architecture alignment. Documentation-only branch separating Core accounting runtime, installable Finance Apps and jurisdiction/regulatory packs."
     }
   },
   "requiredLLMProcedure": [
@@ -426,7 +435,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf",
+  "lastReviewedMainCommit": "011fc130da457b7fed5b8a9c03f570b677045f83",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -454,18 +463,15 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/fai-07-three-financial-statements-v0.1",
-    "pullRequest": 49,
+    "businessMainline": "evo/post-fai-07-finance-gap-alignment-v0.1",
+    "pullRequest": 50,
     "includedGates": [
-      "Balance Sheet",
-      "Income Statement",
-      "Cash Flow Statement",
-      "cross-statement reconciliation",
-      "statement replay",
-      "broken mapping negative proof"
+      "post-FAI-07 finance architecture alignment",
+      "Core vs Finance App vs jurisdiction/regulatory pack responsibility split",
+      "next accounting-governance packet selection"
     ],
-    "evidenceTarget": "CERTIFIED — three core financial statements / CI #672",
-    "afterSuccess": "Merge PR #49, then run post-three-statement finance-gap alignment before selecting broader statutory controls.",
-    "rule": "Do not extend the report engine into independent accounting truth. Statements remain projections of authoritative GL and BusinessData lineage."
+    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no new runtime claim",
+    "afterSuccess": "Merge PR #50 when its documentation checks and latest-main reconciliation are verified. Runtime work may proceed on independent bounded branches from current main when it does not change the finance alignment scope.",
+    "rule": "Do not extend the report engine into independent accounting truth. Keep unrelated runtime/public-API work on separate bounded branches from current main."
   }
 }
