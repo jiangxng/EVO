@@ -85,9 +85,12 @@ Before a material change, classify the evidence target as one of:
 - Do not write derived Cost results directly into balances without a declared valuation-posting interface.
 - Do not treat Application as the enterprise truth model.
 - Do not silently select latest metadata/rules for historical reconstruction.
-- Do not require an Application to trigger the first posting after EVO accepts a business fact; EVO owns automatic continuation.
+- Do not require an Application to trigger the posting after EVO accepts a business fact; EVO owns automatic continuation.
 - Do not interpret `QUEUED` as waiting for a caller-side posting trigger. It means EVO has accepted responsibility for asynchronous continuation.
 - Do not collapse explicit Posting/PostingRun APIs into ordinary business submission; they remain valid for re-posting, Replay, bulk work, recovery and governed platform control.
+- Do not infer special EVO semantics from an Application calling an operation recalculation; Application-side recalculation is ordinary data resubmission unless an explicit EVO platform-control API is invoked.
+- Treat EVO Runtime Cache as rebuildable active state, not as a synonym for deletable historical/audit evidence.
+- A cache clear must be explicit, authorized, scoped and auditable; prefer generation reset/switch semantics over destructive history deletion.
 
 ## Output Expectations for Coding Agents
 
