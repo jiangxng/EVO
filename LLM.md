@@ -1,7 +1,7 @@
 # EVO LLM Context Contract
 
 Status: Authoritative
-Context Contract Version: 1.2
+Context Contract Version: 1.3
 
 This file is model-agnostic. It is intended for GPT, Claude, Gemini, local/open models, coding agents and future systems.
 
