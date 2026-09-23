@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "EVO",
   "authority": "maintained-current-progress-pointer",
-  "updatedAt": "2026-09-22",
+  "updatedAt": "2026-09-24",
   "main": {
     "authoritativeBranch": "main",
     "lastVerifiedRuntimeMergeCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf"
@@ -150,5 +150,34 @@
     "primaryOpenRequirement": "Post-three-statement statutory/accounting control gap alignment",
     "implementationStatus": "FAI_07_DATABASE_VERIFIED",
     "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT"
+  },
+  "runtimeDataLifecycle": {
+    "status": "DESIGN_ACCEPTED_IMPLEMENTATION_PENDING",
+    "clearCacheTarget": "POST /api/v1/runtime-cache/clear",
+    "clearCacheDeletes": [
+      "command/idempotency runtime state in scope",
+      "BusinessData",
+      "PostingInput/PostingRun runtime state",
+      "LedgerEntry/LedgerBalance",
+      "CostRun/CostResult and valuation results",
+      "Work/runtime projections",
+      "General Ledger/accounting projections derived from cleared runtime data",
+      "replay/materialization runtime state tied to cleared dataset"
+    ],
+    "clearCachePreserves": [
+      "PostingRules",
+      "Ledger definitions",
+      "cost/valuation rules and policies",
+      "chart of accounts/accounting policies",
+      "Application metadata",
+      "installed Package/Feature state",
+      "permissions/identity/configuration"
+    ],
+    "postingRuleChange": "separate governed version/effective-date lifecycle; never a cache-clear operation",
+    "coreExportTarget": [
+      "POST /api/v1/data-exports",
+      "GET /api/v1/data-exports/{exportId}"
+    ],
+    "longTermAuditRetention": "OPTIONAL_PLUGIN_OR_EXTERNAL_EXPORT_POLICY"
   }
 }
