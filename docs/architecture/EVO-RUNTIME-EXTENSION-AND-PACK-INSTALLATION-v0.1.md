@@ -1324,3 +1324,121 @@ one scoped enterprise request
 ```
 
 这使 EVO Core 同时适用于单机、一人公司、私有化部署和云平台，而不被某一种 SaaS 架构绑死。
+
+
+## 34. Cross-project Contract — Installable Business App = Backend Capability + Eidos Experience
+
+An installable EVO business application may contribute both backend capability and frontend experience.
+
+The logical package model is:
+
+```text
+Business App Package
+├─ backend
+│  ├─ definitions
+│  ├─ APIs
+│  ├─ projections
+│  └─ optional runtime extensions
+├─ experience
+│  ├─ Eidos app manifest
+│  ├─ navigation
+│  ├─ pages / UIDL
+│  ├─ dashboards / visualizations
+│  └─ action/data bindings
+└─ manifest
+   ├─ package identity/version
+   ├─ EVO dependencies
+   ├─ Eidos compatibility
+   ├─ install/upgrade/uninstall metadata
+   └─ capability declarations
+```
+
+### 34.1 Ownership rule
+
+EVO owns:
+
+- package installation lifecycle;
+- backend capability activation;
+- authoritative business data and runtime semantics;
+- backend Public APIs;
+- capability discovery.
+
+Eidos owns:
+
+- frontend runtime;
+- reusable component library;
+- App Host;
+- validation and rendering of frontend experience definitions.
+
+The business package owns:
+
+- business-specific backend implementation/definitions;
+- business-specific Eidos experience definitions;
+- package-level configuration and dependency declaration.
+
+### 34.2 No private cross-project imports
+
+A business package must not require Eidos private implementation code or EVO private implementation code as its integration contract.
+
+The backend side integrates through EVO public package/runtime contracts.
+
+The frontend side integrates through Eidos public experience/component/App Host contracts.
+
+### 34.3 Generic UI primitives belong to Eidos, not EVO
+
+Generic frontend capabilities such as:
+
+- Form;
+- List / DataGrid;
+- EditableGrid;
+- FilterBar;
+- Navigation;
+- Dialog;
+- Chart;
+- KPI;
+- Dashboard layout;
+- Timeline;
+- Tree;
+- visualization primitives
+
+belong to the Eidos Component Library.
+
+A business package contributes composition/definitions that use these primitives.
+
+Example:
+
+```text
+Finance Reporting Package
+→ balance-sheet page definition
+→ uses Eidos TreeGrid / Filter / KPI / Chart
+```
+
+The package should not ship its own parallel frontend framework.
+
+### 34.4 App installation behavior
+
+Installing a business package should make both backend and frontend capability available as one governed installation outcome:
+
+```text
+install package
+→ backend capability becomes active
+→ experience manifest becomes discoverable
+→ Eidos App Host includes routes/navigation/pages
+→ user sees the installed application
+```
+
+Uninstall/deactivation should remove current capability exposure and frontend navigation/page availability while preserving authoritative historical data according to EVO invariants.
+
+### 34.5 Cross-project acceptance test
+
+A package is not considered fully installable until all are true:
+
+1. backend capability can be installed/activated;
+2. Eidos experience can be discovered by App Host;
+3. UI uses Eidos public components/contracts only;
+4. frontend actions call declared public backend APIs;
+5. uninstall/deactivate removes current UI exposure;
+6. EVO remains functional without the package;
+7. Eidos remains functional with a mock/non-EVO host.
+
+This section is the EVO-side authority for the EVO ↔ Eidos installable-application boundary.
