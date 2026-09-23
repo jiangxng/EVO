@@ -113,6 +113,16 @@ BusinessData already in EVO
 
 No Application resubmission is required.
 
+## 5.1 PostingRule changes are independent
+
+Clear Cache has no mode that clears PostingRules.
+
+PostingRules may be modified through their own governed lifecycle. For published/effective rules, changes should create a new version/effective period rather than silently rewriting the semantics that were used by a still-retained runtime dataset.
+
+EVO does not judge the business motive behind an authorized rule or data adjustment. Customers may legitimately adjust data, estimates, classifications, accounting policies/elections, or rule choices before audit/close where their applicable accounting/audit framework permits and the resulting data fairly represents the relevant facts.
+
+Fraud detection, audit-locking, statutory retention and similar governance are optional policy capabilities, not assumptions hard-coded into the Core calculation engine.
+
 ### Application-side recalculation
 
 An Application may choose:
