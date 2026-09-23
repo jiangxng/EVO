@@ -21,49 +21,49 @@
     ]
   },
   "currentStage": {
-    "id": "Architecture Convergence",
-    "name": "Minimal EVO Runtime Plugin Boundary",
-    "businessGoal": "Shrink EVO to the smallest reusable runtime plugin that can accept BusinessData, execute externally supplied rules deterministically, derive Ledger/Balance, and support recalc/clear/export without owning enterprise-platform concerns."
+    "id": "Runtime Convergence",
+    "name": "Generic BusinessData Submission Convergence",
+    "businessGoal": "Make the merged lightweight EVO Runtime Plugin usable through a minimal generic BusinessData submission boundary while preserving existing compatibility behavior during migration."
   },
   "activeRequirementSet": {
-    "id": "CORE-MIN-01",
-    "name": "Minimal EVO Runtime Plugin Boundary",
+    "id": "CORE-MIN-02",
+    "name": "Generic BusinessData Submission Convergence",
     "acceptance": [
-      "EVO is explicitly defined as a lightweight runtime plugin rather than the enterprise/application platform",
-      "identity, users, roles, permissions and authorization policy are outside EVO Core",
-      "Enterprise/Application/Package/Feature definitions and capability discovery are outside EVO Core",
-      "generic BusinessData submission is the target Core ingestion boundary; Command is optional Host/compatibility orchestration",
-      "PostingRule lifecycle/versioning is plugin-owned; Core only executes the supplied rule set",
-      "generic Posting/Ledger/Balance remain the minimal deterministic runtime spine",
-      "recalculation, runtime-data clear, full export and generic result/status query remain Core runtime-control capabilities",
-      "cost, valuation, General Ledger/statutory accounting, financial statements, workflow, SOP, metrics and audit/archive default to plugin ownership",
-      "current broad repository modules are classified as implementation assets/extraction candidates rather than proof of Core ownership",
-      "current Proof C compatibility runtime is not broken by this design-only convergence"
+      "define a generic BusinessDataSubmission contract that does not require Enterprise/Application definitions, permissions, capabilities or Command objects inside EVO Core",
+      "support an opaque runtime scope key for isolation without Core-owned enterprise metadata",
+      "accepted BusinessData automatically enters the existing Posting lifecycle",
+      "PostingRules are supplied to Core through a plugin/Host boundary without Core rule-version governance",
+      "current /api/v1/commands path can adapt into the new submission boundary during migration",
+      "existing Proof C compatibility behavior remains available until the Host adapter replacement is proven",
+      "PostgreSQL E2E proves generic submission → BusinessData → Posting → Ledger/Balance",
+      "no broad module extraction is performed before this contract is proven"
     ],
     "verified": [
-      "authoritative minimal-runtime-plugin ADR added",
-      "PHILOSOPHY / CONCEPTS / INVARIANTS / ARCHITECTURE / PUBLIC-API aligned",
-      "architecture.manifest.json and context.manifest.json encode the target boundary",
-      "project.status.json and branch.topology.json moved to CORE-MIN-01 mainline",
-      "EVO-App-Platform documentation now treats EVO as an ordinary runtime dependency package"
+      "CORE-MIN-01 minimal EVO Runtime Plugin boundary merged by PR #56 / CI #738",
+      "identity/permissions/application/capability/rule-version ownership is normatively outside Core",
+      "App Platform documents EVO as an ordinary lightweight runtime dependency package",
+      "superseded PR #25 and PR #50 are closed"
     ],
     "open": [
-      "PR #56 full CI must pass after final context/requirements synchronization",
-      "merge PR #56 to main",
-      "close superseded PR #25 and PR #50",
-      "define the first bounded runtime convergence slice: generic BusinessData submission adapter while preserving current Proof C compatibility"
+      "define BusinessDataSubmission input/result contract",
+      "implement EVO runtime ingestion service behind that contract",
+      "adapt current Command compatibility path onto runtime ingestion",
+      "add PostgreSQL E2E for submission → automatic Posting → Ledger/Balance",
+      "add Host/App Platform adapter and migrate Trading Lite proof to the generic submission path"
     ],
     "deferred": [
       "physical extraction of identity/metadata/application/capability modules",
       "physical extraction of finance/accounting/reporting modules",
-      "renaming current evo.core package seed to evo.runtime",
-      "removing compatibility /commands endpoint",
+      "removing /api/v1/commands compatibility endpoint",
+      "renaming evo.core package seed",
       "cost/valuation plugin extraction",
+      "runtime-cache clear implementation",
+      "full data-export implementation",
       "audit/archive plugin implementation"
     ],
-    "currentWork": "Minimal EVO Runtime Plugin architecture convergence",
-    "status": "DESIGN_ACCEPTED_PENDING_CI_MERGE",
-    "packet": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
+    "currentWork": "Generic BusinessData submission runtime convergence",
+    "status": "SELECTED_NOT_STARTED",
+    "packet": null
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -96,8 +96,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-24",
-    "reason": "Human requirement correction: EVO itself must be treated as a lightweight plugin and must not own permissions, application definitions, rule-version governance or broader platform responsibilities.",
-    "result": "CORE-MIN-01 selected. Default boundary rule: keep capabilities outside EVO Core unless generic BusinessData → supplied PostingRules → Ledger → Balance cannot function without them."
+    "reason": "CORE-MIN-01 minimal runtime plugin boundary merged after the human clarified that EVO itself must remain a small plugin without identity, permissions, application definitions or rule-version governance.",
+    "result": "CORE-MIN-02 selected: prove the smallest generic BusinessData submission boundary before any broad module extraction."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -106,11 +106,11 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "AFTER_CORE_MIN_01_MERGE",
-    "selection": "GENERIC_BUSINESSDATA_SUBMISSION_CONVERGENCE",
-    "rule": "After the minimal boundary is merged, implement the smallest generic BusinessData submission adapter while retaining the current Proof C compatibility path until migrated."
+    "state": "CURRENT_SELECTION_ACTIVE",
+    "selection": "CORE-MIN-02_GENERIC_BUSINESSDATA_SUBMISSION",
+    "rule": "Do not select another broad architecture packet until the generic submission path is implemented and PostgreSQL E2E verified."
   },
-  "currentWork": "Minimal EVO Runtime Plugin architecture convergence",
+  "currentWork": "Generic BusinessData submission runtime convergence",
   "financialAccountingIntegrity": {
     "state": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
     "findings": [
