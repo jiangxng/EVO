@@ -38,6 +38,7 @@ jobs:
       - run: npm run build
       - run: npm run test
       - run: npm run seed:demo
+      - run: npm run validate:public-capability-command
       - run: npm run validate:demo
       - run: npm run validate:eel-c01-receipt-posting
       - run: npm run validate:eel-c01-settlement-allocation
