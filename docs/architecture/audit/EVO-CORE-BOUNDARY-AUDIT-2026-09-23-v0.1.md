@@ -402,3 +402,44 @@ No database migration is performed in this first composition slice.
 - selected FAI regression validation.
 
 Until those pass, this slice is not certified for merge.
+
+
+## 14. Runtime Boundary Correction
+
+A stronger requirement is now authoritative:
+
+> Core is not only a code boundary. Core is an independent runtime boundary.
+
+Therefore the first `createEvoKernelRuntime()` extraction is explicitly transitional. It proves semantic ownership and enables regression-safe migration, but it is **not** the final extension mechanism.
+
+Target architecture:
+
+```text
+EVO Core Service
+        ↕
+Public API / Event / Package Protocol
+        ↕
+Independent Pack / Service
+```
+
+Not:
+
+```text
+single process
+→ import optional module implementation
+```
+
+Consequences:
+
+- optional capabilities cannot be formalized as Core code imports;
+- extensions cannot directly read/write Core private tables;
+- official packs must follow the same Public Protocol rules as third-party packs;
+- SDKs may depend on generated protocol clients, but not Core implementation libraries;
+- `createEvoRuntime()` is a compatibility/dev distribution composition only;
+- physical repository co-location does not imply runtime coupling.
+
+The target architecture is defined in:
+
+`docs/architecture/EVO-RUNTIME-EXTENSION-AND-PACK-INSTALLATION-v0.1.md`
+
+This correction changes later migration order: Public Protocol / Package Install / Snapshot / Change Feed must be established before declaring a non-Core module truly decoupled.
