@@ -10,11 +10,18 @@ const app = buildApp({ database, loggerLevel: 'silent' });
 const runtime = createEvoRuntime(database);
 
 try {
-  const enterprise = await runtime.db
-    .selectFrom('enterprise')
-    .select(['id'])
-    .where('code', '=', 'EVO_DEMO')
-    .executeTakeFirstOrThrow();
+  const enterpriseResponse = await app.inject({
+    method: 'GET',
+    url: '/api/v1/enterprises/EVO_DEMO'
+  });
+  assert.equal(enterpriseResponse.statusCode, 200);
+  const enterprise = enterpriseResponse.json() as {
+    id: string;
+    code: string;
+    status: string;
+  };
+  assert.equal(enterprise.code, 'EVO_DEMO');
+  assert.equal(enterprise.status, 'ACTIVE');
 
   const enterpriseId = enterprise.id;
   const capabilityResponse = await app.inject({
