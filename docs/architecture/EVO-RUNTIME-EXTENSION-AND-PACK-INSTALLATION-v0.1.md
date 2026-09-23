@@ -435,3 +435,273 @@ Microservices:
 ```
 
 这条决策优先于此前任何“所有插件都必须微服务化”或“所有插件都通过代码 import”的理解。
+
+
+## 15. Business Rationale — Growth by Installation
+
+本架构的直接业务来源不是“技术上喜欢插件化”，而是企业自身会成长。
+
+EVO 必须支持同一个企业从极简形态逐步生长，而不需要更换底座。
+
+典型路径：
+
+```text
+One-person Company
+        ↓ install capabilities
+Small Team
+        ↓ install capabilities
+Small Company
+        ↓ install capabilities
+Industry-specific Company
+        ↓ install capabilities
+Larger Enterprise
+```
+
+核心原则：
+
+> **企业的成长主要表现为安装更多能力、更多应用、更多定义和更多服务，而不是替换 EVO Core。**
+
+### 15.1 One-person Company
+
+最小企业可能只需要：
+
+```text
+EVO Core
++
+Simple Trading / Inventory Definition Package
+```
+
+能力可能只有：
+
+- Inventory ledger；
+- Cash ledger；
+- Receivable；
+- Payable；
+- Purchase / Sales posting rules；
+- 极少量业务应用。
+
+它不应被迫安装：
+
+- Finance Reporting；
+- Manufacturing；
+- Workflow；
+- APQC；
+- EC；
+- Advanced Analytics。
+
+### 15.2 Small Team
+
+当企业开始多人协作，可以继续安装：
+
+- User / Role / Policy capability；
+- Approval / Workflow；
+- Work / Todo；
+- Shared Sales / Procurement applications；
+- basic operational dashboards。
+
+原有 BusinessData / Ledger history 不迁移、不重建为另一套产品。
+
+### 15.3 Small Company
+
+企业继续成长时，可以再安装：
+
+- Finance Accounting；
+- Payroll / Expense；
+- Inventory management；
+- Costing；
+- CRM；
+- Reporting；
+- multi-department dimensions；
+- stronger permission policies。
+
+EVO Core 本身不因为企业规模变化而变成另一个 SKU。
+
+### 15.4 Industry Growth
+
+不同行业通过安装不同 Industry Package / Application Package 扩展：
+
+```text
+Retail
+Manufacturing
+Trading
+Service
+Logistics
+Construction
+Professional Services
+...
+```
+
+行业包主要组合：
+
+- ledger definitions；
+- posting rules；
+- objects / fields；
+- transaction types；
+- applications；
+- forms / views；
+- workflows；
+- reports；
+- optional runtime extensions。
+
+因此“行业 ERP”是 EVO Core + 行业能力组合，而不是另一套底层系统。
+
+## 16. UI-driven Installation
+
+最终用户应能够在界面上完成“安装应用 / 安装能力”。
+
+推荐用户体验：
+
+```text
+App / Capability Catalog
+→ select capability
+→ view dependencies and permissions
+→ preview changes
+→ install
+→ configure
+→ activate
+```
+
+用户看到的可以是“应用”，而底层安装器实际处理：
+
+- Definition Package；
+- dependent packages；
+- optional external service registration；
+- schema/projection initialization；
+- compatibility check；
+- version pinning；
+- activation。
+
+用户无需理解微服务、数据库、Posting Rule 或 Ledger Definition。
+
+### 16.1 Installable Unit
+
+对用户而言安装单位可以称为：
+
+- App；
+- Module；
+- Capability；
+- Industry Package。
+
+对系统而言统一抽象为：
+
+```text
+Installable Package
+```
+
+Manifest 至少需要描述：
+
+- package id；
+- version；
+- display name；
+- capabilities provided；
+- dependencies；
+- required EVO protocol version；
+- tenant/local compatibility；
+- configuration schema；
+- data ownership；
+- permissions requested；
+- install/upgrade/uninstall behavior；
+- runtime endpoint requirements if any；
+- digest/signature。
+
+## 17. Local Deployment and Cloud Tenant Must Share the Same Model
+
+EVO 必须同时支持：
+
+### Local / On-premises
+
+```text
+Customer machine / private server
+├─ EVO Core
+├─ installed packages
+├─ optional local services
+└─ customer-owned storage
+```
+
+适合：
+
+- 一人公司；
+- 私有部署；
+- 内网；
+- 数据主权要求；
+- 行业现场系统。
+
+### Cloud / Multi-tenant
+
+```text
+EVO Cloud
+├─ shared / isolated Core runtime
+├─ Tenant A package set
+├─ Tenant B package set
+├─ Tenant C package set
+└─ governed tenant isolation
+```
+
+每个 Tenant 都拥有自己的：
+
+- installed package inventory；
+- package versions；
+- configuration；
+- data scope；
+- permissions；
+- feature activation；
+- runtime extension registration。
+
+关键原则：
+
+> **Deployment topology can differ; package semantics must remain the same.**
+
+同一个 Package 应尽量既能安装在本地企业，也能安装在云租户。
+
+## 18. Tenant as an Installation Boundary
+
+Cloud 场景中，Tenant / Enterprise 不只是数据隔离单位，也是 capability installation boundary。
+
+推荐：
+
+```text
+Tenant
+├─ Core protocol version
+├─ Installed Packages
+├─ Activated Capabilities
+├─ Definition Versions
+├─ Runtime Extensions
+├─ Policy Set
+└─ Data
+```
+
+因此不同租户可以运行完全不同的能力集合，而共享同一 EVO Core 产品。
+
+例如：
+
+```text
+Tenant A = Trading
+Tenant B = Trading + Finance
+Tenant C = Manufacturing + Finance + Reporting
+Tenant D = Service + CRM + Workflow
+```
+
+无需为每个客户维护不同代码分支。
+
+## 19. Product Consequence
+
+EVO 的产品不是一个固定 ERP 功能集合。
+
+更准确地说：
+
+> **EVO 是一个可生长的企业运行底座；应用、行业能力和管理能力通过安装不断生长。**
+
+因此 Core 的长期稳定性比单个业务模块数量更重要。
+
+产品成熟后的理想体验类似：
+
+```text
+Install EVO
+→ choose company starting template
+→ use
+→ company grows
+→ install more apps/capabilities
+→ keep using the same system and history
+```
+
+这也是为什么 Runtime Extension Boundary、Package Manifest、Versioning、Upgrade、Uninstall、Tenant Isolation 都是 EVO 的一级能力，而不是后期附加功能。
