@@ -65,6 +65,9 @@ class FakeMetadataReader implements MetadataReader {
   async getEnterprise(): Promise<Enterprise | null> {
     return this.enterprise;
   }
+  async getEnterpriseByCode(): Promise<Enterprise | null> {
+    return this.enterprise;
+  }
   async getApplicationDefinition(): Promise<ApplicationDefinition | null> {
     return {
       id: 'a1',
