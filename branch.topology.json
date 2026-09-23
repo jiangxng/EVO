@@ -420,10 +420,12 @@
       "description": "Minimal EVO Runtime Plugin boundary merged by PR #56 after CI #738. Defines EVO as lightweight BusinessData→supplied PostingRules→Ledger/Balance runtime with platform/governance/domain concerns externalized."
     },
     "evo/core-min-02-application-routing-anchor-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "CORE-MIN-02 architecture refinement restoring minimal ApplicationAnchor/applicationId as the mandatory BusinessData→PostingRule routing key. Branch is ahead of main and contains no runtime implementation yet."
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 57,
+      "description": "CORE-MIN-02 application-routing architecture refinement merged by PR #57 after CI #743. Restores minimal ApplicationAnchor/applicationId inside EVO Core as the mandatory BusinessData→PostingRule routing key."
     }
   },
   "requiredLLMProcedure": [
@@ -451,7 +453,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "81fbec46419dc53f33d21ad0eb0fc586a1ce1979",
+  "lastReviewedMainCommit": "24a6983733e8b2c49eb7714f2fb63c51a9a42d5f",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -479,17 +481,17 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/core-min-02-application-routing-anchor-v0.1",
+    "businessMainline": "main",
     "pullRequest": null,
     "includedGates": [
-      "restore minimal ApplicationAnchor/applicationId inside EVO Core",
-      "require BusinessData.applicationId",
-      "require PostingRule.applicationId",
-      "route candidate rules by exact applicationId before condition evaluation",
-      "keep rich application lifecycle/permissions/capability discovery outside EVO Core"
+      "ApplicationAnchor/applicationId architecture is merged",
+      "next bounded slice implements ApplicationAnchor persistence and generic BusinessDataSubmission",
+      "current PostingRules must be keyed by applicationId",
+      "candidate rule selection must filter by exact applicationId before condition evaluation",
+      "keep current /commands compatibility until new path is PostgreSQL E2E verified"
     ],
-    "evidenceTarget": "DESIGN/ARCHITECTURE CI before runtime implementation",
-    "afterSuccess": "Merge the routing-anchor refinement, then implement CORE-MIN-02 persistence/API/E2E for ApplicationAnchor + BusinessDataSubmission + current PostingRules.",
+    "evidenceTarget": "NEXT: IMPLEMENTED + UNIT VERIFIED + PostgreSQL E2E for ApplicationAnchor/ApplicationId routing",
+    "afterSuccess": "Migrate Trading Lite Host adapter to ApplicationAnchor + BusinessDataSubmission(applicationId), then validate browser flow against target EVO runtime.",
     "rule": "Application identity is a Core routing key; Application lifecycle is not a Core responsibility."
   }
 }
