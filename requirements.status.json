@@ -45,15 +45,17 @@
       "CORE-MIN-01 minimal EVO Runtime Plugin boundary merged by PR #56 / CI #738",
       "identity/permissions/application/capability/rule-version ownership is normatively outside Core",
       "App Platform documents EVO as an ordinary lightweight runtime dependency package",
-      "superseded PR #25 and PR #50 are closed"
+      "superseded PR #25 and PR #50 are closed",
+      "ApplicationAnchor/applicationId architecture merged by EVO PR #57 / CI #743",
+      "App Platform ApplicationAnchor contribution model merged by PR #6"
     ],
     "open": [
-      "define minimal ApplicationAnchor persistence/contract",
-      "define BusinessDataSubmission input/result with mandatory applicationId",
-      "define current PostingRule registration/storage keyed by applicationId",
-      "implement EVO runtime ingestion service behind that contract",
+      "implement minimal ApplicationAnchor persistence/contract",
+      "implement BusinessDataSubmission input/result with mandatory applicationId",
+      "implement current PostingRule registration/storage keyed by applicationId",
+      "route candidate PostingRules by exact applicationId before condition evaluation",
       "adapt current Command compatibility path onto runtime ingestion",
-      "add PostgreSQL E2E for submission → automatic Posting → Ledger/Balance",
+      "add PostgreSQL E2E for applicationId → BusinessData → automatic Posting → Ledger/Balance",
       "add Host/App Platform adapter and migrate Trading Lite proof to the generic submission path"
     ],
     "deferred": [
@@ -67,7 +69,7 @@
       "audit/archive plugin implementation"
     ],
     "currentWork": "Generic BusinessData submission runtime convergence",
-    "status": "SELECTED_NOT_STARTED",
+    "status": "DESIGN_REFINED_MERGED_IMPLEMENTATION_NOT_STARTED",
     "packet": null
   },
   "antiOverdesignQuestions": [
@@ -115,7 +117,7 @@
     "selection": "CORE-MIN-02_GENERIC_BUSINESSDATA_SUBMISSION",
     "rule": "Do not select another broad architecture packet until the generic submission path is implemented and PostgreSQL E2E verified."
   },
-  "currentWork": "Generic BusinessData submission runtime convergence",
+  "currentWork": "CORE-MIN-02 runtime implementation: ApplicationAnchor + applicationId rule routing",
   "financialAccountingIntegrity": {
     "state": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
     "findings": [
