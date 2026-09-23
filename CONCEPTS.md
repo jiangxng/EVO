@@ -140,3 +140,25 @@ Identity, permission, Application/Package/Feature, capability discovery and rule
 Cost, valuation, General Ledger, statements, workflow, SOP, metrics and audit/archive default to plugins that consume or extend EVO runtime.
 
 The existence of an implementation module inside this repository does not make that module part of the target Core.
+
+
+## Application Routing
+
+Application identity is deliberately minimal inside EVO:
+
+```text
+ApplicationAnchor
+= applicationId
+```
+
+Both BusinessData and executable PostingRules carry the same `applicationId`.
+
+```text
+BusinessData.applicationId
+→ candidate rules with same applicationId
+→ deterministic priority/ruleId order
+→ condition evaluation
+→ ledger effects
+```
+
+The Host owns rich application lifecycle and user-facing metadata. EVO owns only the routing anchor required to select the correct rules.
