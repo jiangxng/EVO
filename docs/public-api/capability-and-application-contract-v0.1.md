@@ -243,7 +243,7 @@ CommandExecutor
 BusinessData / PostingInput / governed runtime
 ```
 
-## 6.1 Automatic Initial Posting
+## 6.1 Automatic Posting
 
 Successful public business submission transfers responsibility for the posting lifecycle to EVO.
 
@@ -263,14 +263,14 @@ This ownership rule is independent from response timing:
 
 For asynchronous completion, the response semantics MUST make it possible to correlate and observe a terminal posting result. `QUEUED` means EVO has already accepted responsibility for continuation.
 
-An explicit Posting / PostingRun API remains a valid Core/platform capability for re-posting, Replay, batch execution, recovery, repair and other governed operational control. It is not part of the normal first-posting obligation of an Application.
+An explicit Posting / PostingRun API remains a valid Core/platform capability for re-posting, Replay, batch execution, recovery, repair and other governed operational control. It is not part of ordinary Application submission.
 
 Applications submit business semantics, not ledger-entry instructions. The current effective PostingRules determine derived ledger effects.
 
 Normative authority:
 
 - `INVARIANTS.md` INV-046 through INV-050;
-- `PUBLIC-API.md` Automatic Initial Posting Semantics;
+- `PUBLIC-API.md` Automatic Posting Semantics;
 - `docs/architecture/decisions/2026-09-23-automatic-initial-posting-and-async-results-v0.1.md`.
 
 ## 6.2 Application-side recalculation
@@ -287,11 +287,26 @@ Target runtime-control endpoint:
 POST /api/v1/runtime-cache/clear
 ```
 
-This endpoint is privileged and scope-bounded. It MUST preserve required audit/provenance evidence even when the active runtime cache is replaced.
+This endpoint is privileged and scope-bounded. It MAY delete BusinessData and all dependent runtime/derived results in scope. It MUST preserve PostingRules and other system/configuration definitions.
 
 Normative authority:
 
 - `docs/architecture/decisions/2026-09-24-recalculation-perspectives-and-runtime-cache-v0.1.md`.
+
+### 6.3 PostingRule lifecycle belongs to plugins
+
+Core consumes PostingRules; it does not own their version lifecycle.
+
+```text
+rule plugin/package
+→ edit / approve / version / effective-date / rollback as needed
+→ select/provide rule set
+→ EVO Core evaluates supplied rules
+```
+
+Clear Cache never clears PostingRules.
+
+Core does not classify an authorized business-data or rule adjustment as fraudulent, suspicious, audit preparation, period-end optimization, correction, estimate change, or another business motive. If an enterprise needs such governance, an audit/compliance plugin may enforce its own locks, approvals, retention and evidence policies.
 
 ## 7. Query Boundary
 
@@ -301,9 +316,7 @@ Public reads MUST NOT expose persistence tables as contracts.
 
 Domain-specific read APIs SHOULD resolve through stable query contracts and may compose BusinessData, Ledger, Cost, Valuation or projection state through the Query boundary.
 
-Application uninstall/deactivation MUST remove the domain read capability from the effective API surface even when historical data remains retained.
-
-Historical data retention is distinct from current application capability exposure.
+Application uninstall/deactivation MUST remove the domain read capability from the effective API surface. It does not itself clear runtime data; Clear Cache is a separate governed operation.
 
 ## 8. Installation Lifecycle
 
@@ -338,10 +351,10 @@ When an application is no longer effective:
 - its domain capabilities MUST NOT appear as currently available;
 - new Commands targeting those capabilities MUST fail with a stable machine-readable error;
 - its domain routes, if materialized as routes, MUST no longer be advertised as callable;
-- historical BusinessData and derived accounting history MUST NOT be silently deleted;
-- Replay/history semantics MUST remain reconstructable under their pinned definitions.
+- runtime BusinessData is not implicitly cleared;
+- explicit Clear Cache remains a separate operation.
 
-Uninstall means “remove current capability,” not “erase history.”
+Uninstall means “remove current capability,” not “clear runtime data.”
 
 ## 9. Error Semantics
 
@@ -481,7 +494,7 @@ At minimum, future implementation of this contract should prove:
 
 1. enterprise with Sales Order installed exposes Sales Order capabilities;
 2. enterprise without Sales Order installed does not expose them;
-3. deactivating Sales Order removes those capabilities without deleting historical BusinessData;
+3. deactivating Sales Order removes those capabilities without implicitly invoking Clear Cache;
 4. command invocation for an unavailable capability returns stable error;
 5. two enterprises with different installed application sets expose different effective API descriptions;
 6. OpenAPI/discovery output is deterministic for the same effective configuration;
