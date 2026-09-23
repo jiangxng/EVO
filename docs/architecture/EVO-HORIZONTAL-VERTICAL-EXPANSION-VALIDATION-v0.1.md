@@ -684,3 +684,180 @@ EC
 三者通过公开、版本化、可审计契约协作。
 
 EVO 应主动产生足够高质量、可解释的 telemetry，让 EC 能学习；但“如何学习、学习出什么、长期如何演化”属于 EC，而不是 EVO Core。
+
+
+### 16.9 EC Offline Continuity / EC 离线时的持续采集原则
+
+EC 不应成为 EVO 或 Eidos 的运行时可用性依赖。
+
+即使 EC 暂停、升级、故障、断网或长期离线：
+
+```text
+EVO + Eidos
+仍必须完整运行
+```
+
+但同时必须满足另一个强约束：
+
+> **EC 离线期间，EVO / Eidos 仍持续产生并保存符合治理要求的 Usage Telemetry，不能因为 EC 不在线而停止采集。**
+
+因此长期架构不是同步调用：
+
+```text
+EVO → EC → 才能继续业务
+```
+
+而应是异步、可积压、可恢复消费：
+
+```text
+EVO / Eidos Runtime
+        ↓
+Usage Event Contract
+        ↓
+Durable Telemetry Store / Event Log
+        ↓
+EC Consumer Offset / Checkpoint
+        ↓
+EC Analysis / Learning
+```
+
+### 16.10 Durable Telemetry / 可持久化行为事件
+
+Usage Telemetry 必须具有 durable / replayable 特性。
+
+最低要求包括：
+
+- EC 离线时事件仍可持久化；
+- 不因 EC 消费失败影响 EVO 主业务；
+- 事件具有稳定 event id；
+- schema version 可识别；
+- 事件时间与接收时间可区分；
+- 支持按 tenant / enterprise 分区；
+- 支持消费 offset / checkpoint；
+- EC 恢复后可以从上次确认位置继续读取；
+- 重复消费必须可识别 / 幂等处理；
+- 保留策略必须足以覆盖允许的 EC 离线窗口；
+- 超过保留窗口后的归档 / 冷存储策略必须显式；
+- Telemetry 丢失、积压、延迟应可观测。
+
+### 16.11 EC 恢复上线后的 Catch-up Learning
+
+EC 恢复后，不要求 EVO 重新发送业务请求。
+
+EC 应基于保存的 Usage Telemetry 做 Catch-up：
+
+```text
+last_consumed_checkpoint
+        ↓
+read pending telemetry
+        ↓
+validate schema/version
+        ↓
+deduplicate
+        ↓
+reconstruct time sequence
+        ↓
+analysis / learning
+        ↓
+advance checkpoint
+```
+
+因此 EC 的“持续学习”在逻辑上持续，但物理执行可以间歇。
+
+即：
+
+> **Learning can be delayed; observation must not be lost.**
+
+### 16.12 Online Learning 与 Offline Learning 解耦
+
+EVO 不应假设 EC 必须实时在线。
+
+允许：
+
+- near-real-time consumption；
+- hourly / daily batch；
+- 长时间离线后批量追赶；
+- 冷存储历史数据重放；
+- EC 更换模型后重新分析历史 Telemetry。
+
+这点对 EC 的长期演进非常重要：
+
+```text
+same historical telemetry
+→ new EC version / new model
+→ new analysis
+→ new learned experience
+```
+
+历史 Usage Telemetry 因此应被视为长期经验学习的重要原始资产，但仍必须遵守隐私、保留期限、用途限制和企业授权。
+
+### 16.13 Backpressure 与 EVO 主业务隔离
+
+Telemetry 采集不能拖慢或阻塞核心业务提交。
+
+推荐原则：
+
+```text
+Business Transaction
+        ↓
+commit canonical business result
+        ↓
+emit telemetry asynchronously
+```
+
+Telemetry 系统故障时：
+
+- 不应回滚已经合法完成的 BusinessData；
+- 不应阻止 Ledger / Journal / Work 正常运行；
+- 应进入本地 / 持久缓冲或故障队列；
+- 应产生明确的 telemetry health / backlog 告警。
+
+对于必须审计的系统操作日志，应单独定义更强的一致性要求，不能与普通 Usage Analytics Telemetry 混为一类。
+
+### 16.14 Eidos 的采集角色
+
+部分使用行为只存在于 UI / Experience 层，例如：
+
+- 页面停留；
+- View 切换；
+- Filter 使用；
+- Grid 批量编辑交互；
+- Form 字段交互；
+- 可视化切换；
+- 导航路径。
+
+因此 Eidos 可以作为 Experience Telemetry Producer。
+
+但事件应遵循 EVO / EC 约定的公开 Telemetry Contract，不应形成 Eidos 私有、EC 私有且无法治理的数据格式。
+
+推荐：
+
+```text
+Eidos Experience Events
+          \
+           → Governed Telemetry Contract → Durable Store → EC
+          /
+EVO Domain / Operation Events
+```
+
+### 16.15 最终可用性边界
+
+明确系统可用性关系：
+
+```text
+EC unavailable
+→ EVO available
+→ Eidos available
+→ Telemetry collection continues
+→ Durable backlog grows within policy
+
+EC restored
+→ resume from checkpoint
+→ consume backlog
+→ analyze / learn
+→ no impact on historical EVO business truth
+```
+
+因此项目边界原则最终定义为：
+
+> **EVO 负责运行并持续观察，Eidos 负责体验并持续产生必要的体验事件，EC 负责在可用时消费这些历史观察并持续学习。EC 可以离线，观察不能因此丢失。**
