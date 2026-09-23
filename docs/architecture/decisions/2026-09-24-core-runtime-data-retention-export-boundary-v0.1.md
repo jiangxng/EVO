@@ -56,12 +56,14 @@ Unless the request explicitly targets a broader administrative reset contract, i
 - installed Packages / Features;
 - ApplicationDefinition / effective application metadata;
 - field/schema definitions;
-- PostingRules and other calculation-rule definitions;
+- PostingRules and other calculation-rule definitions (**MUST be preserved by Clear Cache**);
 - Ledger definitions;
 - cost/valuation policies;
 - chart-of-accounts and accounting policy definitions;
 - permissions / identities / actor configuration;
 - SOP/Metric/other configuration metadata that is not business runtime data.
+
+PostingRules are explicitly outside the cache-clear deletion set. Clearing BusinessData without preserving the effective PostingRules would make a clean rebuild non-deterministic and is therefore forbidden.
 
 This allows:
 
