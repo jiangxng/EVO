@@ -162,3 +162,141 @@ EVO 应逐步能够从机器可读数据回答：当前有多少 Transaction Typ
 - DW / Reporting Pack 的可安装派生定位。
 
 后续用户继续补充 Asloop 设计思想时，优先按新增法补充该语义基线，并用代码 / 配置 / 数据证据交叉验证。
+
+
+## 14. Ledger Template / 账本与记账模板原则
+
+EVO 的 Ledger 和 Posting Rule 虽然必须保持可扩展，但并不意味着每个企业都需要从零设计全部账本和记账规则。
+
+应区分两类模板化程度不同的账本体系。
+
+### 14.1 Financial Ledger Template / 财务账本模板
+
+在适用会计法则、会计准则和法定报表要求的约束下，不同行业企业的核心财务记账规则通常具有较高共性，可调整空间相对有限。
+
+因此 EVO 应提供一套或多套受治理的 Financial Ledger / Accounting Posting Template，作为企业财务初始化的标准起点。
+
+模板可以包含：
+
+- 标准会计科目 / Ledger 定义；
+- 借贷方向和余额方向；
+- 常见 Accounting Recognition Rules；
+- 常见业务到 GL 的映射；
+- Trial Balance / Financial Statement Mapping；
+- 会计期间和结账相关约束；
+- Currency / Dimension Policy；
+- Voucher / Journal 相关政策；
+- 适用准则 / Jurisdiction / Version 元数据。
+
+企业原则上在标准模板基础上进行受控调整，而不是重新发明完整财务体系。
+
+需要允许的调整包括但不限于：
+
+- 企业科目扩展；
+- 辅助核算维度；
+- 明细科目；
+- 业务事件到会计科目的映射；
+- 会计政策允许范围内的 Recognition / Valuation Policy；
+- 报表映射和管理口径。
+
+任何企业定制必须保留模板来源、差异和版本 lineage。
+
+### 14.2 Business Ledger Template / 业务账本模板
+
+业务 Ledger 相比财务 Ledger 更受企业流程、行业和管理方式影响，因此变体空间更大。
+
+EVO 应提供若干常见 Business Ledger Template，覆盖典型企业流程，例如：
+
+- 待生产；
+- 待采购；
+- 待入库；
+- 待出库；
+- 待发货；
+- 应收；
+- 应付；
+- 库存；
+- 在制品；
+- 质量冻结；
+- 项目成本；
+- 待办 / 已办；
+- 其他行业常见状态账本。
+
+这些模板不是强制标准，而是可复制、可修改的起点。
+
+企业可以：
+
+```text
+EVO Standard Business Ledger Template
+        ↓ copy / install
+Enterprise Baseline
+        ↓ modify / extend
+Enterprise-specific Ledger Definition
+```
+
+### 14.3 Template → Enterprise Override
+
+账本模板应采用显式继承 / 派生思想，而不是把模板内容直接复制后失去来源。
+
+推荐至少记录：
+
+```text
+template_id
+template_version
+enterprise_definition_id
+base_semantic_digest
+enterprise_overrides
+effective_version
+```
+
+目标是系统能够回答：
+
+- 当前企业账本来自哪个 EVO 标准模板；
+- 企业修改了哪些内容；
+- 哪些规则仍继承标准模板；
+- 标准模板升级后哪些变化可以安全合并；
+- 哪些企业定制会与新模板冲突。
+
+### 14.4 Financial Template 与 Business Template 的不同治理强度
+
+推荐治理关系：
+
+```text
+Financial Ledger Template
+→ higher governance
+→ smaller customization surface
+→ stronger compliance / certification
+
+Business Ledger Template
+→ broader variation
+→ larger customization surface
+→ industry / enterprise optimization
+```
+
+但两者最终仍必须运行在同一套 Ledger / Posting Runtime 上，而不能形成两套独立内核。
+
+### 14.5 与 Enterprise Template 的关系
+
+Enterprise Template 可以组合：
+
+```text
+Enterprise Template
+├─ Financial Ledger Template
+├─ Business Ledger Template(s)
+├─ Transaction Types
+├─ Applications
+├─ Fields / Field Groups
+├─ Posting Rules
+├─ Workflow / Work
+├─ Reporting / Analytics Packs
+└─ Industry Overrides
+```
+
+因此新企业安装模板时，不需要从空白系统开始，而可以先获得一套可运行的标准企业定义，再快速修改为自己的业务和管理方式。
+
+### 14.6 长期目标
+
+EVO 应逐步形成：
+
+> 标准模板提供高质量默认企业模型，企业通过少量差异配置完成本地化，而不是每个客户重复实施一套完整 ERP。
+
+财务部分优先追求“标准化 + 受控差异”；业务部分优先追求“可复用模板 + 快速派生”。
