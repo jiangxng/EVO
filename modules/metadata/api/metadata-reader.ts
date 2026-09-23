@@ -12,6 +12,8 @@ import type {
 export interface MetadataReader {
   getEnterprise(enterpriseId: string): Promise<Enterprise | null>;
 
+  getEnterpriseByCode(enterpriseCode: string): Promise<Enterprise | null>;
+
   getApplicationDefinition(
     applicationDefinitionId: string
   ): Promise<ApplicationDefinition | null>;
