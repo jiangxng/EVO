@@ -245,7 +245,7 @@ BusinessData / PostingInput / governed runtime
 
 ## 6.1 Automatic Initial Posting
 
-Successful public business submission transfers responsibility for the first posting lifecycle to EVO.
+Successful public business submission transfers responsibility for the posting lifecycle to EVO.
 
 ```text
 Application
@@ -272,6 +272,26 @@ Normative authority:
 - `INVARIANTS.md` INV-046 through INV-050;
 - `PUBLIC-API.md` Automatic Initial Posting Semantics;
 - `docs/architecture/decisions/2026-09-23-automatic-initial-posting-and-async-results-v0.1.md`.
+
+## 6.2 Application-side recalculation
+
+An Application may expose its own "recalculate" operation. EVO does not assign special meaning to that label.
+
+From EVO's perspective the Application simply submits data again through the ordinary governed API. Normal identity, idempotency, authorization, schema and automatic Posting rules apply.
+
+If an Application wants a full replacement rebuild of EVO's current working state, it may first request a governed scoped runtime-cache clear and then resubmit its data.
+
+Target runtime-control endpoint:
+
+```text
+POST /api/v1/runtime-cache/clear
+```
+
+This endpoint is privileged and scope-bounded. It MUST preserve required audit/provenance evidence even when the active runtime cache is replaced.
+
+Normative authority:
+
+- `docs/architecture/decisions/2026-09-24-recalculation-perspectives-and-runtime-cache-v0.1.md`.
 
 ## 7. Query Boundary
 
