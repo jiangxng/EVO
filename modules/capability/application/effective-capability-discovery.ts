@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { AppError } from '../../../platform/contracts/src/index.js';
-import type { JsonValue, MetadataReader } from '../../metadata/api/metadata-reader.js';
+import type { JsonValue } from '../../metadata/api/contracts.js';
+import type { MetadataReader } from '../../metadata/api/metadata-reader.js';
 import { EffectiveDefinitionResolver } from '../../metadata/application/effective-definition-resolver.js';
 import type {
   EffectiveApplicationCatalog,
