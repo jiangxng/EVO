@@ -56,7 +56,7 @@ import { PostgresStatementReplayService } from '../../../modules/accounting/infr
 import { PostgresCoreStatementReconciliationService } from '../../../modules/accounting/infrastructure/postgres-core-statement-reconciliation-service.js';
 import { PostgresFinancialStatementProjectionService } from '../../../modules/accounting/infrastructure/postgres-financial-statement-projection-service.js';
 import { DefaultEffectiveCapabilityDiscovery } from '../../../modules/capability/application/effective-capability-discovery.js';
-import { PublicCommandInvoker } from '../../../modules/command/application/public-command-invoker.js';
+import { PublicCommandInvoker } from './public-command-invoker.js';
 
 export function createEvoRuntime(database: DatabaseHandle) {
   const db = database.db;
