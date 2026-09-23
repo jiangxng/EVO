@@ -51,7 +51,7 @@ Future scale path is Consistency Domain partitioning.
 
 ## Initial posting ownership
 
-When a governed public business/Command API accepts a business fact, EVO automatically owns the first posting lifecycle for that fact.
+When a governed public business/Command API accepts a business fact, EVO automatically owns the posting lifecycle for that fact.
 
 The posting module may execute immediately or through the worker/queue path. That is an implementation choice.
 
@@ -64,3 +64,22 @@ means the fact is already under EVO posting control and awaits internal executio
 Explicit Posting/PostingRun APIs remain valid for re-posting, Replay, bulk processing, retry/recovery, repair and administrative control.
 
 External Applications do not provide LedgerEntry instructions. This module evaluates the effective governed PostingRules and derives ledger effects.
+
+
+## Recalculation perspectives
+
+Posting/recalculation inside EVO and an Application's own recalculation are separate concepts.
+
+```text
+EVO recalculation
+→ reuse current governed runtime data
+→ rebuild posting/derived state
+
+Application recalculation
+→ Application resubmits data through ordinary EVO APIs
+→ EVO processes it normally
+```
+
+Posting does not inspect an Application-specific "recalculate" flag.
+
+A scoped runtime-cache clear may be used before a full Application-driven repopulation. Cache clearing must not silently erase required historical/audit evidence.
