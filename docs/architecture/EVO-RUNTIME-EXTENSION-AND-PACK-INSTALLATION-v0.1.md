@@ -705,3 +705,328 @@ Install EVO
 ```
 
 这也是为什么 Runtime Extension Boundary、Package Manifest、Versioning、Upgrade、Uninstall、Tenant Isolation 都是 EVO 的一级能力，而不是后期附加功能。
+
+
+## 20. Installability as a First-Class Certification Target
+
+代码结构是否正确，不能只用“模块可编译 / 数据可跑通”判断。
+
+EVO 的核心愿景要求建立第二类认证：
+
+```text
+Data Correctness Certification
++
+Installability / Growth Certification
+```
+
+也就是说，未来每个能力不仅要证明业务结果正确，还必须证明：
+
+- 未安装时 Core 可以独立运行；
+- 安装后能力出现；
+- 安装过程不直接修改 Core 私有实现；
+- 依赖自动解析；
+- 安装失败可回滚；
+- 升级可迁移；
+- 卸载不会破坏权威历史；
+- 不同 Tenant 可拥有不同安装集合；
+- Local 与 Cloud 使用同一 Package contract。
+
+## 21. Minimum Package Runtime Capabilities Required
+
+为了真正支持 Growth-by-Installation，下一阶段至少需要补齐以下平台能力：
+
+### 21.1 Package Manifest Contract
+
+每个安装包必须有机器可读 Manifest，至少声明：
+
+- packageId；
+- packageVersion；
+- displayName；
+- packageType；
+- providedCapabilities；
+- dependencies；
+- requiredCoreProtocolVersion；
+- configurationSchema；
+- requestedPermissions；
+- ownedDefinitions；
+- ownedProjections；
+- runtimeExtension requirements；
+- install/upgrade/uninstall hooks or declarative steps；
+- semanticDigest / signature。
+
+### 21.2 Package Registry
+
+需要可查询：
+
+```text
+available packages
+installed packages
+installed version
+activation state
+dependency graph
+compatibility state
+```
+
+Registry 是 UI“应用中心”的后端基础。
+
+### 21.3 Tenant Installation State
+
+每个 Tenant / Enterprise 必须独立记录：
+
+- installed package；
+- active version；
+- configuration；
+- installation status；
+- dependency pins；
+- activated capabilities；
+- installedAt / upgradedAt；
+- failure state；
+- rollback reference。
+
+### 21.4 Package Install API
+
+最小流程：
+
+```text
+plan
+→ validate
+→ install
+→ activate
+→ verify
+```
+
+建议 Public API 至少包含：
+
+```text
+GET  /packages
+GET  /tenants/{id}/packages
+POST /tenants/{id}/packages/{packageId}:plan
+POST /tenants/{id}/packages/{packageId}:install
+POST /tenants/{id}/packages/{packageId}:upgrade
+POST /tenants/{id}/packages/{packageId}:deactivate
+POST /tenants/{id}/packages/{packageId}:uninstall
+```
+
+具体 REST 命名可在 Protocol Freeze 阶段调整。
+
+### 21.5 Capability Registry
+
+Package 安装结果不应只表现为“多了几张表”，而要能机器可读地回答：
+
+```text
+Does tenant X have capability Y?
+Which package/version provides it?
+What protocol/version is available?
+```
+
+这将成为 Eidos UI、LLM、依赖解析和运行时路由的共同依据。
+
+## 22. Installation Certification Ladder
+
+安装测试不能一次跳到最复杂场景，建议建立分级认证。
+
+### IC-00 — Bare Core Certification
+
+证明：
+
+```text
+Core starts with no business pack installed
+→ health PASS
+→ BusinessData API available
+→ Ledger/Posting/Balance/Replay core available
+→ no Sales/Finance/Workflow capability exposed
+```
+
+这是最重要的边界证明。
+
+### IC-01 — First Definition Package Install
+
+安装一个极小的 Simple Trading Definition Package：
+
+```text
+Bare Core
+→ install Trading Lite
+→ inventory / cash / receivable / payable ledgers appear
+→ posting rules activate
+→ sample BusinessData posts correctly
+```
+
+证明“安装应用”不是部署另一套系统。
+
+### IC-02 — Dependency Install
+
+例如：
+
+```text
+Finance Reporting
+requires Finance Accounting
+```
+
+测试：
+
+- 自动发现依赖；
+- plan 清楚显示依赖；
+- 用户确认后按顺序安装；
+- 不允许缺失依赖强行激活。
+
+### IC-03 — Tenant Isolation
+
+同一 Cloud Runtime：
+
+```text
+Tenant A: Trading only
+Tenant B: Trading + Finance
+Tenant C: Manufacturing
+```
+
+验证 API/能力可见性和数据完全隔离。
+
+### IC-04 — Upgrade
+
+```text
+Package v1
+→ existing data
+→ upgrade v2
+→ migration
+→ compatibility validation
+→ history preserved
+```
+
+### IC-05 — Deactivate / Uninstall
+
+验证：
+
+- 停用后能力不再对外暴露；
+- 依赖检查；
+- 权威 BusinessData / Ledger history 不被删除；
+- rebuildable projections 可以删除；
+- 再安装可重新构建。
+
+### IC-06 — Runtime Extension
+
+安装一个真正需要代码执行的外部扩展。
+
+验证：
+
+- service registration；
+- health；
+- protocol compatibility；
+- timeout / retry；
+- extension down 时 Core 不崩溃；
+- 卸载后 Core 正常运行。
+
+### IC-07 — Local / Cloud Parity
+
+同一个 Package artifact：
+
+```text
+Local deployment install
+=
+Cloud tenant install
+```
+
+语义结果、版本和 capability manifest 一致。
+
+## 23. When We Can Start These Tests
+
+不需要等整个 Core 重构完成。
+
+### Can start immediately
+
+现在即可建立：
+
+- IC-00 Bare Core architecture/runtime test；
+- Package Manifest schema；
+- Tenant package-state schema；
+- Package planning dry-run；
+- “未安装能力不可见”测试。
+
+### After minimal installer exists
+
+马上进入：
+
+- IC-01 First Package Install；
+- IC-02 Dependency Install；
+- IC-03 Tenant Isolation。
+
+### After version/migration contract exists
+
+进入：
+
+- IC-04 Upgrade；
+- IC-05 Uninstall / reinstall。
+
+### After external runtime protocol exists
+
+进入：
+
+- IC-06 Runtime Extension；
+- IC-07 Local/Cloud parity。
+
+因此“安装测试”应该从现在开始，而不是等未来。
+
+## 24. Recommended First Installation Proof
+
+第一份安装包不要用 Finance，也不要用完整 Application Platform。
+
+建议使用：
+
+```text
+evo.trading-lite
+```
+
+只包含：
+
+- Inventory Qty Ledger；
+- Inventory Value Ledger；
+- Cash Ledger；
+- Receivable Ledger；
+- Payable Ledger；
+- purchase receipt posting rules；
+- sales shipment posting rules；
+- receipt/payment rules；
+- 最小示例 BusinessData contract mappings。
+
+这样可以证明：
+
+```text
+Bare EVO Core
+→ install one package
+→ becomes useful
+```
+
+这正对应“一人公司”场景。
+
+第二个安装证明再使用 Finance Accounting。
+
+第三个使用 Finance Reporting。
+
+这样可以逐层证明企业成长：
+
+```text
+Core
+→ Trading Lite
+→ Finance Accounting
+→ Finance Reporting
+```
+
+而不是一次安装完整 ERP。
+
+## 25. Code Structure Acceptance Criteria
+
+本轮代码重构只有满足以下条件，才算真正支持产品愿景：
+
+1. Bare Core 可独立启动；
+2. 可选能力不存在时 Core 不 import / 不初始化它们；
+3. Package Manifest 可机器读取；
+4. Tenant Package State 是一等数据；
+5. 安装通过 Public Package Protocol；
+6. 安装后 Capability Registry 可发现新能力；
+7. Eidos/UI 可根据 Registry 动态显示已安装应用；
+8. Package 可以升级、停用、卸载；
+9. Core 私有数据库不是插件协议；
+10. 同一个 Package 可以用于 Local 与 Cloud Tenant；
+11. 安装测试进入 CI；
+12. 安装/升级/卸载失败路径也有认证证据。
+
+如果这些条件没有满足，仅仅把代码移到 packs/ 目录，不算完成插件化。
