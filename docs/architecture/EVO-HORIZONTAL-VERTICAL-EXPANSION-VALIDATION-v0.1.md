@@ -300,3 +300,208 @@ EVO 应逐步形成：
 > 标准模板提供高质量默认企业模型，企业通过少量差异配置完成本地化，而不是每个客户重复实施一套完整 ERP。
 
 财务部分优先追求“标准化 + 受控差异”；业务部分优先追求“可复用模板 + 快速派生”。
+
+
+## 15. Enterprise Package 与 SharePoint Classic Solution / Site Template 的历史参照
+
+EVO 的 Enterprise Template / Enterprise Installation Package 可以参考经典 SharePoint 的 Site Template / Solution Package 思想，但只继承其“声明式打包 + 可安装组件”的架构思想，不复制其具体 XML / WSP 技术实现。
+
+Microsoft 的经典 SharePoint 站点模板可以把站点整体框架保存为可部署的 Web Solution Package（WSP）。其模板可包含列表 / 文档库、视图、表单、工作流、内容类型、自定义操作、导航、站点页面等；SharePoint 的 List Schema 还把字段、视图、内容类型、表单等作为同一列表定义的一部分。Visual Studio 的 SharePoint Solution 进一步以 Package + Features 组织可部署、可激活的功能单元。
+
+这与 EVO 的目标存在重要相似性：
+
+```text
+SharePoint Classic
+Solution Package / Site Template
+├─ Lists
+├─ Fields / Site Columns
+├─ Content Types
+├─ Forms
+├─ Views
+├─ Workflows
+├─ Navigation
+├─ Pages
+├─ Features
+└─ optional content
+
+EVO
+Enterprise Package / Enterprise Template
+├─ Transaction Types
+├─ Applications
+├─ Objects / Semantic Fields
+├─ Application Field Bindings
+├─ Master / Detail Structures
+├─ Forms / Lists / Editable Grids
+├─ Views / Visualizations
+├─ Data Sources / Filters / Dependencies
+├─ Workflows / Work
+├─ Business Ledgers
+├─ Financial Ledger Template
+├─ Posting / Accounting Rules
+├─ Relations / Lineage
+├─ Reporting / Analytics Packs
+├─ Navigation / Experience Composition
+├─ APQC / Capability Metadata
+└─ optional Seed / Demo Data
+```
+
+### 15.1 Package Manifest
+
+EVO Enterprise Package 应有一个机器可读 Manifest，用于声明：
+
+- package identity；
+- package version；
+- semantic digest；
+- dependencies；
+- required EVO runtime / contract versions；
+- included definition assets；
+- installation order；
+- optional features / packs；
+- compatibility constraints；
+- upgrade / migration metadata；
+- uninstall policy；
+- seed / demo data 是否包含。
+
+Manifest 的作用类似 SharePoint Solution Manifest + Feature manifests，但应采用 EVO 自己的版本化、LLM-friendly、machine-readable contract。
+
+### 15.2 Feature / Pack 作为可组合安装单元
+
+SharePoint Solution 可以包含多个 Feature，并分别激活。EVO 可以借鉴这一点，把一个 Enterprise Package 继续拆成可组合的 Pack / Capability Unit，例如：
+
+```text
+Manufacturing Enterprise Package
+├─ Core Sales Pack
+├─ Procurement Pack
+├─ Inventory Pack
+├─ Manufacturing Pack
+├─ Finance Pack
+├─ Fixed Asset Pack
+├─ Sales Analytics Pack
+└─ Management Dashboard Pack
+```
+
+这些 Pack 可以有依赖关系和安装顺序，但不应要求把整个企业模板做成不可拆分的单体。
+
+### 15.3 Definition 与 Instance Data 分离
+
+经典 SharePoint Site Template 可以选择是否包含站点内容。EVO 也应明确区分：
+
+```text
+Enterprise Definition Package
+≠
+Enterprise Runtime / Transaction Data
+```
+
+默认企业模板应主要携带 Definition：
+
+- Schema；
+- Applications；
+- Fields；
+- Rules；
+- Ledgers；
+- Views；
+- Workflows；
+- Reports；
+- Experience composition。
+
+真实企业的 BusinessData、Ledger Entries、Journal、Balance 等运行事实不应随模板复制。
+
+允许单独提供：
+
+```text
+Seed Data / Demo Data Pack
+```
+
+用于演示、测试和新企业初始化，但必须与正式定义和真实交易数据清晰隔离。
+
+### 15.4 Install / Activate / Upgrade / Uninstall 生命周期
+
+EVO Enterprise Package 不应只有“导入 JSON”。
+
+应形成完整生命周期：
+
+```text
+Package
+→ Validate
+→ Resolve Dependencies
+→ Install Definitions
+→ Activate Capabilities
+→ Verify
+→ Run
+→ Upgrade / Migrate
+→ Deactivate
+→ Uninstall
+```
+
+其中安装 / 升级必须：
+
+- 可重复验证；
+- 有版本和 semantic digest；
+- 有依赖解析；
+- 有冲突检测；
+- 有迁移计划；
+- 能识别企业 override；
+- 不静默破坏已有 BusinessData；
+- 支持回滚 / 恢复策略；
+- 输出安装证据。
+
+### 15.5 Site/List Schema 思想对 EVO Field / Application Model 的启发
+
+SharePoint List Schema 将 Field、View、Form、Content Type 等围绕一个 List 定义组织。
+
+这与 Asloop 已确认的设计历史一致：
+
+```text
+Field
+→ Data
+→ Form
+→ List
+→ View
+→ API
+```
+
+EVO 应继续保持“一处业务语义定义，多种 Experience Projection”的能力，但使用显式 Binding / Dependency Graph，而不是复制 SharePoint 的 CAML/XML 和页面耦合。
+
+### 15.6 EVO 超越 SharePoint Package 的关键部分
+
+EVO Enterprise Package 不能停留在“网站 / 界面模板”。
+
+它必须进一步包含企业运行语义：
+
+```text
+Application
+→ BusinessData
+→ Conditional Posting
+→ Ledger
+→ Work / Balance
+→ Accounting / GL
+→ Reporting / Analytics
+```
+
+因此 EVO Enterprise Package 更接近：
+
+> **可安装的 Enterprise Operating Definition**
+
+而不是单纯 Site Template。
+
+### 15.7 设计原则
+
+EVO 应借鉴经典 SharePoint Package 的以下思想：
+
+- declarative definitions；
+- reusable package；
+- package manifest；
+- modular features；
+- install / activate；
+- reusable list / field / view / form definitions；
+- optional seed content；
+- dependency-aware provisioning。
+
+但不继承：
+
+- WSP/CAB 本身；
+- CAML/XML 作为主要表达语言；
+- SharePoint 特有服务器目录 / Feature 部署机制；
+- UI 与数据 schema 的历史技术耦合。
+
+EVO 的目标是把这一思想提升为适合 AI-native ERP 的、版本化、可解释、可组合、可升级的企业安装包。
