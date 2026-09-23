@@ -28,7 +28,7 @@ section{margin-top:26px}code{background:#f2f4f7;padding:2px 5px;border-radius:5p
 <div class="card"><h3>Runtime</h3><div id="health" class="muted">checking...</div></div>
 <div class="card"><h3>Kernel</h3><div class="ok">Independent composition extracted</div><div class="muted">Optional business modules are outside target Core boundary.</div></div>
 <div class="card"><h3>Package Model</h3><div class="draft">Contract evolving</div><div class="muted">Definition packages + protocol-isolated runtime extensions.</div></div>
-<div class="card"><h3>Integration Goal</h3><div class="mono">EVO ↔ Eidos ↔ 3EC</div><div class="muted">Public contracts, not private implementation imports.</div></div>
+<div class="card"><h3>Integration Goal</h3><div class="mono">EVO ↔ Eidos · EC knowledge · 3EC dev workspace</div><div class="muted">Public contracts first; 3EC is temporary development coordination.</div></div>
 </div>
 
 <section>
