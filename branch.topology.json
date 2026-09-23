@@ -366,10 +366,10 @@
       "description": "EEL-C05 Full Replay and final certification merged after CI #656."
     },
     "evo/fai-double-entry-alignment-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": false,
-      "description": "Active alignment branch making double-entry integrity the explicit post-EEL-C05 mainline."
+      "description": "Historical finance-alignment branch superseded by later merged FAI work and the minimal EVO Runtime Plugin boundary; not current mainline."
     },
     "evo/fai-01-02-double-entry-runtime-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -418,6 +418,12 @@
       "supersededBy": "main",
       "pr": 56,
       "description": "Minimal EVO Runtime Plugin boundary merged by PR #56 after CI #738. Defines EVO as lightweight BusinessData→supplied PostingRules→Ledger/Balance runtime with platform/governance/domain concerns externalized."
+    },
+    "evo/core-min-02-application-routing-anchor-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "CORE-MIN-02 architecture refinement restoring minimal ApplicationAnchor/applicationId as the mandatory BusinessData→PostingRule routing key. Branch is ahead of main and contains no runtime implementation yet."
     }
   },
   "requiredLLMProcedure": [
@@ -473,16 +479,17 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "main",
+    "businessMainline": "evo/core-min-02-application-routing-anchor-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "minimal EVO Runtime Plugin boundary is merged",
-      "next bounded runtime slice is generic BusinessData submission convergence",
-      "keep current Proof C /commands path temporarily as compatibility adapter",
-      "do not begin broad module extraction before the minimal submission contract is proven"
+      "restore minimal ApplicationAnchor/applicationId inside EVO Core",
+      "require BusinessData.applicationId",
+      "require PostingRule.applicationId",
+      "route candidate rules by exact applicationId before condition evaluation",
+      "keep rich application lifecycle/permissions/capability discovery outside EVO Core"
     ],
-    "evidenceTarget": "NEXT: IMPLEMENTED + UNIT/DB E2E for generic BusinessData submission adapter",
-    "afterSuccess": "Route App Platform/Trading Lite through Host-owned adapter to generic EVO BusinessData submission, then retire platform concerns from EVO API incrementally.",
-    "rule": "EVO Core remains BusinessData → supplied PostingRules → Ledger/Balance plus recalc/clear/export/query. Default everything else outside Core."
+    "evidenceTarget": "DESIGN/ARCHITECTURE CI before runtime implementation",
+    "afterSuccess": "Merge the routing-anchor refinement, then implement CORE-MIN-02 persistence/API/E2E for ApplicationAnchor + BusinessDataSubmission + current PostingRules.",
+    "rule": "Application identity is a Core routing key; Application lifecycle is not a Core responsibility."
   }
 }

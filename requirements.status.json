@@ -4,7 +4,7 @@
   "authority": "machine-readable-requirement-alignment",
   "updatedAt": "2026-09-24",
   "productIntent": {
-    "goal": "Provide a lightweight deterministic EVO Runtime Plugin inside a broader composable Enterprise Operating System. EVO itself owns generic BusinessData → supplied PostingRules → Ledger/Balance runtime behavior; platform, application, permission and governance capabilities live outside the plugin.",
+    "goal": "Provide a lightweight deterministic EVO Runtime Plugin whose minimal routing spine is applicationId → BusinessData → current PostingRules → Ledger/Balance. EVO owns only the ApplicationAnchor needed for rule routing; rich platform/application/permission/governance capabilities remain outside.",
     "humanOwns": [
       "business outcome",
       "acceptance criteria",
@@ -23,13 +23,16 @@
   "currentStage": {
     "id": "Runtime Convergence",
     "name": "Generic BusinessData Submission Convergence",
-    "businessGoal": "Make the merged lightweight EVO Runtime Plugin usable through a minimal generic BusinessData submission boundary while preserving existing compatibility behavior during migration."
+    "businessGoal": "Implement a minimal generic BusinessData submission boundary with mandatory applicationId so EVO can route each fact to the correct current PostingRules while preserving compatibility behavior."
   },
   "activeRequirementSet": {
     "id": "CORE-MIN-02",
     "name": "Generic BusinessData Submission Convergence",
     "acceptance": [
-      "define a generic BusinessDataSubmission contract that does not require Enterprise/Application definitions, permissions, capabilities or Command objects inside EVO Core",
+      "EVO Core owns a minimal ApplicationAnchor/applicationId registry used only for PostingRule routing",
+      "every accepted BusinessData item carries applicationId",
+      "every executable PostingRule carries applicationId and candidate selection filters by exact applicationId before condition evaluation",
+      "define a generic BusinessDataSubmission contract that requires applicationId/ApplicationAnchor routing but does not require rich Enterprise/Application lifecycle, permissions, capabilities or Command objects inside EVO Core",
       "support an opaque runtime scope key for isolation without Core-owned enterprise metadata",
       "accepted BusinessData automatically enters the existing Posting lifecycle",
       "PostingRules are supplied to Core through a plugin/Host boundary without Core rule-version governance",
@@ -45,7 +48,9 @@
       "superseded PR #25 and PR #50 are closed"
     ],
     "open": [
-      "define BusinessDataSubmission input/result contract",
+      "define minimal ApplicationAnchor persistence/contract",
+      "define BusinessDataSubmission input/result with mandatory applicationId",
+      "define current PostingRule registration/storage keyed by applicationId",
       "implement EVO runtime ingestion service behind that contract",
       "adapt current Command compatibility path onto runtime ingestion",
       "add PostgreSQL E2E for submission → automatic Posting → Ledger/Balance",
@@ -96,8 +101,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-24",
-    "reason": "CORE-MIN-01 minimal runtime plugin boundary merged after the human clarified that EVO itself must remain a small plugin without identity, permissions, application definitions or rule-version governance.",
-    "result": "CORE-MIN-02 selected: prove the smallest generic BusinessData submission boundary before any broad module extraction."
+    "reason": "Human clarified that EVO must retain a minimal Application definition/ID because applicationId is the routing anchor from incoming BusinessData to the correct PostingRule set.",
+    "result": "CORE-MIN-02 refined: Application identity stays in Core as ApplicationAnchor/applicationId; rich application lifecycle remains in Host/App Platform."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,

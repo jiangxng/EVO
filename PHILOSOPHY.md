@@ -31,19 +31,20 @@ EVO stays deliberately small so it can be installed, replaced, embedded and depe
 1. A business Application may own its own source/domain data.
 2. BusinessData submitted into EVO becomes EVO's current runtime input dataset.
 3. BusinessData is immutable while present; explicit Clear Cache may remove the selected runtime dataset.
-4. PostingRules are supplied by plugins/Host. EVO executes them deterministically but does not own their lifecycle/version governance.
-5. Posting derives generic LedgerEntry; LedgerBalance is a rebuildable projection.
-6. EVO may recalculate retained BusinessData, clear runtime data, export runtime data and expose generic runtime results/status.
-7. Long-term audit/archive retention is optional plugin/customer policy, not hidden Core behavior.
-8. Identity, permissions, Application/Package/Feature lifecycle, capability discovery, workflow and business authorization are outside EVO.
-9. Cost, valuation, statutory accounting, financial statements, workflow, SOP, metrics, audit and jurisdiction capabilities default to separate plugins.
-10. AI is not part of authoritative EVO runtime calculation.
+4. Every BusinessData item carries applicationId. EVO owns a minimal ApplicationAnchor/applicationId and uses it to select the current PostingRules for that application before evaluating conditions.
+5. PostingRules are current executable Core configuration supplied by plugins/Host. EVO executes/stores the current rules but does not own their lifecycle/version governance.
+6. Posting derives generic LedgerEntry; LedgerBalance is a rebuildable projection.
+7. EVO may recalculate retained BusinessData, clear runtime data, export runtime data and expose generic runtime results/status.
+8. Long-term audit/archive retention is optional plugin/customer policy, not hidden Core behavior.
+9. Identity, permissions, rich Application/Package/Feature lifecycle, capability discovery, workflow and business authorization are outside EVO. Only ApplicationAnchor/applicationId routing stays in Core.
+10. Cost, valuation, statutory accounting, financial statements, workflow, SOP, metrics, audit and jurisdiction capabilities default to separate plugins.
+11. AI is not part of authoritative EVO runtime calculation.
 
 ## Core Boundary Rule
 
 Before adding anything to EVO Core, ask:
 
-> Can generic BusinessData → supplied PostingRules → LedgerEntry → LedgerBalance work correctly if this capability is outside EVO?
+> Can generic applicationId → BusinessData → current PostingRules → LedgerEntry → LedgerBalance work correctly if this capability is outside EVO?
 
 If yes, keep it outside Core by default.
 

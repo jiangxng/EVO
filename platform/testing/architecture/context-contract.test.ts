@@ -20,11 +20,18 @@ describe('LLM context determinism contract', () => {
     expect(manifest.requiredReading).toContain(
       'docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md'
     );
+    expect(manifest.requiredReading).toContain(
+      'docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md'
+    );
     expect(manifest.rules.actualWriteBoundary).toBe('BusinessDataSubmission');
     expect(manifest.rules.commandRequiredByCore).toBe(false);
     expect(manifest.rules.identityOwnedByCore).toBe(false);
     expect(manifest.rules.permissionsOwnedByCore).toBe(false);
-    expect(manifest.rules.applicationDefinitionsOwnedByCore).toBe(false);
+    expect(manifest.rules.minimalApplicationAnchorOwnedByCore).toBe(true);
+    expect(manifest.rules.richApplicationLifecycleOwnedByCore).toBe(false);
+    expect(manifest.rules.businessDataRequiresApplicationId).toBe(true);
+    expect(manifest.rules.postingRulesRequireApplicationId).toBe(true);
+    expect(manifest.rules.postingRuleCandidateRouting).toBe('exact-applicationId-first');
     expect(manifest.rules.capabilityDiscoveryOwnedByCore).toBe(false);
     expect(manifest.rules.postingRuleLifecycleOwnedByCore).toBe(false);
     expect(manifest.rules.higherOrderEnginesDefaultToPlugins).toBe(true);

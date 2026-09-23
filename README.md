@@ -8,21 +8,26 @@ EVO is a small deterministic runtime capability inside a broader composable ente
 Target runtime spine:
 
 ```text
-BusinessData submission
-→ supplied PostingRules
+BusinessData submission(applicationId)
+→ ApplicationAnchor(applicationId)
+→ current PostingRules(applicationId)
 → LedgerEntry
 → LedgerBalance
 ```
 
 EVO also owns generic runtime recalculation, runtime-data clear, full runtime export, and result/status query.
 
-EVO does **not** target ownership of identity, users/roles/permissions, Enterprise/Application definitions, Package/Feature lifecycle, capability discovery, PostingRule version governance, UI/Agent orchestration, statutory accounting, financial statements, workflow/SOP/metrics, or audit/archive policy. Those belong to the Host/App Platform or installable plugins.
+EVO owns a minimal ApplicationAnchor/applicationId used to route BusinessData to current PostingRules. EVO does **not** target ownership of identity, users/roles/permissions, rich Enterprise/Application definitions or lifecycle, Package/Feature lifecycle, capability discovery, PostingRule version governance, UI/Agent orchestration, statutory accounting, financial statements, workflow/SOP/metrics, or audit/archive policy. Those belong to the Host/App Platform or installable plugins.
 
 The current repository contains broader implementation assets from earlier stages. They remain useful and tested, but repository location does not make them part of the target minimal Core.
 
 The authoritative boundary is:
 
 `docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md`
+
+Refined application-routing boundary:
+
+`docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md`
 
 AI/coding agents start with `AGENTS.md`, then `LLM.md`, and use `context.manifest.json` to select a bounded read profile.
 

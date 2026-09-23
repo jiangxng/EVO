@@ -183,7 +183,7 @@ The target EVO Core API is plugin-runtime oriented, not enterprise-platform orie
 Logical Core operations:
 
 ```text
-submit BusinessData
+submit BusinessData(applicationId required)
 query generic Ledger/Balance/runtime result
 observe posting/result status
 request recalculation over retained BusinessData
@@ -204,15 +204,54 @@ POST /api/v1/commands
 
 They remain useful for current Proof C compatibility but should migrate toward Host/App Platform adapters.
 
+EVO Core owns only a minimal ApplicationAnchor/applicationId for PostingRule routing.
+
 EVO Core does not own:
 
-- enterprise/application definitions;
+- rich enterprise/application definitions or application lifecycle;
 - users/roles/permissions;
 - capability discovery;
 - Command authorization/orchestration;
 - PostingRule lifecycle/version selection.
 
 A Host may translate its own Command/action/capability model into generic EVO BusinessData submissions.
+
+### Application routing contract
+
+Every target BusinessData submission MUST include:
+
+```text
+scopeKey
+applicationId
+businessDataType
+businessObjectKey
+effectiveAt
+payload
+correlation/idempotency identity
+```
+
+Every executable PostingRule MUST include the same routing key:
+
+```text
+ruleId
+applicationId
+priority
+conditionAst
+effectAst
+ruleSchemaVersion
+```
+
+Posting selection is:
+
+```text
+applicationId
+→ candidate PostingRules for that applicationId
+→ deterministic order
+→ condition evaluation
+→ effects
+```
+
+An unknown applicationId fails explicitly. The Host may maintain a much richer Application object, but EVO only requires the stable routing anchor.
 
 ## Current v1.0-alpha.2 Public Capability Endpoints
 

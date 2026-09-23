@@ -365,6 +365,8 @@
     "model": "LIGHTWEIGHT_EVO_RUNTIME_PLUGIN",
     "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
     "coreResponsibilities": [
+      "application-routing-anchor",
+      "current-posting-rule-registry",
       "business-data-ingestion",
       "posting-execution",
       "generic-ledger",
@@ -378,7 +380,7 @@
       "identity",
       "permissions",
       "enterprise-definition",
-      "application-definition",
+      "rich-application-definition-and-lifecycle",
       "package-feature-lifecycle",
       "capability-discovery",
       "command-orchestration",
@@ -405,6 +407,9 @@
       "valuation",
       "accounting-and-reporting"
     ],
-    "defaultRule": "if uncertain, keep the capability outside EVO Core"
+    "defaultRule": "keep capabilities outside EVO Core except primitives required for generic execution; applicationId routing is explicitly required",
+    "refinements": [
+      "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md"
+    ]
   }
 }
