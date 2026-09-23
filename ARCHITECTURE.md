@@ -32,8 +32,8 @@ Human / AI / Automation / External System
 
 ## Foundational invariants
 
-1. Business history is preserved.
-2. Business change is represented through additional BusinessData.
+1. BusinessData is immutable while present in the active runtime dataset; explicit Clear Cache may remove the selected runtime dataset.
+2. While a runtime dataset exists, business change is represented through additional BusinessData rather than in-place rewrite.
 3. Commands create BusinessData; Posting creates Ledger results.
 4. Posting order is deterministic.
 5. Derived Ledger/Balance/Cost state is rebuildable.
@@ -44,6 +44,9 @@ Human / AI / Automation / External System
 10. Chat memory is not an authoritative architecture store.
 11. Operational/economic ledgers are not automatically statutory General Ledger accounts; formal GL requires accounting recognition, explicit Debit/Credit journals and balance validation.
 12. Business/finance capabilities should be installable where possible; Core provides stable primitives and invariants, while applications/packages provide enterprise-specific semantics and posting rules.
+13. Clear Cache preserves rules and configuration: PostingRules, Ledger definitions, cost/valuation policies, application metadata and permissions survive runtime-data clearing.
+14. PostingRules may be changed through their own governed version/effective-date lifecycle. Rule change is never modeled as cache clearing.
+15. Core provides complete data export; long-term accounting/audit retention is optional plugin/customer policy, not a mandatory Core archive.
 
 See `docs/invariants/core.md`.
 
@@ -55,7 +58,7 @@ See `docs/invariants/core.md`.
 | metadata | definitions, versions, overlays | foundational |
 | application | effective application runtime | uses metadata |
 | command | controlled business writes | creates BusinessData |
-| business-data | durable business history | consumed by posting/query |
+| business-data | current runtime BusinessData facts | consumed by posting/query; removable by governed Clear Cache |
 | posting | ordered PostingInput execution | emits ledger effects |
 | dimensions | DimensionDefinition / ledger dimension policies | validates analytical dimensions |
 | ledger | LedgerEntry / LedgerBalance | consumed by cost/query |
