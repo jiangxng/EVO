@@ -323,7 +323,14 @@ try {
     type: 'sub', left: { type: 'literal', value: 0 }, right: field(path)
   });
 
-  async function command(versionId: string, code: string, name: string, resultType: string) {
+  async function command(
+    versionId: string,
+    code: string,
+    name: string,
+    resultType: string,
+    permissionCode?: string
+  ) {
+    const config = permissionCode === undefined ? {} : { permissionCode };
     await db.insertInto('command_definition').values({
       application_definition_version_id: versionId,
       code, name,
@@ -331,13 +338,14 @@ try {
       preconditions: jsonArray([]),
       execution_policy: {},
       resulting_business_data_type: resultType,
-      config: {}
+      config
     }).onConflict((oc) => oc.columns(['application_definition_version_id','code']).doUpdateSet({
       name,
-      resulting_business_data_type: resultType
+      resulting_business_data_type: resultType,
+      config
     })).execute();
   }
-  await command(salesVersion.id, 'approve-sales-order', 'Approve Sales Order', 'sales_order.approved');
+  await command(salesVersion.id, 'approve-sales-order', 'Approve Sales Order', 'sales_order.approved', 'sales.approve');
   await command(salesVersion.id, 'record-customer-payment', 'Record Customer Payment', 'customer_payment.received');
   await command(cashReceiptVersion.id, 'record-receipt', 'Record Cash Receipt', 'cash.received');
   await command(cashPaymentVersion.id, 'record-payment', 'Record Supplier Payment', 'cash.paid');
