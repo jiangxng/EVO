@@ -52,6 +52,24 @@ export class PostgresMetadataRepository
     };
   }
 
+  async getEnterpriseByCode(enterpriseCode: string): Promise<Enterprise | null> {
+    const row = await this.db
+      .selectFrom('enterprise')
+      .selectAll()
+      .where('code', '=', enterpriseCode)
+      .executeTakeFirst();
+
+    if (row === undefined) return null;
+
+    return {
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      status: row.status,
+      defaultTimezone: row.default_timezone
+    };
+  }
+
   async getApplicationDefinition(
     applicationDefinitionId: string
   ): Promise<ApplicationDefinition | null> {
