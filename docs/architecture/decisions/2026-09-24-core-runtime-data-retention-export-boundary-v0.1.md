@@ -123,6 +123,23 @@ EVO does not judge the business motive behind an authorized rule or data adjustm
 
 Fraud detection, audit-locking, statutory retention and similar governance are optional policy capabilities, not assumptions hard-coded into the Core calculation engine.
 
+## 5.2 Core does not manage PostingRule versions
+
+PostingRule lifecycle belongs to the rule-owning plugin/package, not EVO Core.
+
+```text
+Plugin/package
+→ edit / approve / version / effective-date / rollback rules
+→ provide selected/current rules to EVO
+→ EVO evaluates them
+```
+
+Core does not need to understand whether a supplied rule is "v1", "v2", a draft promoted by a plugin, a period-specific rule, or a rollback. Those labels and lifecycle decisions are plugin semantics.
+
+Core may retain a stable rule code/hash in runtime lineage for diagnosis or deterministic comparison, but this does not create a Core rule-version model.
+
+The current alpha metadata implementation still attaches PostingRules to `ApplicationDefinitionVersion`. This is acknowledged implementation drift and must be decoupled in a future bounded refactor.
+
 ### Application-side recalculation
 
 An Application may choose:
