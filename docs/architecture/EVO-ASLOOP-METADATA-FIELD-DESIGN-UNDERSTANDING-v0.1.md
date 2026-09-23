@@ -1307,3 +1307,286 @@ BusinessData
 - “如果重新记账，这笔业务的凭证发生了什么变化？”
 
 AI 的解释必须基于正式 lineage、规则版本和记账结果，而不是根据业务类型名称猜测会计处理。
+
+
+## 50. Application–Ledger Topology / 应用—账本运行拓扑
+
+Asloop 中已经实现过一种重要分析能力：
+
+> 根据 Application 与 Ledger 之间的增加 / 减少关系，或借 / 贷关系，推导某个 Ledger 的上游 Application 和下游 Application，并通过图形方式表达这些 Application 与 Ledger 之间的关系，从而形成企业运行流程图。
+
+这不是 EVO 的纯设想，而是 Asloop 已经实现过的设计能力，应作为 EVO 的重要历史资产和验证样本。
+
+## 51. 基本推导关系
+
+对于业务类 Ledger，可以通过增加方和减少方建立关系：
+
+```text
+Application A
+   ↓ increase
+Ledger X
+   ↓ decrease
+Application B
+```
+
+由此可推导：
+
+- Application A 是 Ledger X 的上游 Application；
+- Application B 是 Ledger X 的下游 Application；
+- Application A 与 Application B 通过 Ledger X 形成业务链路。
+
+例如：
+
+```text
+Sales Order
+   ↓ + Pending Shipment
+Pending Shipment
+   ↓ - Pending Shipment
+Sales Shipment
+```
+
+因此可以自动得到：
+
+```text
+Sales Order
+→ Pending Shipment
+→ Sales Shipment
+```
+
+## 52. 财务类 Ledger 的借贷关系
+
+对于采用 Debit / Credit 语义的财务 Ledger，也可以通过借贷方向建立 Application 与 Ledger 的关系。
+
+因此同一个拓扑分析能力可以覆盖：
+
+- Operational Ledger 的 Increase / Decrease；
+- Financial Ledger / GL 的 Debit / Credit；
+- 未来其他带方向语义的状态或账户。
+
+具体方向含义必须由 Ledger Type 和 Accounting Semantics 决定，不能简单把所有 Debit / Credit 强行等价成业务上的“增加 / 减少”。
+
+## 53. 从局部关系推导企业运行图
+
+当一个企业安装了足够多的 Application 和 Ledger 后，可以将所有关系组合成：
+
+```text
+Installed Applications
++
+Installed Ledgers
++
+Posting / Accounting Relations
+=
+Enterprise Operating Topology
+```
+
+因此企业运行流程不是必须人工维护的一张 BPM 图，而可以从真实配置中自动推导。
+
+典型关系：
+
+```text
+Sales Order
+   ├─(+)-> Pending Production
+   ├─(+)-> Pending Shipment
+   └─(+)-> Receivable
+
+Production Completion
+   ├─(-)-> Pending Production
+   └─(+)-> Inventory
+
+Sales Shipment
+   ├─(-)-> Pending Shipment
+   └─(-)-> Inventory
+
+Cash Receipt
+   ├─(-)-> Receivable
+   └─(+)-> Cash
+```
+
+这些关系组合后即可表达企业真实业务运行路径。
+
+## 54. Definition Topology 与 Runtime Topology
+
+EVO 后续应区分两类拓扑：
+
+### Definition Topology / 定义拓扑
+
+由元数据和 Posting Rules 推导，回答：
+
+- 哪些 Application 可以影响某个 Ledger；
+- 哪些 Application 是潜在上游；
+- 哪些 Application 是潜在下游；
+- 某个业务闭环在设计上是否完整。
+
+### Runtime Topology / 运行拓扑
+
+在 Definition Topology 上叠加真实运行数据，回答：
+
+- 某段时间实际发生了多少笔；
+- 实际增加 / 减少多少数量或金额；
+- 当前 Ledger Balance 是多少；
+- 哪些下游 Application 实际消化了上游需求；
+- 哪些节点或 Ledger 出现积压。
+
+## 55. 企业运行流程图不是手工 BPM 的替代品，而是事实推导图
+
+Asloop 的这项能力体现了一种重要思想：
+
+> 流程关系可以从 Application 与 Ledger 的真实增减 / 借贷关系中推导，而不是只能依赖人工维护流程图。
+
+EVO 应继续保留这个方向。
+
+推荐：
+
+```text
+Application Definitions
++
+Posting Rules
++
+Ledger Definitions
++
+Runtime Evidence
+        ↓
+Enterprise Operating Graph
+```
+
+人工 BPM / SOP 仍然可以存在，用于表达规范流程、审批要求和管理意图；但 Enterprise Operating Graph 表达的是系统定义和真实运行事实。
+
+二者不应混为一个概念。
+
+## 56. 拓扑图的节点与边
+
+建议 EVO 至少支持以下节点：
+
+- Application；
+- Ledger；
+- 可选 Work；
+- 可选 Projection / Report；
+- 可选 Journal / GL Account。
+
+基础边至少包括：
+
+- increase；
+- decrease；
+- debit；
+- credit；
+- produce；
+- consume；
+- fulfill；
+- settle；
+- derive；
+- project。
+
+其中 increase / decrease / debit / credit 应优先从正式 Posting / Accounting Rule 自动产生，而不是手工维护重复关系。
+
+## 57. 拓扑分析可以发现的结构问题
+
+通过 Application–Ledger Topology，EVO 可以自动发现：
+
+- 只有增加方、没有减少方的 Ledger；
+- 只有减少方、没有来源的 Ledger；
+- 没有连接到任何 Ledger 的孤立 Application；
+- 没有任何 Application 处理的孤立 Ledger；
+- 理论闭环不完整的业务能力；
+- 某个 Application 是否只产生状态而没有后续消费能力；
+- 某个 Ledger 是否成为多个业务域之间的关键连接点。
+
+这些结构问题可作为 Enterprise Template 安装 / 认证时的重要验证项。
+
+## 58. 与 Work / 待办生成的关系
+
+Application–Ledger Topology 与 Work / 待办推导天然相关。
+
+如果：
+
+```text
+Ledger Balance > 0
+```
+
+且系统已知哪些 Application 可以产生该 Ledger 的减少方，则可以推导出潜在的后续处理能力。
+
+例如：
+
+```text
+Pending Shipment Balance > 0
+        ↓
+find applications with decrease effect
+        ↓
+Sales Shipment
+        ↓
+generate / suggest Work Intent
+```
+
+因此：
+
+```text
+Ledger State
+→ Topology
+→ Candidate Downstream Applications
+→ Work Intent
+→ Form / Experience
+```
+
+可以形成完整链路。
+
+Asloop 过去已经实现过基于账本方向关系推导上下游和图形表达；EVO 后续需要进一步确认旧实现细节，并将其重新表达为可验证的机器可读拓扑。
+
+## 59. 图形化表达的产品价值
+
+该图不仅用于技术分析，也可以成为企业管理者理解企业运行方式的重要工具。
+
+可用于：
+
+- 企业运行流程图；
+- 应用关系图；
+- 账本流转图；
+- 业务闭环图；
+- 资金 / 库存 / 应收等专题链路；
+- APQC Capability 映射；
+- Enterprise Template 覆盖分析；
+- 瓶颈 / 积压分析。
+
+最终目标是：
+
+> 企业不是靠静态菜单来说明自己如何运行，而是可以由系统根据真实 Application、Ledger、Posting 和 Runtime Evidence 自动画出自己的运行网络。
+
+## 60. AI-Native 拓扑分析
+
+AI 可以建立在确定性拓扑之上做：
+
+- 图谱解释；
+- 路径摘要；
+- 闭环检查；
+- 孤立节点识别；
+- 潜在瓶颈解释；
+- 下游 Application 候选说明；
+- 企业运行方式自然语言总结；
+- 从某一业务事实追踪完整上下游。
+
+但 AI 不应自行猜测 Application–Ledger 关系。
+
+基础事实必须来自：
+
+```text
+Application Definitions
++
+Ledger Definitions
++
+Posting / Accounting Rules
++
+Runtime Evidence
+```
+
+## 61. Asloop 实现事实与 EVO 后续工作
+
+当前已确认设计事实：
+
+> Asloop 已实现通过 Application 与 Ledger 的增减 / 借贷关系分析上下游 Application，并用图形方式表达这些关系，进而展示企业运行流程。
+
+EVO 后续需要：
+
+1. 定位 Asloop 对应实现代码、表结构和配置；
+2. 恢复节点、边、方向和图形规则；
+3. 判断哪些属于通用语义，哪些属于旧 UI 实现；
+4. 映射到 EVO 的 Application / Ledger / Posting Rule / Relation / Work 模型；
+5. 建立可自动推导、可验证、可重建的 Enterprise Operating Topology；
+6. 将该能力纳入 Enterprise Template 的结构完整性验证。
