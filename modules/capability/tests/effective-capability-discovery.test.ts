@@ -25,6 +25,18 @@ class FakeMetadataReader implements MetadataReader {
     };
   }
 
+  async getEnterpriseByCode(enterpriseCode: string): Promise<Enterprise | null> {
+    return enterpriseCode === 'E1'
+      ? {
+          id: 'ent-1',
+          code: 'E1',
+          name: 'Enterprise 1',
+          status: 'ACTIVE',
+          defaultTimezone: 'UTC'
+        }
+      : null;
+  }
+
   async getApplicationDefinition(
     applicationDefinitionId: string
   ): Promise<ApplicationDefinition | null> {
