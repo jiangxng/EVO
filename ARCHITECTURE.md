@@ -45,7 +45,7 @@ Human / AI / Automation / External System
 11. Operational/economic ledgers are not automatically statutory General Ledger accounts; formal GL requires accounting recognition, explicit Debit/Credit journals and balance validation.
 12. Business/finance capabilities should be installable where possible; Core provides stable primitives and invariants, while applications/packages provide enterprise-specific semantics and posting rules.
 13. Clear Cache preserves rules and configuration: PostingRules, Ledger definitions, cost/valuation policies, application metadata and permissions survive runtime-data clearing.
-14. PostingRules may be changed through their own governed version/effective-date lifecycle. Rule change is never modeled as cache clearing.
+14. PostingRules may be changed by their owning plugin/package. Core does not own rule version/effective-date/rollback lifecycle; rule change is never modeled as cache clearing.
 15. Core provides complete data export; long-term accounting/audit retention is optional plugin/customer policy, not a mandatory Core archive.
 
 See `docs/invariants/core.md`.
@@ -55,7 +55,7 @@ See `docs/invariants/core.md`.
 | Module | Owns | Public direction |
 | --- | --- | --- |
 | identity | actor/auth primitives | used by command/query |
-| metadata | definitions, versions, overlays | foundational |
+| metadata | Core/application definitions and configuration; current alpha also stores PostingRule inputs, but rule lifecycle/versioning is plugin-owned | foundational |
 | application | effective application runtime | uses metadata |
 | command | controlled business writes | creates BusinessData |
 | business-data | current runtime BusinessData facts | consumed by posting/query; removable by governed Clear Cache |
