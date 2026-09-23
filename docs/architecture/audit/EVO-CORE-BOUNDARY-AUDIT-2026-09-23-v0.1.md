@@ -327,3 +327,78 @@ same BusinessData + rules + order
 ```
 
 同时现有完整 EVO compatibility distribution 仍然可以通过安装官方 Packs 恢复当前全部能力。
+
+
+## 13. Implementation Progress — First Physical Slice
+
+**Status: IMPLEMENTED, CI/TYPECHECK EVIDENCE PENDING**
+
+Completed on branch:
+
+- Added `apps/api/src/kernel-runtime.ts`;
+- Added `createEvoKernelRuntime()`;
+- Kernel composition currently wires only:
+  - BusinessData reader;
+  - Posting state;
+  - Posting metadata adapter (transitional);
+  - Posting service;
+  - Ledger writer;
+  - Ledger reader;
+  - transaction runner;
+- Added `drainKernelPosting()` that does not refresh Work or invoke Finance/Cost/Valuation;
+- Existing `createEvoRuntime()` now composes the Kernel first and adds all legacy/official capabilities on top;
+- Existing `drainPosting()` preserves compatibility by calling Kernel posting drain and then refreshing Work;
+- Added architecture test:
+  `platform/testing/architecture/kernel-boundary.test.ts`.
+
+The architecture test rejects Kernel composition imports from:
+
+- accounting;
+- allocation;
+- ai;
+- application;
+- capability;
+- command;
+- cost;
+- economic;
+- enterprise package/template;
+- flow;
+- metrics;
+- position;
+- query;
+- SOP;
+- valuation;
+- workflow.
+
+### Transitional debt explicitly accepted
+
+The extracted Kernel still uses `PostgresPostingMetadataReader` from the current `metadata` module.
+
+This is intentional for the first slice. Current metadata owns both Kernel definitions and Application/Field definitions. The next metadata-boundary slice must separate:
+
+```text
+Kernel Definition Registry
+├─ LedgerDefinition
+└─ PostingRuleDefinition
+
+from
+
+Application Platform Metadata
+├─ TransactionType
+├─ ApplicationDefinition
+├─ FieldDefinition
+└─ FieldGroup
+```
+
+No database migration is performed in this first composition slice.
+
+### Evidence still required before merge
+
+- typecheck;
+- unit tests;
+- architecture tests;
+- existing demo validation;
+- selected replay validation;
+- selected FAI regression validation.
+
+Until those pass, this slice is not certified for merge.
