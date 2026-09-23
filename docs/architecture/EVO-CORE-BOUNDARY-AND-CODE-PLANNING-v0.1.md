@@ -375,3 +375,370 @@ inventory current behavior
 最终原则：
 
 > **EVO Kernel 只负责把必要历史事实按规则可靠地变成账本发生和余额，并支持确定性重算；企业业务、财务产品、体验、分析和学习都围绕它安装和生长。**
+
+
+## 15. 长期性能与规模化设计原则
+
+EVO Kernel 虽然保持最小，但代码设计必须从一开始保留面向长期规模化运行的扩展边界。
+
+核心原则：
+
+> **现在不提前实现所有高规模能力，但今天的 Kernel Contract 不得阻塞未来的高性能、权限隔离、异步重算和分布式扩展。**
+
+因此“最小实现”不等于“短期实现”。
+
+## 16. 性能规划的分层原则
+
+性能问题按职责拆分，不把所有优化逻辑塞进 Posting / Ledger 核心。
+
+推荐分层：
+
+```text
+Write Path
+BusinessData → Posting → Ledger Entry
+
+Read Path
+Ledger Entry → Balance / Projection / Cache
+
+Heavy Compute Path
+Replay / Recalculation / Costing / Historical rebuild
+
+Delivery Path
+Job status / Notification / Event stream
+```
+
+四条路径应尽量低耦合。
+
+### 16.1 Write Path
+
+优先保证：
+
+- 事务边界明确；
+- immutable Ledger Entry；
+- 顺序键稳定；
+- 幂等；
+- 可追溯；
+- 单次记账路径短；
+- 不把报表、DW、复杂分析同步塞进写事务。
+
+### 16.2 Read Path
+
+查询和展示不应长期依赖对 Ledger Entry 全量实时聚合。
+
+允许逐步引入：
+
+- Balance table / snapshot；
+- materialized projection；
+- partition-aware queries；
+- cache；
+- read replica；
+- specialized read model。
+
+这些属于可替换的读优化，不改变 Ledger Entry 作为权威发生记录的地位。
+
+## 17. 大数据量 Replay / Recalculation
+
+大规模重记账、成本重算、历史重建必须从一开始被视为 Heavy Compute Job，而不是普通同步 API。
+
+推荐长期模型：
+
+```text
+Replay Request
+→ validate scope
+→ create Job
+→ freeze / coordinate posting scope if required
+→ partition work
+→ execute deterministic batches
+→ checkpoint
+→ validate digest
+→ publish result
+→ notify caller
+```
+
+最小 Core 现在只需要保留：
+
+- deterministic ordering；
+- replay scope contract；
+- rule/version pinning；
+- checkpoint / resume extension point；
+- progress / status contract；
+- cancellation / failure semantics。
+
+后续可逐步实现：
+
+- batch；
+- parallel partition execution；
+- worker pool；
+- distributed execution；
+- incremental replay；
+- resume from checkpoint；
+- large-scale validation。
+
+### 17.1 Replay 与实时记账协调
+
+历史重算时必须有明确 runtime state。
+
+根据既有约束，某个 replay scope 在重算期间不允许同时被实时 Posting 以不受控方式修改。
+
+未来可支持：
+
+- global pause；
+- enterprise-scoped pause；
+- ledger-scoped pause；
+- time-range / partition isolation；
+- shadow rebuild + atomic switch。
+
+第一阶段可以简单，长期接口不能绑定死为全局停机。
+
+## 18. Asynchronous Job / 异步任务边界
+
+Kernel 不应直接拥有完整通知产品，但需要定义通用 Job Contract。
+
+建议：
+
+```text
+Job
+├─ job_id
+├─ job_type
+├─ tenant / enterprise
+├─ scope
+├─ requested_at
+├─ started_at
+├─ status
+├─ progress
+├─ checkpoint
+├─ result_ref
+├─ error_ref
+└─ correlation_id
+```
+
+Job Runtime 可以作为 Official Runtime Extension，而不是 Ledger Kernel 本体。
+
+适用场景：
+
+- Replay；
+- Re-posting；
+- Cost recalculation；
+- large import；
+- large export；
+- projection rebuild；
+- template install / upgrade；
+- integrity validation。
+
+## 19. Notification 不进入 Ledger Kernel
+
+异步任务完成后的通知应通过事件 /接口解耦：
+
+```text
+Kernel / Job Runtime
+→ JobStatusChanged Event
+→ Notification Pack / Eidos / external system
+```
+
+EVO Core 只负责提供可靠状态和事件。
+
+邮件、站内信、移动通知、Webhook、Eidos UI toast 等属于外部 Notification capability。
+
+这样未来可以替换通知实现而不影响重算和 Ledger Core。
+
+## 20. 权限与数据可见性
+
+“不同权限看到不同数据”是长期必需能力，但不能把具体企业权限模型硬编码进 Ledger Core。
+
+必须区分：
+
+### 20.1 Core 必须提供的边界
+
+Kernel 的 Public Query / Export API 必须能够接受受治理的 Access Context，例如：
+
+```text
+subject
+tenant
+enterprise
+capabilities
+scope / dimensions
+policy_version
+```
+
+所有数据读取接口不得假设“调用者天然能看到全部账本数据”。
+
+### 20.2 外部 Permission / Policy Layer
+
+具体：
+
+- 哪个人可以看哪个部门；
+- 哪个角色可以看哪个客户；
+- 哪个员工只能看自己；
+- 哪个管理者可看全部金额；
+- 字段级脱敏；
+
+应由 Permission / Policy Pack 或独立 Policy Runtime 定义。
+
+推荐：
+
+```text
+Caller
+→ Policy Evaluation
+→ Authorized Query Scope
+→ Ledger / Balance Query
+```
+
+而不是：
+
+```text
+Ledger SQL scattered with role-specific conditions
+```
+
+### 20.3 Dimension-aware Security
+
+因为 Ledger 本身是多维的，长期权限设计应能基于维度过滤：
+
+```text
+enterprise
+organization
+department
+warehouse
+project
+customer / party
+region
+other dimensions
+```
+
+但 Kernel 只提供可过滤、可授权的稳定维度契约，不内置某一家企业的组织规则。
+
+## 21. 数据规模与物理存储可演进性
+
+逻辑模型不得和单一物理实现绑定。
+
+长期允许在不改变 Public Contract 的情况下演进：
+
+- table partitioning；
+- sharding；
+- hot / warm / cold tiers；
+- archive；
+- object storage for historical payload；
+- balance snapshots；
+- read replicas；
+- specialized analytical store。
+
+核心不变量仍然是：
+
+```text
+BusinessData identity
+Posting Rule version
+Ledger Entry identity
+Deterministic ordering
+Balance semantics
+Provenance
+```
+
+物理数据位置可以变化。
+
+## 22. 高性能不依赖删除历史
+
+性能优化不能通过破坏历史事实实现。
+
+禁止将以下方式作为默认性能方案：
+
+- 修改历史 Ledger Entry；
+- 聚合后删除无法恢复的明细；
+- 用当前对象值覆盖历史 BusinessData；
+- 为查询方便制造第二套不可追溯权威余额。
+
+允许：
+
+```text
+immutable source
++
+rebuildable snapshot / cache / projection
+```
+
+## 23. 可观测性必须从 Kernel 边界预留
+
+长期高性能系统必须能够定位：
+
+- 哪条 Posting Rule 慢；
+- 哪个 Ledger 热点高；
+- 哪种维度组合查询慢；
+- Replay 每秒处理多少事实；
+- backlog 多大；
+- checkpoint 到哪里；
+- 哪个 tenant 占用资源；
+- Balance rebuild 是否一致。
+
+因此 Public Runtime 应逐步提供稳定 metrics / tracing identifiers。
+
+可观测性实现可以后加，但 correlation id、job id、rule version、sequence、tenant id 等基础标识应从早期就稳定。
+
+## 24. 分步实施原则
+
+这些长期能力不一次性实现。
+
+建议顺序：
+
+### Stage P0 — Contract-safe minimal Kernel
+- 同步 Posting；
+- 基础 Balance；
+- 确定性 Replay；
+- 简单 tenant isolation；
+- 稳定 provenance。
+
+### Stage P1 — Async heavy jobs
+- Job Contract；
+- Replay 异步化；
+- progress / checkpoint；
+- JobStatusChanged event。
+
+### Stage P2 — Read scalability
+- balance snapshot；
+- projection；
+- partition；
+- query profiling。
+
+### Stage P3 — Policy-aware query
+- Access Context；
+- dimension scope；
+- field / amount masking extension。
+
+### Stage P4 — Large-scale compute
+- partition replay；
+- worker pool；
+- parallelism；
+- resume / retry；
+- shadow rebuild。
+
+### Stage P5 — Distributed scale
+仅在真实数据量证明需要时考虑：
+- distributed execution；
+- sharding；
+- multi-region；
+- hot/cold storage。
+
+原则是：
+
+> **先把边界和契约设计对，再按真实压力逐步替换内部实现。**
+
+## 25. Core 代码的性能设计约束
+
+以后 Kernel 代码评审必须检查：
+
+1. 是否把可异步工作塞入同步 Posting 事务；
+2. 是否引入必须全表扫描的核心路径；
+3. 是否把报表 / Analytics 写入核心事务；
+4. 是否将权限逻辑散落在 Ledger 实现；
+5. 是否让 Public Contract 绑定具体数据库结构；
+6. 是否保留 batch / partition / checkpoint 扩展空间；
+7. 是否可以通过换实现提升性能而不改变业务契约；
+8. 是否可以按 tenant / enterprise 做资源隔离；
+9. 是否保持 Replay deterministic；
+10. 性能优化是否仍然保留完整 provenance。
+
+## 26. 长期架构判断
+
+EVO 的目标不是现在就构建一个超大规模分布式系统。
+
+目标是：
+
+> **今天保持 Kernel 极小；同时让未来的异步化、权限化、分区化、并行重算和存储演进都可以在不破坏业务语义和 Public Contract 的情况下逐步加入。**
+
+低耦合的意义不是少写代码，而是未来可以替换实现、扩容和增加治理能力，而不用重写 Ledger / Posting / Balance 的业务本质。
