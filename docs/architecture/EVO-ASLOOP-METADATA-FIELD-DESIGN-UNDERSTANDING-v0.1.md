@@ -427,3 +427,197 @@ Preserve design intent
 - 有条件时用旧代码、迁移、配置数据和运行证据交叉验证。
 
 本文件应持续成为 EVO 分析 Asloop Application Corpus 时的语义基线。
+
+
+## 17. Form Designer / 表单设计器
+
+Asloop 中还存在一个重要的 Form Designer / 表单设计器。
+
+它的产出物不是新的业务事实，而是把已经定义好的 Field 进一步编译成界面运行时配置，包括：
+
+- Field 在表单中的展示方式；
+- Field 的布局位置；
+- Field 所使用的控件；
+- Field 的只读 / 编辑状态；
+- Field 的默认值；
+- Field 的数据源；
+- Field 的数据源参数；
+- Field 之间的联动 / 触发条件；
+- Field 的可见性条件；
+- Field 的过滤条件；
+- 以及其他界面行为。
+
+因此 Asloop 的完整关系需要补充为：
+
+```text
+Field Definition
+        ↓
+Transaction Type / Application
+        ↓
+Form Designer
+        ↓
+Form Runtime Definition
+        ├─ Layout
+        ├─ Widget / Editor
+        ├─ Data Source
+        ├─ Data Source Filter
+        ├─ Dependency / Trigger
+        ├─ Visibility
+        ├─ Readonly / Editable
+        └─ Default / Mapping
+```
+
+Form Designer 应理解为 Field/Application Definition 到 UI Runtime Definition 之间的一层“界面编译器 / 配置编译器”。
+
+## 18. Field Data Source / 字段数据源
+
+表单里的部分字段会配置 Data Source。
+
+这里的数据源不只是固定下拉选项，也可以是远程 / 动态数据源。
+
+一个字段的数据源至少可能由以下部分组成：
+
+```text
+Data Source
+├─ source / endpoint
+├─ returned fields
+├─ value field
+├─ display field
+├─ fixed parameters
+├─ context parameters
+├─ parameters from other fields
+└─ filter conditions
+```
+
+因此一个字段的数据源可以依赖当前表单中的其他字段。
+
+例如：
+
+```text
+Country
+   ↓
+Province data source filter
+
+Province
+   ↓
+City data source filter
+
+Customer
+   ↓
+Delivery Address data source filter
+```
+
+这种关系不能简单理解为 UI 事件，而应被视为声明式 Field Dependency / Data Source Dependency。
+
+## 19. 字段之间的触发 / 依赖关系
+
+Asloop 的 Field 在 Form Designer 中可以配置字段之间的相互触发条件。
+
+例如一个字段变化后，可以影响另一个字段的：
+
+- 数据源参数；
+- 数据源过滤条件；
+- 可见性；
+- 是否必填；
+- 是否可编辑；
+- 默认值；
+- 可选范围；
+- 其他运行时行为。
+
+因此 Form Runtime 实际上形成了一个依赖图：
+
+```text
+Field A
+   ↓ change / value dependency
+Field B data source / visibility / validation
+   ↓
+Field C
+```
+
+EVO 后续不应把这些联动固化成页面脚本，而应优先表达为可分析、可验证、可编译的声明式 Dependency Graph。
+
+## 20. 数据源过滤的 Visual Studio 2019 设计来源
+
+Asloop 在 Data Source Filter / 数据源过滤方面的设计思想，参考过 Visual Studio 2019 的相关交互 / 配置理念。
+
+当前应保留的设计意图是：
+
+> 数据源过滤不是写死 SQL，而是由设计器通过字段、参数、操作符、上下文值和其他字段值组合出过滤条件。
+
+可以抽象为：
+
+```text
+Filter Expression
+├─ Left Operand
+│   └─ Data Source Field
+├─ Operator
+│   ├─ eq
+│   ├─ neq
+│   ├─ gt / gte
+│   ├─ lt / lte
+│   ├─ in
+│   ├─ contains
+│   └─ ...
+└─ Right Operand
+    ├─ Static Value
+    ├─ Current Form Field
+    ├─ Current User / Entity Context
+    ├─ Parent Object
+    └─ Runtime Context
+```
+
+多个过滤条件可进一步组合为 AND / OR / nested group。
+
+后续分析 Asloop 表单和数据源配置时，需要特别恢复这种“可视化条件构造器”的语义，而不是只读取最终生成的 URL、SQL 或 JSON。
+
+## 21. EVO 对 Form Designer 的继承方向
+
+EVO 应继承的不是旧 UI 技术，而是下面这些能力：
+
+1. Field 在多个 Application 中可以拥有不同 UI Binding；
+2. 布局由元数据定义；
+3. Data Source 是一等定义资产；
+4. Data Source Filter 是声明式表达式；
+5. Field 之间可以存在显式 Dependency；
+6. Dependency 应可形成可分析的图；
+7. 表单定义应可由 LLM 生成、修改、解释和验证；
+8. UI Runtime 应根据定义编译，而不是将业务语义硬编码在页面代码中。
+
+推荐 EVO 的概念结构继续演进为：
+
+```text
+Semantic Field
+        ↓
+Application Field Binding
+        ↓
+Form / List Binding
+        ├─ Layout
+        ├─ Renderer / Editor
+        ├─ Data Source Binding
+        ├─ Filter Expression
+        ├─ Dependency
+        ├─ Validation
+        └─ Interaction Rule
+        ↓
+Experience Compiler / UI Runtime
+```
+
+这里的 Experience Compiler / UI Runtime 名称只表示编译 / 运行职责，不代表 Eidos 必须依赖 EVO 内部实现；实际跨项目边界仍遵守公开契约。
+
+## 22. 后续销售主线新增分析项
+
+销售主线除 Field 集合分析外，应进一步恢复：
+
+- 哪些销售 Field 配了 Data Source；
+- Data Source 来自哪个 Object / Dataset；
+- Data Source 使用哪些固定参数；
+- 哪些参数来自其他表单字段；
+- 字段之间有哪些 Dependency；
+- 哪些字段变化会刷新另一个字段的数据源；
+- 哪些条件控制字段显示 / 隐藏；
+- 哪些条件控制必填 / 可编辑；
+- 相同 Semantic Field 在不同销售 Application 中的 Data Source / Filter 是否不同；
+- 哪些联动属于通用 Field Binding；
+- 哪些联动属于特定 Application 规则。
+
+这些内容将用于验证 EVO 的 Application Field Binding、Data Source Contract 和声明式 Dependency Graph 是否足以承载真实企业应用。
