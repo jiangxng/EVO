@@ -1041,3 +1041,171 @@ Application
 - 提交前生成影响范围摘要。
 
 AI 只能生成或建议 Change Set，不能绕过 Field Binding、Validation、Permission、Command 和审计边界直接修改权威数据。
+
+
+## 37. 核销 / 被核销关系与上下游业务导航
+
+Asloop 中“核销 / 被核销”关系不仅用于结算或数量 / 金额匹配，也被用于界面上的业务导航。
+
+用户可以从当前业务数据出发，查看：
+
+- 哪些上游业务数据形成了当前记录；
+- 当前记录又被哪些下游业务数据继续处理；
+- 与当前记录存在核销关系的其他业务数据；
+- 一笔业务在整个链路中的前后关联。
+
+因此，核销关系实际上同时承担了：
+
+```text
+Settlement / Match Relation
++
+Business Lineage
++
+Upstream / Downstream Navigation
+```
+
+## 38. Relation Graph / 业务关系图
+
+EVO 后续应将这种能力提升为显式 Relation / Lineage Graph，而不是只把核销理解为财务功能。
+
+推荐抽象：
+
+```text
+BusinessData A
+   ├─ settles / 核销
+   ├─ settled_by / 被核销
+   ├─ derives_from / 来源
+   ├─ fulfills / 履约
+   ├─ reverses / 冲销
+   ├─ allocates_to / 分配
+   └─ references / 引用
+BusinessData B
+```
+
+其中“核销 / 被核销”可以继续作为一种非常重要的 Relation Type。
+
+## 39. 上下游导航语义
+
+在 UI / Experience 层，一条业务数据应能够通过 Relation Graph 展示：
+
+```text
+Upstream
+  ↑
+当前 BusinessData
+  ↓
+Downstream
+```
+
+例如：
+
+```text
+销售订单
+   ↓ 被销售出库履约
+销售出库
+   ↓ 被收款 / 应收核销
+收款
+```
+
+或者：
+
+```text
+采购订单
+   ↓
+采购入库
+   ↓
+付款
+```
+
+实际业务关系可以是一对多、多对一、多对多，不应假设固定链式结构。
+
+## 40. 核销关系不能仅靠金额或时间猜测
+
+EVO 中 Relation / Settlement 必须显式保存。
+
+例如：
+
+```text
+relation_type = settlement
+source_business_data_id = ...
+target_business_data_id = ...
+quantity = ...
+amount = ...
+currency = ...
+effective_time = ...
+```
+
+具体字段以最终数据模型为准，但原则是：
+
+> 哪一笔业务处理了哪一笔业务，必须有显式、可追溯的关系证据。
+
+不能仅依靠“金额相同、日期接近”在查询时猜测。
+
+## 41. Relation 与不可变历史
+
+Relation 本身也是企业历史的一部分。
+
+如果后续发生：
+
+- 取消核销；
+- 重新核销；
+- 冲销；
+- 重新分配；
+
+应优先通过新增 Relation / Reversal / Adjustment 表达，而不是静默修改历史关系。
+
+这与 EVO 的 append-only / replay / audit 原则保持一致。
+
+## 42. Relation 对 UI 的价值
+
+有了显式 Relation Graph，EVO 可以自动生成多种导航体验：
+
+- 查看来源单据；
+- 查看后续处理；
+- 查看已核销 / 未核销；
+- 查看完整业务链；
+- 查看相关 Ledger Entry；
+- 查看对应 Work；
+- 查看对应 GL / Journal；
+- 查看报表数字的来源链。
+
+因此 UI 不需要为“销售订单查出库”“出库查收款”等场景分别硬编码专用跳转。
+
+推荐：
+
+```text
+BusinessData
+→ Relation Graph
+→ Contextual Navigation
+```
+
+## 43. AI-Native Relation Navigation
+
+AI 可以利用 Relation Graph 做解释和导航，例如：
+
+- “这笔应收是由哪些销售订单形成的？”
+- “这笔收款核销了哪些应收？”
+- “为什么这个销售订单还显示待收款？”
+- “这笔出库的上游订单和下游收入确认分别是什么？”
+- “从这个报表数字追溯到原始业务。”
+
+AI 的解释必须建立在显式 Relation / Lineage 数据上，而不是推测业务关联。
+
+## 44. 与 Ledger / Work / Projection 的连接
+
+Relation Graph 应能够横跨：
+
+```text
+BusinessData
+↕
+Relation / Settlement
+↕
+Ledger Entry
+↕
+Balance / Work
+↕
+Projection / Report
+```
+
+这样 EVO 才能真正做到：
+
+> 一个业务事实从发生，到被后续业务处理，到进入账本，到形成余额和报表，全链路可导航、可解释、可审计。
