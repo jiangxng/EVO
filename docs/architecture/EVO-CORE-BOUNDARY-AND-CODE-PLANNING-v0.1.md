@@ -742,3 +742,290 @@ EVO 的目标不是现在就构建一个超大规模分布式系统。
 > **今天保持 Kernel 极小；同时让未来的异步化、权限化、分区化、并行重算和存储演进都可以在不破坏业务语义和 Public Contract 的情况下逐步加入。**
 
 低耦合的意义不是少写代码，而是未来可以替换实现、扩容和增加治理能力，而不用重写 Ledger / Posting / Balance 的业务本质。
+
+
+## 27. Responsibility-First Architecture / 责任优先于技术实现
+
+传统人类开发模式中常见“责任就近”现象：当报表查询慢时，最靠近数据库或 Core 的团队往往直接解决；久而久之，Core、Reporting、DW、Cache、Read Model、Partition 等职责混在一起。
+
+EVO 应采用相反原则：
+
+> **先定义语义责任与服务等级，再决定同步、异步、缓存、分区、分库分表等技术实现放在哪一层。**
+
+技术方案不能反向决定模块所有权。
+
+## 28. Core 与 Reporting 的责任边界
+
+### 28.1 EVO Kernel 负责什么
+
+Kernel 对以下内容负责：
+
+- BusinessData 的稳定输入语义；
+- Posting Rule 的确定性执行；
+- Ledger Entry 的正确性与可追溯性；
+- Balance 的权威语义；
+- Public Query / Export Contract；
+- 能让下游建立 Projection / Read Model 的稳定变更流或导出接口；
+- 明确当前数据版本、sequence、checkpoint、freshness metadata。
+
+Kernel 不对“任意复杂报表都必须直接低延迟查询”负责。
+
+### 28.2 Reporting / Analytics Pack 负责什么
+
+Reporting / Analytics 对以下内容负责：
+
+- 面向特定查询场景建立 Read Model；
+- 维度展开；
+- 聚合；
+- Flatten；
+- Materialized View；
+- DW；
+- Cache；
+- OLAP / analytical store；
+- 报表延迟与刷新策略；
+- 报表自身的查询性能；
+- 报表 SLA。
+
+因此如果某个报表很慢，第一责任方应先判断是否需要优化自己的 Projection / Read Model，而不是立即要求 Ledger Core 改物理模型。
+
+## 29. “数据是否同步”不是 Core 的统一答案
+
+EVO 不应规定所有下游都必须实时同步或全部异步。
+
+不同 Consumer 可以声明不同 Data Freshness Contract：
+
+\`\`\`text
+STRONG_CURRENT
+NEAR_REAL_TIME
+BOUNDED_STALENESS
+BATCH
+HISTORICAL_SNAPSHOT
+\`\`\`
+
+例如：
+
+- 交易提交后的余额确认：可能要求接近强一致；
+- 操作列表：可以 near-real-time；
+- 管理 Dashboard：可以允许分钟级延迟；
+- 日经营报表：可以 batch；
+- 年度分析：可以使用 historical snapshot。
+
+责任应由 Consumer 的业务需求决定，而不是由 Core 开发者统一猜测。
+
+## 30. Freshness Metadata / 数据新鲜度必须显式
+
+任何异步 Projection / DW / Reporting 数据都必须能够说明：
+
+- source sequence；
+- source checkpoint；
+- projected_at；
+- data_as_of；
+- lag；
+- projection version；
+- rebuild status。
+
+UI / API 不应把延迟数据伪装成实时数据。
+
+例如：
+
+\`\`\`text
+Report result
+data_as_of = 2026-09-23T09:58:00
+source_sequence = 9823411
+lag = 2m13s
+\`\`\`
+
+这样“延迟”成为显式契约，而不是隐藏副作用。
+
+## 31. Physical Scaling Ownership / 物理扩展责任
+
+需要区分“权威写模型扩展”和“消费侧读模型扩展”。
+
+### 31.1 Kernel Storage Scaling
+
+只有当 Kernel 自己的核心 SLO 受到影响时，Core 才负责：
+
+- Ledger Entry partitioning；
+- BusinessData partitioning；
+- tenant / enterprise isolation；
+- write throughput；
+- replay throughput；
+- core balance query path；
+- archive / hot-cold storage。
+
+### 31.2 Reporting Storage Scaling
+
+如果问题只发生在复杂报表、跨维度聚合或大范围扫描，则 Reporting / Analytics 负责：
+
+- reporting database；
+- read replica；
+- columnar store；
+- OLAP engine；
+- materialized aggregate；
+- DW partitioning；
+- report-specific sharding。
+
+不能因为 Reporting 需要某种分库分表，就要求 Core 同步采用同样的物理模型。
+
+## 32. Logical Contract 与 Physical Topology 分离
+
+Public Contract 不应暴露底层：
+
+- 哪张表；
+- 哪个分片；
+- 哪个库；
+- 是否 read replica；
+- 是否 DW；
+- 是否 cache。
+
+推荐：
+
+\`\`\`text
+Consumer
+→ Stable Data Contract
+→ Projection / Query Service
+→ Physical Storage Strategy
+\`\`\`
+
+这样可以在不改变上层业务定义的情况下逐步演进物理存储。
+
+## 33. Source of Truth / Projection / Cache 三层必须区分
+
+长期统一术语：
+
+### Source of Truth
+
+权威数据：
+
+\`\`\`text
+BusinessData
+Ledger Entry
+authoritative Balance semantics
+\`\`\`
+
+### Projection / Read Model
+
+为某类查询构建的可重建数据。
+
+### Cache
+
+为了性能临时保存的可丢弃副本。
+
+任何模块都必须能回答：
+
+> 这份数据是权威事实、可重建 Projection，还是 Cache？
+
+## 34. Performance Problem Ownership Matrix
+
+遇到性能问题时按问题来源分配责任：
+
+\`\`\`text
+Posting latency
+→ Kernel owner
+
+Ledger write throughput
+→ Kernel owner
+
+Replay throughput
+→ Kernel / Job Runtime owner
+
+Authoritative balance lookup
+→ Kernel owner
+
+Complex cross-domain report
+→ Reporting Pack owner
+
+Dashboard aggregation
+→ Analytics / Projection owner
+
+UI rendering
+→ Eidos owner
+
+Learning query / feature extraction
+→ EC owner
+\`\`\`
+
+如果问题横跨多个模块，则通过 Contract / SLO 协作，不通过“谁离数据库近谁解决”。
+
+## 35. SLA / SLO 应属于接口
+
+模块之间不只定义数据格式，还应逐步定义：
+
+- consistency；
+- freshness；
+- throughput；
+- latency；
+- availability；
+- replayability；
+- retention；
+- maximum supported query scope。
+
+例如 Reporting Pack 可以声明：
+
+\`\`\`text
+source_contract = ledger.change.v1
+freshness_slo = 5 minutes
+rebuildable = true
+\`\`\`
+
+Kernel 只需满足它承诺的 source contract，不承担 Reporting 内部查询实现。
+
+## 36. AI-Native 开发对责任边界的要求
+
+在 AI-native 工程中，不能依赖“资深开发者知道这段代码历史上是谁负责”。
+
+责任必须机器可读、文档化。
+
+每个 Module / Pack 应明确：
+
+\`\`\`text
+owner
+source_of_truth
+inputs
+outputs
+consistency_contract
+freshness_contract
+performance_slo
+rebuild_strategy
+failure_isolation
+forbidden_dependencies
+\`\`\`
+
+这样未来不同 LLM 可以在不读取全部仓库历史的情况下，判断一个性能问题应该在哪个边界解决。
+
+## 37. 设计决策原则
+
+以后遇到类似：
+
+> 报表慢，应该 Core 分库分表，还是报表建立独立数据库？
+
+不得先讨论技术。
+
+先回答：
+
+1. 谁拥有权威数据？
+2. 谁拥有这个查询需求？
+3. 查询要求多新？
+4. 是否允许重建？
+5. 是否影响交易写入？
+6. 是否属于多个 Consumer 的共同需求？
+7. 优化后是否改变 Public Contract？
+
+然后才选择：
+
+- index；
+- partition；
+- cache；
+- projection；
+- read replica；
+- DW；
+- sharding；
+- asynchronous refresh。
+
+最终原则：
+
+> **Ownership follows semantics, not proximity. Performance technology follows ownership and SLO, not developer convenience.**
+
+中文：
+
+> **责任跟随业务语义，而不是跟随代码距离；性能技术方案跟随责任和服务等级，而不是跟随谁最方便修改数据库。**
