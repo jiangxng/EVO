@@ -176,6 +176,44 @@ A full export is versioned/self-describing and is intended to contain enough cur
 
 Whether that export is retained for accounting/audit purposes is a user/plugin policy decision, not a mandatory Core responsibility.
 
+## Target Minimal EVO Runtime API
+
+The target EVO Core API is plugin-runtime oriented, not enterprise-platform oriented.
+
+Logical Core operations:
+
+```text
+submit BusinessData
+query generic Ledger/Balance/runtime result
+observe posting/result status
+request recalculation over retained BusinessData
+clear EVO runtime data
+export EVO runtime data
+```
+
+The exact paths are intentionally not frozen yet.
+
+The following current alpha endpoints are **Host/compatibility composition**, not target EVO Core responsibilities:
+
+```text
+GET  /api/v1/enterprises/:enterpriseCode
+GET  /api/v1/apps
+GET  /api/v1/capabilities
+POST /api/v1/commands
+```
+
+They remain useful for current Proof C compatibility but should migrate toward Host/App Platform adapters.
+
+EVO Core does not own:
+
+- enterprise/application definitions;
+- users/roles/permissions;
+- capability discovery;
+- Command authorization/orchestration;
+- PostingRule lifecycle/version selection.
+
+A Host may translate its own Command/action/capability model into generic EVO BusinessData submissions.
+
 ## Current v1.0-alpha.2 Public Capability Endpoints
 
 The following Core-facing endpoints are implemented for the current alpha boundary:
