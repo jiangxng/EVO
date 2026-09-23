@@ -1,7 +1,7 @@
 # EVO LLM Context Contract
 
 Status: Authoritative
-Context Contract Version: 1.3
+Context Contract Version: 1.4
 
 This file is model-agnostic. It is intended for GPT, Claude, Gemini, local/open models, coding agents and future systems.
 
@@ -82,11 +82,21 @@ Before a material change, classify the evidence target as one of:
 
 - EVO is a lightweight runtime plugin, not the enterprise/application platform.
 - Identity, users, roles, permissions and authorization policy are Host/plugin responsibilities.
-- Enterprise/Application/Package/Feature definitions and capability discovery are Host/App Platform responsibilities.
+- EVO Core owns a minimal ApplicationAnchor/applicationId for rule routing. Rich Application definitions/lifecycle, Package/Feature lifecycle and capability discovery are Host/App Platform responsibilities.
 - Command is an optional Host/compatibility adapter; EVO Core's canonical input is generic BusinessData submission.
-- PostingRule lifecycle/versioning is plugin-owned; Core only evaluates the supplied rule set.
+- PostingRule lifecycle/versioning is plugin-owned; Core stores/evaluates the current supplied rules, and each current rule is anchored to applicationId.
 - Cost, valuation, statutory accounting, financial statements, workflow, SOP, metrics and audit/archive default to plugins.
 - Repository location is not proof of Core ownership; current broad modules are migration assets until explicitly retained in the minimal boundary.
+
+Application routing is mandatory:
+
+```text
+BusinessData.applicationId
+→ PostingRules with same applicationId
+→ evaluate conditions
+```
+
+BusinessData.applicationId and PostingRule.applicationId MUST NOT be optional provenance-only fields.
 
 ## Forbidden Assumptions
 
