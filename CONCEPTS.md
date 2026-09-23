@@ -15,7 +15,8 @@ Context Version: 1.0
 | CommandExecution | audit of one command attempt | business fact itself |
 | BusinessData | preserved actual business history | mutable current row |
 | PostingInput | ordered bridge from BusinessData to posting | user command |
-| Posting | deterministic rule evaluation producing ledger effects | AI reasoning |
+| Posting | deterministic rule evaluation producing ledger effects; the initial posting lifecycle is automatically owned by EVO after a business fact is accepted | a caller-triggered second step for normal business submission |
+| PostingRun | governed execution/status identity for asynchronous, batch, re-posting, recovery or other explicit posting operations | a requirement for Applications to start first posting |
 | LedgerEntry | immutable derived accounting/operational effect | original business fact |
 | LedgerBalance | projection of ledger entries | source of history |
 | CostResult | deterministic valuation result | arbitrary mutation of balance |
@@ -28,7 +29,7 @@ Context Version: 1.0
 
 ## Canonical Runtime Spine
 
-Command → BusinessData → PostingInput → Posting → Ledger → Cost → Work → Replay
+Command → BusinessData → automatic Posting lifecycle → Ledger → Cost → Work → Replay
 
 ## Enterprise Operating Loop
 

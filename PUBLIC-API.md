@@ -45,6 +45,71 @@ Every public Command request must define:
 
 Public responses expose stable execution identifiers and status. Internal implementation classes, SQL schema and worker details are not public API.
 
+## Automatic Initial Posting Semantics
+
+For an accepted business fact, the public business/Command API owns the first posting lifecycle automatically.
+
+Canonical caller contract:
+
+```text
+Application
+→ submit governed business fact/Command
+→ EVO accepts
+→ EVO automatically begins/continues posting
+```
+
+The caller MUST NOT need to invoke a second "start posting" API for the first posting of that accepted fact.
+
+Posting completion semantics are independent from posting ownership:
+
+### Synchronous result
+
+EVO may complete posting before returning:
+
+```text
+COMPLETED / POSTED
+```
+
+### Asynchronous result
+
+EVO may return after acceptance while posting continues:
+
+```text
+ACCEPTED / QUEUED / RUNNING
++ durable posting identity/status
+```
+
+In this case, `QUEUED` means EVO has already accepted responsibility for continuing the posting lifecycle. It does **not** mean the caller must trigger posting.
+
+For asynchronous execution, the public contract must provide a governed way to observe the terminal result:
+
+```text
+POSTED / COMPLETED
+or
+FAILED
+```
+
+through status query, event, callback/webhook, or an equivalent stable mechanism.
+
+External Applications submit business facts. They do not submit LedgerEntry instructions and do not control worker/queue internals. Effective PostingRules determine the derived ledger effects.
+
+### Explicit Posting API
+
+EVO retains an explicit Posting / PostingRun API model for platform-level operations such as:
+
+- re-posting;
+- Replay;
+- bulk/batch posting;
+- retry/recovery;
+- repair/rebuild;
+- governed administrative posting runs.
+
+Such APIs may return asynchronously by design. They are **not** required for the first posting of a newly accepted business fact.
+
+Normative decision:
+
+- `docs/architecture/decisions/2026-09-23-automatic-initial-posting-and-async-results-v0.1.md`
+
 ## Current v1.0-alpha.2 Public Capability Endpoints
 
 The following Core-facing endpoints are implemented for the current alpha boundary:
@@ -70,7 +135,7 @@ and are explicitly identified as `COMMAND_DEFINITION_BOOTSTRAP`. This is a repla
 
 `POST /api/v1/commands` accepts a public `capabilityCode`; callers do not provide EVO-private application instance IDs. EVO resolves the effective provider internally, validates the command input through the existing governed Command boundary, and applies the authorization policy declared by command metadata. Missing authorization metadata fails closed.
 
-The endpoint creates authoritative Command/BusinessData/PostingInput state. Posting remains independently processed by the EVO posting runtime/worker.
+The endpoint creates authoritative Command/BusinessData/PostingInput state. When it returns `postingStatus: QUEUED`, EVO has already taken ownership of the initial posting lifecycle; the caller does not invoke a separate posting-start API. The EVO posting runtime/worker continues processing asynchronously and must eventually expose a governed terminal result.
 
 ## Current v1.0-alpha.2 Reference Endpoints
 

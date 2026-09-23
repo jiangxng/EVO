@@ -65,6 +65,15 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-037 — Uninstall Does Not Erase History: Deactivation or uninstall removes current application capability exposure but MUST NOT silently delete historical BusinessData, Ledger history, lineage or replay evidence.
 - INV-038 — Runtime Discovery Overrides Assumption: Human clients, integrations, automation and LLM agents MUST be able to determine current enterprise capabilities from governed runtime discovery. Prior sessions, demo APIs, another enterprise, static examples or model memory are not evidence that a capability is currently available.
 
+
+## Automatic Posting Lifecycle Constitution
+
+- INV-046 — Accepted Business Facts Automatically Enter Posting: Any business fact accepted through a governed public business/Command API MUST automatically enter its current effective posting lifecycle. The caller MUST NOT need a second API call to start the first posting of that accepted fact.
+- INV-047 — Caller Does Not Own Initial Posting Orchestration: Business Applications submit facts and business commands, not ledger instructions or worker controls. They MUST NOT be required to know or invoke PostingInput, worker, queue, LedgerEntry, LedgerBalance, or private posting-runtime details to complete the first posting.
+- INV-048 — Posting Completion May Be Synchronous Or Asynchronous: EVO MAY complete posting within the originating request or continue it asynchronously. If asynchronous, an accepted/queued/running response means EVO has already assumed responsibility for continuation and MUST expose a durable, traceable path to a terminal POSTED/COMPLETED or FAILED result.
+- INV-049 — Explicit Posting APIs Are Platform Controls, Not First-Posting Requirements: EVO MAY expose Posting/PostingRun APIs for re-posting, Replay, bulk processing, retry/recovery, repair, rebuild and other governed platform operations. Ordinary Applications MUST NOT be required to call such an API to initiate the first posting of a newly accepted business fact.
+- INV-050 — Facts Do Not Carry Ledger Instructions: External Applications submit governed business semantics. Effective PostingRules determine derived Ledger effects. A caller MUST NOT be required to specify the ledger entries that represent an accepted business fact.
+
 ## Alpha.2 Dimensions + Valuation Posting
 
 ### DIM-01 — Explicit Dimension Definition
