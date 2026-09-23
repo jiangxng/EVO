@@ -15,8 +15,10 @@ Context Version: 1.0
 | CommandExecution | audit of one command attempt | business fact itself |
 | BusinessData | preserved actual business history | mutable current row |
 | PostingInput | ordered bridge from BusinessData to posting | user command |
-| Posting | deterministic rule evaluation producing ledger effects; the initial posting lifecycle is automatically owned by EVO after a business fact is accepted | a caller-triggered second step for normal business submission |
-| PostingRun | governed execution/status identity for asynchronous, batch, re-posting, recovery or other explicit posting operations | a requirement for Applications to start first posting |
+| Posting | deterministic rule evaluation producing ledger effects; the posting lifecycle is automatically owned by EVO after a business fact is accepted | a caller-triggered second step for normal business submission |
+| PostingRun | governed execution/status identity for asynchronous, batch, re-posting, recovery or other explicit posting operations | a requirement for Applications to start ordinary posting |
+| EVO Runtime Cache | current governed rebuildable working set/materialization used by EVO runtime | historical/audit evidence that may be silently deleted |
+| CacheReset | governed operation that replaces/clears an active runtime cache scope while preserving required evidence | destructive erase of enterprise history |
 | LedgerEntry | immutable derived accounting/operational effect | original business fact |
 | LedgerBalance | projection of ledger entries | source of history |
 | CostResult | deterministic valuation result | arbitrary mutation of balance |
@@ -57,3 +59,22 @@ A deterministic derived-accounting step that transforms a persisted `CostResult`
 
 Canonical chain:
 `BusinessData -> CostRun -> CostResult -> ValuationPosting -> LedgerEntry -> LedgerBalance`.
+
+
+## Recalculation Perspectives
+
+EVO and business Applications use the word "recalculation" differently.
+
+```text
+EVO recalculation
+= use EVO current governed runtime data
+→ rebuild derived state
+
+Application recalculation
+= Application resubmits its data
+→ EVO treats it as ordinary API input
+```
+
+An Application's terminology does not create a special EVO execution mode.
+
+A full Application-driven rebuild may use a governed CacheReset for its scope and then repopulate EVO through ordinary APIs.
