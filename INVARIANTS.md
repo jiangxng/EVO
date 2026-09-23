@@ -6,7 +6,7 @@ Context Version: 1.1
 These rules are architecture constraints, not implementation suggestions. They are binding on humans, LLMs, migrations, generators, tests and future implementations. A later implementation MUST NOT silently weaken them. A deliberate constitutional change requires an explicit Architecture Change record, rationale, compatibility/data impact, migration plan and tests.
 
 - INV-001: Every write that creates Actual BusinessData must pass through the Command boundary.
-- INV-002: Business history is preserved; historical BusinessData is not silently rewritten to represent later state.
+- INV-002: BusinessData is append-only/immutable while it exists in the current runtime dataset; later state MUST NOT rewrite prior BusinessData in place. A deliberate governed Clear Cache MAY remove BusinessData for the selected scope.
 - INV-003: Replay never executes Commands.
 - INV-004: Replay reconstruction ordering is deterministic by canonical posting key.
 - INV-005: AI, Human, Automation and External System actors use governed Command capabilities.
@@ -19,7 +19,7 @@ These rules are architecture constraints, not implementation suggestions. They a
 - INV-012: Business object relationships and fulfillment must be explicit; the runtime must not infer them from matching quantities.
 - INV-013: Published SOP and metadata versions are immutable in place; changes produce a new version.
 - INV-014: Published MetricDefinition is the source of formal metric semantics.
-- INV-015: Historical reconstruction must use deterministic/persisted version selection, never implicit latest-version semantics.
+- INV-015: Reconstruction/replay over retained runtime data MUST use deterministic/persisted version selection, never implicit latest-version semantics.
 - INV-016: Breaking public contract changes require a version change, compatibility statement, migration and tests.
 - INV-017: Core semantic changes to Command → BusinessData → Posting → Ledger → Cost require an Architecture Change record.
 - INV-018: Repository documentation, contracts and tests are authoritative over chat history or LLM memory.
@@ -62,7 +62,7 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-034 — Installed Application Governs Domain API Exposure: A domain API/capability is currently available only when its owning application instance and effective application definition/version satisfy the governed active-state requirements for that enterprise.
 - INV-035 — Effective API Must Match Effective Capability Set: Runtime API discovery, generated API descriptions and callable domain routes MUST NOT advertise inactive, uninstalled or otherwise ineffective application capabilities as currently available.
 - INV-036 — Domain Writes Still Use Command: Application-specific REST, agent or integration adapters MUST resolve to governed Command capabilities; installing an application does not create a second authoritative write path.
-- INV-037 — Uninstall Does Not Erase History: Deactivation or uninstall removes current application capability exposure but MUST NOT silently delete historical BusinessData, Ledger history, lineage or replay evidence.
+- INV-037 — Uninstall Is Separate From Runtime Data Clearing: Deactivation or uninstall removes current application capability exposure but MUST NOT implicitly perform Clear Cache. Runtime business data is removed only by an explicit governed clear/reset operation.
 - INV-038 — Runtime Discovery Overrides Assumption: Human clients, integrations, automation and LLM agents MUST be able to determine current enterprise capabilities from governed runtime discovery. Prior sessions, demo APIs, another enterprise, static examples or model memory are not evidence that a capability is currently available.
 
 
@@ -81,6 +81,15 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-053 — Runtime Cache Is Rebuildable State: EVO Runtime Cache is a governed rebuildable active working set/materialization. Clearing it MUST NOT silently destroy historical/audit evidence required for lineage, reconstruction, compliance or diagnosis.
 - INV-054 — Cache Clear Is Explicit And Scoped: EVO SHALL expose a privileged, auditable, scope-bounded cache-clear capability. Cache clearing MUST be idempotent or safely retryable and MUST prevent mixed old/new active runtime generations.
 - INV-055 — Cache Clear Does Not Change Business Semantics: After a governed cache clear, Applications repopulate EVO through ordinary APIs. EVO processes those submissions without caring whether the Application describes the workflow as recalculation, refresh, rebuild, resync or reimport.
+
+## Core Runtime Data Lifecycle Constitution
+
+- INV-056 — Clear Cache Clears Business Runtime Data: A governed Clear Cache MAY remove BusinessData and all dependent runtime/derived state in the selected scope, including posting state, Ledger entries/balances, cost/valuation results, work projections and accounting projections.
+- INV-057 — Posting Rules Survive Clear Cache: PostingRules, Ledger definitions, cost/valuation rules, chart-of-accounts/accounting policies, application metadata, permissions and other system/configuration definitions MUST NOT be deleted by ordinary Clear Cache.
+- INV-058 — Append-Only Is Dataset-Scoped, Not Permanent Archive: BusinessData MUST NOT be rewritten in place while present in the active runtime dataset. Core is not required to retain that BusinessData forever after an explicit Clear Cache.
+- INV-059 — Full Data Export Is Core Capability: EVO Core SHALL provide a governed, versioned export of the complete current EVO dataset sufficient for external backup/archive/transfer purposes.
+- INV-060 — Long-Term Audit Retention Is Optional Policy: EVO Core MUST NOT silently preserve hidden audit copies after Clear Cache. Long-term accounting-voucher/statutory/audit retention belongs to optional plugins/packages or customer-managed export retention.
+- INV-061 — Cache Clear Preserves Rebuild Semantics: After Clear Cache, the selected runtime scope MUST be empty of business/runtime results while retaining the rules and definitions required for resubmitted data to be processed deterministically.
 
 ## Alpha.2 Dimensions + Valuation Posting
 
