@@ -165,13 +165,8 @@
       "replay/materialization runtime state tied to cleared dataset"
     ],
     "clearCachePreserves": [
-      "PostingRules",
-      "Ledger definitions",
-      "cost/valuation rules and policies",
-      "chart of accounts/accounting policies",
-      "Application metadata",
-      "installed Package/Feature state",
-      "permissions/identity/configuration"
+      "nothing inside EVO runtime dataset except operational reset/status metadata required by the clear operation",
+      "rules/application/permission/package definitions are external to EVO Core and therefore not cache targets"
     ],
     "postingRuleChange": "plugin/package-owned rule lifecycle; Core consumes supplied current/governed rules and does not manage PostingRule versions",
     "coreExportTarget": [
@@ -183,5 +178,40 @@
     "implementationDrift": [
       "current alpha metadata ties PostingRules to ApplicationDefinitionVersion; future bounded refactor must decouple Core rule execution from plugin-owned rule lifecycle"
     ]
+  },
+  "targetCoreBoundary": {
+    "status": "DESIGN_ACCEPTED_IMPLEMENTATION_CONVERGENCE_PENDING",
+    "model": "LIGHTWEIGHT_EVO_RUNTIME_PLUGIN",
+    "coreResponsibilities": [
+      "accept generic BusinessData under opaque runtime scope",
+      "deterministically evaluate supplied PostingRules",
+      "persist current runtime BusinessData",
+      "derive generic LedgerEntry/LedgerBalance",
+      "recalculate retained runtime data",
+      "clear EVO runtime data",
+      "export EVO runtime data",
+      "expose generic result/status/query boundary"
+    ],
+    "notCore": [
+      "identity/users/roles/permissions",
+      "Enterprise/Application definitions",
+      "Package/Feature lifecycle",
+      "capability discovery",
+      "Command authorization/orchestration",
+      "PostingRule version/lifecycle governance",
+      "cost/valuation engines by default",
+      "General Ledger/statutory accounting",
+      "financial statements",
+      "workflow/SOP/metrics",
+      "audit/archive/compliance/jurisdiction policy",
+      "UI/Agent/integration orchestration"
+    ],
+    "currentImplementationDrift": [
+      "identity/metadata/application/capability/command currently reside in EVO repository",
+      "public /apps /capabilities /commands endpoints currently compose platform concerns inside EVO API",
+      "PostingRules currently attach to ApplicationDefinitionVersion",
+      "cost/valuation/accounting/reporting implementations are currently in-repo but target plugin ownership"
+    ],
+    "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
   }
 }
