@@ -50,12 +50,13 @@ Public responses expose stable execution identifiers and status. Internal implem
 The following Core-facing endpoints are implemented for the current alpha boundary:
 
 ```text
+GET  /api/v1/enterprises/:enterpriseCode
 GET  /api/v1/apps?enterprise_id=<id>
 GET  /api/v1/capabilities?enterprise_id=<id>
 POST /api/v1/commands
 ```
 
-`GET /api/v1/apps` and `GET /api/v1/capabilities` expose only effective ACTIVE application instances and their current command capabilities.
+`GET /api/v1/enterprises/:enterpriseCode` resolves stable enterprise scope without exposing storage details. `GET /api/v1/apps` and `GET /api/v1/capabilities` expose only effective ACTIVE application instances and their current command capabilities.
 
 For this alpha slice, command capabilities are derived from:
 
