@@ -360,5 +360,51 @@
     "validationConsole": "/",
     "deployment": "docker-compose",
     "contextContractVersion": "1.1"
+  },
+  "targetBoundary": {
+    "model": "LIGHTWEIGHT_EVO_RUNTIME_PLUGIN",
+    "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
+    "coreResponsibilities": [
+      "business-data-ingestion",
+      "posting-execution",
+      "generic-ledger",
+      "generic-balance",
+      "runtime-recalculation",
+      "runtime-clear",
+      "runtime-export",
+      "generic-runtime-query-status"
+    ],
+    "hostOrPluginResponsibilities": [
+      "identity",
+      "permissions",
+      "enterprise-definition",
+      "application-definition",
+      "package-feature-lifecycle",
+      "capability-discovery",
+      "command-orchestration",
+      "posting-rule-lifecycle",
+      "cost",
+      "valuation",
+      "general-ledger-accounting",
+      "financial-statements",
+      "workflow",
+      "sop",
+      "metrics",
+      "audit-archive",
+      "jurisdiction-regulation",
+      "ui-agent-integration"
+    ],
+    "compatibilityAssets": [
+      "identity",
+      "metadata",
+      "application",
+      "capability",
+      "command",
+      "workflow",
+      "cost",
+      "valuation",
+      "accounting-and-reporting"
+    ],
+    "defaultRule": "if uncertain, keep the capability outside EVO Core"
   }
 }

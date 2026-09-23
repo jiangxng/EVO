@@ -8,38 +8,31 @@
     "lastVerifiedRuntimeMergeCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf"
   },
   "activeWorkPacket": {
-    "id": "FAI-07",
-    "name": "Three Core Financial Statements",
-    "stage": "Financial Accounting Integrity",
-    "status": "CERTIFIED",
-    "overallClosed": true,
-    "businessGoal": "Generate Balance Sheet, Income Statement and Cash Flow Statement as deterministic versioned projections of authoritative GL/BusinessData lineage, reconcile the three statements, and reproduce them identically.",
-    "activeBranch": "evo/fai-07-three-financial-statements-v0.1",
-    "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md",
-    "evidenceTarget": "DATABASE E2E VERIFIED Balance Sheet + Income Statement + Cash Flow Statement + cross-statement MATCH + statement replay MATCH",
+    "id": "CORE-MIN-01",
+    "name": "Minimal EVO Runtime Plugin Boundary",
+    "stage": "Architecture Convergence",
+    "status": "DESIGN_ACCEPTED_PENDING_MERGE",
+    "overallClosed": false,
+    "businessGoal": "Make EVO small enough to behave as an installable runtime plugin: accept BusinessData, execute supplied PostingRules, derive generic Ledger/Balance, and provide recalc/clear/export/query without owning platform, application, permission, finance-governance or rule-version concerns.",
+    "activeBranch": "evo/minimal-runtime-plugin-boundary-v0.1",
+    "packet": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
+    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no runtime behavior change",
     "closedGates": [
-      "FAI-06 financial-statement readiness merged by PR #48 after CI #670",
-      "statement projection run/line schema implemented",
-      "statement semantic roles implemented",
-      "cash-equivalent account marker implemented",
-      "Balance Sheet account-balance projection implemented",
-      "Income Statement period-movement projection implemented",
-      "Cash Flow Statement BusinessData-lineage classification implemented",
-      "statement hierarchy / SUM_CHILDREN implemented",
-      "statement semantic digest implemented",
-      "deterministic statement replay implemented",
-      "cross-statement reconciliation implemented",
-      "broken report mapping negative proof implemented",
-      "FAI-07 PostgreSQL 18 database E2E proof — PR #49 / CI #672",
-      "Balance Sheet equation MATCH",
-      "Net Income ↔ Current Period Earnings MATCH",
-      "Cash Flow roll-forward MATCH",
-      "Cash Flow closing cash ↔ Balance Sheet cash MATCH",
-      "Balance Sheet / Income Statement / Cash Flow Statement replay MATCH",
-      "broken statement mapping negative proof returns MISMATCH"
+      "minimal runtime responsibilities defined",
+      "identity/permissions externalized from Core target",
+      "Application/Package/Feature/capability lifecycle externalized from Core target",
+      "Command reclassified as optional Host/compatibility adapter",
+      "PostingRule lifecycle/versioning confirmed plugin-owned",
+      "cost/valuation/accounting/statements/workflow/SOP/metrics/audit defaulted to plugin ownership",
+      "machine-readable architecture/context/status updated"
     ],
-    "openGates": [],
-    "nextAction": "Merge PR #49, then run a post-three-statement finance-gap alignment. Treat broader statutory-accounting controls as a separate next stage rather than extending the report engine."
+    "openGates": [
+      "PR #56 full CI",
+      "merge PR #56",
+      "close superseded PR #25 and PR #50",
+      "plan bounded runtime convergence without breaking Proof C compatibility"
+    ],
+    "nextAction": "Merge the design boundary, then define the smallest generic BusinessData submission adapter while retaining current /commands compatibility until Proof C/runtime migration is proven."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -105,8 +98,8 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "EEL_C05_CERTIFIED_COMPLETED_LOOP_ALIGNMENT_REQUIRED",
-    "rule": "Technical design is LLM-owned inside confirmed business outcomes. Current mainline is enterprise business → immutable events → posting rules → ledgers → balances → eventually three financial statements; future-use-only platform complexity defaults to deferred.",
+    "currentAssessment": "MINIMAL_EVO_RUNTIME_PLUGIN_BOUNDARY_ACCEPTED",
+    "rule": "Technical design must keep EVO as a lightweight runtime plugin. Under uncertainty, move identity/application/governance/domain capabilities to Host/plugins; Core stays BusinessData → supplied PostingRules → Ledger/Balance plus runtime control/export.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
       "rule": "Perform a formal requirement-alignment review after every 3 merged DATABASE E2E VERIFIED/CERTIFIED bounded slices since the last review, or immediately when any mandatory trigger fires, whichever comes first."
@@ -149,7 +142,8 @@
     "regulatoryBaseline": "docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md",
     "primaryOpenRequirement": "Post-three-statement statutory/accounting control gap alignment",
     "implementationStatus": "FAI_07_DATABASE_VERIFIED",
-    "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT"
+    "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT",
+    "targetOwnership": "FINANCE_PLUGIN / OPTIONAL DOMAIN PLUGIN — existing implementation retained as reusable asset, not mandatory minimal EVO Core"
   },
   "runtimeDataLifecycle": {
     "status": "DESIGN_ACCEPTED_IMPLEMENTATION_PENDING",
@@ -165,13 +159,8 @@
       "replay/materialization runtime state tied to cleared dataset"
     ],
     "clearCachePreserves": [
-      "PostingRules",
-      "Ledger definitions",
-      "cost/valuation rules and policies",
-      "chart of accounts/accounting policies",
-      "Application metadata",
-      "installed Package/Feature state",
-      "permissions/identity/configuration"
+      "nothing inside EVO runtime dataset except operational reset/status metadata required by the clear operation",
+      "rules/application/permission/package definitions are external to EVO Core and therefore not cache targets"
     ],
     "postingRuleChange": "plugin/package-owned rule lifecycle; Core consumes supplied current/governed rules and does not manage PostingRule versions",
     "coreExportTarget": [
@@ -183,5 +172,40 @@
     "implementationDrift": [
       "current alpha metadata ties PostingRules to ApplicationDefinitionVersion; future bounded refactor must decouple Core rule execution from plugin-owned rule lifecycle"
     ]
+  },
+  "targetCoreBoundary": {
+    "status": "DESIGN_ACCEPTED_IMPLEMENTATION_CONVERGENCE_PENDING",
+    "model": "LIGHTWEIGHT_EVO_RUNTIME_PLUGIN",
+    "coreResponsibilities": [
+      "accept generic BusinessData under opaque runtime scope",
+      "deterministically evaluate supplied PostingRules",
+      "persist current runtime BusinessData",
+      "derive generic LedgerEntry/LedgerBalance",
+      "recalculate retained runtime data",
+      "clear EVO runtime data",
+      "export EVO runtime data",
+      "expose generic result/status/query boundary"
+    ],
+    "notCore": [
+      "identity/users/roles/permissions",
+      "Enterprise/Application definitions",
+      "Package/Feature lifecycle",
+      "capability discovery",
+      "Command authorization/orchestration",
+      "PostingRule version/lifecycle governance",
+      "cost/valuation engines by default",
+      "General Ledger/statutory accounting",
+      "financial statements",
+      "workflow/SOP/metrics",
+      "audit/archive/compliance/jurisdiction policy",
+      "UI/Agent/integration orchestration"
+    ],
+    "currentImplementationDrift": [
+      "identity/metadata/application/capability/command currently reside in EVO repository",
+      "public /apps /capabilities /commands endpoints currently compose platform concerns inside EVO API",
+      "PostingRules currently attach to ApplicationDefinitionVersion",
+      "cost/valuation/accounting/reporting implementations are currently in-repo but target plugin ownership"
+    ],
+    "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
   }
 }

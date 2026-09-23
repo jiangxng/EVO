@@ -1,7 +1,7 @@
 {
   "project": "EVO",
-  "productCategory": "Enterprise Operating System",
-  "contextContractVersion": "1.2",
+  "productCategory": "Enterprise Data Runtime Plugin",
+  "contextContractVersion": "1.3",
   "baseline": "v1.0.0-alpha.2",
   "bootstrap": {
     "agentInstructions": "AGENTS.md",
@@ -20,7 +20,8 @@
     "businessRequirementBaseline": "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
     "requirementAlignmentProtocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "requirementEvidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
-    "requirementAlignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C04-SELECTION-v0.1.md"
+    "requirementAlignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C04-SELECTION-v0.1.md",
+    "coreBoundaryDecision": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
   },
   "requiredReading": [
     "PHILOSOPHY.md",
@@ -28,7 +29,8 @@
     "INVARIANTS.md",
     "ARCHITECTURE.md",
     "PUBLIC-API.md",
-    "architecture.manifest.json"
+    "architecture.manifest.json",
+    "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
   ],
   "readProfiles": {
     "boundedModuleChange": {
@@ -43,7 +45,7 @@
       ]
     },
     "crossModuleArchitecture": {
-      "maxInitialDocuments": 14,
+      "maxInitialDocuments": 15,
       "documents": [
         "AGENTS.md",
         "LLM.md",
@@ -58,11 +60,12 @@
         "PUBLIC-API.md",
         "architecture.manifest.json",
         "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
-        "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md"
+        "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
+        "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
       ]
     },
     "continuation": {
-      "maxInitialDocuments": 13,
+      "maxInitialDocuments": 14,
       "documents": [
         "AGENTS.md",
         "LLM.md",
@@ -76,7 +79,8 @@
         "docs/architecture/certification/ER-C05B4.4B-READ-ROUTING-ACTIVATION-SAFETY-CERTIFICATION-v0.1.md",
         "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
         "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
-        "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md"
+        "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
+        "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
       ]
     },
     "archaeology": {
@@ -92,15 +96,11 @@
     }
   },
   "canonicalRuntimeSpine": [
-    "Command",
+    "BusinessDataSubmission",
     "BusinessData",
-    "PostingInput",
     "Posting",
-    "Ledger",
-    "Cost",
-    "ValuationPosting",
-    "Work",
-    "Replay"
+    "LedgerEntry",
+    "LedgerBalance"
   ],
   "sourcePriority": [
     "use-two-axis-authority-model",
@@ -128,15 +128,23 @@
     "Candidate": "Isolated proposed derived generation; never canonical BusinessData."
   },
   "rules": {
-    "actualWriteBoundary": "Command",
-    "businessHistory": "preserved",
+    "actualWriteBoundary": "BusinessDataSubmission",
     "replayExecutesCommands": false,
     "aiIsSourceOfTruth": false,
-    "applicationOwnsIndependentFacts": false,
+    "applicationOwnsIndependentFacts": true,
     "businessLinkInferenceFromMatchingQuantity": false,
     "implicitLatestForHistoricalReplay": false,
     "dimensionPropagation": "explicit-only",
     "costResultWritesLedgerDirectly": false,
-    "valuationPostingWritesBusinessData": false
+    "valuationPostingWritesBusinessData": false,
+    "commandRequiredByCore": false,
+    "businessDataImmutableWithinRuntimeDataset": true,
+    "businessDataPermanentArchive": false,
+    "identityOwnedByCore": false,
+    "permissionsOwnedByCore": false,
+    "applicationDefinitionsOwnedByCore": false,
+    "capabilityDiscoveryOwnedByCore": false,
+    "postingRuleLifecycleOwnedByCore": false,
+    "higherOrderEnginesDefaultToPlugins": true
   }
 }

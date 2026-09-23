@@ -5,9 +5,14 @@ Gemini, local models, and future coding agents working in this repository.
 
 ## Mission
 
-EVO is an AI-native Enterprise Operating System. Preserve immutable business
-history, deterministic posting/replay, explicit version and policy pins, module
-ownership, and auditable evidence. Do not simplify these invariants away.
+EVO is a lightweight deterministic runtime plugin inside a larger AI-native enterprise platform.
+Its minimal target is BusinessData submission → supplied PostingRules → LedgerEntry → LedgerBalance,
+plus runtime recalculation, clear, export and generic result/status queries.
+
+Identity, permissions, Application/Package/Feature lifecycle, capability discovery,
+rule-version governance, finance/statutory accounting, audit/archive and UI/Agent
+orchestration are outside EVO Core by default. Do not expand Core merely because
+an implementation module currently exists in this repository.
 
 ## Start here — do not read all documents
 
@@ -42,6 +47,18 @@ Progress documents and checkpoints report validation state; certification
 packets prove only their named scenario and boundary. Chat history and model
 memory are hints only.
 
+## Minimal Core boundary
+
+Before adding a Core responsibility, ask:
+
+> Can generic BusinessData → PostingRule → Ledger → Balance still function if this capability is outside EVO?
+
+If yes, keep it outside Core by default.
+
+Core does not own identity, permissions, enterprise/application definitions, Package/Feature lifecycle, capability discovery, Command orchestration, PostingRule versions, finance/accounting governance, workflow, SOP, metrics, audit/archive or UI/Agent concerns.
+
+Read `docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md` for the authoritative boundary.
+
 ## Required working behavior
 
 - Preserve unrelated user changes and inspect the worktree before editing.
@@ -50,10 +67,9 @@ memory are hints only.
   compatibility impact, and required evidence.
 - Before introducing a material abstraction/generalization, answer the four anti-overdesign questions in `requirements.status.json`.
 - Prefer small explicit contracts and bounded modules over hidden conventions.
-- Never use "latest" implicitly for historical rules, policies, metadata, rates,
-  templates, or reference datasets.
-- Never rewrite BusinessData history; corrections and reversals are new facts.
-- Replay historical facts; do not re-execute historical Commands.
+- Never perform hidden Core selection of PostingRule versions; rule lifecycle/selection belongs to the supplying plugin. For any other retained versioned inputs, deterministic reconstruction must use explicit inputs.
+- Never rewrite BusinessData in place while it exists in the active runtime dataset. Explicit Clear Cache may remove that runtime data.
+- Recalculate retained BusinessData deterministically; Command replay is not a Core requirement.
 - Candidate/Oracle/CURRENT derived state must remain generation-scoped.
 - A design, implementation, unit test, database E2E, and certification are
   different evidence levels. State the exact level reached.

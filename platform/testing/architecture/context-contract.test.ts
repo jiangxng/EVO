@@ -17,7 +17,17 @@ describe('LLM context determinism contract', () => {
     expect(manifest.requiredReading).toContain('PHILOSOPHY.md');
     expect(manifest.requiredReading).toContain('INVARIANTS.md');
     expect(manifest.requiredReading).toContain('PUBLIC-API.md');
-    expect(manifest.rules.actualWriteBoundary).toBe('Command');
+    expect(manifest.requiredReading).toContain(
+      'docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md'
+    );
+    expect(manifest.rules.actualWriteBoundary).toBe('BusinessDataSubmission');
+    expect(manifest.rules.commandRequiredByCore).toBe(false);
+    expect(manifest.rules.identityOwnedByCore).toBe(false);
+    expect(manifest.rules.permissionsOwnedByCore).toBe(false);
+    expect(manifest.rules.applicationDefinitionsOwnedByCore).toBe(false);
+    expect(manifest.rules.capabilityDiscoveryOwnedByCore).toBe(false);
+    expect(manifest.rules.postingRuleLifecycleOwnedByCore).toBe(false);
+    expect(manifest.rules.higherOrderEnginesDefaultToPlugins).toBe(true);
     expect(manifest.rules.replayExecutesCommands).toBe(false);
     for (const file of manifest.requiredReading) {
       expect((await text(file)).length).toBeGreaterThan(20);

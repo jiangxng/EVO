@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "project": "EVO",
   "authority": "machine-readable-requirement-alignment",
-  "updatedAt": "2026-09-22",
+  "updatedAt": "2026-09-24",
   "productIntent": {
-    "goal": "AI-native, modular, industry-agnostic Enterprise Operating System where enterprise activity can be executed, explained, replayed, upgraded, and continuously evolved.",
+    "goal": "Provide a lightweight deterministic EVO Runtime Plugin inside a broader composable Enterprise Operating System. EVO itself owns generic BusinessData → supplied PostingRules → Ledger/Balance runtime behavior; platform, application, permission and governance capabilities live outside the plugin.",
     "humanOwns": [
       "business outcome",
       "acceptance criteria",
@@ -21,56 +21,49 @@
     ]
   },
   "currentStage": {
-    "id": "Financial Accounting Integrity",
-    "name": "Three Core Financial Statements",
-    "businessGoal": "Project authoritative GL and BusinessData lineage into Balance Sheet, Income Statement and Cash Flow Statement with cross-statement reconciliation and deterministic regeneration."
+    "id": "Architecture Convergence",
+    "name": "Minimal EVO Runtime Plugin Boundary",
+    "businessGoal": "Shrink EVO to the smallest reusable runtime plugin that can accept BusinessData, execute externally supplied rules deterministically, derive Ledger/Balance, and support recalc/clear/export without owning enterprise-platform concerns."
   },
   "activeRequirementSet": {
-    "id": "FAI-07",
-    "name": "Balance Sheet + Income Statement + Cash Flow Statement",
+    "id": "CORE-MIN-01",
+    "name": "Minimal EVO Runtime Plugin Boundary",
     "acceptance": [
-      "Balance Sheet is derived from ending GL balances and versioned statement mappings",
-      "Income Statement is derived from period GL movements and versioned statement mappings",
-      "Cash Flow Statement classifies cash-equivalent Journal movements using BusinessData lineage and CashFlowClassificationRule",
-      "cash movement without lineage is rejected from statement projection",
-      "unclassified or ambiguously classified cash movement is rejected",
-      "statement hierarchy and subtotal lines are deterministic",
-      "Assets equal Liabilities + Equity",
-      "Income Statement net income equals Balance Sheet current-period earnings presentation",
-      "Opening Cash + Net Cash Change equals Closing Cash",
-      "Cash Flow closing cash equals Balance Sheet cash",
-      "each statement projection has a stable semantic digest",
-      "re-projecting the same facts/rules/mappings yields identical digest",
-      "broken statement mappings are detected by cross-statement reconciliation",
-      "financial statements remain derived projections and do not rewrite BusinessData or GL"
+      "EVO is explicitly defined as a lightweight runtime plugin rather than the enterprise/application platform",
+      "identity, users, roles, permissions and authorization policy are outside EVO Core",
+      "Enterprise/Application/Package/Feature definitions and capability discovery are outside EVO Core",
+      "generic BusinessData submission is the target Core ingestion boundary; Command is optional Host/compatibility orchestration",
+      "PostingRule lifecycle/versioning is plugin-owned; Core only executes the supplied rule set",
+      "generic Posting/Ledger/Balance remain the minimal deterministic runtime spine",
+      "recalculation, runtime-data clear, full export and generic result/status query remain Core runtime-control capabilities",
+      "cost, valuation, General Ledger/statutory accounting, financial statements, workflow, SOP, metrics and audit/archive default to plugin ownership",
+      "current broad repository modules are classified as implementation assets/extraction candidates rather than proof of Core ownership",
+      "current Proof C compatibility runtime is not broken by this design-only convergence"
     ],
     "verified": [
-      "FAI-01/02 strict double-entry is DATABASE E2E VERIFIED",
-      "FAI-03~05 recognition / trace / Trial Balance / GL Replay is DATABASE E2E VERIFIED",
-      "FAI-06 period governance / economic↔GL reconciliation / statement metadata is DATABASE E2E VERIFIED by PR #48 / CI #670",
-      "Asloop semantics confirm statements as account/ledger projections",
-      "FAI-07 three core financial statements are DATABASE E2E VERIFIED by PR #49 / CI #672",
-      "Balance Sheet equation matches",
-      "Income Statement net income reconciles to Balance Sheet current-period earnings",
-      "Cash Flow roll-forward matches",
-      "Cash Flow closing cash reconciles to Balance Sheet cash",
-      "all three statement semantic replays match",
-      "broken statement mapping is detected as MISMATCH"
+      "authoritative minimal-runtime-plugin ADR added",
+      "PHILOSOPHY / CONCEPTS / INVARIANTS / ARCHITECTURE / PUBLIC-API aligned",
+      "architecture.manifest.json and context.manifest.json encode the target boundary",
+      "project.status.json and branch.topology.json moved to CORE-MIN-01 mainline",
+      "EVO-App-Platform documentation now treats EVO as an ordinary runtime dependency package"
     ],
-    "open": [],
+    "open": [
+      "PR #56 full CI must pass after final context/requirements synchronization",
+      "merge PR #56 to main",
+      "close superseded PR #25 and PR #50",
+      "define the first bounded runtime convergence slice: generic BusinessData submission adapter while preserving current Proof C compatibility"
+    ],
     "deferred": [
-      "full statutory statement package",
-      "notes to financial statements",
-      "ownership-equity statement beyond core three reports",
-      "bank statement reconciliation",
-      "electronic voucher archival controls",
-      "statutory filing",
-      "consolidation",
-      "multi-GAAP"
+      "physical extraction of identity/metadata/application/capability modules",
+      "physical extraction of finance/accounting/reporting modules",
+      "renaming current evo.core package seed to evo.runtime",
+      "removing compatibility /commands endpoint",
+      "cost/valuation plugin extraction",
+      "audit/archive plugin implementation"
     ],
-    "currentWork": "Post-FAI-07 finance-gap alignment",
-    "status": "CERTIFIED",
-    "packet": "docs/architecture/status/EVO-FINANCIAL-STATEMENT-PROJECTION-DESIGN-v0.1.md"
+    "currentWork": "Minimal EVO Runtime Plugin architecture convergence",
+    "status": "DESIGN_ACCEPTED_PENDING_CI_MERGE",
+    "packet": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
   },
   "antiOverdesignQuestions": [
     "Which confirmed current requirement needs this?",
@@ -102,9 +95,9 @@
     "STATUS_DRIFT"
   ],
   "lastAlignment": {
-    "date": "2026-09-22",
-    "reason": "EEL-C04 completed and mandatory completed-loop requirement-alignment trigger fired.",
-    "result": "EEL-C05 Inventory Transfer selected because it adds a new internal-asset conservation proof without requiring statutory accounting expansion or WMS/TMS platformization."
+    "date": "2026-09-24",
+    "reason": "Human requirement correction: EVO itself must be treated as a lightweight plugin and must not own permissions, application definitions, rule-version governance or broader platform responsibilities.",
+    "result": "CORE-MIN-01 selected. Default boundary rule: keep capabilities outside EVO Core unless generic BusinessData → supplied PostingRules → Ledger → Balance cannot function without them."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -113,11 +106,11 @@
     "resetRule": "Reset the slice counter after a formal alignment review is recorded in lastAlignment."
   },
   "nextRequirementSelection": {
-    "state": "RESELECT_REQUIRED_AFTER_CERTIFICATION",
-    "selection": null,
-    "rule": "The three core financial statements are now certified. Reassess remaining statutory-accounting and finance-control gaps before selecting the next packet."
+    "state": "AFTER_CORE_MIN_01_MERGE",
+    "selection": "GENERIC_BUSINESSDATA_SUBMISSION_CONVERGENCE",
+    "rule": "After the minimal boundary is merged, implement the smallest generic BusinessData submission adapter while retaining the current Proof C compatibility path until migrated."
   },
-  "currentWork": "Post-FAI-07 finance-gap alignment",
+  "currentWork": "Minimal EVO Runtime Plugin architecture convergence",
   "financialAccountingIntegrity": {
     "state": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
     "findings": [
@@ -134,6 +127,8 @@
     ],
     "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT",
     "primaryRequirement": "有借必有贷、借贷必相等",
-    "implementationStatus": "FAI_07_DATABASE_VERIFIED"
+    "implementationStatus": "FAI_07_DATABASE_VERIFIED",
+    "targetOwnership": "FINANCE_PLUGIN / OPTIONAL DOMAIN PLUGIN",
+    "currentMainline": false
   }
 }

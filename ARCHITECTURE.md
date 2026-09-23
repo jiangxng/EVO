@@ -5,9 +5,51 @@
 **Implementation milestone:** v1.0.0-alpha.2 — Dimensions + Valuation Posting  
 **Rule:** If implementation conflicts with an accepted architecture decision or invariant, the conflict must be resolved explicitly; do not silently reinterpret the architecture.
 
-## Canonical runtime flow
+## Target Product Boundary — EVO Runtime Plugin
 
-**Business-finance integration rule:** EVO is not a finance-first platform. Canonical enterprise facts are projected through installable applications/packages and conditional posting into operational/economic ledgers; formal General Ledger accounting is a stricter governed projection layered on the same facts. Capability growth should normally happen through metadata/apps/packages/rules rather than Core expansion.
+EVO is a lightweight runtime plugin, not the enterprise platform.
+
+```text
+Host / App Platform
+├─ identity + permissions
+├─ Package / Feature / Application lifecycle
+├─ capability discovery
+├─ rule plugins + rule governance
+├─ audit/compliance/archive plugins
+├─ UI / Agent / integrations
+└─ EVO Runtime Plugin
+   ├─ accept BusinessData
+   ├─ execute supplied PostingRules
+   ├─ LedgerEntry / LedgerBalance
+   ├─ runtime recalculation
+   ├─ clear runtime data
+   ├─ export runtime data
+   └─ observe posting/result status
+```
+
+The current repository is broader than this target boundary. Existing broader modules are implementation assets and plugin/host extraction candidates; repository presence does not make them Core.
+
+Canonical target runtime flow:
+
+```text
+Host / Application
+      ↓
+BusinessData submission
+      ↓
+EVO Runtime Plugin
+      ↓
+supplied PostingRules
+      ↓
+LedgerEntry
+      ↓
+LedgerBalance
+```
+
+Cost, valuation, statutory accounting, financial statements, workflow, SOP, metrics, audit/archive and jurisdiction logic default to separate plugins/packages.
+
+## Current implementation flow
+
+**Boundary rule:** EVO Runtime Plugin is not the application/identity/governance platform. The Host and plugins supply business data and rules; EVO provides deterministic runtime posting/ledger/balance mechanics.
 
 
 ```text
@@ -39,71 +81,47 @@ Human / AI / Automation / External System
 5. Derived Ledger/Balance/Cost state is rebuildable.
 6. Replay does not re-execute historical Commands.
 7. Cost valuation is separate from posting-rule evaluation.
-8. AI uses the same capability/Command boundary as other actors.
-9. Cross-module writes must respect module ownership.
+8. Actor/capability/permission handling is outside EVO Core; all callers reach EVO through the Host's trusted adapter.
+9. Current repository modules must respect ownership while extraction toward the minimal plugin boundary proceeds.
 10. Chat memory is not an authoritative architecture store.
-11. Operational/economic ledgers are not automatically statutory General Ledger accounts; formal GL requires accounting recognition, explicit Debit/Credit journals and balance validation.
-12. Business/finance capabilities should be installable where possible; Core provides stable primitives and invariants, while applications/packages provide enterprise-specific semantics and posting rules.
-13. Clear Cache preserves rules and configuration: PostingRules, Ledger definitions, cost/valuation policies, application metadata and permissions survive runtime-data clearing.
+11. Generic EVO Ledger is not statutory General Ledger; formal accounting is a Finance plugin built on/alongside EVO runtime.
+12. Application, finance, governance and management capabilities are plugins/packages. EVO Core stays limited to generic runtime primitives.
+13. Clear Cache clears EVO runtime data only. Rules/application/permission configuration live outside Core and therefore are not cache contents.
 14. PostingRules may be changed by their owning plugin/package. Core does not own rule version/effective-date/rollback lifecycle; rule change is never modeled as cache clearing.
-15. Core provides complete data export; long-term accounting/audit retention is optional plugin/customer policy, not a mandatory Core archive.
+15. EVO provides complete export of its own runtime dataset; long-term accounting/audit retention is optional plugin/customer policy.
 
 See `docs/invariants/core.md`.
 
-## Modules
+## Target Core Components
 
-| Module | Owns | Public direction |
+| Target component | Owns | Notes |
 | --- | --- | --- |
-| identity | actor/auth primitives | used by command/query |
-| metadata | Core/application definitions and configuration; current alpha also stores PostingRule inputs, but rule lifecycle/versioning is plugin-owned | foundational |
-| application | effective application runtime | uses metadata |
-| command | controlled business writes | creates BusinessData |
-| business-data | current runtime BusinessData facts | consumed by posting/query; removable by governed Clear Cache |
-| posting | ordered PostingInput execution | emits ledger effects |
-| dimensions | DimensionDefinition / ledger dimension policies | validates analytical dimensions |
-| ledger | LedgerEntry / LedgerBalance | consumed by cost/query |
-| cost | deterministic cost calculation / CostResult | consumes business history and valuation policy |
-| valuation | ValuationRule / ValuationPostingRun / ValuationPosition | CostResult → Ledger value effects |
-| capability | enterprise capability definitions | metadata-aligned classification |
-| flow | FlowDefinition / FlowInstance / FlowTrace / business links | explicit cross-domain lineage |
-| metrics | governed MetricDefinition semantics | read/semantic layer |
-| sop | versioned SOP knowledge | enterprise knowledge layer |
-| replay | rebuild orchestration | orchestrates posting/ledger/cost |
-| workflow | process/work/plan | invokes commands |
-| ai | AI gateway | query + commands only |
-| integration | external adapters/outbox | enters via commands |
-| query | composed read models | read-only across modules |
+| business-data runtime | accepted BusinessData in current runtime dataset | Host/Application source data remains external |
+| posting runtime | deterministic evaluation of supplied PostingRules, ordering, status/failure | no rule lifecycle/version management |
+| ledger runtime | generic LedgerEntry + LedgerBalance | no statutory accounting semantics |
+| recalculation/runtime-control | recalculate retained BusinessData, clear runtime data | no application lifecycle |
+| export/query | generic current runtime results + complete EVO runtime export | no audit retention policy |
 
-Machine-readable ownership: `architecture.manifest.json`.
+## Current Repository Assets Outside Target Core
+
+The repository currently also contains `identity`, `metadata`, `application`, `capability`, `command`, `workflow`, `cost`, `valuation`, `accounting`, reporting and other modules. They remain useful implementation assets, but target ownership is Host/plugin/compatibility-layer by default.
+
+Machine-readable current-module ownership remains in `architecture.manifest.json`; its `targetBoundary` section is authoritative for Core classification.
 
 ## Dependency direction
 
 ```text
-identity
+Host / plugin adapters
    ↓
-metadata
+business-data runtime
    ↓
-application
+posting runtime
    ↓
-command
-   ↓
-business-data
-   ↓
-posting
-   ↓
-ledger
-   ↓
-cost
-   ↓
-valuation
-   ↓
-ledger (value effects)
+ledger runtime
 
-workflow → command/query
-replay → posting/ledger/cost
-ai → metadata/query/command
-integration → command/outbox
-query → read interfaces only
+rule plugins → posting runtime
+optional derived plugins → EVO runtime query/events
+Host → runtime-control / export
 ```
 
 ## Implementation baseline
