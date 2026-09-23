@@ -1,6 +1,6 @@
 {
   "project": "EVO",
-  "productCategory": "Enterprise Operating System",
+  "productCategory": "Enterprise Data Runtime Plugin",
   "contextContractVersion": "1.3",
   "baseline": "v1.0.0-alpha.2",
   "bootstrap": {
