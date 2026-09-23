@@ -1442,3 +1442,31 @@ A package is not considered fully installable until all are true:
 7. Eidos remains functional with a mock/non-EVO host.
 
 This section is the EVO-side authority for the EVO ↔ Eidos installable-application boundary.
+
+
+## Package → Feature → Contribution boundary update — 2026-09-23
+
+EVO participates in the EVO App Platform's generic lifecycle model but does not own that lifecycle model.
+
+Canonical cross-project model:
+
+```text
+Package
+  ↓ contains
+Feature
+  ↓ contributes
+Contribution
+```
+
+For EVO:
+
+- `evo.core` is a Foundation Package from lifecycle/distribution perspective;
+- EVO kernel capabilities such as BusinessData, Posting, Ledger, Balance and Replay may be exposed as Foundation Features/capabilities;
+- EVO Contributions may include Ledger Definitions, Posting Rules, query/API registrations, projections or runtime-extension registrations;
+- Package installation and Feature activation are separate concepts;
+- Feature activation scope must not be confused with cloud tenant/database topology;
+- EVO runtime correctness and transaction semantics remain EVO-owned even when lifecycle is managed externally;
+- App Manager must integrate through EVO Public Contracts and must not depend on EVO private implementation/database tables.
+
+The canonical package/feature lifecycle authority belongs to:
+`EVO-App-Platform/docs/architecture/PACKAGE-FEATURE-CONTRIBUTION-MODEL-v0.1.md`.
