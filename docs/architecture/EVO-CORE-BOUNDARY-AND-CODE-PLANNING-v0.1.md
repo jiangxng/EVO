@@ -1029,3 +1029,258 @@ forbidden_dependencies
 中文：
 
 > **责任跟随业务语义，而不是跟随代码距离；性能技术方案跟随责任和服务等级，而不是跟随谁最方便修改数据库。**
+
+
+## 27. Public API First / 对外 API 作为 Core 性能与可靠性边界
+
+EVO Core 的性能责任不应无限扩大。
+
+长期采用以下原则：
+
+> **EVO Core 只对其正式承诺的 Public API 性能与可靠性负责。**
+
+Core 内部可以持续替换数据库、分区、缓存、队列、重算执行器和存储实现，但外部消费者只依赖稳定 Public Contract。
+
+因此性能责任边界从“所有使用 EVO 数据的场景都必须快”收敛为：
+
+```text
+EVO Core
+→ owns Public API correctness
+→ owns Public API latency / throughput
+→ owns Public API availability
+→ owns Public API durability / consistency guarantees
+
+Consumers
+→ own their own projections / DW / caches / visualization performance
+```
+
+## 28. Minimum Viable Performance / 最小可用性能原则
+
+EVO 不应一开始为所有未来极端规模做过度设计。
+
+性能建设采用 Minimum Viable Performance 原则：
+
+1. 先定义最小、稳定、必要的 Public API 集；
+2. 对这些 API 给出明确性能目标和可靠性目标；
+3. 用基准测试 / 压测持续验证；
+4. 当真实负载接近边界时，再升级内部实现；
+5. 不为了未知未来场景提前引入高复杂度分布式架构。
+
+“最小可用”只限制实现复杂度，不降低 API 质量要求。
+
+也就是说：
+
+> API 范围可以小，但已经承诺的 API 必须高性能、高可靠、行为确定。
+
+## 29. Public API 的性能分级
+
+建议 Public API 按使用性质分级，而不是所有接口采用同一 SLA。
+
+### Tier A — Critical Online API
+
+例如：
+
+- Posting；
+- Balance Query；
+- Ledger Entry append；
+- critical ledger lookup；
+- idempotency / status lookup。
+
+要求：
+
+- 低延迟；
+- 高可用；
+- 明确超时；
+- 幂等；
+- 可观测；
+- 不依赖报表 / DW / EC。
+
+### Tier B — Online Read / Navigation API
+
+例如：
+
+- Ledger movement query；
+- provenance / lineage query；
+- bounded history query；
+- dimension-scoped query。
+
+要求：
+
+- 稳定分页；
+- 明确查询边界；
+- 不允许无界全表扫描；
+- 支持未来读模型优化。
+
+### Tier C — Bulk / Heavy API
+
+例如：
+
+- Bulk Export；
+- Replay；
+- Recalculation；
+- full snapshot；
+- large integrity validation。
+
+默认采用异步 Job Contract，不承诺同步低延迟。
+
+```text
+request
+→ accepted + job_id
+→ async execution
+→ progress / result
+```
+
+这样可以保护 Critical Online API，不被大任务拖垮。
+
+## 30. API Contract 必须声明一致性与新鲜度
+
+每个 Public API 应明确说明：
+
+- strong / eventual / snapshot consistency；
+- freshness expectation；
+- ordering semantics；
+- idempotency semantics；
+- pagination / cursor semantics；
+- maximum request scope；
+- timeout / retry behavior；
+- error contract。
+
+不能让消费者猜测：
+
+> “这个余额到底是不是实时？”  
+> “这个导出是否包含刚刚写入的数据？”  
+> “重试 Posting 会不会重复记账？”
+
+这些都属于 Public Contract。
+
+## 31. Core 内部优化必须对 API 透明
+
+未来为了性能，Core 可以采用：
+
+- partitioning；
+- balance snapshot；
+- cache；
+- read replica；
+- queue；
+- worker pool；
+- sharding；
+- hot / cold storage；
+- distributed replay。
+
+但只要 Public Contract 不变，消费者不需要知道内部实现。
+
+推荐关系：
+
+```text
+Public API Contract
+        ↓
+Stable Semantic Boundary
+        ↓
+Replaceable Internal Implementation
+```
+
+因此 Reporting Pack 不得依赖：
+
+- Core table name；
+- specific SQL；
+- specific partition scheme；
+- internal cache key；
+- worker implementation。
+
+## 32. API Reliability Budget
+
+EVO 后续应为 Public API 建立可量化的可靠性预算。
+
+至少逐步定义：
+
+- availability；
+- latency percentile；
+- throughput；
+- error rate；
+- saturation；
+- queue backlog；
+- replay throughput；
+- recovery time。
+
+第一阶段不必立即承诺最终生产级数字，但代码和测试体系必须允许未来配置和验证这些指标。
+
+禁止只使用“快”“高可靠”等无法验证的描述作为最终契约。
+
+## 33. Performance Isolation / 性能隔离
+
+大任务不得拖垮在线 API。
+
+应逐步支持：
+
+```text
+Online Posting / Balance Traffic
+        ≠
+Replay / Export / Rebuild Traffic
+```
+
+可采用：
+
+- separate worker pools；
+- separate queues；
+- concurrency limits；
+- tenant quotas；
+- priority classes；
+- IO / CPU budgets。
+
+最小版本可以共享基础设施，但接口和任务模型必须从一开始允许后续隔离。
+
+## 34. Public API First 对插件体系的意义
+
+所有 Pack / Plugin / Eidos / EC 默认只能通过 Public API / Public Event Contract 访问 EVO Core。
+
+禁止把“性能问题”作为直接访问 Core 私有表的理由。
+
+如果某个消费者认为 Public API 不够：
+
+1. 先判断是否属于消费者自己的 Projection / Cache 问题；
+2. 若确实缺少通用数据能力，再增加新的 Public API / Change Feed；
+3. 不允许直接绕过边界形成数据库耦合。
+
+这样未来可以保证：
+
+```text
+EVO Core storage changes
+→ no forced change in Packs
+
+Reporting storage changes
+→ no forced change in EVO Core
+```
+
+## 35. API-first 性能测试策略
+
+Core 的性能测试重点应围绕 Public API，而不是只测数据库函数。
+
+建议逐步建立：
+
+- Posting API benchmark；
+- Balance Query benchmark；
+- concurrent posting benchmark；
+- idempotency retry benchmark；
+- bounded history query benchmark；
+- bulk export throughput benchmark；
+- replay job throughput benchmark；
+- failure / restart recovery test；
+- long-running load test。
+
+每个测试都使用公开契约或与公开契约完全相同的 Runtime Path。
+
+这样才能防止出现：
+
+> 底层 SQL 很快，但真实 API 链路很慢。
+
+## 36. 最终性能责任原则
+
+EVO 长期坚持：
+
+> **Core does not promise every query is fast. Core promises its Public APIs are fast, reliable, bounded, observable and evolvable.**
+
+中文：
+
+> **EVO Core 不承诺任何人想怎么查都快；它只承诺正式 Public API 在明确边界内高性能、高可靠、可观测、可演进。**
+
+这条原则将作为未来数据存储、分库分表、缓存、异步化和消费者架构决策的责任边界。
