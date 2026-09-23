@@ -30,6 +30,12 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
   const runtime=createEvoRuntime(options.database);
   app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
 
+  app.get('/api/v1/enterprises/:enterpriseCode',async request=>{
+   const code=(request.params as {enterpriseCode:string}).enterpriseCode;
+   const enterprise=await runtime.metadata.getEnterpriseByCode(code);
+   if(enterprise===null)throw new AppError({code:'ENTERPRISE_NOT_FOUND',message:'Enterprise was not found.',module:'api',operation:'getEnterpriseByCode',details:{enterpriseCode:code}});
+   return enterprise;
+  });
   app.get('/api/v1/apps',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listApplications'});return runtime.capabilityDiscovery.listApplications(q.enterprise_id);});
   app.get('/api/v1/capabilities',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listCapabilities'});return runtime.capabilityDiscovery.listCapabilities(q.enterprise_id);});
   app.post('/api/v1/commands',async request=>{
