@@ -122,3 +122,21 @@ ledger derivation
 ```
 
 Clear Cache removes runtime business data/results but never clears PostingRules or other configuration definitions.
+
+
+## Minimal Runtime Mental Model
+
+```text
+Host/App
+→ BusinessDataSubmission
+→ EVO Runtime Plugin
+→ supplied PostingRules
+→ LedgerEntry
+→ LedgerBalance
+```
+
+Identity, permission, Application/Package/Feature, capability discovery and rule lifecycle are outside EVO.
+
+Cost, valuation, General Ledger, statements, workflow, SOP, metrics and audit/archive default to plugins that consume or extend EVO runtime.
+
+The existence of an implementation module inside this repository does not make that module part of the target Core.
