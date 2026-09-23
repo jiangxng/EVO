@@ -13,12 +13,12 @@ Context Version: 1.0
 | Application | executable tool around business capability/process | source of independent truth |
 | Command | authorized request to perform a business action | replayable event |
 | CommandExecution | audit of one command attempt | business fact itself |
-| BusinessData | preserved actual business history | mutable current row |
+| BusinessData | immutable accepted business fact within the current runtime dataset; removable by governed Clear Cache | mutable current row or mandatory permanent archive |
 | PostingInput | ordered bridge from BusinessData to posting | user command |
 | Posting | deterministic rule evaluation producing ledger effects; the posting lifecycle is automatically owned by EVO after a business fact is accepted | a caller-triggered second step for normal business submission |
 | PostingRun | governed execution/status identity for asynchronous, batch, re-posting, recovery or other explicit posting operations | a requirement for Applications to start ordinary posting |
-| EVO Runtime Cache | current governed rebuildable working set/materialization used by EVO runtime | historical/audit evidence that may be silently deleted |
-| CacheReset | governed operation that replaces/clears an active runtime cache scope while preserving required evidence | destructive erase of enterprise history |
+| EVO Runtime Cache | current governed business runtime dataset, including BusinessData and derived results, which may be destructively cleared by explicit policy | system definitions such as PostingRules or installed application metadata |
+| CacheReset | governed operation that clears the selected business runtime dataset while preserving system definitions/rules | uninstall, metadata reset, or hidden audit archive |
 | LedgerEntry | immutable derived accounting/operational effect | original business fact |
 | LedgerBalance | projection of ledger entries | source of history |
 | CostResult | deterministic valuation result | arbitrary mutation of balance |
@@ -78,3 +78,47 @@ Application recalculation
 An Application's terminology does not create a special EVO execution mode.
 
 A full Application-driven rebuild may use a governed CacheReset for its scope and then repopulate EVO through ordinary APIs.
+
+
+## Data Retention Boundary
+
+```text
+Clear Cache deletes:
+BusinessData
++ Posting runtime state
++ Ledger entries/balances
++ Cost/valuation results
++ Work/accounting/report projections
+
+Clear Cache preserves:
+PostingRules
++ Ledger definitions
++ Cost/valuation rules
++ chart/accounting policies
++ Application metadata
++ Package/Feature installation
++ permissions/configuration
+```
+
+Long-term audit/archive retention is optional and does not belong to mandatory Core semantics.
+
+Core instead guarantees a complete versioned data export so users or archive plugins can preserve what they choose before clearing.
+
+
+## PostingRule Ownership
+
+```text
+Plugin/package owns:
+rule editing
+rule versions
+effective dates
+approval
+rollback
+
+EVO Core owns:
+deterministic evaluation of the supplied rule set
+posting effects
+ledger derivation
+```
+
+Clear Cache removes runtime business data/results but never clears PostingRules or other configuration definitions.

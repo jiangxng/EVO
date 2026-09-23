@@ -84,13 +84,17 @@ Before a material change, classify the evidence target as one of:
 - Do not infer fulfillment/causation from equal quantities or matching timestamps.
 - Do not write derived Cost results directly into balances without a declared valuation-posting interface.
 - Do not treat Application as the enterprise truth model.
-- Do not silently select latest metadata/rules for historical reconstruction.
+- Do not silently select latest Core metadata for reconstruction. PostingRule selection/version lifecycle belongs to the rule-owning plugin/package; Core executes the supplied rule set.
 - Do not require an Application to trigger the posting after EVO accepts a business fact; EVO owns automatic continuation.
 - Do not interpret `QUEUED` as waiting for a caller-side posting trigger. It means EVO has accepted responsibility for asynchronous continuation.
 - Do not collapse explicit Posting/PostingRun APIs into ordinary business submission; they remain valid for re-posting, Replay, bulk work, recovery and governed platform control.
 - Do not infer special EVO semantics from an Application calling an operation recalculation; Application-side recalculation is ordinary data resubmission unless an explicit EVO platform-control API is invoked.
-- Treat EVO Runtime Cache as rebuildable active state, not as a synonym for deletable historical/audit evidence.
-- A cache clear must be explicit, authorized, scoped and auditable; prefer generation reset/switch semantics over destructive history deletion.
+- Treat EVO Runtime Cache as the clearable business runtime dataset. It may include BusinessData and all derived runtime results.
+- A cache clear must be explicit, authorized and scoped; it may destructively remove BusinessData and derived runtime results. It MUST preserve PostingRules and other system/configuration definitions.
+- Do not make permanent accounting/audit retention a hidden Core responsibility. Core provides full data export; long-term retention belongs to plugins/packages or user-managed archives.
+- Do not preserve hidden copies of cleared BusinessData merely for audit convenience unless an installed retention plugin explicitly owns that policy.
+- Do not create a PostingRule version manager inside Core. Draft/publish/version/effective-date/rollback semantics belong to the rule-owning plugin/package.
+- Do not infer fraud, manipulation or audit intent merely from authorized data/rule adjustments. Core executes governed inputs; audit/compliance policy belongs to optional governance plugins.
 
 ## Output Expectations for Coding Agents
 

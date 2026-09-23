@@ -5,7 +5,7 @@
 
 ## Purpose
 
-Provide stable, version-aware metadata lookup and controlled metadata mutation without exposing PostgreSQL persistence details.
+Provide stable metadata lookup and controlled metadata mutation without exposing PostgreSQL persistence details. Application metadata may be versioned; PostingRule lifecycle/version governance is not a Core responsibility.
 
 ## Primary read interface
 
@@ -104,3 +104,23 @@ No runtime BusinessData or Ledger scan is permitted.
 Metadata schema version starts at `1`.
 
 Database schema after M1 is `2`.
+
+
+## PostingRule lifecycle boundary
+
+PostingRule execution belongs to EVO Posting Core, but PostingRule **version lifecycle** does not.
+
+Normative target:
+
+```text
+Rule-owning plugin/package
+→ chooses/manages rule drafts, versions, effective dates, rollback, approvals
+→ supplies current/governed rule set
+→ EVO Core evaluates supplied rules
+```
+
+Core MUST NOT require a PostingRule version registry.
+
+The current alpha implementation still retrieves PostingRules through `ApplicationDefinitionVersion`. That is an implementation coupling to be removed in a later bounded refactor; it is not the target architecture.
+
+`ruleSchemaVersion` is a rule-document/schema compatibility field, not a PostingRule business-version lifecycle.

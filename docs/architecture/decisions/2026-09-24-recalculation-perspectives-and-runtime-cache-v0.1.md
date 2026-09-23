@@ -14,7 +14,7 @@ The word "recalculation" is used from two different perspectives:
 
 These are not the same operation and EVO must not couple them.
 
-The architecture also needs an explicit way to discard EVO's current rebuildable runtime cache without treating that operation as deletion of historical audit evidence.
+The architecture also needs an explicit way to discard EVO's current business runtime dataset while keeping rules/configuration intact. Long-term audit retention is a separate optional policy.
 
 ---
 
@@ -30,9 +30,13 @@ current EVO cached/runtime input state
 → rebuilt derived state
 ```
 
-EVO may reuse accepted BusinessData/runtime input already present in the current governed dataset and rebuild Posting, Ledger, Cost, Work, accounting projections, or other derived state according to the selected rules/version scope.
+EVO may reuse accepted BusinessData/runtime input already present in the current governed dataset and rebuild Posting, Ledger, Cost, Work, accounting projections, or other derived state using the rule set supplied to Core.
 
 No business Application resubmission is required for this EVO-internal recalculation path.
+
+### PostingRule lifecycle is plugin-owned
+
+EVO Core does not manage PostingRule versions. A rule-owning plugin/package chooses and supplies the rule set used for recalculation. Version labels, effective dates, approvals and rollback history are plugin concerns.
 
 ### 2.2 Business Application perspective
 
@@ -59,21 +63,21 @@ If the caller reuses the same idempotency identity, normal EVO idempotency seman
 
 For this decision, **EVO Runtime Cache** means the current rebuildable runtime working set used to calculate and expose enterprise state.
 
-It is not a synonym for irreversible deletion of enterprise history.
+It is the clearable business runtime dataset, including BusinessData and derived runtime state.
 
 The cache boundary may include current imported/accepted runtime working data and derived materializations whose active view can be reconstructed, replaced, or repopulated under governed rules.
 
 The following distinction is mandatory:
 
 ```text
-historical/audit evidence
+runtime business data/results
 ≠
-current active runtime cache
+system definitions/rules
 ```
 
-A cache-clear operation MUST NOT silently destroy audit/provenance evidence required by historical reconstruction, compliance, lineage, or diagnosis.
+Clear Cache MAY destructively remove the former and MUST preserve the latter. PostingRules are never a cache-clear target.
 
-Implementation may use generation switching, archival generations, logical detachment, or another governed mechanism instead of physical destructive deletion.
+Long-term audit/history retention is not mandatory Core behavior. If required, it is provided by export retention or an installed audit/archive package.
 
 ---
 
@@ -163,7 +167,7 @@ EVO current runtime data
 → Reposting / Replay / Cost recalculation / projection rebuild
 → new derived generation
 → verification
-→ governed activation
+→ updated current derived state
 ```
 
 This path may reuse existing Posting/Replay/Materialization machinery.
@@ -172,7 +176,7 @@ This path may reuse existing Posting/Replay/Materialization machinery.
 
 ## 7. Relationship to automatic posting
 
-This ADR supersedes the wording "first posting" as a canonical concept.
+This ADR supersedes the wording "first posting" as a canonical concept and is further refined by `2026-09-24-core-runtime-data-retention-export-boundary-v0.1.md`.
 
 The canonical rule is now:
 
@@ -193,9 +197,9 @@ It MUST:
 - be explicitly authorized;
 - be scope-bounded;
 - be idempotent or safely retryable;
-- produce audit evidence;
+- produce a minimal operational reset record;
 - prevent mixed old/new active generations;
-- preserve required historical/audit lineage;
+- preserve PostingRules and other system/configuration definitions;
 - define interaction with concurrent submissions;
 - fail closed when a safe cutover cannot be guaranteed.
 

@@ -14,7 +14,7 @@ Own versioned enterprise/application metadata and effective-definition resolutio
 - ApplicationInstance
 - EnterpriseApplicationOverlay
 - CommandDefinition metadata
-- PostingRule metadata
+- PostingRule execution metadata/input compatibility (current alpha storage; lifecycle/version ownership is external to Core)
 - LedgerDefinition metadata
 - ValuationPolicy metadata
 - EffectiveDefinitionResolver
@@ -76,8 +76,7 @@ Do not introduce runtime BusinessData/Ledger scans into metadata resolution.
 
 ## Replay behavior
 
-Metadata is version identity consumed by replay.
-Replay may select versions but must not mutate metadata.
+Application/config metadata may carry version identity consumed by replay. PostingRule version selection/lifecycle is owned by the rule plugin/package; Core replay consumes the rule set supplied to it and must not manage a PostingRule version catalog.
 
 ## Observability
 

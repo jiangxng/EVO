@@ -26,7 +26,7 @@ Operational ledgers remain signed increase/decrease ledgers. Statutory General L
 11. Chart of Accounts must be versioned accounting metadata, separate from generic LedgerDefinition.
 12. Accounting policy changes require effective dates, reasons, transition/restatement rules and disclosure impact.
 13. Financial statement mapping must support comparative periods, materiality, aggregation/disaggregation and explicit no-inappropriate-offsetting rules.
-14. Accounting archive retention/security/export are lifecycle requirements; retention is record-type/jurisdiction metadata, not one hard-coded duration.
+14. Accounting archive retention/security/export may be required by jurisdiction/customer policy, but retention is not mandatory EVO Core behavior. Core provides export; jurisdictional retention belongs to an installable accounting/audit archive package or external retention policy.
 15. Accounting roles require incompatible-duty controls. Business operator, approver, accounting preparer, reviewer/poster, cashier, custodian and auditor cannot be freely collapsed into one role.
 16. Multi-enterprise runtime does not automatically mean consolidated financial statements; consolidation needs a separate governed projection.
 
@@ -104,7 +104,7 @@ PRC rules now explicitly require accounting software to support electronic accou
 
 EVO should provide plugin/adapter ingestion for digital invoices, VAT e-invoices, bank receipts/statements, travel tickets, fiscal electronic receipts and other standardized evidence.
 
-Archive policy must preserve authenticity, integrity, usability, security, metadata, anti-tamper, backup and governed destruction/retention extension.
+Where an enterprise/jurisdiction requires accounting archive retention, the installed archive package or external retention policy must preserve the required authenticity, integrity, usability, security, metadata, anti-tamper, backup and governed retention/destruction controls.
 
 ## 10. Red invoice
 
@@ -128,7 +128,7 @@ Accounting authorization must support incompatible-duty policies. AI actors foll
 
 Gate A — Economic Runtime: BusinessData, rules, economic ledgers, balances, cost/valuation, allocation and Replay.
 Gate B — General Ledger: Chart of Accounts, Journal, Debit/Credit, atomic balance, evidence lineage, accounting currency and period.
-Gate C — Accounting operations: review/approval, close/reopen, bank and subledger reconciliation, posted-history immutability, electronic voucher/archive.
+Gate C — Accounting operations: review/approval, close/reopen, bank and subledger reconciliation, posted-state integrity. Electronic voucher/archive retention is a separate installable governance package unless a target deployment explicitly requires it.
 Gate D — Trial Balance: debit=credit and independently reconciled balances with Replay equality.
 Gate E — Financial reporting: three core statements plus Statement of Changes in Equity and Notes.
 

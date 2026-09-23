@@ -23,7 +23,7 @@ Sales Order, Customer Receipt, Supplier Payment, Purchase Order, Production and 
 
 If the corresponding application is not effectively installed and active for the enterprise, EVO MUST NOT advertise or accept its domain capabilities as currently available.
 
-Application deactivation or uninstall removes current capability exposure but MUST NOT erase historical BusinessData or break deterministic historical reconstruction.
+Application deactivation or uninstall removes current capability exposure but does not itself clear runtime data. A separate governed Clear Cache may remove BusinessData and derived runtime state.
 
 The detailed normative contract is:
 
@@ -91,7 +91,23 @@ FAILED
 
 through status query, event, callback/webhook, or an equivalent stable mechanism.
 
-External Applications submit business facts. They do not submit LedgerEntry instructions and do not control worker/queue internals. Effective PostingRules determine the derived ledger effects.
+External Applications submit business facts. They do not submit LedgerEntry instructions and do not control worker/queue internals. The PostingRules supplied to Core determine the derived ledger effects; Core does not manage PostingRule versions.
+
+### PostingRule lifecycle is outside Core
+
+EVO Core executes the PostingRules supplied by the rule-owning plugin/package.
+
+Core does not own:
+
+- PostingRule draft/publish workflow;
+- PostingRule business versions;
+- effective-date/version selection;
+- rollback history;
+- rule approval history.
+
+A plugin/package may provide all of those capabilities and then supply the selected/current rule set to Core.
+
+Core may record a stable rule code/hash for diagnostics and reproducibility, but this is not a Core-managed version lifecycle.
 
 ### Explicit Posting API
 
@@ -124,7 +140,11 @@ This endpoint is a privileged platform/runtime-control API, not an ordinary busi
 
 A cache-clear request MUST declare enterprise scope and a bounded target scope such as an Application. The operation may complete synchronously or asynchronously and MUST expose a durable result identity when asynchronous.
 
-Clearing runtime cache does not mean silently deleting audit/history. Implementations SHOULD prefer governed generation reset/switch semantics where practical so old evidence remains available while a new active working set is repopulated.
+Clear Cache is intentionally destructive for the selected business-runtime scope. It may delete BusinessData, Posting state, Ledger entries/balances, Cost/Valuation results, WorkItems, General Ledger/accounting projections, and other derived runtime state.
+
+Clear Cache MUST preserve the definitions needed to rebuild the runtime, especially PostingRules, Ledger definitions, cost/valuation rules, chart/accounting policies, installed Application metadata, Packages/Features, permissions and other system configuration.
+
+Core does not silently retain a private historical/audit copy after Clear Cache. Long-term audit/accounting retention is optional policy supplied by plugins/packages or by retaining exported datasets.
 
 Application-driven rebuild pattern:
 
@@ -140,6 +160,21 @@ EVO does not care that the Application calls this workflow "recalculation".
 Normative decision:
 
 - `docs/architecture/decisions/2026-09-24-recalculation-perspectives-and-runtime-cache-v0.1.md`
+
+## Full Data Export
+
+EVO Core SHALL expose a governed complete-data export boundary.
+
+Target API:
+
+```text
+POST /api/v1/data-exports
+GET  /api/v1/data-exports/{exportId}
+```
+
+A full export is versioned/self-describing and is intended to contain enough current EVO state for backup, migration or optional long-term archive, including BusinessData, runtime/derived state, system/configuration metadata, installed application state, rule/version identities and integrity manifests.
+
+Whether that export is retained for accounting/audit purposes is a user/plugin policy decision, not a mandatory Core responsibility.
 
 ## Current v1.0-alpha.2 Public Capability Endpoints
 
