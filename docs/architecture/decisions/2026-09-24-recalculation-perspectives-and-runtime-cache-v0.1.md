@@ -30,9 +30,13 @@ current EVO cached/runtime input state
 → rebuilt derived state
 ```
 
-EVO may reuse accepted BusinessData/runtime input already present in the current governed dataset and rebuild Posting, Ledger, Cost, Work, accounting projections, or other derived state according to the selected rules/version scope.
+EVO may reuse accepted BusinessData/runtime input already present in the current governed dataset and rebuild Posting, Ledger, Cost, Work, accounting projections, or other derived state using the rule set supplied to Core.
 
 No business Application resubmission is required for this EVO-internal recalculation path.
+
+### PostingRule lifecycle is plugin-owned
+
+EVO Core does not manage PostingRule versions. A rule-owning plugin/package chooses and supplies the rule set used for recalculation. Version labels, effective dates, approvals and rollback history are plugin concerns.
 
 ### 2.2 Business Application perspective
 
@@ -163,7 +167,7 @@ EVO current runtime data
 → Reposting / Replay / Cost recalculation / projection rebuild
 → new derived generation
 → verification
-→ governed activation
+→ updated current derived state
 ```
 
 This path may reuse existing Posting/Replay/Materialization machinery.
