@@ -5,24 +5,36 @@ Context Version: 1.1
 
 These rules are architecture constraints, not implementation suggestions. They are binding on humans, LLMs, migrations, generators, tests and future implementations. A later implementation MUST NOT silently weaken them. A deliberate constitutional change requires an explicit Architecture Change record, rationale, compatibility/data impact, migration plan and tests.
 
-- INV-001: Every write that creates Actual BusinessData must pass through the Command boundary.
+- INV-001: Every write that creates runtime BusinessData must pass through EVO's BusinessData ingestion boundary. A Host/Application MAY wrap that submission in its own Command model, but Command is not required by EVO Core.
 - INV-002: BusinessData is append-only/immutable while it exists in the current runtime dataset; later state MUST NOT rewrite prior BusinessData in place. A deliberate governed Clear Cache MAY remove BusinessData for the selected scope.
 - INV-003: Replay never executes Commands.
 - INV-004: Replay reconstruction ordering is deterministic by canonical posting key.
-- INV-005: AI, Human, Automation and External System actors use governed Command capabilities.
-- INV-006: Application/UI cannot own an independent authoritative fact system.
+- INV-005: Actor identity, permissions and business authorization are Host/plugin concerns. EVO Core receives trusted runtime submissions and MUST NOT own user/role/permission configuration.
+- INV-006: Business Applications MAY own their source/domain data. EVO owns only the BusinessData currently submitted into its runtime dataset and the deterministic results derived from it.
 - INV-007: LedgerEntry is derived from governed posting inputs and rules; LedgerBalance is a projection.
 - INV-008: CostResult cannot silently mutate LedgerBalance. Valuation changes require an explicit deterministic valuation-posting contract.
-- INV-009: Scenario results cannot enter Actual Ledger without an authorized Decision/Approval followed by Command.
-- INV-010: Capability classifies enterprise ability; it does not execute transactions by itself.
-- INV-011: Flow may cross Domains, Applications, Processes and Ledgers.
+- INV-009: EVO Core derives Ledger effects only from accepted runtime BusinessData plus supplied rules. Approval/decision policy is owned by Host/plugins.
+- INV-010: Capability/Application lifecycle is not an EVO Core concept. If a Host exposes capabilities, it owns their discovery and lifecycle.
+- INV-011: Flow/process semantics are outside minimal EVO Core; plugins may build them using EVO runtime data/results.
 - INV-012: Business object relationships and fulfillment must be explicit; the runtime must not infer them from matching quantities.
-- INV-013: Published SOP and metadata versions are immutable in place; changes produce a new version.
-- INV-014: Published MetricDefinition is the source of formal metric semantics.
-- INV-015: Reconstruction/replay over retained runtime data MUST use deterministic/persisted version selection, never implicit latest-version semantics.
+- INV-013: SOP/application metadata lifecycle is outside EVO Core. Plugins/Host may version such definitions under their own contracts.
+- INV-014: Metric/SOP/business semantic definitions are plugin concerns, not EVO Core runtime responsibilities.
+- INV-015: EVO recalculation over retained runtime data MUST be deterministic for the exact runtime inputs and rule set supplied to Core. Core MUST NOT perform hidden rule/application version selection.
 - INV-016: Breaking public contract changes require a version change, compatibility statement, migration and tests.
-- INV-017: Core semantic changes to Command → BusinessData → Posting → Ledger → Cost require an Architecture Change record.
+- INV-017: Core semantic changes to BusinessData ingestion → Posting → Ledger → Balance require an Architecture Change record.
 - INV-018: Repository documentation, contracts and tests are authoritative over chat history or LLM memory.
+
+## Minimal EVO Runtime Plugin Constitution
+
+- INV-065 — EVO Is A Lightweight Runtime Plugin: EVO Core is an installable deterministic runtime plugin, not the enterprise/application platform.
+- INV-066 — No Identity Or Permission Ownership: EVO Core MUST NOT own users, roles, permission configuration, authorization policy, organization/application membership or actor lifecycle.
+- INV-067 — No Application/Capability Ownership: EVO Core MUST NOT own ApplicationDefinition, ApplicationInstance, Package/Feature lifecycle or capability discovery. Those belong to the Host/App Platform.
+- INV-068 — BusinessData Is The Core Input: EVO Core accepts generic BusinessData through a stable ingestion contract. Host/application Command models are optional adapters outside Core.
+- INV-069 — Opaque Runtime Scope: EVO Core MAY require an opaque scope/tenant key for isolation, but MUST NOT require Enterprise/Application definitions to interpret that key.
+- INV-070 — Rules Are Supplied Inputs: EVO Core deterministically evaluates PostingRules supplied by plugins/Host. Rule editing, versioning, approval, effective dates and rollback remain outside Core.
+- INV-071 — Higher-Order Engines Default To Plugins: Cost methods, valuation, General Ledger/statutory accounting, financial statements, workflow, SOP, metrics, audit/archive and jurisdiction logic default to separate plugins/packages unless later proven to be unavoidable Core primitives.
+- INV-072 — Minimal Core Operations: The target Core surface is BusinessData submit, deterministic posting/ledger/balance, current-state query, recalculation, runtime-data clear, full export and asynchronous result/status observation.
+- INV-073 — Current Repository Breadth Does Not Define Core: Existing modules outside the minimal boundary are reusable assets/compatibility layers/plugin candidates and MUST NOT be used as evidence that they belong in EVO Core.
 
 ## LLM-Native Engineering Constitution
 
@@ -46,9 +58,9 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-031 — Batch Processing Must Be Lossless: Large datasets MAY be analyzed in batches, but batching MUST NOT become sampling. Batch manifests, counts, source locators and reconciliation MUST make the union of batches equivalent to the accounted source set.
 - INV-032 — Full-Scale Data Validation: Migration and runtime architecture MUST preserve the ability to load and exercise complete enterprise-scale legacy-derived datasets for stress, replay, posting, balance, cost, lineage and deterministic reconstruction tests. Sample/demo data is never sufficient evidence of migration completeness.
 
-## Financial Accounting Integrity Constitution
+## Financial Accounting Plugin Integrity Constitution
 
-- INV-039 — Economic Ledger Is Not Automatically General Ledger: EVO's generic operational/economic Ledger remains an increase/decrease projection for quantities, obligations, positions, costs and management state. A ledger code such as cash, receivable, payable, inventory, revenue, expense or COGS MUST NOT be treated as proof that statutory/general-ledger double-entry accounting has been satisfied.
+- INV-039 — Economic Ledger Is Not Automatically General Ledger: EVO's generic Ledger runtime remains an increase/decrease projection. General Ledger/statutory accounting is a Finance plugin concern. A ledger code such as cash, receivable, payable, inventory, revenue, expense or COGS MUST NOT be treated as proof that statutory/general-ledger double-entry accounting has been satisfied.
 - INV-040 — General Ledger Uses Explicit Double Entry: Every authoritative General Ledger Journal MUST contain explicit debit/credit lines. A financial journal MUST NOT be committed if total debit amount differs from total credit amount in the journal accounting currency under the declared precision policy.
 - INV-041 — No One-Sided General Ledger Posting: A canonical accounting projection MUST NOT create a one-sided General Ledger journal. A journal requires at least one debit line and at least one credit line; zero-value balancing lines are not acceptable substitutes for real accounting semantics.
 - INV-042 — Journal Balance Is Transactional: Double-entry validation occurs before the accounting journal becomes authoritative. If debit/credit validation fails, the entire General Ledger projection for that journal fails atomically; partially committed journal lines are forbidden.
@@ -56,7 +68,7 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 - INV-044 — Financial Statements Derive From General Ledger: Balance Sheet, Income Statement and Cash Flow Statement are governed projections from authoritative accounting state. They MUST NOT become an independent fact system or be made to balance by rewriting canonical BusinessData.
 - INV-045 — Accounting Projection Remains Replayable: General Ledger journals, trial balance and financial statements are derived accounting results. They MUST be reproducible from canonical BusinessData/economic results plus explicitly pinned chart-of-accounts, recognition, posting, currency and period policies.
 
-## Application Capability Exposure Constitution
+## Host/Application Capability Exposure Constitution
 
 - INV-033 — No Implicit Domain Capability: EVO Core MUST NOT imply that an enterprise owns a domain capability merely because EVO can host an application that provides it.
 - INV-034 — Installed Application Governs Domain API Exposure: A domain API/capability is currently available only when its owning application instance and effective application definition/version satisfy the governed active-state requirements for that enterprise.
