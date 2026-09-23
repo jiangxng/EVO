@@ -43,7 +43,7 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
    const effectiveAt=new Date(effectiveAtText);
    if(Number.isNaN(effectiveAt.getTime()))throw new AppError({code:'INVALID_EFFECTIVE_TIME',message:'effectiveAt must be a valid ISO date/time.',module:'api',operation:'invokePublicCommand'});
    if(body.input===null||typeof body.input!=='object'||Array.isArray(body.input))throw new AppError({code:'PUBLIC_COMMAND_INPUT_REQUIRED',message:'input must be a JSON object.',module:'api',operation:'invokePublicCommand'});
-   return runtime.publicCommands.invoke({
+   const result=await runtime.publicCommands.invoke({
     enterpriseId,capabilityCode,actor:{type:actorType,id:actorId},
     requestId:request.id,
     correlationId:requireText(body.correlationId,'correlationId'),
@@ -52,6 +52,14 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
     businessObjectKey:requireText(body.businessObjectKey,'businessObjectKey'),
     input:body.input as JsonObject
    });
+   return {
+    capabilityCode:result.capabilityCode,
+    command:{
+     ...result.command,
+     businessObjectVersion:result.command.businessObjectVersion.toString(),
+     postingSequence:result.command.postingSequence.toString()
+    }
+   };
   });
 
   app.get('/api/v1/enterprise-templates/:templateCode',async request=>{const p=request.params as {templateCode:string};const q=request.query as {version?:string};const version=q.version===undefined?undefined:Number(q.version);return runtime.enterpriseTemplates.get(p.templateCode,version);});
