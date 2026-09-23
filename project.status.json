@@ -173,11 +173,15 @@
       "installed Package/Feature state",
       "permissions/identity/configuration"
     ],
-    "postingRuleChange": "separate governed version/effective-date lifecycle; never a cache-clear operation",
+    "postingRuleChange": "plugin/package-owned rule lifecycle; Core consumes supplied current/governed rules and does not manage PostingRule versions",
     "coreExportTarget": [
       "POST /api/v1/data-exports",
       "GET /api/v1/data-exports/{exportId}"
     ],
-    "longTermAuditRetention": "OPTIONAL_PLUGIN_OR_EXTERNAL_EXPORT_POLICY"
+    "longTermAuditRetention": "OPTIONAL_PLUGIN_OR_EXTERNAL_EXPORT_POLICY",
+    "postingRuleVersioning": "NOT_CORE_RESPONSIBILITY",
+    "implementationDrift": [
+      "current alpha metadata ties PostingRules to ApplicationDefinitionVersion; future bounded refactor must decouple Core rule execution from plugin-owned rule lifecycle"
+    ]
   }
 }
