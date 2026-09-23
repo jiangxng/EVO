@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "auditId": "EVO-CORE-BOUNDARY-AUDIT-2026-09-23-v0.1",
+  "branch": "evo/core-boundary-audit-v0.1",
+  "kernelInvariant": "BusinessData -> PostingRule -> LedgerEntry -> Balance -> Replay",
+  "classifications": {
+    "business-data": "KEEP_IN_KERNEL",
+    "posting": "KEEP_IN_KERNEL",
+    "ledger": "KEEP_IN_KERNEL",
+    "replay": "KEEP_IN_KERNEL_SPLIT",
+    "dimensions": "KEEP_IN_KERNEL_SPLIT",
+    "lineage": "KEEP_IN_KERNEL_SPLIT",
+    "metadata": "SPLIT",
+    "command": "MOVE_TO_OFFICIAL_PACK",
+    "application": "MOVE_TO_OFFICIAL_PACK",
+    "enterprise-package": "MOVE_TO_OFFICIAL_RUNTIME",
+    "enterprise-template": "MOVE_TO_OFFICIAL_PACK",
+    "accounting": "MOVE_TO_OFFICIAL_PACK_SPLIT",
+    "cost": "MOVE_TO_RUNTIME_PLUGIN",
+    "valuation": "MOVE_TO_RUNTIME_PLUGIN",
+    "allocation": "MOVE_TO_RUNTIME_PLUGIN",
+    "economic": "MOVE_TO_RUNTIME_PLUGIN",
+    "position": "MOVE_TO_RUNTIME_PLUGIN",
+    "materialization": "MOVE_TO_OFFICIAL_RUNTIME",
+    "query": "SPLIT",
+    "workflow": "MOVE_TO_OFFICIAL_PACK",
+    "flow": "MOVE_TO_OFFICIAL_PACK",
+    "capability": "MOVE_TO_OFFICIAL_PACK",
+    "metrics": "MOVE_TO_ANALYTICS_PACK",
+    "sop": "MOVE_TO_OFFICIAL_PACK",
+    "ai": "MOVE_TO_EC",
+    "identity": "SPLIT",
+    "integration": "MOVE_TO_OFFICIAL_RUNTIME"
+  },
+  "firstRefactorSlice": {
+    "goal": "Split composition roots without changing behavior or database schema",
+    "targets": [
+      "Kernel Runtime independently constructible",
+      "Compatibility Runtime retains existing full product behavior",
+      "Kernel imports no accounting/cost/valuation/workflow/ai/application runtime"
+    ]
+  },
+  "nonGoals": [
+    "delete certified modules",
+    "change financial results",
+    "change replay results",
+    "split GitHub repositories",
+    "split physical databases",
+    "rewrite metadata schema"
+  ]
+}
