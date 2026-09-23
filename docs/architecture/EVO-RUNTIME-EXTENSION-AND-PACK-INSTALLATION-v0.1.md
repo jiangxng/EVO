@@ -1030,3 +1030,297 @@ Core
 12. 安装/升级/卸载失败路径也有认证证据。
 
 如果这些条件没有满足，仅仅把代码移到 packs/ 目录，不算完成插件化。
+
+
+## 26. Architecture Correction — Multi-tenancy Is NOT an EVO Core Concern
+
+此前将 Tenant 描述为 EVO 的安装边界过重，需要正式纠正。
+
+新的权威原则：
+
+> **Enterprise / Company 是 EVO 的业务作用域；Tenant 是 Cloud Hosting Platform 的托管与隔离作用域。**
+
+二者可能一一对应，也可能不是。
+
+EVO Core 不应知道“Tenant 使用什么数据库拓扑”。
+
+### 26.1 Core-owned concept
+
+Core 只需要稳定的业务作用域，例如：
+
+```text
+enterprise_id
+company_id
+consistency_domain
+```
+
+具体命名在后续 Contract Freeze 时统一。
+
+其作用是：
+
+- BusinessData ownership；
+- Ledger ownership；
+- Posting scope；
+- Balance scope；
+- Replay scope；
+- Definition activation scope。
+
+这是业务语义，不等于 SaaS multi-tenancy。
+
+### 26.2 Platform-owned concept
+
+Hosting / Platform 层负责：
+
+- tenant identity；
+- tenant routing；
+- subscription / billing；
+- deployment topology；
+- database placement；
+- region placement；
+- resource quota；
+- storage isolation；
+- backup / restore policy；
+- tenant-level encryption strategy；
+- cloud operational lifecycle。
+
+Core 不依赖这些实现。
+
+## 27. Multi-tenant Storage Strategy Must Remain Pluggable
+
+Cloud 平台可以根据规模、成本、安全和合规选择不同模式。
+
+允许的候选包括：
+
+### Database per Tenant
+
+```text
+Tenant A → DB A
+Tenant B → DB B
+Tenant C → DB C
+```
+
+优点：
+
+- 强隔离；
+- restore / backup 边界清楚；
+- 大客户独立扩容容易；
+- 私有化与云模型更接近。
+
+代价：
+
+- 数据库数量可能很大；
+- migrations / connection / operations 成本更高。
+
+### Schema per Tenant
+
+```text
+Shared PostgreSQL
+├─ tenant_a schema
+├─ tenant_b schema
+└─ tenant_c schema
+```
+
+优缺点介于独立数据库和共享表之间。
+
+### Shared Tables + Tenant Key / RLS
+
+```text
+Shared database
+Shared tables
+tenant_key on rows
+```
+
+优点：
+
+- 资源利用率高；
+- 运维对象少。
+
+风险：
+
+- 隔离错误影响面大；
+- noisy-neighbor 风险；
+- backup / restore 单租户复杂；
+- 数据治理要求高。
+
+### Hybrid
+
+长期平台很可能允许：
+
+```text
+small tenants → shared infrastructure
+large / regulated tenants → dedicated database
+local deployment → dedicated local database
+```
+
+EVO Core 不应因为任何一种模式而改变 Public Contract。
+
+## 28. Tenant Router / Hosting Adapter
+
+Cloud 入口负责：
+
+```text
+Request
+→ authenticate hosting tenant
+→ resolve deployment / database / Core endpoint
+→ invoke EVO Core Public API
+```
+
+可以表示为：
+
+```text
+Cloud Gateway
+        ↓
+Tenant Router
+        ├─ Tenant A → Core/DB A
+        ├─ Tenant B → Core/DB B
+        └─ Tenant C → Shared Core/DB Partition C
+```
+
+Core 收到的仍然是正常的 Enterprise-scoped request，而不是自行承担云路由逻辑。
+
+这使 Local Deployment 可以直接：
+
+```text
+Client
+→ Local EVO Core
+→ Local DB
+```
+
+不需要实现 SaaS Tenant Router。
+
+## 29. Package Installation Boundary Correction
+
+“安装应用/能力”的产品语义应归属于：
+
+```text
+Enterprise / EVO Installation Scope
+```
+
+而不是强绑定 Cloud Tenant。
+
+例如：
+
+```text
+Enterprise A
+├─ Trading
+├─ Finance
+└─ Reporting
+```
+
+在本地部署时，这个 Enterprise 属于本地 EVO 实例。
+
+在云部署时，Hosting Platform 再决定该 Enterprise 被哪个 Tenant / database / runtime 承载。
+
+因此 Package Manager 只处理：
+
+- enterprise/application scope；
+- package versions；
+- definitions；
+- capabilities；
+- configuration。
+
+它不决定数据库物理拓扑。
+
+## 30. Cross-tenant Platform Analytics Is Outside Core
+
+平台运营者未来可能需要：
+
+- tenant usage analysis；
+- aggregate operational metrics；
+- product usage analysis；
+- capacity planning；
+- benchmark / industry analytics under governance。
+
+这些都不应该让 EVO Core 提供“跨租户查询”。
+
+推荐职责：
+
+```text
+Tenant Core(s)
+→ governed CDC / Change Feed / Telemetry
+→ Platform Data Pipeline
+→ Warehouse / Lakehouse / Analytics Store
+→ Platform Analytics
+```
+
+而不是：
+
+```text
+analytics request
+→ synchronously query every tenant production database
+```
+
+具体可采用：
+
+- CDC；
+- event stream；
+- scheduled export；
+- warehouse ETL；
+- lakehouse；
+- federated query for limited operational cases。
+
+最终技术选型由 Platform Architecture 根据规模和成本决定。
+
+Core 只需要提供稳定的单 Enterprise 数据出口和事件契约。
+
+## 31. Platform Analytics Data Governance
+
+跨租户分析必须由 Platform 层独立治理，包括：
+
+- allowed data categories；
+- tenant consent / contract；
+- aggregation；
+- anonymization / pseudonymization where required；
+- retention；
+- regional constraints；
+- access audit；
+- separation between operational support and analytics。
+
+这些规则不能污染 Ledger / Posting / Balance 的 Kernel 语义。
+
+## 32. Revised Local / Cloud Principle
+
+新的原则不是：
+
+> Tenant 是 EVO Core 的一级对象。
+
+而是：
+
+> **同一个 EVO Core 协议可以被本地部署和云托管平台以不同拓扑运行。**
+
+```text
+Local:
+User → EVO Core → DB
+
+Cloud:
+User → Cloud Platform / Tenant Router → EVO Core deployment → DB strategy
+```
+
+Package semantics 保持一致，Hosting topology 可以完全不同。
+
+## 33. Hard Boundary
+
+EVO Kernel / Core Service 禁止因为 Cloud Multi-tenancy 增加：
+
+- tenant routing；
+- billing；
+- subscription；
+- cross-tenant query；
+- database-per-tenant management；
+- cloud region placement；
+- cross-tenant analytics pipeline。
+
+这些属于 Platform / Hosting。
+
+Core 只保证：
+
+```text
+one scoped enterprise request
+→ correct BusinessData
+→ correct Posting
+→ correct Ledger
+→ correct Balance
+→ correct Replay
+```
+
+这使 EVO Core 同时适用于单机、一人公司、私有化部署和云平台，而不被某一种 SaaS 架构绑死。
