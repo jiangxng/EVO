@@ -1,16 +1,10 @@
 import type { DatabaseHandle } from '../../../platform/database/src/index.js';
-import { createTransactionRunner } from '../../../platform/database/src/index.js';
+import { createEvoKernelRuntime, drainKernelPosting } from './kernel-runtime.js';
 import { MetadataCommandCapabilityResolver } from '../../../modules/command/application/metadata-command-capability-resolver.js';
 import { CommandService } from '../../../modules/command/application/command-service.js';
 import { PostgresCommandTransaction } from '../../../modules/command/infrastructure/postgres-command-transaction.js';
 import { PostgresMetadataRepository } from '../../../modules/metadata/infrastructure/postgres-metadata-repository.js';
-import { PostgresPostingMetadataReader } from '../../../modules/metadata/infrastructure/postgres-posting-metadata-reader.js';
-import { PostgresBusinessDataReader } from '../../../modules/business-data/infrastructure/postgres-business-data-reader.js';
-import { PostgresPostingStateStore } from '../../../modules/posting/infrastructure/postgres-posting-state-store.js';
-import { PostingService } from '../../../modules/posting/application/posting-service.js';
 import { PostgresCandidatePostingReplayService } from '../../../modules/posting/infrastructure/postgres-candidate-posting-replay-service.js';
-import { PostgresLedgerWriter } from '../../../modules/ledger/infrastructure/postgres-ledger-writer.js';
-import { PostgresLedgerReader } from '../../../modules/ledger/infrastructure/postgres-ledger-reader.js';
 import { PostgresWorkProjection } from '../../../modules/workflow/infrastructure/postgres-work-projection.js';
 import { PostgresAuthorizationService } from '../../../modules/identity/infrastructure/postgres-authorization-service.js';
 import { PostgresReplayService } from '../../../modules/replay/infrastructure/postgres-replay-service.js';
@@ -57,23 +51,18 @@ import { PostgresCoreStatementReconciliationService } from '../../../modules/acc
 import { PostgresFinancialStatementProjectionService } from '../../../modules/accounting/infrastructure/postgres-financial-statement-projection-service.js';
 
 export function createEvoRuntime(database: DatabaseHandle) {
-  const db = database.db;
-  const metadata = new PostgresMetadataRepository(db);
-  const capabilities = new MetadataCommandCapabilityResolver(metadata);
-  const command = new CommandService(capabilities,new PostgresCommandTransaction(db));
-  const state = new PostgresPostingStateStore(db);
-  const businessData = new PostgresBusinessDataReader(db);
-  const postingMetadata = new PostgresPostingMetadataReader(db);
-  const ledgerWriter = new PostgresLedgerWriter();
-  const transactions = createTransactionRunner(db);
-  const posting = new PostingService(
-    state,
-    state,
+  const kernel = createEvoKernelRuntime(database);
+  const {
+    db,
     businessData,
     postingMetadata,
     ledgerWriter,
-    transactions
-  );
+    transactions,
+    posting
+  } = kernel;
+  const metadata = new PostgresMetadataRepository(db);
+  const capabilities = new MetadataCommandCapabilityResolver(metadata);
+  const command = new CommandService(capabilities,new PostgresCommandTransaction(db));
   const candidatePostingReplay = new PostgresCandidatePostingReplayService(
     db,
     businessData,
@@ -137,7 +126,7 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const statementReplay = new PostgresStatementReplayService(db,statementProjection);
   const coreStatementReconciliation = new PostgresCoreStatementReconciliationService(db,statementProjection);
   const financialStatements = new PostgresFinancialStatementProjectionService(statementProjection,statementReplay,coreStatementReconciliation);
-  return { db, command, accounting, accountingRecognition, trialBalance, accountingReplay, accountingPeriod, accountingReconciliation, financialStatements, posting, candidatePostingReplay, ledger:new PostgresLedgerReader(db), work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, candidateEconomicRuntimeDigest, oracleEconomicRuntimeDigest, replayCoverage, replayPromotion, runtimeDatasets, runtimeEquivalence, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db,currentEconomicRuntimeView), currentEconomicRuntimeView, ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  return { ...kernel, command, accounting, accountingRecognition, trialBalance, accountingReplay, accountingPeriod, accountingReconciliation, financialStatements, candidatePostingReplay, work:new PostgresWorkProjection(db), auth:new PostgresAuthorizationService(db), replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, candidateEconomicRuntimeDigest, oracleEconomicRuntimeDigest, replayCoverage, replayPromotion, runtimeDatasets, runtimeEquivalence, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db,currentEconomicRuntimeView), currentEconomicRuntimeView, ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
@@ -147,5 +136,7 @@ export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
 }
 
 export async function drainPosting(runtime:ReturnType<typeof createEvoRuntime>,enterpriseId:string):Promise<number>{
- let count=0; for(let i=0;i<10000;i+=1){const result=await runtime.posting.processNext(enterpriseId);if(result.status==='IDLE'||result.status==='BLOCKED_REPLAY_REQUIRED')break;if(result.status==='RACE_RETRY')continue;if(result.status==='FAILED')throw new Error(`Posting failed: ${result.errorCode}`);count+=1;} await runtime.work.refresh(enterpriseId); return count;
+ const count=await drainKernelPosting(runtime,enterpriseId);
+ await runtime.work.refresh(enterpriseId);
+ return count;
 }
