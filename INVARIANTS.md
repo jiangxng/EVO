@@ -28,13 +28,18 @@ These rules are architecture constraints, not implementation suggestions. They a
 
 - INV-065 — EVO Is A Lightweight Runtime Plugin: EVO Core is an installable deterministic runtime plugin, not the enterprise/application platform.
 - INV-066 — No Identity Or Permission Ownership: EVO Core MUST NOT own users, roles, permission configuration, authorization policy, organization/application membership or actor lifecycle.
-- INV-067 — No Application/Capability Ownership: EVO Core MUST NOT own ApplicationDefinition, ApplicationInstance, Package/Feature lifecycle or capability discovery. Those belong to the Host/App Platform.
+- INV-067 — Minimal Application Identity Only: EVO Core MUST own a minimal stable ApplicationAnchor/applicationId used to route BusinessData to PostingRules. Rich ApplicationDefinition/ApplicationInstance lifecycle, Package/Feature lifecycle and capability discovery belong to the Host/App Platform.
 - INV-068 — BusinessData Is The Core Input: EVO Core accepts generic BusinessData through a stable ingestion contract. Host/application Command models are optional adapters outside Core.
-- INV-069 — Opaque Runtime Scope: EVO Core MAY require an opaque scope/tenant key for isolation, but MUST NOT require Enterprise/Application definitions to interpret that key.
-- INV-070 — Rules Are Supplied Inputs: EVO Core deterministically evaluates PostingRules supplied by plugins/Host. Rule editing, versioning, approval, effective dates and rollback remain outside Core.
+- INV-069 — Runtime Scope And Application Routing Are Distinct: EVO Core MAY require an opaque scope/tenant key for isolation and MUST require applicationId for rule routing. It MUST NOT require rich Enterprise/Application platform definitions to interpret either key.
+- INV-070 — Current Rules Are Core Runtime Configuration: EVO Core stores/evaluates the current PostingRules supplied by plugins/Host. Every PostingRule MUST be anchored to applicationId. Rule editing, versioning, approval, effective dates and rollback remain outside Core.
 - INV-071 — Higher-Order Engines Default To Plugins: Cost methods, valuation, General Ledger/statutory accounting, financial statements, workflow, SOP, metrics, audit/archive and jurisdiction logic default to separate plugins/packages unless later proven to be unavoidable Core primitives.
-- INV-072 — Minimal Core Operations: The target Core surface is BusinessData submit, deterministic posting/ledger/balance, current-state query, recalculation, runtime-data clear, full export and asynchronous result/status observation.
+- INV-072 — Minimal Core Operations: The target Core surface is ApplicationAnchor, BusinessData submit, current PostingRules, deterministic posting/ledger/balance, current-state query, recalculation, runtime-data clear, full export and asynchronous result/status observation.
 - INV-073 — Current Repository Breadth Does Not Define Core: Existing modules outside the minimal boundary are reusable assets/compatibility layers/plugin candidates and MUST NOT be used as evidence that they belong in EVO Core.
+
+- INV-074 — ApplicationId Is The First Posting Route: Every accepted BusinessData item MUST carry applicationId. Posting candidate selection MUST first restrict rules to the same applicationId before condition evaluation.
+- INV-075 — PostingRule Application Anchor Is Mandatory: Every executable PostingRule MUST carry applicationId identifying a registered ApplicationAnchor. Payload similarity MUST NOT be used to infer rule ownership.
+- INV-076 — Application Identity Is Not Application Lifecycle: ApplicationAnchor may contain only applicationId. Names, UI, install/activation state, permissions, Package/Feature metadata, commands and application versions are outside EVO Core.
+- INV-077 — ApplicationAnchor And Current Rules Survive Clear: Clear Cache MUST remove application-scoped BusinessData and derived runtime state while preserving ApplicationAnchor and the current PostingRules/configuration required to process resubmitted data.
 
 ## LLM-Native Engineering Constitution
 
@@ -97,7 +102,7 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 ## Core Runtime Data Lifecycle Constitution
 
 - INV-056 — Clear Cache Clears Business Runtime Data: A governed Clear Cache MAY remove BusinessData and all dependent runtime/derived state in the selected scope, including posting state, Ledger entries/balances, cost/valuation results, work projections and accounting projections.
-- INV-057 — Posting Rules Survive Clear Cache: PostingRules, Ledger definitions, cost/valuation rules, chart-of-accounts/accounting policies, application metadata, permissions and other system/configuration definitions MUST NOT be deleted by ordinary Clear Cache.
+- INV-057 — Runtime Configuration Survives Clear Cache: ApplicationAnchor, current PostingRules and generic Ledger/runtime definitions required to process new BusinessData MUST NOT be deleted by ordinary Clear Cache. Host permissions, rich Application metadata and Package/Feature state are outside EVO Core.
 - INV-058 — Append-Only Is Dataset-Scoped, Not Permanent Archive: BusinessData MUST NOT be rewritten in place while present in the active runtime dataset. Core is not required to retain that BusinessData forever after an explicit Clear Cache.
 - INV-059 — Full Data Export Is Core Capability: EVO Core SHALL provide a governed, versioned export of the complete current EVO dataset sufficient for external backup/archive/transfer purposes.
 - INV-060 — Long-Term Audit Retention Is Optional Policy: EVO Core MUST NOT silently preserve hidden audit copies after Clear Cache. Long-term accounting-voucher/statutory/audit retention belongs to optional plugins/packages or customer-managed export retention.
