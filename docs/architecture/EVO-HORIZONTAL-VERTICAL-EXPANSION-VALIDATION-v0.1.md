@@ -1049,3 +1049,107 @@ Industry Templates
 中文：
 
 > **BusinessData 可以属于 EVO Core，但只能作为弱语义、稳定、可重放的记账事实缓存，不能演变成整个企业业务领域模型。**
+
+
+### 17.8 bookkeeping 作为 EVO Kernel 历史原型的定位
+
+结合现有设计理解，bookkeeping 项目应被视为 EVO Kernel 的重要历史原型参考，而不只是另一套记账实现。
+
+其关键价值在于：
+
+- 核心关注 Ledger / Posting / Balance；
+- BusinessData 保持弱语义；
+- BusinessData 只保存记账和重算真正需要的必要数据；
+- 重点支持基于历史事实的重新记账 / 重算；
+- 上层 Application、Form、Field、Workflow 等复杂业务能力不应反向侵入最小记账内核。
+
+因此 EVO 后续 Core Boundary Audit 应把 bookkeeping 作为重要对照：
+
+```text
+bookkeeping
+→ minimal posting facts
+→ posting rules
+→ ledger entries
+→ balances
+→ replay / recalculation
+
+EVO Kernel
+→ preserve the same minimality principle
+```
+
+### 17.9 BusinessData 的首要价值是 Recalculation Input
+
+BusinessData 在 Core 中最重要的用途之一，是作为稳定的重算输入。
+
+它不是为了完整还原业务界面，也不是为了替代 Application 数据库，而是确保：
+
+```text
+same historical BusinessData
++ same rule version
++ same ordering
+=
+same posting result
+```
+
+当规则、成本算法、会计映射或账本配置发生合法版本变化时：
+
+```text
+historical BusinessData
+        ↓
+new / selected rule version
+        ↓
+re-posting / recalculation
+        ↓
+new derived Ledger Entries / Balance
+```
+
+历史 BusinessData 本身不因重算而被改写。
+
+### 17.10 BusinessData 最小化原则
+
+BusinessData 是否保留某个字段，优先问：
+
+> **这个值是否是未来确定性重记账 / 重算所必需的历史输入？**
+
+如果不是，则默认不应为了“以后可能有用”继续扩大 Core BusinessData。
+
+因此 Core BusinessData 应尽量：
+
+- 小；
+- 稳定；
+- append-only；
+- 可排序；
+- 可版本追溯；
+- 能独立支持 Replay；
+- 不依赖当前 Object 主数据重新 JOIN 才能恢复当时语义。
+
+### 17.11 上层业务数据与 Core BusinessData 的关系
+
+推荐长期结构：
+
+```text
+Rich Application Data
+├─ master/detail
+├─ fields
+├─ workflow
+├─ UI state
+└─ domain-specific relations
+        ↓ project only required historical facts
+Core BusinessData
+        ↓
+Posting / Recalculation
+        ↓
+Ledger Entry
+        ↓
+Balance
+```
+
+这样复杂企业可以拥有丰富 Application Model，而一人公司或轻量系统也可以直接向 BusinessData / Posting API 提交最小事实。
+
+### 17.12 Core 边界判断补充
+
+因此 EVO Core 的一个重要边界标准应增加：
+
+> **凡是不直接服务于稳定记账、余额计算、追溯或确定性重算的业务复杂度，默认不进入最小 Core。**
+
+这条原则用于持续防止 BusinessData 和 EVO Kernel 再次膨胀成完整 ERP Domain Model。
