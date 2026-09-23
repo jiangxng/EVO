@@ -5,34 +5,33 @@
   "updatedAt": "2026-09-24",
   "main": {
     "authoritativeBranch": "main",
-    "lastVerifiedRuntimeMergeCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf"
+    "lastVerifiedRuntimeMergeCommit": "8c3abaee3aeecfce03b0d766a72c530f0d477fcf",
+    "lastVerifiedArchitectureMergeCommit": "81fbec46419dc53f33d21ad0eb0fc586a1ce1979"
   },
   "activeWorkPacket": {
-    "id": "CORE-MIN-01",
-    "name": "Minimal EVO Runtime Plugin Boundary",
-    "stage": "Architecture Convergence",
-    "status": "DESIGN_ACCEPTED_PENDING_MERGE",
+    "id": "CORE-MIN-02",
+    "name": "Generic BusinessData Submission Convergence",
+    "stage": "Runtime Convergence",
+    "status": "SELECTED_NOT_STARTED",
     "overallClosed": false,
-    "businessGoal": "Make EVO small enough to behave as an installable runtime plugin: accept BusinessData, execute supplied PostingRules, derive generic Ledger/Balance, and provide recalc/clear/export/query without owning platform, application, permission, finance-governance or rule-version concerns.",
-    "activeBranch": "evo/minimal-runtime-plugin-boundary-v0.1",
-    "packet": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
-    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no runtime behavior change",
+    "businessGoal": "Introduce the smallest generic EVO BusinessData submission boundary so Host/App Platform can submit facts without EVO owning permissions, applications, capabilities or Command orchestration, while preserving current compatibility behavior.",
+    "activeBranch": null,
+    "packet": null,
+    "evidenceTarget": "IMPLEMENTED + UNIT VERIFIED + PostgreSQL E2E before replacing current compatibility path",
     "closedGates": [
-      "minimal runtime responsibilities defined",
-      "identity/permissions externalized from Core target",
-      "Application/Package/Feature/capability lifecycle externalized from Core target",
-      "Command reclassified as optional Host/compatibility adapter",
-      "PostingRule lifecycle/versioning confirmed plugin-owned",
-      "cost/valuation/accounting/statements/workflow/SOP/metrics/audit defaulted to plugin ownership",
-      "machine-readable architecture/context/status updated"
+      "CORE-MIN-01 minimal EVO Runtime Plugin boundary merged by PR #56 / CI #738",
+      "superseded capability-discovery PR #25 closed",
+      "superseded finance-Core alignment PR #50 closed"
     ],
     "openGates": [
-      "PR #56 full CI",
-      "merge PR #56",
-      "close superseded PR #25 and PR #50",
-      "plan bounded runtime convergence without breaking Proof C compatibility"
+      "define minimal BusinessDataSubmission contract",
+      "implement compatibility adapter from current /commands path",
+      "prove automatic Posting remains unchanged",
+      "add Host/App Platform adapter that owns application/capability/permission semantics",
+      "prove Trading Lite works through Host → BusinessDataSubmission → EVO",
+      "only after replacement proof, deprecate platform-oriented EVO endpoints"
     ],
-    "nextAction": "Merge the design boundary, then define the smallest generic BusinessData submission adapter while retaining current /commands compatibility until Proof C/runtime migration is proven."
+    "nextAction": "Create a bounded CORE-MIN-02 branch for generic BusinessData submission; do not perform broad repository extraction yet."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -98,7 +97,7 @@
     "evidenceMatrix": "docs/architecture/status/EVO-REQUIREMENT-CAPABILITY-EVIDENCE-MATRIX-v0.1.md",
     "protocol": "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
     "lastAlignedAt": "2026-09-22",
-    "currentAssessment": "MINIMAL_EVO_RUNTIME_PLUGIN_BOUNDARY_ACCEPTED",
+    "currentAssessment": "MINIMAL_EVO_RUNTIME_PLUGIN_BOUNDARY_MERGED",
     "rule": "Technical design must keep EVO as a lightweight runtime plugin. Under uncertainty, move identity/application/governance/domain capabilities to Host/plugins; Core stays BusinessData → supplied PostingRules → Ledger/Balance plus runtime control/export.",
     "alignmentCadence": {
       "verifiedSliceInterval": 3,
@@ -143,7 +142,8 @@
     "primaryOpenRequirement": "Post-three-statement statutory/accounting control gap alignment",
     "implementationStatus": "FAI_07_DATABASE_VERIFIED",
     "nextPacket": "POST_FAI_07_FINANCE_GAP_ALIGNMENT",
-    "targetOwnership": "FINANCE_PLUGIN / OPTIONAL DOMAIN PLUGIN — existing implementation retained as reusable asset, not mandatory minimal EVO Core"
+    "targetOwnership": "FINANCE_PLUGIN / OPTIONAL DOMAIN PLUGIN — existing implementation retained as reusable asset, not mandatory minimal EVO Core",
+    "currentMainline": false
   },
   "runtimeDataLifecycle": {
     "status": "DESIGN_ACCEPTED_IMPLEMENTATION_PENDING",
@@ -174,7 +174,7 @@
     ]
   },
   "targetCoreBoundary": {
-    "status": "DESIGN_ACCEPTED_IMPLEMENTATION_CONVERGENCE_PENDING",
+    "status": "DESIGN_MERGED_IMPLEMENTATION_CONVERGENCE_PENDING",
     "model": "LIGHTWEIGHT_EVO_RUNTIME_PLUGIN",
     "coreResponsibilities": [
       "accept generic BusinessData under opaque runtime scope",
@@ -206,6 +206,7 @@
       "PostingRules currently attach to ApplicationDefinitionVersion",
       "cost/valuation/accounting/reporting implementations are currently in-repo but target plugin ownership"
     ],
-    "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md"
+    "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
+    "mergeCommit": "81fbec46419dc53f33d21ad0eb0fc586a1ce1979"
   }
 }
