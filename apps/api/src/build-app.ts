@@ -6,6 +6,7 @@ import { legacyEnterpriseTemplateV1 } from '../../../modules/enterprise-template
 import { enterpriseCoreV1 } from '../../../modules/enterprise-template/reference/enterprise-core-v1.js';
 import { createEvoRuntime, demoIds, drainPosting } from './evo-runtime.js';
 import { demoConsoleHtml } from './demo-console.js';
+import { coreConsoleHtml } from './core-console.js';
 
 export interface BuildAppOptions { readonly database?:DatabaseHandle; readonly loggerLevel?:string; }
 type DemoActorBody={actor?:{type?:'HUMAN'|'AI';id?:string}};
@@ -18,7 +19,20 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
  app.get('/health/ready',async(_request,reply)=>{if(options.database===undefined)return reply.code(503).send({status:'not_ready',reason:'database_not_configured'});try{await options.database.ping();return{status:'ready',version:'1.0.0-alpha.2'};}catch{return reply.code(503).send({status:'not_ready',reason:'database_unavailable'});}});
  if(options.database!==undefined){
   const runtime=createEvoRuntime(options.database);
-  app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
+  app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(coreConsoleHtml));
+  app.get('/demo',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
+  app.get('/api/v1/core/capabilities',async()=>({
+    protocolVersion:'0.1-draft',
+    capabilities:[
+      {id:'business-data',description:'Immutable replay-oriented BusinessData boundary.',status:'AVAILABLE'},
+      {id:'posting',description:'Deterministic posting-rule execution and posting state.',status:'AVAILABLE'},
+      {id:'ledger',description:'Immutable LedgerEntry and LedgerBalance semantics.',status:'AVAILABLE'},
+      {id:'balance',description:'Current balance reads through the Ledger boundary.',status:'AVAILABLE'},
+      {id:'replay',description:'Deterministic replay contract; boundary extraction still in progress.',status:'DRAFT'},
+      {id:'package-installation',description:'Definition-package validation and installation lifecycle.',status:'DRAFT'},
+      {id:'snapshot-change-feed',description:'Stable external data exit for projections and consumers.',status:'PLANNED'}
+    ]
+  }));
 
   app.get('/api/v1/enterprise-templates/:templateCode',async request=>{const p=request.params as {templateCode:string};const q=request.query as {version?:string};const version=q.version===undefined?undefined:Number(q.version);return runtime.enterpriseTemplates.get(p.templateCode,version);});
   app.put('/api/v1/enterprise-templates/:templateCode/versions/:version',async request=>{const p=request.params as {templateCode:string;version:string};const body=request.body as {name:string;description?:string;definition:JsonObject};const input={templateCode:p.templateCode,templateName:body.name,version:Number(p.version),definition:body.definition,...(body.description===undefined?{}:{description:body.description})};return runtime.enterpriseTemplates.publish(input);});
