@@ -103,3 +103,22 @@ PostingRules
 Long-term audit/archive retention is optional and does not belong to mandatory Core semantics.
 
 Core instead guarantees a complete versioned data export so users or archive plugins can preserve what they choose before clearing.
+
+
+## PostingRule Ownership
+
+```text
+Plugin/package owns:
+rule editing
+rule versions
+effective dates
+approval
+rollback
+
+EVO Core owns:
+deterministic evaluation of the supplied rule set
+posting effects
+ledger derivation
+```
+
+Clear Cache removes runtime business data/results but never clears PostingRules or other configuration definitions.
