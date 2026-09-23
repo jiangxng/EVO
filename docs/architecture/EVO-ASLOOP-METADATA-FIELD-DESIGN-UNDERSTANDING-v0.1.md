@@ -621,3 +621,250 @@ Experience Compiler / UI Runtime
 - 哪些联动属于特定 Application 规则。
 
 这些内容将用于验证 EVO 的 Application Field Binding、Data Source Contract 和声明式 Dependency Graph 是否足以承载真实企业应用。
+
+
+## 23. Application 的主表 / 从表字段结构
+
+Asloop 的一个 Application 可以包含大量 Field，这些 Field 并不一定处于同一个数据层次。
+
+至少需要区分：
+
+- 主表字段 / Header or Master Fields；
+- 从表字段 / Detail or Line Fields。
+
+例如销售订单可以抽象为：
+
+```text
+Sales Order Application
+├─ Master / Header
+│  ├─ orderCode
+│  ├─ customer
+│  ├─ orderDate
+│  ├─ paymentTerm
+│  └─ deliveryAddress
+│
+└─ Detail / Lines
+   ├─ inventory
+   ├─ specification
+   ├─ quantity
+   ├─ unitPrice
+   ├─ taxRate
+   └─ amount
+```
+
+因此 Application Field Binding 除了说明字段如何显示和交互，还需要说明字段所处的数据结构层次，例如：
+
+```text
+scope = master
+scope = detail:<detail-group>
+```
+
+后续还应允许一个 Application 存在多个不同 Detail Group，而不能把模型限制成固定的一主一从。
+
+## 24. 字段平铺与列表数据集
+
+Asloop 的应用字段可以按照列表查询需要被“平铺 / Flatten”。
+
+也就是说，Application 的结构化主从数据可以被投影成列表使用的数据集：
+
+```text
+Master Fields
++
+Detail Fields
+        ↓
+Flatten / Projection
+        ↓
+Application List Dataset
+```
+
+例如：
+
+```text
+Order Header
+customer = A
+orderDate = 2026-09-23
+
+Order Lines
+1. Product X / Qty 10
+2. Product Y / Qty 20
+```
+
+列表投影可以形成：
+
+```text
+customer | orderDate  | product   | qty
+A        | 2026-09-23 | Product X | 10
+A        | 2026-09-23 | Product Y | 20
+```
+
+这里的 Flatten 是查询 / 展示 Projection，不应改变原始 Application / BusinessData 的主从结构。
+
+## 25. 主表列表视图与明细列表视图
+
+同一个 Application 可以拥有不同粒度的列表视图。
+
+至少包括：
+
+### Master List View
+
+一笔业务一行，例如：
+
+```text
+orderCode | customer | totalAmount | status
+SO001     | A        | 1000        | Open
+```
+
+### Detail List View
+
+一条业务明细一行，例如：
+
+```text
+orderCode | customer | product | qty | amount
+SO001     | A        | X       | 10  | 600
+SO001     | A        | Y       | 20  | 400
+```
+
+两者可以来自同一个 Application / Data Source，但拥有不同的 Projection Grain / 数据粒度。
+
+因此 EVO 后续应把 View 的 grain / row semantics 作为显式定义，而不能只把“列表”理解成一种固定表格。
+
+## 26. Data Source 与 Visualization 解耦
+
+Asloop 中同一个 Data Source 不只能够用于 Table / Grid。
+
+在相同数据集基础上，还可以配置为不同 Visualization，例如：
+
+- Table / Grid；
+- Bar Chart / 柱状图；
+- Pie Chart / 饼状图；
+- Line Chart / 折线图；
+- Status Chart / 状态图；
+- 其他可视化表现。
+
+因此更准确的结构是：
+
+```text
+Application / Reporting Data Source
+              ↓
+         Dataset / Projection
+              ↓
+         View Definition
+              ↓
+        Visualization
+        ├─ Table
+        ├─ Bar
+        ├─ Pie
+        ├─ Line
+        ├─ Status
+        └─ ...
+```
+
+Data Source 定义“数据是什么”，Visualization 定义“数据如何表现”。
+
+同一个 Data Source 可以拥有多个 View，而同一个 View Dataset 也可以拥有多个 Visualization。
+
+## 27. View 不应等同于 Table
+
+EVO 应继承 Asloop 的一个重要思想：
+
+> List View 的本质不是 HTML Table，而是一个带有字段选择、过滤、排序、分组、聚合和粒度语义的 Data Projection。
+
+Table 只是其中一种 Renderer。
+
+建议 EVO 明确区分：
+
+```text
+Data Source
+→ Dataset
+→ Projection / View
+→ Visualization Renderer
+```
+
+其中：
+
+### Data Source
+
+回答数据从哪里来。
+
+### Dataset
+
+回答可用字段和记录集合是什么。
+
+### Projection / View
+
+回答：
+
+- 选哪些字段；
+- 主表还是明细粒度；
+- 如何 Flatten；
+- 如何 Filter；
+- 如何 Sort；
+- 如何 Group；
+- 如何 Aggregate；
+- 是否 Summary；
+- 使用哪些 Dimensions / Measures。
+
+### Visualization Renderer
+
+回答：
+
+- Table；
+- Bar；
+- Pie；
+- Line；
+- Status；
+- Dashboard Card；
+- 未来其他 Renderer。
+
+## 28. 主从结构与分析视图的关系
+
+主从结构属于业务数据语义。
+
+可视化平铺属于查询和表现语义。
+
+两者不得混为一个模型。
+
+推荐：
+
+```text
+Canonical Application Data
+├─ Master
+└─ Detail(s)
+        ↓
+Read Projection
+        ├─ Master Grain
+        ├─ Detail Grain
+        ├─ Aggregated Grain
+        └─ Analytical Grain
+                ↓
+Visualization
+```
+
+这样既保留交易数据的准确结构，也允许报表 / 列表 / Dashboard 灵活查看。
+
+## 29. EVO 对 Visualization 的继承方向
+
+EVO 后续的 Application / Experience 定义应允许：
+
+1. 同一个 Data Source 创建多个 View；
+2. View 显式定义 row grain；
+3. Master / Detail 可选择性 Flatten；
+4. View 可以定义 Dimension / Measure；
+5. View 可以定义 Filter / Sort / Group / Aggregate；
+6. Visualization 与 Dataset 解耦；
+7. 同一 View 可切换多个兼容 Renderer；
+8. AI 可以根据数据语义推荐 Visualization，但不能改变权威数据含义；
+9. Visualization 配置属于可安装 Experience / Reporting Asset；
+10. 若 Visualization 来源于 DW / Analytics Pack，则其删除或重建不得影响 canonical BusinessData / Ledger。
+
+可进一步抽象为：
+
+```text
+Application
+→ Structured Data
+→ Dataset Projection
+→ View Semantics
+→ Visualization
+```
+
+这使 EVO 可以同时承载业务列表、明细列表、分析图表和管理看板，而不需要为每种表现复制一套业务数据。
