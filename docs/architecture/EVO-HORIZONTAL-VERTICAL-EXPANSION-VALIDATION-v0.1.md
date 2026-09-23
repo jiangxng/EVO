@@ -861,3 +861,191 @@ EC restored
 因此项目边界原则最终定义为：
 
 > **EVO 负责运行并持续观察，Eidos 负责体验并持续产生必要的体验事件，EC 负责在可用时消费这些历史观察并持续学习。EC 可以离线，观察不能因此丢失。**
+
+
+## 17. BusinessData 在最小 Core 中的弱语义定位
+
+在进一步压缩 EVO Core 后，BusinessData 可以保留在 Core，但其定位必须非常克制。
+
+结合 bookkeeping 项目的历史设计，BusinessData 更接近：
+
+> **面向记账执行的高速事实缓存 / Posting Cache**
+
+而不是完整的企业业务主模型。
+
+因此 BusinessData 在 Core 中不应承载：
+
+- Application 定义；
+- Field 定义；
+- Form / List / View；
+- Workflow；
+- 行业业务语义；
+- 复杂对象模型；
+- 完整业务生命周期。
+
+这些能力应由可安装的 Application / Definition Pack 提供。
+
+### 17.1 Core 中 BusinessData 的最小职责
+
+BusinessData 在 Core 中只需要承担少量通用职责：
+
+```text
+Business Fact / External Input
+        ↓
+BusinessData Cache
+        ↓
+Posting Rule Evaluation
+        ↓
+Ledger Entry
+        ↓
+Balance
+```
+
+它至少需要保留能够支持记账、追溯和重放的最小信息，例如：
+
+```text
+fact_id
+fact_type / source_type
+occurred_at
+posting_sequence / ordering key
+payload / values needed by posting
+dimensions
+source identity
+version / digest
+lineage reference
+```
+
+具体字段以最终实现为准，但设计目标是：
+
+> **够记账、够追溯、够 Replay，不承担完整业务应用模型。**
+
+### 17.2 BusinessData 的缓存属性
+
+BusinessData 可以理解为 Application / 外部系统提交给 Ledger Kernel 的标准化高速缓存层。
+
+例如：
+
+```text
+Eidos Application
+External API
+Excel Import
+Industry Plugin
+        ↓
+normalize
+        ↓
+BusinessData
+        ↓
+Posting Rules
+```
+
+Core 不需要知道这些数据原来来自哪个页面、哪个表单设计器或哪个行业模块。
+
+BusinessData 的主要价值是：
+
+- 避免 Posting Runtime 反复读取复杂上层 Application 数据；
+- 固化记账时需要的历史值；
+- 为 Replay 提供稳定输入；
+- 为 Rule Evaluation 提供统一数据形态；
+- 与上层业务模型解耦。
+
+### 17.3 BusinessData 不等于权威业务应用模型
+
+需要明确：
+
+```text
+Application Data Model
+≠
+BusinessData Cache
+```
+
+Application Pack 可以维护更丰富的：
+
+- master / detail；
+- object relations；
+- form state；
+- workflow state；
+- domain-specific fields。
+
+进入 Core 时，只把当前 Posting / Replay 所需的业务事实投影到 BusinessData。
+
+因此 BusinessData 是一种 canonical posting representation，而不是强迫所有企业业务都直接按照 Core 的 BusinessData 结构建模。
+
+### 17.4 BusinessData 与历史快照
+
+虽然 BusinessData 能力较弱，但它必须保留与记账相关的历史快照语义。
+
+例如对象当前值后续变化时：
+
+```text
+Object current value changes
+        ↓
+historical BusinessData remains unchanged
+        ↓
+Replay gets the same posting input
+```
+
+这样才能保证记账规则重放的确定性。
+
+### 17.5 BusinessData 与 Core 最小闭环
+
+进一步压缩后，EVO Core 可以形成：
+
+```text
+BusinessData (thin posting cache)
+        ↓
+Posting Rule
+        ↓
+Ledger Entry
+        ↓
+Balance
+```
+
+因此最小 Kernel 可以理解为围绕以下核心原语运行：
+
+```text
+BusinessData
+Posting Rule
+Ledger
+Ledger Entry
+Balance
+```
+
+其中：
+
+- BusinessData：薄事实缓存；
+- Posting Rule：解释事实；
+- Ledger：定义状态容器；
+- Ledger Entry：不可变发生；
+- Balance：Entry 的累计结果。
+
+### 17.6 对插件边界的影响
+
+因为 BusinessData 在 Core 中保持弱语义，所以以下能力仍然可以完全插件化：
+
+```text
+Object Definitions
+Field Definitions
+Transaction Types
+Applications
+Form / List / View
+Editable Grid
+Workflow
+Finance
+Reports
+DW / Analytics
+Industry Templates
+```
+
+这些插件只需要将需要记账的结果投影为 Core 可接受的 BusinessData。
+
+这使 EVO Core 可以保持极小，同时仍然支持复杂企业系统。
+
+### 17.7 设计原则
+
+最终原则：
+
+> **BusinessData belongs to Core as a weak, stable, replayable posting cache — not as the enterprise domain model.**
+
+中文：
+
+> **BusinessData 可以属于 EVO Core，但只能作为弱语义、稳定、可重放的记账事实缓存，不能演变成整个企业业务领域模型。**
