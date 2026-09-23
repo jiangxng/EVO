@@ -34,11 +34,13 @@ Canonical target runtime flow:
 ```text
 Host / Application
       ↓
-BusinessData submission
+BusinessData submission(applicationId)
       ↓
 EVO Runtime Plugin
       ↓
-supplied PostingRules
+ApplicationAnchor(applicationId)
+      ↓
+current PostingRules(applicationId)
       ↓
 LedgerEntry
       ↓
@@ -85,8 +87,8 @@ Human / AI / Automation / External System
 9. Current repository modules must respect ownership while extraction toward the minimal plugin boundary proceeds.
 10. Chat memory is not an authoritative architecture store.
 11. Generic EVO Ledger is not statutory General Ledger; formal accounting is a Finance plugin built on/alongside EVO runtime.
-12. Application, finance, governance and management capabilities are plugins/packages. EVO Core stays limited to generic runtime primitives.
-13. Clear Cache clears EVO runtime data only. Rules/application/permission configuration live outside Core and therefore are not cache contents.
+12. Rich Application lifecycle, finance, governance and management capabilities are plugins/packages. EVO Core retains only minimal ApplicationAnchor/applicationId routing plus generic runtime primitives.
+13. Clear Cache clears EVO runtime BusinessData/results only. ApplicationAnchor and current PostingRules are Core configuration and survive clearing; permissions and rich application/package configuration remain outside Core.
 14. PostingRules may be changed by their owning plugin/package. Core does not own rule version/effective-date/rollback lifecycle; rule change is never modeled as cache clearing.
 15. EVO provides complete export of its own runtime dataset; long-term accounting/audit retention is optional plugin/customer policy.
 
@@ -96,8 +98,9 @@ See `docs/invariants/core.md`.
 
 | Target component | Owns | Notes |
 | --- | --- | --- |
-| business-data runtime | accepted BusinessData in current runtime dataset | Host/Application source data remains external |
-| posting runtime | deterministic evaluation of supplied PostingRules, ordering, status/failure | no rule lifecycle/version management |
+| application routing | minimal ApplicationAnchor/applicationId registry | no rich Application lifecycle/metadata |
+| business-data runtime | accepted BusinessData in current runtime dataset, including applicationId | Host/Application source data remains external |
+| posting runtime | current executable PostingRules keyed by applicationId; deterministic condition/effect evaluation, ordering, status/failure | no rule lifecycle/version management |
 | ledger runtime | generic LedgerEntry + LedgerBalance | no statutory accounting semantics |
 | recalculation/runtime-control | recalculate retained BusinessData, clear runtime data | no application lifecycle |
 | export/query | generic current runtime results + complete EVO runtime export | no audit retention policy |
@@ -113,9 +116,11 @@ Machine-readable current-module ownership remains in `architecture.manifest.json
 ```text
 Host / plugin adapters
    ↓
-business-data runtime
+business-data runtime(applicationId)
    ↓
-posting runtime
+application routing anchor
+   ↓
+posting runtime(rules by applicationId)
    ↓
 ledger runtime
 
