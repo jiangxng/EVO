@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "EVO",
   "authority": "machine-readable-branch-analysis-contract",
-  "updatedAt": "2026-09-23",
+  "updatedAt": "2026-09-24",
   "authoritativeBranch": "main",
   "analysisRules": [
     "Never infer branch authority from branch name, commit count, age, or open/closed PR state alone.",
@@ -218,11 +218,12 @@
       "description": "EEL-C02 Procure-to-Pay reference loop certified and merged by PR #26 at 43c23050b74819caf311535598808bdf5339d237."
     },
     "evo/effective-capability-discovery-v0.1": {
-      "class": "EXPERIMENTAL",
-      "mergePolicy": "MANUAL_REVIEW_ONLY",
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": false,
       "pr": 25,
-      "description": "Paused horizontal API/capability-discovery work. Not current business mainline; do not extend while EEL-C02 is active unless explicitly resumed."
+      "description": "Superseded capability-discovery experiment. Capability/Application discovery is now a Host/App Platform responsibility; useful ideas were already reimplemented for compatibility in main.",
+      "prDisposition": "CLOSE_SUPERSEDED"
     },
     "evo/eel-c02-post-merge-pointer-cleanup-v0.1": {
       "class": "DIVERGED_HISTORICAL",
@@ -403,11 +404,19 @@
       "description": "FAI-07 three core financial statements merged by PR #49; three-statement projections, reconciliation and deterministic replay are contained in main."
     },
     "evo/post-fai-07-finance-gap-alignment-v0.1": {
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": false,
+      "pr": 50,
+      "description": "Superseded documentation alignment. The newer minimal-runtime-plugin boundary moves General Ledger/statutory accounting and broader finance governance outside mandatory EVO Core.",
+      "prDisposition": "CLOSE_SUPERSEDED"
+    },
+    "evo/minimal-runtime-plugin-boundary-v0.1": {
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "pr": 50,
-      "description": "Post-FAI-07 finance architecture alignment. Documentation-only branch separating Core accounting runtime, installable Finance Apps and jurisdiction/regulatory packs."
+      "pr": 56,
+      "description": "Current architecture-convergence branch redefining EVO as a lightweight BusinessData→PostingRule→Ledger→Balance runtime plugin and externalizing platform/governance/domain concerns."
     }
   },
   "requiredLLMProcedure": [
@@ -435,7 +444,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "011fc130da457b7fed5b8a9c03f570b677045f83",
+  "lastReviewedMainCommit": "1c58b0526415f4ad4a81b8f83721d71bea25b7eb",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -463,15 +472,17 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/post-fai-07-finance-gap-alignment-v0.1",
-    "pullRequest": 50,
+    "businessMainline": "evo/minimal-runtime-plugin-boundary-v0.1",
+    "pullRequest": 56,
     "includedGates": [
-      "post-FAI-07 finance architecture alignment",
-      "Core vs Finance App vs jurisdiction/regulatory pack responsibility split",
-      "next accounting-governance packet selection"
+      "freeze minimal EVO Runtime Plugin boundary",
+      "remove identity/permissions/application/capability ownership from Core target",
+      "make BusinessData submission the target Core ingestion boundary",
+      "externalize rule lifecycle and higher-order engines by default",
+      "classify current broad modules as compatibility/plugin extraction assets"
     ],
-    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no new runtime claim",
-    "afterSuccess": "Merge PR #50 when its documentation checks and latest-main reconciliation are verified. Runtime work may proceed on independent bounded branches from current main when it does not change the finance alignment scope.",
-    "rule": "Do not extend the report engine into independent accounting truth. Keep unrelated runtime/public-API work on separate bounded branches from current main."
+    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no runtime behavior change",
+    "afterSuccess": "Merge PR #56 after CI. Close superseded PR #25 and PR #50. Then converge runtime incrementally: define minimal BusinessData submission contract first, without breaking current Proof C compatibility path.",
+    "rule": "Do not add new Core responsibilities unless generic BusinessData → supplied PostingRules → Ledger → Balance cannot function without them."
   }
 }
