@@ -91,7 +91,23 @@ FAILED
 
 through status query, event, callback/webhook, or an equivalent stable mechanism.
 
-External Applications submit business facts. They do not submit LedgerEntry instructions and do not control worker/queue internals. Effective PostingRules determine the derived ledger effects.
+External Applications submit business facts. They do not submit LedgerEntry instructions and do not control worker/queue internals. The PostingRules supplied to Core determine the derived ledger effects; Core does not manage PostingRule versions.
+
+### PostingRule lifecycle is outside Core
+
+EVO Core executes the PostingRules supplied by the rule-owning plugin/package.
+
+Core does not own:
+
+- PostingRule draft/publish workflow;
+- PostingRule business versions;
+- effective-date/version selection;
+- rollback history;
+- rule approval history.
+
+A plugin/package may provide all of those capabilities and then supply the selected/current rule set to Core.
+
+Core may record a stable rule code/hash for diagnostics and reproducibility, but this is not a Core-managed version lifecycle.
 
 ### Explicit Posting API
 
