@@ -1284,3 +1284,451 @@ EVO 长期坚持：
 > **EVO Core 不承诺任何人想怎么查都快；它只承诺正式 Public API 在明确边界内高性能、高可靠、可观测、可演进。**
 
 这条原则将作为未来数据存储、分库分表、缓存、异步化和消费者架构决策的责任边界。
+
+
+## 37. EVO Core Capability Gap Analysis / 核心能力补齐清单
+
+在 Core 已经收敛为：
+
+```text
+BusinessData
+→ Posting Rule
+→ Ledger Entry
+→ Balance
+→ Replay
+```
+
+之后，下一阶段不再优先增加业务模块，而是补齐“让这条最小链路真正可长期依赖”的基础能力。
+
+### 37.1 P0 — Kernel Correctness / 正确性闭环
+
+以下属于最优先 Core 能力。
+
+#### A. Ledger Definition Lifecycle
+
+需要完整支持：
+
+- create；
+- validate；
+- version；
+- activate；
+- retire；
+- import / export；
+- dimension / measurement contract；
+- semantic digest。
+
+Core 不硬编码 Inventory / Receivable 等业务账本名称。
+
+#### B. Posting Rule Lifecycle
+
+需要完整支持：
+
+- rule definition；
+- condition；
+- effect；
+- target ledger；
+- direction；
+- expression；
+- version；
+- activation / effective range；
+- validation；
+- import / export；
+- deterministic evaluation。
+
+任何历史 Replay 必须能够 pin 到明确 rule version。
+
+#### C. Atomic Posting
+
+一次 BusinessData 可能产生多个 Ledger Entry。
+
+必须保证：
+
+```text
+all required entries committed
+or
+none committed
+```
+
+同时需要：
+
+- idempotency key；
+- duplicate prevention；
+- concurrency control；
+- deterministic sequence；
+- retry-safe semantics。
+
+#### D. Immutable Ledger Entry
+
+Ledger Entry 必须保持不可静默修改。
+
+至少可追溯：
+
+```text
+entry
+→ source BusinessData
+→ posting rule + version
+→ posting sequence
+→ enterprise / tenant
+```
+
+更正、冲销、调整通过新增 Entry / governed reversal 表达。
+
+#### E. Balance Engine
+
+Balance 必须满足：
+
+```text
+Balance = deterministic accumulation of Ledger Entries
+```
+
+需要：
+
+- current balance；
+- movement；
+- dimension-scoped balance；
+- as-of balance；
+- rebuild；
+- consistency validation。
+
+Snapshot / cache 可以存在，但不是第二套权威事实。
+
+### 37.2 P0 — BusinessData Minimal Replay Contract
+
+BusinessData 在 Core 中保持薄语义，但必须足以支撑：
+
+- deterministic replay；
+- historical snapshot；
+- source identity；
+- occurrence time；
+- posting sequence；
+- required dimensions；
+- rule inputs；
+- version / digest；
+- retention / export。
+
+明确原则：
+
+> 只保存未来重新记账 / 重算真正需要的历史输入。
+
+### 37.3 P0 — Replay / Re-posting Contract
+
+Replay 是 Kernel 核心能力，不是后期报表能力。
+
+至少需要：
+
+- replay scope；
+- ordered input；
+- selected rule versions；
+- runtime mode；
+- deterministic digest；
+- before / after validation；
+- failure semantics；
+- restart-safe boundary。
+
+第一阶段允许同步或单 worker 实现，但 Contract 必须允许未来 Job / checkpoint / partition 扩展。
+
+### 37.4 P0 — Provenance / Explainability
+
+Core 必须能回答：
+
+```text
+为什么有这条 Ledger Entry？
+为什么有这个 Balance？
+```
+
+最低追溯链：
+
+```text
+BusinessData
+→ Posting Rule + Version
+→ Ledger Entry
+→ Balance
+```
+
+这属于 Kernel 本身的可解释性，不应依赖 Application 或 Reporting Pack。
+
+### 37.5 P0 — Stable Public API
+
+Core Public API 应尽量小，但必须长期稳定。
+
+最小 API family 建议：
+
+```text
+BusinessData
+- ingest / append
+- read bounded history
+- export
+
+Ledger
+- define / version / read
+- import / export
+
+Posting Rule
+- define / validate / activate
+- import / export
+
+Posting
+- post
+- status / idempotency lookup
+
+Ledger Entry
+- bounded query
+- movement query
+
+Balance
+- current
+- as-of
+- by dimension
+- rebuild / validate
+
+Replay
+- request
+- status
+- result / digest
+
+Provenance
+- trace source → entry
+- trace entry → source/rule
+```
+
+所有 API 必须有：
+
+- version；
+- bounded scope；
+- pagination / cursor；
+- idempotency where applicable；
+- consistency semantics；
+- error contract。
+
+## 38. P1 — Decoupling Infrastructure / 低耦合出口
+
+以下非常重要，但可以在 P0 正确性闭环后补齐。
+
+### 38.1 Change Feed / Incremental Export
+
+因为 Pack / Reporting / Eidos / EC 不允许直接读 Core 私有表，Core 必须提供可靠增量出口。
+
+至少需要一种：
+
+```text
+committed BusinessData / Ledger changes
+→ ordered change feed
+→ external consumer checkpoint
+```
+
+用途包括：
+
+- Reporting projection；
+- DW；
+- Search；
+- Eidos read model；
+- telemetry integration；
+- external integration。
+
+Change Feed 是低耦合的关键，不应由每个消费者自己轮询私有数据库。
+
+### 38.2 Snapshot / Bulk Export
+
+新安装的 Reporting / Analytics Pack 需要先建立初始数据。
+
+因此需要：
+
+```text
+consistent snapshot
++
+incremental change feed
+```
+
+典型同步模式：
+
+```text
+initial Snapshot
+→ remember checkpoint
+→ consume Change Feed
+```
+
+### 38.3 Runtime State
+
+Core 需要极小但明确的 runtime state，例如：
+
+- posting mode；
+- replay state；
+- replay required flag；
+- next posting sequence；
+- last committed sequence；
+- active definition versions。
+
+这些状态必须机器可读，不依赖人工记忆。
+
+## 39. P1 — Isolation / Security Boundary
+
+完整企业权限系统不进入 Kernel，但以下能力必须由 Core 保证：
+
+### 39.1 Tenant / Enterprise Isolation
+
+任何 BusinessData、Rule、Ledger、Entry、Balance 都必须有明确 enterprise ownership。
+
+跨企业读取必须默认禁止。
+
+### 39.2 Access Context Hook
+
+所有 Public Read API 需要有受治理 Access Context 扩展点。
+
+Core 不负责定义“销售经理可以看哪些客户”，但必须允许 Policy Layer 将授权 scope 安全传入查询。
+
+### 39.3 No Direct DB Contract
+
+私有数据库 schema 不是 Public Contract。
+
+Pack / Eidos / EC 不得以数据库访问作为正式集成方式。
+
+## 40. P1 — Integrity / Recovery
+
+Core 除了“能算”，还要“能证明没有坏”。
+
+建议补齐：
+
+- ledger entry integrity check；
+- balance vs entries reconciliation；
+- sequence gap detection；
+- orphan provenance detection；
+- rule digest verification；
+- replay digest comparison；
+- startup consistency check；
+- controlled repair / rebuild。
+
+Backup / infrastructure disaster recovery 可以由部署层负责，但 Core 必须提供逻辑完整性验证工具。
+
+## 41. P1 — Observability
+
+最小运行时至少应该逐步暴露：
+
+- posting latency；
+- posting throughput；
+- error rate；
+- balance query latency；
+- replay throughput；
+- rule evaluation time；
+- queue / job backlog；
+- enterprise / tenant resource dimension；
+- correlation id；
+- posting sequence；
+- rule version。
+
+这不是业务 Analytics，而是 Kernel Operations Observability。
+
+## 42. P2 — Heavy Compute Runtime
+
+当真实数据量证明需要后，再实现：
+
+- async replay job；
+- checkpoint；
+- retry；
+- cancel；
+- partitioned replay；
+- parallel worker；
+- shadow rebuild；
+- atomic publish；
+- resource isolation。
+
+Job Runtime 可以是 Official Runtime Extension，但 Replay Contract 从 P0 就必须允许这种演进。
+
+## 43. P2 — Read Scalability
+
+当 Public API 查询压力出现后，再逐步增加：
+
+- balance snapshots；
+- partition-aware store；
+- read replica；
+- cache；
+- hot / warm / cold storage；
+- bounded materialized read model。
+
+这些都是内部实现，不应改变 Public API。
+
+## 44. P2 — Policy-aware Query
+
+在真实权限场景需要后，可增加：
+
+- dimension-level filtering；
+- row scope；
+- amount masking；
+- field masking；
+- policy version；
+- policy decision audit。
+
+具体权限规则仍不进入 Ledger Kernel。
+
+## 45. 不应补进 Core 的功能
+
+在本轮 Gap Analysis 中，以下即使未来重要，也不应作为“Core 缺功能”处理：
+
+- Application；
+- Field；
+- Object；
+- Transaction Type；
+- Form / List / Grid；
+- Workflow；
+- Todo UI；
+- Financial Statements；
+- Voucher UI；
+- DW / Report / Dashboard；
+- Application–Ledger graph renderer；
+- Notification channel；
+- user habit analytics；
+- EC learning；
+- industry-specific rules。
+
+它们需要的是 Core Public Contract，而不是进入 Core 实现。
+
+## 46. 当前最值得优先补齐的 8 项
+
+如果只选下一阶段最重要的八项，顺序建议：
+
+1. **Ledger Definition Lifecycle**
+2. **Posting Rule Lifecycle + Version Pinning**
+3. **Atomic + Idempotent Posting**
+4. **Immutable Ledger Entry + Provenance**
+5. **Balance current / as-of / rebuild**
+6. **Thin BusinessData Replay Contract**
+7. **Deterministic Replay + Digest Validation**
+8. **Small, stable, high-performance Public API**
+
+这八项完成后，EVO Kernel 才真正具备“长期不变的底座”形态。
+
+随后优先补：
+
+```text
+Snapshot + Change Feed
+→ Integrity / Recovery
+→ Access Context
+→ Observability
+→ Async Heavy Job
+→ Large-scale performance
+```
+
+## 47. 核心完成的判断标准
+
+EVO Core 不以“功能数量”作为完成标准。
+
+一个最小 Kernel 可以被认为成熟，至少要证明：
+
+```text
+给定相同 BusinessData
++ 相同 Rule Version
++ 相同 Ordering
+→ 永远得到相同 Ledger Entries
+→ 永远得到相同 Balance
+```
+
+并且：
+
+- 可重放；
+- 可解释；
+- 可导入 / 导出；
+- 可恢复；
+- 可通过稳定 Public API 使用；
+- 上层 Pack 无需直接读取私有数据库；
+- 上层业务增加时不修改 Kernel。
+
+这将作为下一阶段 EVO Core 补齐工作的主要验收方向。
