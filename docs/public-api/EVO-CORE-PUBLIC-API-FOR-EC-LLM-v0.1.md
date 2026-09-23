@@ -262,3 +262,21 @@ EC    = durable knowledge/learning project
         → shrink
         → archive/retire when no longer uniquely useful
 ```
+
+
+## Enterprise Agent boundary update — 2026-09-23
+
+The former EC / Experience Compiler product identity is being replaced by the **Enterprise Agent** model.
+
+For EVO, the only durable rule is local:
+
+- Enterprise Agent may consume EVO capabilities through EVO Public Contracts;
+- Enterprise Agent is not part of EVO Core;
+- EVO Core must remain fully operational without any Agent or LLM;
+- Agent reasoning does not become authoritative business truth by itself;
+- Agent execution must pass the same authorization, command and consistency boundaries as any other client;
+- EVO must not depend on the Agent's private memory, knowledge store, model provider or implementation.
+
+The canonical definition of Agent Package semantics belongs to `EVO-App-Platform/docs/architecture/AGENT-PACKAGE-MODEL-v0.1.md`.
+
+The historical EC-to-Enterprise-Agent transition is recorded in `Experience-Compiler/docs/adr/0004-ec-to-enterprise-agent.md`.
