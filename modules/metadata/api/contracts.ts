@@ -16,6 +16,13 @@ export interface Enterprise {
   readonly defaultTimezone: string;
 }
 
+export interface ApplicationDefinition {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly description: string | null;
+}
+
 export interface ApplicationDefinitionVersion {
   readonly id: string;
   readonly applicationDefinitionId: string;

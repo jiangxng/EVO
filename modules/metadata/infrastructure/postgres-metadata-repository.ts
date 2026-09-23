@@ -2,6 +2,7 @@ import { sql, type Kysely } from 'kysely';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type {
+  ApplicationDefinition,
   ApplicationDefinitionVersion,
   ApplicationInstance,
   CommandDefinition,
@@ -49,6 +50,66 @@ export class PostgresMetadataRepository
       status: row.status,
       defaultTimezone: row.default_timezone
     };
+  }
+
+  async getEnterpriseByCode(enterpriseCode: string): Promise<Enterprise | null> {
+    const row = await this.db
+      .selectFrom('enterprise')
+      .selectAll()
+      .where('code', '=', enterpriseCode)
+      .executeTakeFirst();
+
+    if (row === undefined) return null;
+
+    return {
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      status: row.status,
+      defaultTimezone: row.default_timezone
+    };
+  }
+
+  async getApplicationDefinition(
+    applicationDefinitionId: string
+  ): Promise<ApplicationDefinition | null> {
+    const row = await this.db
+      .selectFrom('application_definition')
+      .select(['id', 'code', 'name', 'description'])
+      .where('id', '=', applicationDefinitionId)
+      .executeTakeFirst();
+
+    if (row === undefined) return null;
+
+    return {
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      description: row.description
+    };
+  }
+
+  async listApplicationInstances(
+    enterpriseId: string
+  ): Promise<readonly ApplicationInstance[]> {
+    const rows = await this.db
+      .selectFrom('application_instance')
+      .selectAll()
+      .where('enterprise_id', '=', enterpriseId)
+      .orderBy('code')
+      .orderBy('id')
+      .execute();
+
+    return rows.map((row) => ({
+      id: row.id,
+      enterpriseId: row.enterprise_id,
+      applicationDefinitionId: row.application_definition_id,
+      code: row.code,
+      name: row.name,
+      pinnedDefinitionVersion: row.pinned_definition_version,
+      status: row.status,
+      config: jsonObject(row.config)
+    }));
   }
 
   async getApplicationInstance(

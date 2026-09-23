@@ -45,6 +45,33 @@ Every public Command request must define:
 
 Public responses expose stable execution identifiers and status. Internal implementation classes, SQL schema and worker details are not public API.
 
+## Current v1.0-alpha.2 Public Capability Endpoints
+
+The following Core-facing endpoints are implemented for the current alpha boundary:
+
+```text
+GET  /api/v1/enterprises/:enterpriseCode
+GET  /api/v1/apps?enterprise_id=<id>
+GET  /api/v1/capabilities?enterprise_id=<id>
+POST /api/v1/commands
+```
+
+`GET /api/v1/enterprises/:enterpriseCode` resolves stable enterprise scope without exposing storage details. `GET /api/v1/apps` and `GET /api/v1/capabilities` expose only effective ACTIVE application instances and their current command capabilities.
+
+For this alpha slice, command capabilities are derived from:
+
+```text
+ACTIVE ApplicationInstance
++ effective PUBLISHED ApplicationDefinitionVersion
++ CommandDefinition
+```
+
+and are explicitly identified as `COMMAND_DEFINITION_BOOTSTRAP`. This is a replaceable bootstrap source, not a permanent storage-model commitment.
+
+`POST /api/v1/commands` accepts a public `capabilityCode`; callers do not provide EVO-private application instance IDs. EVO resolves the effective provider internally, validates the command input through the existing governed Command boundary, and applies the authorization policy declared by command metadata. Missing authorization metadata fails closed.
+
+The endpoint creates authoritative Command/BusinessData/PostingInput state. Posting remains independently processed by the EVO posting runtime/worker.
+
 ## Current v1.0-alpha.2 Reference Endpoints
 
 The `/api/v1/demo/*` endpoints are validation/reference endpoints and are not yet general production API commitments.

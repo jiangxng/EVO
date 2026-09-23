@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EffectiveDefinitionResolver } from '../application/effective-definition-resolver.js';
 import type {
+  ApplicationDefinition,
   ApplicationDefinitionVersion,
   ApplicationInstance,
   CommandDefinition,
@@ -63,6 +64,20 @@ class FakeMetadataReader implements MetadataReader {
 
   async getEnterprise(): Promise<Enterprise | null> {
     return this.enterprise;
+  }
+  async getEnterpriseByCode(): Promise<Enterprise | null> {
+    return this.enterprise;
+  }
+  async getApplicationDefinition(): Promise<ApplicationDefinition | null> {
+    return {
+      id: 'a1',
+      code: 'sales_order',
+      name: 'Sales Order',
+      description: null
+    };
+  }
+  async listApplicationInstances(): Promise<readonly ApplicationInstance[]> {
+    return this.instance === null ? [] : [this.instance];
   }
   async getApplicationInstance(): Promise<ApplicationInstance | null> {
     return this.instance;

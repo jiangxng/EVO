@@ -52,7 +52,8 @@
     "validate:fai-double-entry": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-double-entry.ts",
     "validate:fai-accounting-loop": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-accounting-loop.ts",
     "validate:fai-statement-readiness": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-statement-readiness.ts",
-    "validate:fai-three-financial-statements": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-three-financial-statements.ts"
+    "validate:fai-three-financial-statements": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-three-financial-statements.ts",
+    "validate:public-capability-command": "node --env-file-if-exists=.env --import tsx scripts/validate-public-capability-command.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",
