@@ -30,3 +30,22 @@ for the reference FIFO scenario. Failure/concurrency matrix coverage remains ope
 
 B4.4B database E2E additionally verifies duplicate activation idempotency and
 fail-closed semantic mismatch, stale-parent, and revoked-promotion cases.
+
+
+## Runtime cache semantics
+
+The active Economic Runtime materialization participates in the broader **EVO Runtime Cache** concept.
+
+EVO-internal recalculation may rebuild derived state from the current governed runtime input/fact set without asking Applications to resubmit data.
+
+A governed cache-clear operation may replace an active runtime working set or Application-scoped subset. Cache clear is a logical/runtime operation: required historical/audit evidence must remain reconstructable and traceable.
+
+Application-driven rebuild is separate:
+
+```text
+Application requests scoped cache reset
+→ Application resubmits data through normal APIs
+→ EVO processes submissions normally
+```
+
+EVO does not interpret "recalculate" as a special business mode.

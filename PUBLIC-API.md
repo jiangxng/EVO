@@ -45,9 +45,9 @@ Every public Command request must define:
 
 Public responses expose stable execution identifiers and status. Internal implementation classes, SQL schema and worker details are not public API.
 
-## Automatic Initial Posting Semantics
+## Automatic Posting Semantics
 
-For an accepted business fact, the public business/Command API owns the first posting lifecycle automatically.
+For an accepted business fact, the public business/Command API owns the posting lifecycle automatically.
 
 Canonical caller contract:
 
@@ -58,7 +58,7 @@ Application
 → EVO automatically begins/continues posting
 ```
 
-The caller MUST NOT need to invoke a second "start posting" API for the first posting of that accepted fact.
+The caller MUST NOT need to invoke a second "start posting" API for the posting of that accepted fact.
 
 Posting completion semantics are independent from posting ownership:
 
@@ -104,11 +104,42 @@ EVO retains an explicit Posting / PostingRun API model for platform-level operat
 - repair/rebuild;
 - governed administrative posting runs.
 
-Such APIs may return asynchronously by design. They are **not** required for the first posting of a newly accepted business fact.
+Such APIs may return asynchronously by design. They are **not** required for the posting of a newly accepted business fact.
 
 Normative decision:
 
 - `docs/architecture/decisions/2026-09-23-automatic-initial-posting-and-async-results-v0.1.md`
+
+## Runtime Cache Control
+
+EVO defines a governed runtime-cache control boundary for rebuilding current runtime state without coupling that operation to Application-specific business semantics.
+
+Target Core endpoint:
+
+```text
+POST /api/v1/runtime-cache/clear
+```
+
+This endpoint is a privileged platform/runtime-control API, not an ordinary business Command.
+
+A cache-clear request MUST declare enterprise scope and a bounded target scope such as an Application. The operation may complete synchronously or asynchronously and MUST expose a durable result identity when asynchronous.
+
+Clearing runtime cache does not mean silently deleting audit/history. Implementations SHOULD prefer governed generation reset/switch semantics where practical so old evidence remains available while a new active working set is repopulated.
+
+Application-driven rebuild pattern:
+
+```text
+clear application runtime cache
+→ Application resubmits data through ordinary APIs
+→ EVO validates normally
+→ EVO automatically Posts/derives normally
+```
+
+EVO does not care that the Application calls this workflow "recalculation".
+
+Normative decision:
+
+- `docs/architecture/decisions/2026-09-24-recalculation-perspectives-and-runtime-cache-v0.1.md`
 
 ## Current v1.0-alpha.2 Public Capability Endpoints
 
@@ -135,7 +166,7 @@ and are explicitly identified as `COMMAND_DEFINITION_BOOTSTRAP`. This is a repla
 
 `POST /api/v1/commands` accepts a public `capabilityCode`; callers do not provide EVO-private application instance IDs. EVO resolves the effective provider internally, validates the command input through the existing governed Command boundary, and applies the authorization policy declared by command metadata. Missing authorization metadata fails closed.
 
-The endpoint creates authoritative Command/BusinessData/PostingInput state. When it returns `postingStatus: QUEUED`, EVO has already taken ownership of the initial posting lifecycle; the caller does not invoke a separate posting-start API. The EVO posting runtime/worker continues processing asynchronously and must eventually expose a governed terminal result.
+The endpoint creates authoritative Command/BusinessData/PostingInput state. When it returns `postingStatus: QUEUED`, EVO has already taken ownership of the posting lifecycle; the caller does not invoke a separate posting-start API. The EVO posting runtime/worker continues processing asynchronously and must eventually expose a governed terminal result.
 
 ## Current v1.0-alpha.2 Reference Endpoints
 

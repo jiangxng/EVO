@@ -68,11 +68,19 @@ Asloop-Backend is the older and broader calculation/ERP implementation. `bookkee
 
 ## Automatic Posting Lifecycle Constitution
 
-- INV-046 — Accepted Business Facts Automatically Enter Posting: Any business fact accepted through a governed public business/Command API MUST automatically enter its current effective posting lifecycle. The caller MUST NOT need a second API call to start the first posting of that accepted fact.
-- INV-047 — Caller Does Not Own Initial Posting Orchestration: Business Applications submit facts and business commands, not ledger instructions or worker controls. They MUST NOT be required to know or invoke PostingInput, worker, queue, LedgerEntry, LedgerBalance, or private posting-runtime details to complete the first posting.
+- INV-046 — Accepted Business Facts Automatically Enter Posting: Any business fact accepted through a governed public business/Command API MUST automatically enter its current effective posting lifecycle. The caller MUST NOT need a second API call to start the posting of that accepted fact.
+- INV-047 — Caller Does Not Own Initial Posting Orchestration: Business Applications submit facts and business commands, not ledger instructions or worker controls. They MUST NOT be required to know or invoke PostingInput, worker, queue, LedgerEntry, LedgerBalance, or private posting-runtime details to complete the posting.
 - INV-048 — Posting Completion May Be Synchronous Or Asynchronous: EVO MAY complete posting within the originating request or continue it asynchronously. If asynchronous, an accepted/queued/running response means EVO has already assumed responsibility for continuation and MUST expose a durable, traceable path to a terminal POSTED/COMPLETED or FAILED result.
-- INV-049 — Explicit Posting APIs Are Platform Controls, Not First-Posting Requirements: EVO MAY expose Posting/PostingRun APIs for re-posting, Replay, bulk processing, retry/recovery, repair, rebuild and other governed platform operations. Ordinary Applications MUST NOT be required to call such an API to initiate the first posting of a newly accepted business fact.
+- INV-049 — Explicit Posting APIs Are Platform Controls, Not First-Posting Requirements: EVO MAY expose Posting/PostingRun APIs for re-posting, Replay, bulk processing, retry/recovery, repair, rebuild and other governed platform operations. Ordinary Applications MUST NOT be required to call such an API to initiate the posting of a newly accepted business fact.
 - INV-050 — Facts Do Not Carry Ledger Instructions: External Applications submit governed business semantics. Effective PostingRules determine derived Ledger effects. A caller MUST NOT be required to specify the ledger entries that represent an accepted business fact.
+
+## Recalculation and Runtime Cache Constitution
+
+- INV-051 — Recalculation Has Two Perspectives: EVO-internal recalculation rebuilds derived state from EVO's current governed runtime data. An Application's own "recalculation" is merely ordinary data resubmission to EVO unless a separate platform-control API is explicitly invoked.
+- INV-052 — Application Recalculation Has No Special EVO Semantics: EVO MUST NOT require or infer an Application-specific recalculation mode. Resubmitted data follows the same public API, identity, idempotency, authorization and automatic Posting rules as any other submission.
+- INV-053 — Runtime Cache Is Rebuildable State: EVO Runtime Cache is a governed rebuildable active working set/materialization. Clearing it MUST NOT silently destroy historical/audit evidence required for lineage, reconstruction, compliance or diagnosis.
+- INV-054 — Cache Clear Is Explicit And Scoped: EVO SHALL expose a privileged, auditable, scope-bounded cache-clear capability. Cache clearing MUST be idempotent or safely retryable and MUST prevent mixed old/new active runtime generations.
+- INV-055 — Cache Clear Does Not Change Business Semantics: After a governed cache clear, Applications repopulate EVO through ordinary APIs. EVO processes those submissions without caring whether the Application describes the workflow as recalculation, refresh, rebuild, resync or reimport.
 
 ## Alpha.2 Dimensions + Valuation Posting
 
