@@ -868,3 +868,176 @@ Application
 ```
 
 这使 EVO 可以同时承载业务列表、明细列表、分析图表和管理看板，而不需要为每种表现复制一套业务数据。
+
+
+## 30. Grid Editing / 轻量 Excel 式批量编辑
+
+Asloop 中还设计过以表格形式对 Application 数据进行批量编辑的能力。
+
+这类界面不是单纯的 List View，而是一个轻量化 Spreadsheet / Excel-like Frontend：
+
+```text
+Application Dataset
+        ↓
+Editable Grid
+        ↓
+Batch Change Set
+        ↓
+Validation / Rule Evaluation
+        ↓
+Business Submit / Update
+```
+
+它允许业务人员在表格中直接对多行应用数据进行编辑，而不是逐条打开 Form。
+
+## 31. Editable Grid 与普通 List View 的区别
+
+普通 List View 主要用于：
+
+- 查询；
+- 浏览；
+- 筛选；
+- 排序；
+- 分组；
+- 汇总；
+- 跳转详情。
+
+Editable Grid 额外承担：
+
+- 单元格内编辑；
+- 多行连续编辑；
+- 批量复制 / 填充；
+- 批量修改同一字段；
+- 批量新增行；
+- 批量删除 / 作废候选；
+- 批量校验；
+- 批量提交。
+
+因此在 EVO 中应明确区分：
+
+```text
+Read View
+vs
+Editable Grid View
+```
+
+二者可以共享同一个 Dataset / Projection，但具有不同 Interaction Contract。
+
+## 32. Field Definition 对 Grid Editing 的影响
+
+老系统字段设计本身已经包含“列表内编辑组件”这一类能力。
+
+因此同一个 Field 在 Editable Grid 中需要显式知道：
+
+- 是否允许编辑；
+- 使用什么 Cell Editor；
+- 数据源是什么；
+- 如何过滤数据源；
+- 是否必填；
+- 校验规则；
+- 默认值；
+- 是否允许批量填充；
+- 是否允许复制；
+- 是否只读；
+- 是否受其他字段联动影响；
+- 修改后是否触发其他列重算 / 刷新。
+
+这进一步说明 Field 应被定义一次，并在 Form / List / Editable Grid 等不同 Experience Surface 中通过 Binding 使用。
+
+## 33. Batch Change Set
+
+EVO 后续不应把 Editable Grid 理解成“前端直接逐行 UPDATE 数据库”。
+
+更合理的模型是：
+
+```text
+User edits many cells
+        ↓
+Batch Change Set
+        ├─ Row 1 / Field A changed
+        ├─ Row 2 / Field B changed
+        ├─ Row 3 / Field A changed
+        └─ ...
+        ↓
+Validation
+        ↓
+Command / Business Operation
+        ↓
+Canonical BusinessData / governed mutation
+```
+
+对于 append-only 或不可静默修改的业务事实，Grid Editing 必须遵守同样的业务规则。
+
+也就是说，“Excel 式体验”只改变交互效率，不改变 EVO 对历史事实、权限、校验、审计和业务命令的约束。
+
+## 34. Master / Detail 与批量编辑
+
+Editable Grid 可以作用在不同粒度：
+
+### Master Grid
+
+一行代表一个 Application Instance，例如一张销售订单。
+
+### Detail Grid
+
+一行代表一个 Detail Line，例如销售订单明细。
+
+### Analytical / Projected Grid
+
+来自 Projection 的聚合数据原则上应默认只读；只有能够明确映射回合法业务 Command 的情况下，才允许编辑。
+
+因此每个 Editable Grid 必须明确：
+
+```text
+row_grain
+editable_fields
+write_target
+command_semantics
+validation_policy
+```
+
+## 35. EVO 的 Spreadsheet-like Experience 方向
+
+EVO 应保留 Asloop 轻量 Excel 前端的核心价值：
+
+> 面对大量结构化业务数据时，用户可以在一个高密度界面中快速完成批量录入、批量修改、复制和校验。
+
+但 EVO 应进一步做到：
+
+1. Grid 来自 Application / View Metadata，而不是专用页面代码；
+2. Cell Editor 复用 Field Binding；
+3. Data Source / Filter / Dependency 复用字段声明式规则；
+4. 批量编辑形成显式 Change Set；
+5. Change Set 通过 Command / Policy 执行；
+6. 每行 / 每字段校验结果可解释；
+7. 权限可以控制到 Field / Row / Operation；
+8. append-only 事实不得通过 Grid 绕过不可变约束；
+9. AI 可以辅助批量填充、异常检测和建议，但最终写入仍通过确定性业务契约；
+10. 同一个 Application 可同时提供 Form Experience 与 Spreadsheet Experience。
+
+推荐关系：
+
+```text
+Application
+→ Dataset / View
+→ Editable Grid Binding
+→ Cell Editors / Data Sources / Dependencies
+→ Batch Change Set
+→ Command / Validation
+→ BusinessData
+```
+
+## 36. AI-Native 批量编辑的潜在增强
+
+在不改变确定性业务规则的前提下，AI 可以增强 Spreadsheet-like Experience，例如：
+
+- 根据历史值批量建议填写；
+- 自动识别异常行；
+- 根据自然语言生成批量修改条件；
+- 解释哪些行为什么校验失败；
+- 根据对象主数据推荐默认值；
+- 识别重复 / 冲突数据；
+- 将自然语言意图转为可预览的 Change Set；
+- 提交前生成影响范围摘要。
+
+AI 只能生成或建议 Change Set，不能绕过 Field Binding、Validation、Permission、Command 和审计边界直接修改权威数据。
