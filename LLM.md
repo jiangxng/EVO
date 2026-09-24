@@ -71,32 +71,32 @@ Before changing code, state internally:
 
 Do not create a new core concept solely to simplify implementation.
 
-For Core-boundary decisions, the default is **outside EVO Compute Plugin** unless the capability is required for generic BusinessData → PostingRule → Ledger → Balance execution.
+For Core-boundary decisions, the default is **outside EVO Ledger Runtime** unless the capability is required for generic BusinessData → PostingRule → Ledger → Balance execution.
 
 Before a material change, classify the evidence target as one of:
 
 `DESIGN ONLY`, `IMPLEMENTED`, `STATIC VERIFIED`, `UNIT VERIFIED`,
 `DATABASE E2E VERIFIED`, or `CERTIFIED — named scenario/boundary`.
 
-## Repository Scope vs Compute Plugin Scope
+## Repository Scope vs Ledger Runtime Scope
 
-The EVO repository is broader than the EVO Compute Plugin.
+The EVO repository is broader than the EVO Ledger Runtime.
 
 - **EVO repository** = broader product vision, requirements, historical design, implementation assets and plugin candidates.
-- **EVO Compute Plugin** = minimal deterministic calculation component.
-- A valid product requirement does not automatically belong inside the Compute Plugin.
+- **EVO Ledger Runtime** = minimal deterministic calculation component.
+- A valid product requirement does not automatically belong inside the Ledger Runtime.
 - Preserve broader requirement/positioning documents unless an explicit superseding decision says otherwise.
 - Do not split/move documents merely to make the repository tree mirror component ownership.
 - Future repository/package extraction is allowed only when a concrete release/deployment/ownership/dependency/context need appears.
 
-Authority: `docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md`.
+Authority: `docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md`.
 
-## Minimal EVO Compute Plugin Boundary
+## Minimal EVO Ledger Runtime Boundary
 
 - EVO is a lightweight runtime plugin, not the enterprise/application platform.
 - Identity, users, roles, permissions and authorization policy are Host/plugin responsibilities.
-- EVO Compute Plugin owns a minimal ApplicationAnchor/applicationId for rule routing. Rich Application definitions/lifecycle, Package/Feature lifecycle and capability discovery are Host/App Platform responsibilities.
-- Command is an optional Host/compatibility adapter; EVO Compute Plugin's canonical input is generic BusinessData submission.
+- EVO Ledger Runtime owns a minimal ApplicationAnchor/applicationId for rule routing. Rich Application definitions/lifecycle, Package/Feature lifecycle and capability discovery are Host/App Platform responsibilities.
+- Command is an optional Host/compatibility adapter; EVO Ledger Runtime's canonical input is generic BusinessData submission.
 - PostingRule lifecycle/versioning is plugin-owned; Core stores/evaluates the current supplied rules, and each current rule is anchored to applicationId.
 - Cost, valuation, statutory accounting, financial statements, workflow, SOP, metrics and audit/archive default to plugins.
 - Repository location is not proof of Core ownership; current broad modules are migration assets until explicitly retained in the minimal boundary.
@@ -125,7 +125,7 @@ BusinessData.applicationId and PostingRule.applicationId MUST NOT be optional pr
 - Do not collapse explicit Posting/PostingRun APIs into ordinary business submission; they remain valid for re-posting, Replay, bulk work, recovery and governed platform control.
 - Do not infer special EVO semantics from an Application calling an operation recalculation; Application-side recalculation is ordinary data resubmission unless an explicit EVO platform-control API is invoked.
 - Treat EVO Runtime Cache as the clearable business runtime dataset. It may include BusinessData and all derived runtime results.
-- A cache clear must be explicit and scoped; it may destructively remove BusinessData and derived runtime results. Rules/application/permission definitions are external to EVO Compute Plugin and therefore are not cache contents.
+- A cache clear must be explicit and scoped; it may destructively remove BusinessData and derived runtime results. Rules/application/permission definitions are external to EVO Ledger Runtime and therefore are not cache contents.
 - Do not make permanent accounting/audit retention a hidden Core responsibility. Core provides full data export; long-term retention belongs to plugins/packages or user-managed archives.
 - Do not preserve hidden copies of cleared BusinessData merely for audit convenience unless an installed retention plugin explicitly owns that policy.
 - Do not create a PostingRule version manager inside Core. Draft/publish/version/effective-date/rollback semantics belong to the rule-owning plugin/package.
