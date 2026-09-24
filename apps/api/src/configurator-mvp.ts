@@ -338,11 +338,12 @@ export async function submitConfiguratorBusinessData(
     .executeTakeFirstOrThrow();
 
   const instance = await runtime.db
-    .selectFrom('application_instance')
-    .select('id')
-    .where('enterprise_id', '=', enterprise.id)
-    .where('code', '=', instanceCode(input.applicationId))
-    .where('status', '=', 'ACTIVE')
+    .selectFrom('application_instance as i')
+    .innerJoin('application_definition as a', 'a.id', 'i.application_definition_id')
+    .select('i.id')
+    .where('i.enterprise_id', '=', enterprise.id)
+    .where('a.code', '=', appCode(input.applicationId))
+    .where('i.status', '=', 'ACTIVE')
     .executeTakeFirstOrThrow();
 
   const objectKey = input.businessObjectKey?.trim() || `MVP-${Date.now()}`;
