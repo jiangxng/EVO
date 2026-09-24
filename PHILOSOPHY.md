@@ -93,7 +93,7 @@ Breaking public runtime contract changes require explicit compatibility/migratio
 
 EVO-family software must be understandable by capable LLMs and by business users, including novice users.
 
-Normal business configuration must not require developer intervention, SQL, source-code changes, hidden APIs or implementation knowledge.
+The operating model does not assume human developers. Approximately 99.9% of software engineering work is intended to be performed by LLMs; humans focus on business intent, judgment, authorization and acceptance. Normal business configuration must not require SQL, source-code changes, hidden APIs or implementation knowledge.
 
 Business-readable configuration is the source-facing form. Machine AST/IDs/hashes/compiled templates may exist behind it, but must not become the only understandable representation.
 

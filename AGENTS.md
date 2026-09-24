@@ -71,7 +71,7 @@ When reading a broad EVO requirement, classify ownership before implementation. 
 
 All configurable business capability must satisfy `docs/architecture/principles/HUMAN-LLM-OPERABILITY-v0.1.md`.
 
-Do not design a normal business workflow that requires a developer, SQL, source-code edits, hidden APIs, or knowledge of internal class/AST structures.
+Do not assume a human developer role. Treat LLMs as the default engineers for design, implementation, extension, migration, tests, documentation and maintenance. Do not design a normal business workflow that requires SQL, source-code edits, hidden APIs, or knowledge of internal class/AST structures.
 
 Prefer one business-readable semantic source that can be validated/compiled into machine form. Preserve domain terminology, explanations, examples and business-facing errors.
 

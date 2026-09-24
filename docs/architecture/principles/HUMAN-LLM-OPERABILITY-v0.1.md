@@ -7,9 +7,9 @@
 
 All EVO-family products and plugins must be designed so that:
 
-> LLMs can understand and maintain them, business users can understand and operate them, and ordinary users should not depend on developers for normal configuration and use.
+> LLMs are the primary software builders and maintainers, business users can understand and operate the system directly, and ordinary users should not depend on human developers for normal configuration, operation or evolution.
 
-This is a cross-project product and engineering principle, not a Ledger Runtime-specific rule.
+This is a cross-project product and engineering principle, not a Ledger Runtime-specific rule. The target operating model is that approximately 99.9% of software design, implementation, extension, migration, testing, documentation and maintenance work is performed by LLMs rather than human developers.
 
 ## What LLM-native means here
 
@@ -56,9 +56,9 @@ runtime
 
 Both forms must map to the same declared semantics.
 
-## No-developer dependency
+## LLM-primary engineering and no human-developer dependency
 
-Normal business operations should not require a developer to:
+The architecture must not assume a human developer role. Normal business operations, configuration and routine product evolution should not require a human developer to:
 
 - edit source code;
 - write SQL;
@@ -67,7 +67,7 @@ Normal business operations should not require a developer to:
 - understand class names or framework internals;
 - manually translate business rules into implementation structures.
 
-Developers extend engine capabilities. They are not the mandatory operators of ordinary business configuration.
+LLMs are the default engineers for extending engine capabilities, implementing plugins, migrations, tests, documentation and maintenance. Humans primarily provide business intent, judgment, authorization, constraints and acceptance. Human software developers may participate exceptionally, but they are not a required system role.
 
 ## Progressive disclosure
 
@@ -82,7 +82,7 @@ novice
 advanced user
 → formulas, conditions, dependencies, versions
 
-developer / LLM
+LLM / engine-internal view
 → schemas, AST, contracts, diagnostics, implementation
 ```
 
@@ -124,7 +124,8 @@ A configuration/development tool should normally support:
 - import/export;
 - comparison when needed;
 - safe publish/deploy/burn;
-- machine-readable contracts for LLMs.
+- machine-readable contracts for LLMs;
+- LLM-operable extension paths for capabilities that exceed current configuration.
 
 The simplest useful workflow should work without developer assistance.
 
@@ -135,10 +136,11 @@ For every significant configurable capability, ask:
 1. Can a capable LLM understand it from repository/contracts without private conversation history?
 2. Can a business user understand what it means without reading code?
 3. Can a novice perform the normal operation through the product UI with reasonable guidance?
-4. Does normal configuration avoid SQL/source-code changes?
-5. Is there one semantic source of truth shared by human and machine representations?
-6. Are validation failures explained in business language?
-7. Can advanced technical detail remain available without overwhelming ordinary users?
+4. Can the system evolve without assuming a human developer, with LLMs performing ordinary engineering work?
+5. Does normal configuration avoid SQL/source-code changes?
+6. Is there one semantic source of truth shared by human and machine representations?
+7. Are validation failures explained in business language?
+8. Can advanced technical detail remain available without overwhelming ordinary users?
 
 Repeated failure on these questions is a product/architecture problem even if the code works.
 
