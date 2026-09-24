@@ -5,13 +5,15 @@ Gemini, local models, and future coding agents working in this repository.
 
 ## Mission
 
-EVO is a lightweight deterministic runtime plugin inside a larger AI-native enterprise platform.
-Its minimal target is BusinessData submission(applicationId) → ApplicationAnchor → current PostingRules(applicationId) → LedgerEntry → LedgerBalance,
+This repository preserves the broader **EVO product knowledge space** and currently contains the implementation of the **EVO Compute Plugin**.
+
+The repository is intentionally broader than the Compute Plugin. Do not delete valid product requirements merely because they are outside the Compute Plugin boundary.
+The EVO Compute Plugin minimal target is BusinessData submission(applicationId) → ApplicationAnchor → current PostingRules(applicationId) → LedgerEntry → LedgerBalance,
 plus runtime recalculation, clear, export and generic result/status queries.
 
 Identity, permissions, rich Application/Package/Feature lifecycle, capability discovery,
 rule-version governance, finance/statutory accounting, audit/archive and UI/Agent
-orchestration are outside EVO Core by default. Do not expand Core merely because
+orchestration are outside the EVO Compute Plugin by default. Do not expand Core merely because
 an implementation module currently exists in this repository.
 
 ## Start here — do not read all documents
@@ -47,7 +49,7 @@ Progress documents and checkpoints report validation state; certification
 packets prove only their named scenario and boundary. Chat history and model
 memory are hints only.
 
-## Minimal Core boundary
+## EVO Compute Plugin boundary
 
 Before adding a Core responsibility, ask:
 
@@ -55,11 +57,15 @@ Before adding a Core responsibility, ask:
 
 If yes, keep it outside Core by default.
 
-Core owns only minimal ApplicationAnchor/applicationId routing. It does not own identity, permissions, rich enterprise/application lifecycle, Package/Feature lifecycle, capability discovery, Command orchestration, PostingRule versions, finance/accounting governance, workflow, SOP, metrics, audit/archive or UI/Agent concerns.
+The EVO Compute Plugin owns only minimal ApplicationAnchor/applicationId routing. It does not own identity, permissions, rich enterprise/application lifecycle, Package/Feature lifecycle, capability discovery, Command orchestration, PostingRule versions, finance/accounting governance, workflow, SOP, metrics, audit/archive or UI/Agent concerns.
 
 Read `docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md` and its refinement `docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md`.
 
 BusinessData.applicationId and PostingRule.applicationId are mandatory routing anchors; never infer rule ownership from payload shape.
+
+Repository-scope authority: `docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md`.
+
+When reading a broad EVO requirement, classify ownership before implementation. Preserve the document even when ownership is outside the Compute Plugin.
 
 ## Required working behavior
 
