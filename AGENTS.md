@@ -5,15 +5,15 @@ Gemini, local models, and future coding agents working in this repository.
 
 ## Mission
 
-This repository preserves the broader **EVO product knowledge space** and currently contains the implementation of the **EVO Compute Plugin**.
+This repository preserves the broader **EVO product knowledge space** and currently contains the implementation of the **EVO Ledger Runtime** (Chinese product alias: **EVO 账本引擎**).
 
-The repository is intentionally broader than the Compute Plugin. Do not delete valid product requirements merely because they are outside the Compute Plugin boundary.
-The EVO Compute Plugin minimal target is BusinessData submission(applicationId) → ApplicationAnchor → current PostingRules(applicationId) → LedgerEntry → LedgerBalance,
+The repository is intentionally broader than the Ledger Runtime. Do not delete valid product requirements merely because they are outside the Ledger Runtime boundary.
+The EVO Ledger Runtime minimal target is BusinessData submission(applicationId) → ApplicationAnchor → current PostingRules(applicationId) → LedgerEntry → LedgerBalance,
 plus runtime recalculation, clear, export and generic result/status queries.
 
 Identity, permissions, rich Application/Package/Feature lifecycle, capability discovery,
 rule-version governance, finance/statutory accounting, audit/archive and UI/Agent
-orchestration are outside the EVO Compute Plugin by default. Do not expand Core merely because
+orchestration are outside the EVO Ledger Runtime by default. Do not expand Core merely because
 an implementation module currently exists in this repository.
 
 ## Start here — do not read all documents
@@ -49,7 +49,7 @@ Progress documents and checkpoints report validation state; certification
 packets prove only their named scenario and boundary. Chat history and model
 memory are hints only.
 
-## EVO Compute Plugin boundary
+## EVO Ledger Runtime boundary
 
 Before adding a Core responsibility, ask:
 
@@ -57,15 +57,15 @@ Before adding a Core responsibility, ask:
 
 If yes, keep it outside Core by default.
 
-The EVO Compute Plugin owns only minimal ApplicationAnchor/applicationId routing. It does not own identity, permissions, rich enterprise/application lifecycle, Package/Feature lifecycle, capability discovery, Command orchestration, PostingRule versions, finance/accounting governance, workflow, SOP, metrics, audit/archive or UI/Agent concerns.
+The EVO Ledger Runtime owns only minimal ApplicationAnchor/applicationId routing. It does not own identity, permissions, rich enterprise/application lifecycle, Package/Feature lifecycle, capability discovery, Command orchestration, PostingRule versions, finance/accounting governance, workflow, SOP, metrics, audit/archive or UI/Agent concerns.
 
 Read `docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md` and its refinement `docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md`.
 
 BusinessData.applicationId and PostingRule.applicationId are mandatory routing anchors; never infer rule ownership from payload shape.
 
-Repository-scope authority: `docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md`.
+Repository-scope authority: `docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md`.
 
-When reading a broad EVO requirement, classify ownership before implementation. Preserve the document even when ownership is outside the Compute Plugin.
+When reading a broad EVO requirement, classify ownership before implementation. Preserve the document even when ownership is outside the Ledger Runtime.
 
 ## Required working behavior
 
