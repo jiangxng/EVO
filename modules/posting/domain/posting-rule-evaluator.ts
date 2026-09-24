@@ -38,7 +38,7 @@ function scalarString(value: JsonValue, field: string): string | null {
   });
 }
 
-function directionSign(raw: JsonValue): 1 | -1 {
+function directionSign(raw: JsonValue | undefined): 1 | -1 {
   if (raw === undefined || raw === null || raw === '') return 1;
   if (typeof raw !== 'string') {
     throw new AppError({
