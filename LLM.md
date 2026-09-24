@@ -274,3 +274,36 @@ For a capability that is already in scope:
 - incomplete data migration is not an acceptable shortcut if completeness is necessary to validate the chosen capability.
 
 For the Ledger Runtime Configurator bookkeeping baseline, the current acceptance rule is **912/912 posting rules must compile and be burnable as one configuration**. The 912-rule corpus is treated as in-boundary compatibility/pressure evidence, not as optional horizontal scope.
+
+
+## Cross-Project Continuous Integration Constitution
+
+EVO is a long-lived integrated system, not a sequence of disposable demos. Every accepted slice must become durable project capital in the correct owner repository and compose with prior slices.
+
+Canonical cross-project ownership:
+
+```text
+EVO Ledger Runtime
+= business facts + deterministic posting / ledger / balance execution
+
+EVO App Platform
+= Package / Feature lifecycle + capability dependency resolution + effective Experience Contributions
+
+Eidos
+= human experience framework + reusable capabilities/renderers + canonical App Host
+
+Experience Compiler
+= intelligence / learning / experience production above these public contracts
+```
+
+Rules:
+
+- Reuse/converge existing implementation assets before creating replacements.
+- Product frontend for EVO-family projects MUST use Eidos public capabilities/contracts.
+- If Eidos cannot express a required reusable interaction, extend Eidos first, validate it there, then consume it from the product project.
+- Eidos App Host is the canonical production frontend container. Installed applications contribute Experiences into that Host; they do not create independent product shells.
+- Plugin/package product acceptance begins from discovery/install planning/installation/activation, then validates the resulting Experience and business behavior. Starting from a preinstalled state is component evidence only.
+- Each accepted change must leave automated regression tests, CI evidence and repository documentation sufficient for a fresh LLM.
+- Demo/showcase/diagnostic artifacts are evidence, not a competing architecture.
+
+Authority: `docs/architecture/principles/PROJECT-CONTINUOUS-INTEGRATION-CONSTITUTION-v0.1.md`.
