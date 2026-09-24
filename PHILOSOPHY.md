@@ -7,11 +7,11 @@ Context Version: 1.1
 
 **EVO** is the broader product/knowledge space retained in this repository.
 
-The small deterministic component inside it is the **EVO Compute Plugin**.
+The small deterministic component inside it is the **EVO Ledger Runtime**.
 
-> EVO Compute Plugin：接收业务数据。按规则计算。形成账本与余额。可重算、可清空、可导出。
+> EVO Ledger Runtime（EVO 账本引擎）：接收业务数据。按规则计算。形成账本与余额。可重算、可清空、可导出。
 
-The EVO Compute Plugin itself is not the complete Enterprise Operating System. Broader EVO product requirements may describe that larger system and remain valid repository knowledge.
+The EVO Ledger Runtime itself is not the complete Enterprise Operating System. Broader EVO product requirements may describe that larger system and remain valid repository knowledge.
 
 The broader enterprise system is composed from multiple installable capabilities:
 
@@ -22,22 +22,22 @@ App Platform / Host
 + business applications
 + rule plugins
 + finance / governance / audit plugins
-+ EVO Compute Plugin
++ EVO Ledger Runtime
 = composable Enterprise Operating System
 ```
 
-The EVO Compute Plugin stays deliberately small so it can be installed, replaced, embedded and depended on like any other plugin.
+The EVO Ledger Runtime stays deliberately small so it can be installed, replaced, embedded and depended on like any other plugin.
 
 ## Repository Scope Principle
 
-The repository is intentionally broader than the Compute Plugin.
+The repository is intentionally broader than the Ledger Runtime.
 
 Broader requirements, product positioning and historical architecture are preserved as durable product memory. They must not be deleted merely because their implementation owner is another plugin, App Platform, Eidos, Agent, or a future repository.
 
 ```text
 valid EVO requirement
 ≠
-automatic EVO Compute Plugin responsibility
+automatic EVO Ledger Runtime responsibility
 ```
 
 Ownership must be decided explicitly.
@@ -58,7 +58,7 @@ Ownership must be decided explicitly.
 
 ## Core Boundary Rule
 
-Before adding anything to EVO Compute Plugin, ask:
+Before adding anything to EVO Ledger Runtime, ask:
 
 > Can generic applicationId → BusinessData → current PostingRules → LedgerEntry → LedgerBalance work correctly if this capability is outside EVO?
 
@@ -86,4 +86,4 @@ Architecture and contract change follows:
 
 Requirement Change → Architecture/ADR → Interface Impact → Data Impact → Migration Plan → Tests → Release Plan.
 
-Breaking public runtime contract changes require explicit compatibility/migration handling. Plugin-owned policy/version semantics must not be pulled into EVO Compute Plugin merely to simplify implementation.
+Breaking public runtime contract changes require explicit compatibility/migration handling. Plugin-owned policy/version semantics must not be pulled into EVO Ledger Runtime merely to simplify implementation.
