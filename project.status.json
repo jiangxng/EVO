@@ -10,11 +10,11 @@
   },
   "activeWorkPacket": {
     "id": "CORE-MIN-02",
-    "name": "Generic BusinessData Submission Convergence",
-    "stage": "Runtime Convergence",
-    "status": "DESIGN_REFINED_MERGED_IMPLEMENTATION_NOT_STARTED",
+    "name": "Existing Core Convergence — ApplicationId Routing",
+    "stage": "Runtime Convergence / Simplification",
+    "status": "EXISTING_CORE_IMPLEMENTED_CONVERGENCE_PENDING",
     "overallClosed": false,
-    "businessGoal": "Introduce the smallest generic EVO BusinessData submission boundary with mandatory applicationId routing so EVO can select the correct current PostingRules without owning rich application lifecycle, permissions, capabilities or Command orchestration.",
+    "businessGoal": "Reuse the already implemented BusinessData → Posting → Ledger/Balance runtime and simplify its boundaries: preserve the working deterministic engine, introduce one stable applicationId routing anchor, remove unnecessary dependence on rich ApplicationDefinition/version/Command metadata from the Core path, and keep compatibility until the simplified path is database-proven.",
     "activeBranch": null,
     "packet": "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
     "evidenceTarget": "IMPLEMENTED + UNIT VERIFIED + PostgreSQL E2E before replacing current compatibility path",
@@ -27,15 +27,15 @@
       "App Platform ApplicationAnchor contribution documentation merged by PR #6"
     ],
     "openGates": [
-      "implement minimal ApplicationAnchor persistence/registry",
-      "implement BusinessDataSubmission with mandatory applicationId",
-      "implement current PostingRule registration/storage keyed by applicationId",
-      "route candidate rules by exact applicationId before condition evaluation",
-      "adapt current /commands compatibility path onto new runtime ingestion",
-      "PostgreSQL E2E: applicationId → BusinessData → PostingRules → Ledger/Balance",
+      "inventory existing BusinessData/Posting/Ledger contracts and preserve proven behavior",
+      "map existing applicationInstanceId/applicationDefinitionId usage to one minimal applicationId routing contract",
+      "decouple Posting rule lookup from ApplicationDefinitionVersion/metadataVersion lifecycle while preserving current executable rules",
+      "introduce direct BusinessDataSubmission adapter over the existing atomic BusinessData + PostingInput creation path",
+      "keep current Command path as compatibility adapter rather than duplicate runtime logic",
+      "PostgreSQL E2E: applicationId → existing BusinessData → existing PostingService → existing Ledger/Balance",
       "migrate Trading Lite Host adapter and rerun end-to-end browser proof"
     ],
-    "nextAction": "Create the bounded CORE-MIN-02 runtime implementation branch: ApplicationAnchor + BusinessDataSubmission.applicationId + PostingRule.applicationId routing. Do not add rich application lifecycle to EVO Core."
+    "nextAction": "Do not rebuild EVO Core. Start with an implementation inventory/diff against the existing business-data, posting and ledger modules; make the minimum bounded changes needed to expose the simplified applicationId-based runtime contract."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
