@@ -428,10 +428,12 @@
       "description": "CORE-MIN-02 application-routing architecture refinement merged by PR #57 after CI #743. Restores minimal ApplicationAnchor/applicationId inside EVO Core as the mandatory BusinessData→PostingRule routing key."
     },
     "evo/repository-compute-plugin-scope-v0.1": {
-      "class": "ACTIVE_WORK",
-      "mergePolicy": "MERGE_WHEN_VERIFIED",
-      "containedByMain": false,
-      "description": "Architecture/documentation clarification separating broad EVO repository product knowledge from the minimal EVO Ledger Runtime implementation scope. Branch name is a pre-rename historical artifact."
+      "class": "MERGED_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "pr": 58,
+      "description": "Repository-scope clarification merged by PR #58 / CI #756. Formal component name is EVO Ledger Runtime (Chinese alias: EVO 账本引擎); branch name is a historical pre-rename artifact."
     }
   },
   "requiredLLMProcedure": [
@@ -459,7 +461,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "24a6983733e8b2c49eb7714f2fb63c51a9a42d5f",
+  "lastReviewedMainCommit": "dc613987247f9da209a503c65dbd7b33a08de94c",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
@@ -487,17 +489,17 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "evo/repository-compute-plugin-scope-v0.1",
+    "businessMainline": "main",
     "pullRequest": null,
     "includedGates": [
-      "preserve broader EVO product and positioning documents",
-      "name the minimal component EVO Ledger Runtime",
-      "make repository scope distinct from Ledger Runtime scope",
-      "do not split repository now",
-      "resume existing-core convergence after documentation CI"
+      "broader EVO product/positioning documents are preserved",
+      "minimal component is formally named EVO Ledger Runtime",
+      "repository scope is distinct from Ledger Runtime responsibility",
+      "no repository split now",
+      "next runtime work is existing Ledger Runtime convergence, not rewrite"
     ],
-    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no runtime behavior change",
-    "afterSuccess": "Merge the repository-scope clarification, then continue CORE-MIN-02 existing Ledger Runtime convergence without deleting broader product documents.",
-    "rule": "Preserve requirements; decide implementation ownership explicitly."
+    "evidenceTarget": "NEXT: existing Ledger Runtime convergence around applicationId + BusinessDataSubmission",
+    "afterSuccess": "Implement the smallest bounded runtime convergence over the existing BusinessData/Posting/Ledger code, then migrate the compatibility Trading Lite path.",
+    "rule": "Preserve broader requirements; keep Ledger Runtime narrow; reuse existing runtime implementation."
   }
 }
