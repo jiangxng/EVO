@@ -274,3 +274,12 @@ For a capability that is already in scope:
 - incomplete data migration is not an acceptable shortcut if completeness is necessary to validate the chosen capability.
 
 For the Ledger Runtime Configurator bookkeeping baseline, the current acceptance rule is **912/912 posting rules must compile and be burnable as one configuration**. The 912-rule corpus is treated as in-boundary compatibility/pressure evidence, not as optional horizontal scope.
+
+
+## Enterprise platform boundary
+
+EVO-family systems serve enterprises, but Ledger Runtime remains deliberately narrow. Before adding identity, authorization, enterprise organization, localization, LLM or similar cross-cutting capabilities to EVO, read:
+
+`docs/architecture/ENTERPRISE-PLATFORM-BOUNDARY-v0.1.md`
+
+These capabilities belong to App Platform/provider plugins unless they are strictly required for deterministic BusinessData → PostingRule → Ledger → Balance execution.
