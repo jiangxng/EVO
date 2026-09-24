@@ -23,6 +23,12 @@ describe('LLM context determinism contract', () => {
     expect(manifest.requiredReading).toContain(
       'docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md'
     );
+    expect(manifest.requiredReading).toContain(
+      'docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md'
+    );
+    expect(manifest.repositoryScope.computeComponent).toBe('EVO Compute Plugin');
+    expect(manifest.rules.broaderRepositoryRequirementsAreComputePluginRequirements).toBe(false);
+    expect(manifest.rules.preserveBroaderRequirementDocuments).toBe(true);
     expect(manifest.rules.actualWriteBoundary).toBe('BusinessDataSubmission');
     expect(manifest.rules.commandRequiredByCore).toBe(false);
     expect(manifest.rules.identityOwnedByCore).toBe(false);
