@@ -10,11 +10,11 @@
   },
   "activeWorkPacket": {
     "id": "CORE-MIN-02",
-    "name": "Existing Core Convergence — ApplicationId Routing",
+    "name": "Existing Ledger Runtime Convergence — ApplicationId Routing",
     "stage": "Runtime Convergence / Simplification",
     "status": "EXISTING_CORE_IMPLEMENTED_CONVERGENCE_PENDING",
     "overallClosed": false,
-    "businessGoal": "Reuse the already implemented BusinessData → Posting → Ledger/Balance runtime and simplify its boundaries: preserve the working deterministic engine, introduce one stable applicationId routing anchor, remove unnecessary dependence on rich ApplicationDefinition/version/Command metadata from the Compute Plugin path, and keep compatibility until the simplified path is database-proven.",
+    "businessGoal": "Reuse the already implemented BusinessData → Posting → Ledger/Balance runtime and simplify its boundaries: preserve the working deterministic engine, introduce one stable applicationId routing anchor, remove unnecessary dependence on rich ApplicationDefinition/version/Command metadata from the Ledger Runtime path, and keep compatibility until the simplified path is database-proven.",
     "activeBranch": null,
     "packet": "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
     "evidenceTarget": "IMPLEMENTED + UNIT VERIFIED + PostgreSQL E2E before replacing current compatibility path",
@@ -35,7 +35,7 @@
       "PostgreSQL E2E: applicationId → existing BusinessData → existing PostingService → existing Ledger/Balance",
       "migrate Trading Lite Host adapter and rerun end-to-end browser proof"
     ],
-    "nextAction": "Do not rebuild the existing EVO Compute Plugin. Start with an implementation inventory/diff against the existing business-data, posting and ledger modules; make the minimum bounded changes needed to expose the simplified applicationId-based runtime contract."
+    "nextAction": "Do not rebuild the existing EVO Ledger Runtime. Start with an implementation inventory/diff against the existing business-data, posting and ledger modules; make the minimum bounded changes needed to expose the simplified applicationId-based runtime contract."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -181,7 +181,7 @@
   },
   "targetCoreBoundary": {
     "status": "DESIGN_MERGED_IMPLEMENTATION_CONVERGENCE_PENDING",
-    "model": "EVO_COMPUTE_PLUGIN",
+    "model": "EVO_LEDGER_RUNTIME",
     "coreResponsibilities": [
       "maintain minimal ApplicationAnchor/applicationId routing registry",
       "store/evaluate current PostingRules keyed by applicationId",
@@ -216,16 +216,16 @@
     ],
     "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
     "mergeCommit": "81fbec46419dc53f33d21ad0eb0fc586a1ce1979",
-    "displayName": "EVO Compute Plugin",
-    "repositoryScopeAuthority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md"
+    "displayName": "EVO Ledger Runtime",
+    "repositoryScopeAuthority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
   },
   "repositoryScope": {
     "status": "ACCEPTED",
     "repository": "EVO",
-    "computeComponent": "EVO Compute Plugin",
+    "computeComponent": "EVO Ledger Runtime",
     "broaderRequirements": "PRESERVE_AS_REAL_PRODUCT_KNOWLEDGE",
-    "ownershipRule": "Broader EVO requirements are not automatically Compute Plugin requirements.",
+    "ownershipRule": "Broader EVO requirements are not automatically EVO Ledger Runtime requirements.",
     "splitDecision": "KEEP_SINGLE_REPOSITORY_FOR_NOW",
-    "authority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md"
+    "authority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
   }
 }
