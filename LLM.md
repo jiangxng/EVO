@@ -260,3 +260,17 @@ clear business goal
 ```
 
 Do not spend conversation length explaining an obvious next engineering step when the step can be safely executed immediately. Record durable decisions and evidence in repository artifacts instead of relying on chat history.
+
+
+## MVP Depth Rule
+
+MVP limits **horizontal feature expansion**, not vertical depth, representative data volume, compatibility coverage, or evidence quality inside an already accepted capability boundary.
+
+For a capability that is already in scope:
+
+- use the full representative dataset when it is available;
+- do not replace real compatibility coverage with toy fixtures merely to make the MVP smaller;
+- pressure/stress-style historical datasets are valid MVP acceptance evidence when they test the capability boundary itself;
+- incomplete data migration is not an acceptable shortcut if completeness is necessary to validate the chosen capability.
+
+For the Ledger Runtime Configurator bookkeeping baseline, the current acceptance rule is **912/912 posting rules must compile and be burnable as one configuration**. The 912-rule corpus is treated as in-boundary compatibility/pressure evidence, not as optional horizontal scope.
