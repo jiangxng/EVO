@@ -18,7 +18,10 @@
       "data model",
       "testing strategy",
       "performance and reliability design"
-    ]
+    ],
+    "repositoryScope": "Broader EVO product requirements are preserved in this repository even when their implementation owner is not the EVO Compute Plugin.",
+    "computeComponent": "EVO Compute Plugin",
+    "ownershipRule": "A repository requirement becomes a Compute Plugin responsibility only through explicit ownership/architecture mapping."
   },
   "currentStage": {
     "id": "Runtime Convergence",
@@ -29,6 +32,7 @@
     "id": "CORE-MIN-02",
     "name": "Existing Core Convergence — ApplicationId Routing",
     "acceptance": [
+      "preserve broader EVO product/positioning requirements without treating them as automatic Compute Plugin scope",
       "EVO Core owns a minimal ApplicationAnchor/applicationId registry used only for PostingRule routing",
       "every accepted BusinessData item carries applicationId",
       "every executable PostingRule carries applicationId and candidate selection filters by exact applicationId before condition evaluation",
@@ -103,8 +107,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-24",
-    "reason": "Human clarified that EVO must retain a minimal Application definition/ID because applicationId is the routing anchor from incoming BusinessData to the correct PostingRule set.",
-    "result": "CORE-MIN-02 refined: Application identity stays in Core as ApplicationAnchor/applicationId; rich application lifecycle remains in Host/App Platform."
+    "reason": "Human clarified that the EVO repository intentionally retains broader real product requirements and positioning that do not belong to the minimal calculation component.",
+    "result": "Repository scope separated from component scope. Preferred component name is EVO Compute Plugin; no repository split now."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
