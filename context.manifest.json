@@ -1,6 +1,6 @@
 {
   "project": "EVO",
-  "productCategory": "EVO Product Knowledge Repository + EVO Compute Plugin",
+  "productCategory": "EVO Product Knowledge Repository + EVO Ledger Runtime",
   "contextContractVersion": "1.5",
   "baseline": "v1.0.0-alpha.2",
   "bootstrap": {
@@ -23,7 +23,7 @@
     "requirementAlignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C04-SELECTION-v0.1.md",
     "coreBoundaryDecision": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
     "applicationRoutingDecision": "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-    "repositoryScopeDecision": "docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md"
+    "repositoryScopeDecision": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
   },
   "requiredReading": [
     "PHILOSOPHY.md",
@@ -34,7 +34,7 @@
     "architecture.manifest.json",
     "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
     "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-    "docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md"
+    "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
   ],
   "readProfiles": {
     "boundedModuleChange": {
@@ -67,7 +67,7 @@
         "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
         "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
         "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md"
+        "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
       ]
     },
     "continuation": {
@@ -88,7 +88,7 @@
         "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
         "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
         "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md"
+        "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
       ]
     },
     "archaeology": {
@@ -159,15 +159,15 @@
     "businessDataRequiresApplicationId": true,
     "postingRulesRequireApplicationId": true,
     "postingRuleCandidateRouting": "exact-applicationId-first",
-    "broaderRepositoryRequirementsAreComputePluginRequirements": false,
     "preserveBroaderRequirementDocuments": true,
-    "computePluginPreferredName": "EVO Compute Plugin"
+    "broaderRepositoryRequirementsAreLedgerRuntimeRequirements": false,
+    "ledgerRuntimePreferredName": "EVO Ledger Runtime"
   },
   "repositoryScope": {
     "repository": "EVO",
-    "computeComponent": "EVO Compute Plugin",
-    "rule": "Repository requirements may be broader than Compute Plugin responsibilities; preserve documents and decide implementation ownership explicitly.",
-    "authority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-compute-plugin-scope-v0.1.md",
+    "computeComponent": "EVO Ledger Runtime",
+    "rule": "Repository requirements may be broader than EVO Ledger Runtime responsibilities; preserve documents and decide implementation ownership explicitly.",
+    "authority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md",
     "splitPolicy": "NO_SPLIT_UNTIL_CONCRETE_RELEASE_DEPLOYMENT_OWNERSHIP_DEPENDENCY_OR_CONTEXT_NEED"
   }
 }
