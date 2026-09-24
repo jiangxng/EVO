@@ -7,6 +7,7 @@ import type {
 
 export interface ExpressionContext {
   readonly payload: JsonObject;
+  readonly builtins?: Readonly<Record<string, JsonValue>>;
 }
 
 type ExpressionObject = Readonly<Record<string, JsonValue>>;
@@ -93,6 +94,40 @@ export function evaluateExpression(
         throw invalidExpression('Field expression path must be a string.');
       }
       return fieldValue(context.payload, path);
+    }
+
+    case 'builtin': {
+      const name = expr.name;
+      if (typeof name !== 'string' || name.length === 0) {
+        throw invalidExpression('Builtin expression name must be a string.');
+      }
+      if (context.builtins === undefined || !(name in context.builtins)) {
+        throw invalidExpression(`Runtime builtin '${name}' is not available for this posting input.`);
+      }
+      return context.builtins[name] ?? null;
+    }
+
+    case 'conditional': {
+      const condition = evaluateBoolean(expr.condition ?? null, context);
+      return evaluateExpression(condition ? (expr.whenTrue ?? null) : (expr.whenFalse ?? null), context);
+    }
+
+    case 'split': {
+      const value = evaluateExpression(expr.value ?? null, context);
+      const separator = evaluateExpression(expr.separator ?? null, context);
+      if (typeof value !== 'string' || typeof separator !== 'string') {
+        throw invalidExpression('split requires string value and separator.');
+      }
+      return value.split(separator);
+    }
+
+    case 'contains': {
+      const collection = evaluateExpression(expr.collection ?? null, context);
+      const value = evaluateExpression(expr.value ?? null, context);
+      if (!Array.isArray(collection)) {
+        throw invalidExpression('contains.collection must evaluate to an array.');
+      }
+      return collection.some((item) => compare(item, value) === 0);
     }
 
     case 'not':
