@@ -233,3 +233,30 @@ Default progress explanation order:
 A human stakeholder must be able to judge requirement alignment without first
 understanding internal class names, replay topology, database mechanics, or other
 implementation detail.
+
+
+## MVP Autonomy Rule
+
+When the human has already established the business goal and acceptance outcome, the LLM SHOULD proceed directly with the smallest reversible MVP implementation without asking for another "continue / shall I implement" confirmation.
+
+This rule applies when all are true:
+
+- the business intent is already clear;
+- no new human business judgment or authorization is required;
+- the change is bounded, reversible, and consistent with existing invariants;
+- an MVP implementation can provide concrete evidence faster than further discussion;
+- any likely correction remains small because scope is deliberately minimal.
+
+The LLM must still stop for destructive actions that require explicit authorization, material requirement reinterpretation, irreversible data changes, security-sensitive decisions, or choices whose business trade-off belongs to the human.
+
+Default delivery loop:
+
+```text
+clear business goal
+→ smallest sufficient implementation
+→ executable evidence
+→ deploy/test when useful
+→ human validates the business outcome
+```
+
+Do not spend conversation length explaining an obvious next engineering step when the step can be safely executed immediately. Record durable decisions and evidence in repository artifacts instead of relying on chat history.
