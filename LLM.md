@@ -138,10 +138,11 @@ Across EVO-family projects:
 - LLMs must be able to understand configuration from explicit contracts/repository artifacts.
 - business users must be able to understand what configuration means without reading code.
 - novice users should be able to perform normal operations through guided product UI.
+- target operating model: approximately 99.9% of software engineering work is performed by LLMs, with humans focused on business intent, judgment, authorization and acceptance.
 - normal configuration must not require SQL or source-code changes.
 - human-readable source and machine-executable representation must share one declared semantic truth.
 - business-facing errors explain the business issue first; technical diagnostics are secondary.
-- developers extend engine capabilities; they are not required for ordinary business configuration.
+- LLMs are the default engineers for engine extension, implementation, migration, testing, documentation and maintenance; a human developer role is not assumed.
 
 Authority: `docs/architecture/principles/HUMAN-LLM-OPERABILITY-v0.1.md`.
 
