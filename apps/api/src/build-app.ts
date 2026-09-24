@@ -6,6 +6,12 @@ import { legacyEnterpriseTemplateV1 } from '../../../modules/enterprise-template
 import { enterpriseCoreV1 } from '../../../modules/enterprise-template/reference/enterprise-core-v1.js';
 import { createEvoRuntime, demoIds, drainPosting } from './evo-runtime.js';
 import { demoConsoleHtml } from './demo-console.js';
+import {
+  burnConfiguratorConfiguration,
+  submitConfiguratorBusinessData,
+  type ConfiguratorBurnBody,
+  type ConfiguratorSubmitBody
+} from './configurator-mvp.js';
 
 export interface BuildAppOptions { readonly database?:DatabaseHandle; readonly loggerLevel?:string; }
 type DemoActorBody={actor?:{type?:'HUMAN'|'AI';id?:string}};
@@ -29,6 +35,29 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
  if(options.database!==undefined){
   const runtime=createEvoRuntime(options.database);
   app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
+
+  app.post('/api/v1/configurator/burn', async request => {
+    const body = request.body as ConfiguratorBurnBody;
+    return burnConfiguratorConfiguration(runtime.db, body);
+  });
+  app.post('/api/v1/configurator/business-data', async request => {
+    const body = request.body as ConfiguratorSubmitBody;
+    return submitConfiguratorBusinessData(runtime, request.id, body);
+  });
+  app.get('/api/v1/configurator/status', async () => {
+    const enterprise = await runtime.db.selectFrom('enterprise')
+      .select(['id','code','name'])
+      .where('code','=','EVO_CONFIG_MVP')
+      .executeTakeFirst();
+    if (enterprise === undefined) return { burned:false };
+    const rules = await runtime.db.selectFrom('posting_rule as r')
+      .innerJoin('application_definition_version as v','v.id','r.application_definition_version_id')
+      .innerJoin('application_definition as a','a.id','v.application_definition_id')
+      .select(({fn}) => [fn.countAll<number>().as('count')])
+      .where('a.code','like','cfg_app_%')
+      .executeTakeFirstOrThrow();
+    return { burned:true, enterprise, postingRules:Number(rules.count) };
+  });
 
   app.get('/api/v1/enterprises/:enterpriseCode',async request=>{
    const code=(request.params as {enterpriseCode:string}).enterpriseCode;
