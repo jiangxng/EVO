@@ -22,12 +22,12 @@
   },
   "currentStage": {
     "id": "Runtime Convergence",
-    "name": "Generic BusinessData Submission Convergence",
-    "businessGoal": "Implement a minimal generic BusinessData submission boundary with mandatory applicationId so EVO can route each fact to the correct current PostingRules while preserving compatibility behavior."
+    "name": "Existing Core Convergence — ApplicationId Routing",
+    "businessGoal": "Simplify and expose the already implemented EVO BusinessData/Posting/Ledger runtime instead of rebuilding it."
   },
   "activeRequirementSet": {
     "id": "CORE-MIN-02",
-    "name": "Generic BusinessData Submission Convergence",
+    "name": "Existing Core Convergence — ApplicationId Routing",
     "acceptance": [
       "EVO Core owns a minimal ApplicationAnchor/applicationId registry used only for PostingRule routing",
       "every accepted BusinessData item carries applicationId",
@@ -50,13 +50,13 @@
       "App Platform ApplicationAnchor contribution model merged by PR #6"
     ],
     "open": [
-      "implement minimal ApplicationAnchor persistence/contract",
-      "implement BusinessDataSubmission input/result with mandatory applicationId",
-      "implement current PostingRule registration/storage keyed by applicationId",
-      "route candidate PostingRules by exact applicationId before condition evaluation",
-      "adapt current Command compatibility path onto runtime ingestion",
-      "add PostgreSQL E2E for applicationId → BusinessData → automatic Posting → Ledger/Balance",
-      "add Host/App Platform adapter and migrate Trading Lite proof to the generic submission path"
+      "preserve existing BusinessData/Posting/Ledger implementation and tests",
+      "unify existing applicationInstanceId/applicationDefinitionId routing into the minimal applicationId contract",
+      "remove Core dependency on PostingRule version/application-definition selection while retaining current executable rule registration",
+      "add direct BusinessDataSubmission compatibility adapter over existing transaction/runtime primitives",
+      "prove no duplicate Posting/Ledger engine is introduced",
+      "PostgreSQL E2E the simplified path",
+      "migrate Trading Lite Host adapter"
     ],
     "deferred": [
       "physical extraction of identity/metadata/application/capability modules",
@@ -69,7 +69,7 @@
       "audit/archive plugin implementation"
     ],
     "currentWork": "Generic BusinessData submission runtime convergence",
-    "status": "DESIGN_REFINED_MERGED_IMPLEMENTATION_NOT_STARTED",
+    "status": "EXISTING_CORE_IMPLEMENTED_CONVERGENCE_PENDING",
     "packet": null
   },
   "antiOverdesignQuestions": [
@@ -117,7 +117,7 @@
     "selection": "CORE-MIN-02_GENERIC_BUSINESSDATA_SUBMISSION",
     "rule": "Do not select another broad architecture packet until the generic submission path is implemented and PostgreSQL E2E verified."
   },
-  "currentWork": "CORE-MIN-02 runtime implementation: ApplicationAnchor + applicationId rule routing",
+  "currentWork": "Simplify existing EVO Core around applicationId routing; no Core rewrite.",
   "financialAccountingIntegrity": {
     "state": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
     "findings": [
