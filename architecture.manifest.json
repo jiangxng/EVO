@@ -362,7 +362,7 @@
     "contextContractVersion": "1.1"
   },
   "targetBoundary": {
-    "model": "LIGHTWEIGHT_EVO_RUNTIME_PLUGIN",
+    "model": "EVO_LEDGER_RUNTIME",
     "authority": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
     "coreResponsibilities": [
       "application-routing-anchor",
@@ -409,7 +409,29 @@
     ],
     "defaultRule": "keep capabilities outside EVO Core except primitives required for generic execution; applicationId routing is explicitly required",
     "refinements": [
-      "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md"
+      "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
+      "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
+    ],
+    "displayName": "EVO Ledger Runtime"
+  },
+  "repositoryScope": {
+    "repositoryName": "EVO",
+    "broaderProductKnowledgeRetained": true,
+    "broaderRequirementsMayLiveOutsideComputePlugin": true,
+    "computeComponentName": "EVO Ledger Runtime",
+    "computeComponentHistoricalAliases": [
+      "EVO Core",
+      "EVO Runtime Plugin",
+      "EVO Compute Plugin"
+    ],
+    "authority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md",
+    "currentSplitDecision": "KEEP_SINGLE_REPOSITORY",
+    "documentScopes": [
+      "BROADER_EVO_PRODUCT",
+      "COMPUTE_PLUGIN_CORE",
+      "PLUGIN_CANDIDATE",
+      "HOST_PLATFORM",
+      "HISTORICAL_EVIDENCE"
     ]
   }
 }

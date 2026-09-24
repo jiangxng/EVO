@@ -12,6 +12,9 @@ describe('LLM context determinism contract', () => {
   it('ships the canonical project context files', async () => {
     const manifest = JSON.parse(await text('context.manifest.json')) as {
       requiredReading: string[];
+      repositoryScope: {
+        computeComponent: string;
+      };
       rules: Record<string, unknown>;
     };
     expect(manifest.requiredReading).toContain('PHILOSOPHY.md');
@@ -23,6 +26,12 @@ describe('LLM context determinism contract', () => {
     expect(manifest.requiredReading).toContain(
       'docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md'
     );
+    expect(manifest.requiredReading).toContain(
+      'docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md'
+    );
+    expect(manifest.repositoryScope.computeComponent).toBe('EVO Ledger Runtime');
+    expect(manifest.rules.broaderRepositoryRequirementsAreLedgerRuntimeRequirements).toBe(false);
+    expect(manifest.rules.preserveBroaderRequirementDocuments).toBe(true);
     expect(manifest.rules.actualWriteBoundary).toBe('BusinessDataSubmission');
     expect(manifest.rules.commandRequiredByCore).toBe(false);
     expect(manifest.rules.identityOwnedByCore).toBe(false);

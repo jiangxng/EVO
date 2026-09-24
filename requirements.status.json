@@ -18,7 +18,10 @@
       "data model",
       "testing strategy",
       "performance and reliability design"
-    ]
+    ],
+    "repositoryScope": "Broader EVO product requirements are preserved in this repository even when their implementation owner is not the EVO Ledger Runtime.",
+    "computeComponent": "EVO Ledger Runtime",
+    "ownershipRule": "A repository requirement becomes an EVO Ledger Runtime responsibility only through explicit ownership/architecture mapping."
   },
   "currentStage": {
     "id": "Runtime Convergence",
@@ -27,15 +30,16 @@
   },
   "activeRequirementSet": {
     "id": "CORE-MIN-02",
-    "name": "Existing Core Convergence — ApplicationId Routing",
+    "name": "Existing Ledger Runtime Convergence — ApplicationId Routing",
     "acceptance": [
-      "EVO Core owns a minimal ApplicationAnchor/applicationId registry used only for PostingRule routing",
+      "preserve broader EVO product/positioning requirements without treating them as automatic Ledger Runtime scope",
+      "EVO Ledger Runtime owns a minimal ApplicationAnchor/applicationId registry used only for PostingRule routing",
       "every accepted BusinessData item carries applicationId",
       "every executable PostingRule carries applicationId and candidate selection filters by exact applicationId before condition evaluation",
-      "define a generic BusinessDataSubmission contract that requires applicationId/ApplicationAnchor routing but does not require rich Enterprise/Application lifecycle, permissions, capabilities or Command objects inside EVO Core",
-      "support an opaque runtime scope key for isolation without Core-owned enterprise metadata",
+      "define a generic BusinessDataSubmission contract that requires applicationId/ApplicationAnchor routing but does not require rich Enterprise/Application lifecycle, permissions, capabilities or Command objects inside EVO Ledger Runtime",
+      "support an opaque runtime scope key for isolation without Ledger Runtime-owned enterprise metadata",
       "accepted BusinessData automatically enters the existing Posting lifecycle",
-      "PostingRules are supplied to Core through a plugin/Host boundary without Core rule-version governance",
+      "PostingRules are supplied to Ledger Runtime through a plugin/Host boundary without Ledger Runtime rule-version governance",
       "current /api/v1/commands path can adapt into the new submission boundary during migration",
       "existing Proof C compatibility behavior remains available until the Host adapter replacement is proven",
       "PostgreSQL E2E proves generic submission → BusinessData → Posting → Ledger/Balance",
@@ -52,7 +56,7 @@
     "open": [
       "preserve existing BusinessData/Posting/Ledger implementation and tests",
       "unify existing applicationInstanceId/applicationDefinitionId routing into the minimal applicationId contract",
-      "remove Core dependency on PostingRule version/application-definition selection while retaining current executable rule registration",
+      "remove Ledger Runtime dependency on PostingRule version/application-definition selection while retaining current executable rule registration",
       "add direct BusinessDataSubmission compatibility adapter over existing transaction/runtime primitives",
       "prove no duplicate Posting/Ledger engine is introduced",
       "PostgreSQL E2E the simplified path",
@@ -103,8 +107,8 @@
   ],
   "lastAlignment": {
     "date": "2026-09-24",
-    "reason": "Human clarified that EVO must retain a minimal Application definition/ID because applicationId is the routing anchor from incoming BusinessData to the correct PostingRule set.",
-    "result": "CORE-MIN-02 refined: Application identity stays in Core as ApplicationAnchor/applicationId; rich application lifecycle remains in Host/App Platform."
+    "reason": "Human clarified that the EVO repository intentionally retains broader real product requirements and positioning that do not belong to the minimal calculation component.",
+    "result": "Repository scope separated from component scope. Preferred component name is EVO Ledger Runtime (Chinese product alias: EVO 账本引擎); no repository split now."
   },
   "alignmentCadence": {
     "verifiedSliceInterval": 3,
@@ -117,7 +121,7 @@
     "selection": "CORE-MIN-02_GENERIC_BUSINESSDATA_SUBMISSION",
     "rule": "Do not select another broad architecture packet until the generic submission path is implemented and PostgreSQL E2E verified."
   },
-  "currentWork": "Simplify existing EVO Core around applicationId routing; no Core rewrite.",
+  "currentWork": "Simplify existing EVO Ledger Runtime around applicationId routing; no Ledger Runtime rewrite.",
   "financialAccountingIntegrity": {
     "state": "THREE_CORE_STATEMENTS_CERTIFIED_PENDING_MERGE",
     "findings": [
