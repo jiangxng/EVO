@@ -10,9 +10,9 @@
   },
   "activeWorkPacket": {
     "id": "CORE-MIN-02",
-    "name": "Existing Ledger Runtime Convergence — ApplicationId Routing",
+    "name": "Existing EVO Ledger Runtime Convergence — ApplicationId Routing",
     "stage": "Runtime Convergence / Simplification",
-    "status": "EXISTING_CORE_IMPLEMENTED_CONVERGENCE_PENDING",
+    "status": "EXISTING_LEDGER_RUNTIME_IMPLEMENTED_CONVERGENCE_PENDING",
     "overallClosed": false,
     "businessGoal": "Reuse the already implemented BusinessData → Posting → Ledger/Balance runtime and simplify its boundaries: preserve the working deterministic engine, introduce one stable applicationId routing anchor, remove unnecessary dependence on rich ApplicationDefinition/version/Command metadata from the Ledger Runtime path, and keep compatibility until the simplified path is database-proven.",
     "activeBranch": null,
@@ -35,7 +35,7 @@
       "PostgreSQL E2E: applicationId → existing BusinessData → existing PostingService → existing Ledger/Balance",
       "migrate Trading Lite Host adapter and rerun end-to-end browser proof"
     ],
-    "nextAction": "Do not rebuild the existing EVO Ledger Runtime. Start with an implementation inventory/diff against the existing business-data, posting and ledger modules; make the minimum bounded changes needed to expose the simplified applicationId-based runtime contract."
+    "nextAction": "Reuse the existing BusinessData/Posting/Ledger implementation. Converge routing to ApplicationAnchor/applicationId, expose generic BusinessDataSubmission, and keep current Command/capability flow only as a compatibility adapter until replacement proof passes."
   },
   "evidenceVocabulary": [
     "DESIGN ONLY",
@@ -220,12 +220,13 @@
     "repositoryScopeAuthority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
   },
   "repositoryScope": {
-    "status": "ACCEPTED",
+    "status": "MERGED",
     "repository": "EVO",
     "computeComponent": "EVO Ledger Runtime",
     "broaderRequirements": "PRESERVE_AS_REAL_PRODUCT_KNOWLEDGE",
     "ownershipRule": "Broader EVO requirements are not automatically EVO Ledger Runtime requirements.",
     "splitDecision": "KEEP_SINGLE_REPOSITORY_FOR_NOW",
-    "authority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
+    "authority": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md",
+    "mergeCommit": "dc613987247f9da209a503c65dbd7b33a08de94c"
   }
 }
