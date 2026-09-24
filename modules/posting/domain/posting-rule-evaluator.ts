@@ -1,3 +1,4 @@
+import { Decimal } from 'decimal.js';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { LedgerEffect } from '../../ledger/api/contracts.js';
 import type {
@@ -37,6 +38,32 @@ function scalarString(value: JsonValue, field: string): string | null {
   });
 }
 
+function directionSign(raw: JsonValue): 1 | -1 {
+  if (raw === undefined || raw === null || raw === '') return 1;
+  if (typeof raw !== 'string') {
+    throw new AppError({
+      code: 'INVALID_POSTING_DIRECTION',
+      message: 'Posting direction must be a string.',
+      module: 'posting',
+      operation: 'evaluatePostingRules'
+    });
+  }
+  const normalized = raw.trim().toUpperCase();
+  if (normalized === 'ADD' || normalized === 'DEBIT' || raw === '增加' || raw === '借方') return 1;
+  if (normalized === 'SUB' || normalized === 'CREDIT' || raw === '减少' || raw === '贷方') return -1;
+  throw new AppError({
+    code: 'INVALID_POSTING_DIRECTION',
+    message: `Unsupported posting direction: ${raw}`,
+    module: 'posting',
+    operation: 'evaluatePostingRules'
+  });
+}
+
+function signed(value: string | null, sign: 1 | -1): string | null {
+  if (value === null || sign === 1) return value;
+  return new Decimal(value).negated().toString();
+}
+
 function evaluateDimensions(
   raw: JsonObject,
   payload: JsonObject
@@ -61,6 +88,7 @@ export function evaluatePostingRules(
     if (!evaluateBoolean(rule.conditionAst, { payload })) continue;
 
     const effect = rule.effectAst;
+    const sign = directionSign(effect.direction);
     const ledgerCode = effect.ledgerCode;
 
     if (typeof ledgerCode !== 'string' || ledgerCode.length === 0) {
@@ -116,8 +144,8 @@ export function evaluatePostingRules(
       postingRuleSchemaVersion: rule.ruleSchemaVersion,
       effectIndex: 0,
       ledgerCode,
-      quantity,
-      amount,
+      quantity: signed(quantity, sign),
+      amount: signed(amount, sign),
       unit,
       currency,
       dimensions: evaluateDimensions(dimensionsRaw, payload)
