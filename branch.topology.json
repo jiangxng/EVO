@@ -431,7 +431,7 @@
       "class": "ACTIVE_WORK",
       "mergePolicy": "MERGE_WHEN_VERIFIED",
       "containedByMain": false,
-      "description": "Architecture/documentation clarification separating broad EVO repository product knowledge from the minimal EVO Compute Plugin implementation scope."
+      "description": "Architecture/documentation clarification separating broad EVO repository product knowledge from the minimal EVO Ledger Runtime implementation scope. Branch name is a pre-rename historical artifact."
     }
   },
   "requiredLLMProcedure": [
@@ -491,13 +491,13 @@
     "pullRequest": null,
     "includedGates": [
       "preserve broader EVO product and positioning documents",
-      "name the minimal component EVO Compute Plugin",
-      "make repository scope distinct from Compute Plugin scope",
+      "name the minimal component EVO Ledger Runtime",
+      "make repository scope distinct from Ledger Runtime scope",
       "do not split repository now",
       "resume existing-core convergence after documentation CI"
     ],
     "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no runtime behavior change",
-    "afterSuccess": "Merge the repository-scope clarification, then continue CORE-MIN-02 existing Compute Plugin convergence without deleting broader product documents.",
+    "afterSuccess": "Merge the repository-scope clarification, then continue CORE-MIN-02 existing Ledger Runtime convergence without deleting broader product documents.",
     "rule": "Preserve requirements; decide implementation ownership explicitly."
   }
 }
