@@ -67,6 +67,14 @@ Repository-scope authority: `docs/architecture/decisions/2026-09-24-evo-reposito
 
 When reading a broad EVO requirement, classify ownership before implementation. Preserve the document even when ownership is outside the Ledger Runtime.
 
+## Human + LLM operability
+
+All configurable business capability must satisfy `docs/architecture/principles/HUMAN-LLM-OPERABILITY-v0.1.md`.
+
+Do not design a normal business workflow that requires a developer, SQL, source-code edits, hidden APIs, or knowledge of internal class/AST structures.
+
+Prefer one business-readable semantic source that can be validated/compiled into machine form. Preserve domain terminology, explanations, examples and business-facing errors.
+
 ## Required working behavior
 
 - Preserve unrelated user changes and inspect the worktree before editing.

@@ -131,6 +131,20 @@ BusinessData.applicationId and PostingRule.applicationId MUST NOT be optional pr
 - Do not create a PostingRule version manager inside Core. Draft/publish/version/effective-date/rollback semantics belong to the rule-owning plugin/package.
 - Do not infer fraud, manipulation or audit intent merely from authorized data/rule adjustments. Core executes governed inputs; audit/compliance policy belongs to optional governance plugins.
 
+## Human + LLM Operability Contract
+
+Across EVO-family projects:
+
+- LLMs must be able to understand configuration from explicit contracts/repository artifacts.
+- business users must be able to understand what configuration means without reading code.
+- novice users should be able to perform normal operations through guided product UI.
+- normal configuration must not require SQL or source-code changes.
+- human-readable source and machine-executable representation must share one declared semantic truth.
+- business-facing errors explain the business issue first; technical diagnostics are secondary.
+- developers extend engine capabilities; they are not required for ordinary business configuration.
+
+Authority: `docs/architecture/principles/HUMAN-LLM-OPERABILITY-v0.1.md`.
+
 ## Output Expectations for Coding Agents
 
 A code change should include, when relevant:
