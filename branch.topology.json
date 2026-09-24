@@ -426,6 +426,12 @@
       "supersededBy": "main",
       "pr": 57,
       "description": "CORE-MIN-02 application-routing architecture refinement merged by PR #57 after CI #743. Restores minimal ApplicationAnchor/applicationId inside EVO Core as the mandatory BusinessData→PostingRule routing key."
+    },
+    "evo/repository-compute-plugin-scope-v0.1": {
+      "class": "ACTIVE_WORK",
+      "mergePolicy": "MERGE_WHEN_VERIFIED",
+      "containedByMain": false,
+      "description": "Architecture/documentation clarification separating broad EVO repository product knowledge from the minimal EVO Compute Plugin implementation scope."
     }
   },
   "requiredLLMProcedure": [
@@ -481,17 +487,17 @@
     ]
   },
   "currentBranchGuidance": {
-    "businessMainline": "main",
+    "businessMainline": "evo/repository-compute-plugin-scope-v0.1",
     "pullRequest": null,
     "includedGates": [
-      "ApplicationAnchor/applicationId architecture is merged",
-      "next bounded slice implements ApplicationAnchor persistence and generic BusinessDataSubmission",
-      "current PostingRules must be keyed by applicationId",
-      "candidate rule selection must filter by exact applicationId before condition evaluation",
-      "keep current /commands compatibility until new path is PostgreSQL E2E verified"
+      "preserve broader EVO product and positioning documents",
+      "name the minimal component EVO Compute Plugin",
+      "make repository scope distinct from Compute Plugin scope",
+      "do not split repository now",
+      "resume existing-core convergence after documentation CI"
     ],
-    "evidenceTarget": "NEXT: IMPLEMENTED + UNIT VERIFIED + PostgreSQL E2E for ApplicationAnchor/ApplicationId routing",
-    "afterSuccess": "Migrate Trading Lite Host adapter to ApplicationAnchor + BusinessDataSubmission(applicationId), then validate browser flow against target EVO runtime.",
-    "rule": "Application identity is a Core routing key; Application lifecycle is not a Core responsibility."
+    "evidenceTarget": "DESIGN/STATUS ALIGNMENT — no runtime behavior change",
+    "afterSuccess": "Merge the repository-scope clarification, then continue CORE-MIN-02 existing Compute Plugin convergence without deleting broader product documents.",
+    "rule": "Preserve requirements; decide implementation ownership explicitly."
   }
 }
