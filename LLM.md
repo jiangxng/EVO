@@ -1,5 +1,7 @@
 # EVO LLM Context Contract
 
+> **Mandatory proactive-engineering instinct:** Read `docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md` and `llm.foundation-map.json`. Do not assume the user's explicit runtime request enumerates all mature deterministic-runtime concerns. Proactively scan for contract, replay, failure recovery, observability, performance, migration, data-lifecycle and context-health gaps, while keeping plugin/UI concerns outside EVO ownership.
+
 Status: Authoritative
 Context Contract Version: 1.5
 
