@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "authority": "docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md",
+  "reviewModel": "NOW_SOON_WATCH",
+  "reviewTriggers": [
+    "before broad platform expansion",
+    "when the same workaround appears twice",
+    "when CI/context grows with unrelated modules",
+    "when a second consumer needs the same capability",
+    "before declaring a foundation stable",
+    "during periodic clean-room architecture review"
+  ],
+  "project": "EVO-Ledger-Runtime",
+  "domains": {
+    "deterministicPostingLedger": "NOW",
+    "replayRecalculation": "NOW",
+    "idempotencySequencing": "NOW",
+    "publicRuntimeContracts": "NOW",
+    "applicationAnchorRouting": "NOW",
+    "cacheExportDataLifecycle": "SOON",
+    "observabilityDiagnostics": "SOON",
+    "performanceScaleBudgets": "SOON",
+    "migrationCompatibility": "SOON",
+    "failureRecovery": "SOON",
+    "backupExport": "SOON",
+    "pluginPlatformConcerns": "OUTSIDE_OWNER",
+    "humanUiDesignLanguage": "OUTSIDE_OWNER",
+    "llmContextArchitecture": "NOW"
+  }
+}
