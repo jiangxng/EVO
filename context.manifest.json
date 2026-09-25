@@ -23,7 +23,9 @@
     "requirementAlignmentReview": "docs/architecture/status/EVO-REQUIREMENT-ALIGNMENT-REVIEW-2026-09-22-EEL-C04-SELECTION-v0.1.md",
     "coreBoundaryDecision": "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
     "applicationRoutingDecision": "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-    "repositoryScopeDecision": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
+    "repositoryScopeDecision": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md",
+    "proactiveEngineering": "docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md",
+    "foundationMap": "llm.foundation-map.json"
   },
   "requiredReading": [
     "PHILOSOPHY.md",
@@ -49,7 +51,7 @@
       ]
     },
     "crossModuleArchitecture": {
-      "maxInitialDocuments": 17,
+      "maxInitialDocuments": 19,
       "documents": [
         "AGENTS.md",
         "LLM.md",
@@ -57,6 +59,8 @@
         "project.status.json",
         "requirements.status.json",
         "branch.topology.json",
+        "llm.foundation-map.json",
+        "docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md",
         "PHILOSOPHY.md",
         "CONCEPTS.md",
         "INVARIANTS.md",
@@ -71,7 +75,7 @@
       ]
     },
     "continuation": {
-      "maxInitialDocuments": 16,
+      "maxInitialDocuments": 18,
       "documents": [
         "AGENTS.md",
         "LLM.md",
@@ -79,6 +83,8 @@
         "project.status.json",
         "requirements.status.json",
         "branch.topology.json",
+        "llm.foundation-map.json",
+        "docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md",
         "docs/architecture/continuity/EVO-CROSS-CHAT-CONTEXT-PROTOCOL-v0.2.md",
         "docs/architecture/continuity/checkpoints/EVO-CONTEXT-CHECKPOINT-2026-09-22-v1.5.md",
         "docs/architecture/status/EVO-CURRENT-PROGRESS-BUSINESS-AND-TECH-v0.1.md",
