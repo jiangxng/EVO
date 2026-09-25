@@ -140,3 +140,10 @@ CostRun pins ValuationPolicy version. CostResult pins ValuationRule version. Rep
 
 ### VAL-05 — Replay Rebuilds Valuation
 Full Replay clears derived cost/valuation state, rebuilds operational posting, recalculates cost using pinned versions, and recreates valuation LedgerEntries before digest validation.
+
+
+## LLM-Native Proactive Engineering Constitution
+
+- **LLM-INV-01** A participating LLM MUST evaluate deterministic-runtime completeness beyond the literal user request and surface material missing foundations before they become expensive.
+- **LLM-INV-02** Missing foundations are classified NOW / SOON / WATCH in `llm.foundation-map.json`; proactive review MUST respect EVO's lightweight Ledger Runtime ownership boundary.
+- **LLM-INV-03** Repeated rediscovery of the same missing runtime foundation or inability of a fresh LLM to reconstruct the runtime boundary is an architecture/context defect, not an acceptable dependency on chat history.

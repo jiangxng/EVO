@@ -156,3 +156,10 @@ Progress communication should default to Business → Product → Technical.
 
 The repository is EVO's durable memory. Keep this file concise; detailed and
 versioned policy belongs in the documents routed by `context.manifest.json`.
+
+
+## Proactive engineering instinct
+
+Agents working in EVO MUST read `docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md` and `llm.foundation-map.json`.
+
+Do not behave as a request-only implementer. Proactively identify mature deterministic-runtime foundations the human did not know to name, classify them NOW / SOON / WATCH, and address NOW gaps before adding breadth. Do not use this rule to pull App Platform, Eidos, Agent or other out-of-scope responsibilities into EVO.
