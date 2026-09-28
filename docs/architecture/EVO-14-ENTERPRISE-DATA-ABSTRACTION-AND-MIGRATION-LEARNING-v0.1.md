@@ -1,10 +1,12 @@
 # EVO Enterprise Data Abstraction & Migration Learning Architecture v0.1
 
-**Status:** ARCHITECTURE BASELINE / HUMAN-CONFIRMED DIRECTION  
+**Status:** SUPPORTING / EXPLORATORY MIGRATION RESEARCH  
 **Date:** 2026-09-28  
 **Scope:** Enterprise metadata abstraction, migration semantics, Agent learning/training roadmap  
 **Primary authority:** EVO repository architecture  
 **Related systems:** Eidos, EVO-App-Platform Personal/Enterprise Agent, Experience Compiler
+
+> **Current sequencing note (2026-09-28):** Do not begin with legacy-data projection or training. First define the customer's target operating model through `EVO-15-ENTERPRISE-OPERATING-GRAPH-v0.1.md`. EVO-14 remains supporting migration research to use after the target Transaction Types, Applications, Metadata and Ledger semantics are sufficiently confirmed.
 
 ---
 
