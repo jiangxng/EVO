@@ -278,6 +278,14 @@ For a capability that is already in scope:
 For the Ledger Runtime Configurator bookkeeping baseline, the current acceptance rule is **912/912 posting rules must compile and be burnable as one configuration**. The 912-rule corpus is treated as in-boundary compatibility/pressure evidence, not as optional horizontal scope.
 
 
+## Enterprise operating graph authority
+
+For customer target-operating-model definition, process modeling, APQC-assisted analysis, visual enterprise modeling, or work that binds Process / Transaction Type / Application / Metadata / PostingRule / Ledger into one Human-confirmable model, read:
+
+`docs/architecture/EVO-15-ENTERPRISE-OPERATING-GRAPH-v0.1.md`
+
+The graph MUST reuse canonical EVO/Host definitions rather than create parallel Application, Metadata or Ledger truth. Natural language, Agent actions and Human direct graphical editing must converge on the same semantic model operations. Target operating modeling precedes legacy-data projection.
+
 ## Enterprise migration semantic authority
 
 For enterprise migration, source-system archaeology, metadata abstraction, Business Fact extraction, Material/Money Flow classification, Best Data Provider semantics, or migration-learning design, read:
