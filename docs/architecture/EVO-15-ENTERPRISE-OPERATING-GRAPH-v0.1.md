@@ -199,6 +199,83 @@ For example, when a process contains Shipment, Invoice, Revenue Recognition, Rec
 
 After confirmation, PostingRules/Ledgers encode the deterministic result.
 
+
+## 10.1 Genealogy: bookkeeping / Asloop are direct semantic ancestors
+
+The Enterprise Operating Graph must inherit already-converged semantics from the legacy `bookkeeping` and `Asloop-Backend` archaeology rather than rediscover them from scratch.
+
+The previously established legacy-to-EVO chain is:
+
+`App → Transdata → Policy → Account → TransdataAccount → Balance → Cost`
+
+with the retained EVO mapping:
+
+- legacy `App` → Application semantics;
+- legacy transaction type / `Transdata` → Transaction Type + BusinessData semantics;
+- legacy `Policy` → PostingRule semantics;
+- legacy `Account` → generic LedgerDefinition semantics;
+- legacy `TransdataAccount` → LedgerEntry lineage;
+- legacy balance → derived LedgerBalance.
+
+This genealogy is documented in:
+
+- `docs/legacy/ASLOOP-BOOKKEEPING-SEMANTIC-AUDIT.md`
+- `docs/architecture/EVO-ASLOOP-METADATA-FIELD-DESIGN-UNDERSTANDING-v0.1.md`
+- `docs/architecture/EVO-03-Ledger-Conditional-Posting-Model-v0.1.md`
+
+The graph therefore reuses an already-proven enterprise model lineage rather than introducing new business primitives.
+
+## 10.2 Accounting-guidance template topology
+
+Historical design intent supplied by the Human indicates that legacy posting rules were not created only as isolated formulas. Their expected predecessor/successor relationships were prepared in advance as guidance for building the enterprise operating flow.
+
+Those rule templates were informed by Chinese accounting guidance material used by the legacy system. The exact publication title/edition is not yet archivally identified in the repository; preserve this as historical provenance until the source is positively identified.
+
+This produces two distinct layers:
+
+### Guidance Topology
+
+A reusable recommended topology derived from:
+
+- accounting guidance;
+- bookkeeping / Asloop posting-rule templates;
+- APQC / standard process references;
+- reusable industry or enterprise templates.
+
+It can recommend that a given Application / Business Fact normally affects specific Ledgers and may suggest expected upstream/downstream business relationships.
+
+It is guidance, not enterprise truth.
+
+### Published Enterprise Topology
+
+The Human-confirmed operating graph for one enterprise.
+
+It may accept, modify or reject guidance where the enterprise's actual business policy, timing, legal/accounting policy or operating method differs.
+
+The required relationship is:
+
+`Guidance Template → LLM proposal → Human confirmation/adjustment → Published Enterprise Operating Graph`
+
+The system must never silently convert a guidance template into published enterprise truth.
+
+## 10.3 Why this matters for the editor
+
+The Enterprise Operating Graph Editor should therefore not behave like a blank free-form canvas by default.
+
+When appropriate, it should be able to surface:
+
+- recommended Application ↔ Ledger relationships;
+- recommended Transaction Type / PostingRule patterns;
+- missing accounting consequences;
+- missing upstream/downstream state transitions;
+- conflicts between the enterprise graph and a selected guidance template.
+
+The Human can then confirm, adjust or explicitly depart from the recommendation.
+
+This is a stronger model than generic diagramming:
+
+`knowledge template + enterprise-specific confirmation + executable semantic bindings`
+
 ## 11. Decision Backbone
 
 The graph's first purpose is to define the enterprise's Decision Backbone:
@@ -308,6 +385,10 @@ EOG-08 — A visual edge without declared semantic relationship is insufficient 
 EOG-09 — The target enterprise operating model precedes legacy-data projection.
 
 EOG-10 — Presentation/layout data must not become enterprise business truth.
+
+EOG-11 — Accounting/APQC/industry templates provide guidance topology only; they cannot become published enterprise truth without Human confirmation.
+
+EOG-12 — Legacy bookkeeping/Asloop semantic convergence remains genealogy evidence for Application, Transaction Type, PostingRule and Ledger graph nodes.
 
 ## 18. Current concise architecture
 
