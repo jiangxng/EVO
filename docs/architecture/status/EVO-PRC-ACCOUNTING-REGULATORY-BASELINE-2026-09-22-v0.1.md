@@ -132,10 +132,123 @@ Gate C — Accounting operations: review/approval, close/reopen, bank and subled
 Gate D — Trial Balance: debit=credit and independently reconciled balances with Replay equality.
 Gate E — Financial reporting: three core statements plus Statement of Changes in Equity and Notes.
 
+## 14. Enterprise Accounting Standards Application Guide convergence
+
+The source historically referred to in the legacy process/posting-template design as the Chinese accounting guidance book is now identified as:
+
+**《企业会计准则——应用指南》** (财会〔2006〕18号), together with later standard-specific application guides and later financial-statement presentation requirements.
+
+Official Ministry of Finance material describes the Application Guide as an important component of the enterprise accounting standards system. Its scope includes:
+- explanations of specific accounting standards;
+- accounting subjects / Chart of Accounts guidance;
+- major accounting treatments.
+
+It must NOT be treated as one timeless executable rulebook. Ministry of Finance guidance also confirms that later application guides and later financial-statement rules supplement or update relevant accounting treatment and presentation requirements.
+
+### 14.1 Correct EVO convergence
+
+Use a three-layer model:
+
+```text
+PRC Accounting Authority / Guidance Sources
+        ↓
+Accounting Guidance Knowledge Baseline
+        ↓ compile / curate / version
+Accounting Guidance Template Pack
+        ↓ advisory bindings
+Enterprise Operating Graph Guidance Topology
+        ↓ Human confirmation / enterprise policy
+Published Enterprise Accounting / Operating Topology
+        ↓
+AccountingRecognitionRule / PostingRule / Chart of Accounts / Journal / Reports
+```
+
+### 14.2 Source layer
+
+The source layer records authority metadata rather than copying a publication into executable code.
+
+Minimum source metadata should include:
+
+- jurisdiction;
+- title;
+- issuing authority;
+- document / publication reference;
+- issue/effective date;
+- applicable enterprise scope;
+- supersedes / supplements / later-guidance relationships;
+- source location / bibliographic reference;
+- extracted semantic topic;
+- review status.
+
+The repository should preserve structured summaries, mappings and provenance. It should not depend on an unversioned scan/book copy as runtime authority.
+
+### 14.3 Accounting Guidance Template Pack
+
+The executable/productized result belongs to an installable accounting/finance capability, not minimal EVO Ledger Runtime Core.
+
+A versioned PRC accounting guidance pack may contain:
+
+- `ChartOfAccountsTemplate`;
+- `AccountingAccount` definitions;
+- accounting-recognition rule templates;
+- debit/credit journal template patterns;
+- PostingRule candidates where generic/economic ledgers are involved;
+- accounting dimension guidance;
+- validation rules;
+- report-line mappings when supported by the applicable reporting source;
+- explanatory provenance linking each template element to its source authority.
+
+Template elements are defaults/guidance. An enterprise may extend, split or combine accounts where permitted, while statutory recognition/reporting constraints remain governed by applicable policy.
+
+### 14.4 Enterprise Operating Graph role
+
+The Enterprise Operating Graph must consume accounting guidance as **Guidance Topology**, not as published enterprise truth.
+
+Example:
+
+```text
+Business Fact
+  ↓
+recommended accounting recognition
+  ↓
+recommended accounting account / journal pattern
+  ↓
+recommended ledger/report consequences
+```
+
+The LLM may use this knowledge to:
+- identify missing economic/accounting consequences;
+- propose likely Posting/Recognition patterns;
+- ask the Human which recognition timing/policy applies;
+- explain deviations from a selected guidance template.
+
+The Human-confirmed enterprise model/policy determines publication.
+
+### 14.5 Boundary with APQC
+
+APQC and accounting guidance solve different questions:
+
+```text
+APQC
+→ What capabilities/processes may exist and how work is organized?
+
+Enterprise Accounting Standards Application Guide
+→ How qualifying transactions/events are recognized, measured, classified and accounted for?
+```
+
+They meet in the Enterprise Operating Graph but remain separate knowledge authorities.
+
+### 14.6 Boundary with reports
+
+Do not derive current financial-statement presentation solely from the 2006 Application Guide.
+
+Report presentation must follow the applicable, effective financial-statement standards and later Ministry of Finance requirements recorded in this regulatory baseline.
+
 ## 13. Source baseline
 
 - Accounting Law of the PRC (2024 revision).
 - Accounting Standards for Business Enterprises — Basic Standard.
+- 《企业会计准则——应用指南》（财会〔2006〕18号）及后续具体准则应用指南：会计准则解释、会计科目和主要账务处理的重要知识/模板来源；不得作为脱离后续更新的单一静态规则源。
 - ASBE No.30 — Presentation of Financial Statements (2014 baseline; 2026 revised phased standard).
 - Accounting Software Basic Functions and Services Specification, 财会〔2024〕12号.
 - Accounting Informatization Work Specification, 财会〔2024〕11号.
