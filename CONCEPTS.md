@@ -9,6 +9,7 @@ Context Version: 1.0
 | Domain | semantic grouping such as Sales or Inventory | execution engine |
 | Capability | stable description of what the enterprise can do | workflow instance |
 | Flow | traceable cross-domain value/object/state/responsibility chain | one screen or one module |
+| Enterprise Operating Graph | versioned semantic view/editor that connects canonical Capability, Process, Transaction Type, Application, Command, Business Fact, Metadata, PostingRule and Ledger definitions | generic diagram document or duplicate business ontology |
 | Transaction Type | high-level business occurrence category | UI page |
 | Application | executable tool around business capability/process | source of independent truth |
 | Command | authorized request to perform a business action | replayable event |
@@ -28,6 +29,14 @@ Context Version: 1.0
 | Metric | governed semantic measurement | ad-hoc dashboard formula |
 | Replay | reconstruction of Actual derived state from preserved history and pinned versions | re-running commands |
 | Scenario | hypothetical calculation namespace | Actual ledger |
+
+## Enterprise Operating Graph
+
+`Natural Language ↔ Enterprise Operating Graph ↔ Visual Model`
+
+The graph reuses canonical semantic objects as nodes/references. Transaction Type, Application, Metadata, PostingRule and LedgerDefinition remain authoritative in their owning contracts; graph layout is presentation state. Target operating modeling precedes legacy-data projection.
+
+Authority: `docs/architecture/EVO-15-ENTERPRISE-OPERATING-GRAPH-v0.1.md`.
 
 ## Canonical Runtime Spine
 
