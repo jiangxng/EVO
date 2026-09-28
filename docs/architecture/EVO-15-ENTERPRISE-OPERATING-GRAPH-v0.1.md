@@ -229,7 +229,7 @@ The graph therefore reuses an already-proven enterprise model lineage rather tha
 
 Historical design intent supplied by the Human indicates that legacy posting rules were not created only as isolated formulas. Their expected predecessor/successor relationships were prepared in advance as guidance for building the enterprise operating flow.
 
-Those rule templates were informed by Chinese accounting guidance material used by the legacy system. The exact publication title/edition is not yet archivally identified in the repository; preserve this as historical provenance until the source is positively identified.
+Those rule templates were informed by **《企业会计准则——应用指南》** and the PRC accounting guidance lineage used by the legacy system. The canonical source handling, update/supplement rules and executable-template boundary are defined in `docs/architecture/status/EVO-PRC-ACCOUNTING-REGULATORY-BASELINE-2026-09-22-v0.1.md`.
 
 This produces two distinct layers:
 
@@ -257,6 +257,24 @@ The required relationship is:
 `Guidance Template → LLM proposal → Human confirmation/adjustment → Published Enterprise Operating Graph`
 
 The system must never silently convert a guidance template into published enterprise truth.
+
+
+
+### Accounting guidance convergence rule
+
+The Enterprise Operating Graph does not embed the publication itself and does not hard-code statutory rules into diagram nodes.
+
+Use:
+
+```text
+Accounting Guidance Knowledge
+→ versioned Accounting Guidance Template Pack
+→ EOG Guidance Topology
+→ LLM proposal
+→ Human-confirmed enterprise policy/topology
+```
+
+This allows the same visual model to show a recommended accounting path while keeping source authority, enterprise policy, Posting/Recognition rules and visual presentation as separate versioned concerns.
 
 ## 10.3 Why this matters for the editor
 
