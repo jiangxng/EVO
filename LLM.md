@@ -278,6 +278,16 @@ For a capability that is already in scope:
 For the Ledger Runtime Configurator bookkeeping baseline, the current acceptance rule is **912/912 posting rules must compile and be burnable as one configuration**. The 912-rule corpus is treated as in-boundary compatibility/pressure evidence, not as optional horizontal scope.
 
 
+## Enterprise migration semantic authority
+
+For enterprise migration, source-system archaeology, metadata abstraction, Business Fact extraction, Material/Money Flow classification, Best Data Provider semantics, or migration-learning design, read:
+
+`docs/architecture/EVO-14-ENTERPRISE-DATA-ABSTRACTION-AND-MIGRATION-LEARNING-v0.1.md`
+
+This document is the canonical EVO semantic authority for migration. Do not infer migration ontology from chat memory or from one customer's table names.
+
+Migration discovery, Agent behavior, source connectors and Enterprise Context generally belong outside minimal Ledger Runtime; EVO owns the canonical semantics required to produce valid BusinessData for deterministic execution.
+
 ## Enterprise platform boundary
 
 EVO-family systems serve enterprises, but Ledger Runtime remains deliberately narrow. Before adding identity, authorization, enterprise organization, localization, LLM or similar cross-cutting capabilities to EVO, read:
