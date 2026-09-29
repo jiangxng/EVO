@@ -1,6 +1,7 @@
 import { sql, type Kysely } from "kysely";
 import type { Database } from "../../../platform/database/src/types.js";
 import type {
+  EvoApplicationObservationAggregateV010,
   EvoLedgerObservationAggregateV010,
   EvoRuntimeObservationReaderV010
 } from "../api/runtime-observations.js";
@@ -87,6 +88,47 @@ export class PostgresRuntimeObservationReaderV010
     return {
       consistencyDomain: runtime.consistency_domain,
       ledgerDatasetId
+    };
+  }
+
+  async observeApplication(input: {
+    enterpriseId: string;
+    applicationId: string;
+    startAt: Date;
+    endAt: Date;
+  }): Promise<EvoApplicationObservationAggregateV010> {
+    const candidates = await this.db
+      .selectFrom("application_instance")
+      .select(["id", "config"])
+      .where("enterprise_id", "=", input.enterpriseId)
+      .where("status", "=", "ACTIVE")
+      .execute();
+
+    const matches = candidates.filter(row => {
+      const value = row.config["sourceApplicationId"];
+      return typeof value === "string"
+        && value === input.applicationId;
+    });
+    if (matches.length === 0) {
+      throw new Error("EVO_RUNTIME_OBSERVATION_APPLICATION_NOT_FOUND");
+    }
+    if (matches.length > 1) {
+      throw new Error("EVO_RUNTIME_OBSERVATION_APPLICATION_AMBIGUOUS");
+    }
+
+    const window = await this.db
+      .selectFrom("business_data")
+      .select(({ fn }) => [
+        fn.countAll<number>().as("event_count")
+      ])
+      .where("enterprise_id", "=", input.enterpriseId)
+      .where("application_instance_id", "=", matches[0].id)
+      .where("effective_at", ">=", input.startAt)
+      .where("effective_at", "<", input.endAt)
+      .executeTakeFirstOrThrow();
+
+    return {
+      windowEventCount: numeric(window.event_count)
     };
   }
 
