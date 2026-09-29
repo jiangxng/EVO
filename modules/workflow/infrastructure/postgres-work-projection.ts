@@ -202,8 +202,8 @@ export class PostgresWorkProjection implements WorkProjection {
       amount: row.source_amount,
       assignedActorType: row.assigned_actor_type,
       assignedActorId: row.assigned_actor_id,
-      createdAt: row.created_at.toISOString(),
-      updatedAt: row.updated_at.toISOString()
+      createdAt: new Date(row.created_at as unknown as string | number | Date).toISOString(),
+      updatedAt: new Date(row.updated_at as unknown as string | number | Date).toISOString()
     }));
   }
 }
