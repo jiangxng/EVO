@@ -191,6 +191,24 @@ clear EVO runtime data
 export EVO runtime data
 ```
 
+### Runtime observation revision boundary
+
+EVO exposes a lightweight Host-facing revision cursor for cache invalidation and realtime bridging:
+
+```text
+GET /api/v1/enterprises/:enterpriseCode/runtime-revision
+```
+
+The response summarizes only the version-bearing control state needed to determine whether Host-visible runtime observations may have changed. It covers:
+
+- posting/runtime high-water state;
+- FlowTrace count and latest trace time;
+- FlowInstance count/status distribution and latest start/completion time.
+
+The endpoint does **not** return business payloads, ledger rows or flow trace contents. It supports `ETag / If-None-Match`; unchanged state returns `304 Not Modified` with no response body.
+
+This boundary exists so one Host-side bridge can observe EVO efficiently. Browser/mobile clients should subscribe to the Host event lane rather than polling EVO independently.
+
 ### Runtime observation read boundary
 
 EVO exposes a generic Host-facing read boundary for time-scoped operational observation:
