@@ -100,7 +100,9 @@ describe("RuntimeObservationServiceV010", () => {
     });
 
     expect(seen).toHaveLength(1);
-    expect(seen[0].applicationId).toBe("sales-order");
+    const observed = seen[0];
+    expect(observed).toBeDefined();
+    expect(observed!.applicationId).toBe("sales-order");
     expect(result.map(item => [item.metricCode, item.value])).toEqual([
       ["event.count", 18],
       ["event.frequency", 4.5]
