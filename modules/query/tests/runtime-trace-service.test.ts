@@ -43,8 +43,8 @@ test("runtime trace service validates window and canonical application filters",
 
   assert.equal(result.length, 1);
   assert.deepEqual(calls[0]!.applicationIds, ["sales-order"]);
-  assert.throws(
-    () => service.query({
+  await assert.rejects(
+    service.query({
       contractVersion: "0.1.0",
       enterpriseId: "enterprise:1",
       window: {
