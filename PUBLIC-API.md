@@ -191,6 +191,34 @@ clear EVO runtime data
 export EVO runtime data
 ```
 
+### Runtime observation read boundary
+
+EVO exposes a generic Host-facing read boundary for time-scoped operational observation:
+
+```text
+POST /api/v1/runtime-observations/query
+```
+
+The v0.1 target is deliberately narrow and canonical:
+
+- target kind: `LEDGER_DEFINITION`;
+- target identity: stable LedgerDefinition code;
+- explicit `startAt/endAt` time window;
+- explicit metric allow-list;
+- historical balance is reconstructed from immutable LedgerEntry data as of `endAt`.
+
+Supported metrics:
+
+- `event.count`;
+- `event.frequency` in events/hour;
+- `flow.net_quantity`;
+- `flow.net_amount`;
+- `balance.quantity`;
+- `balance.amount`.
+
+This API does not expose database rows, EOG node IDs, renderer state, SOP interpretation or bottleneck judgments. Those remain Host/Provider concerns.
+
+
 The exact paths are intentionally not frozen yet.
 
 The following current alpha endpoints are **Host/compatibility composition**, not target EVO Core responsibilities:
