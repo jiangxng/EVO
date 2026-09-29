@@ -54,6 +54,7 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
       target?: {
         kind?: unknown;
         code?: unknown;
+        applicationId?: unknown;
       };
       window?: {
         startAt?: unknown;
@@ -61,11 +62,15 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
       };
       metricCodes?: unknown;
     };
+    const validTarget = body.target?.kind === 'LEDGER_DEFINITION'
+      ? typeof body.target.code === 'string'
+      : body.target?.kind === 'APPLICATION_ANCHOR'
+        ? typeof body.target.applicationId === 'string'
+        : false;
     if (
       body.contractVersion !== '0.1.0'
       || typeof body.enterpriseId !== 'string'
-      || body.target?.kind !== 'LEDGER_DEFINITION'
-      || typeof body.target.code !== 'string'
+      || !validTarget
       || typeof body.window?.startAt !== 'string'
       || typeof body.window.endAt !== 'string'
       || !Array.isArray(body.metricCodes)
@@ -77,16 +82,22 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
         operation: 'queryRuntimeObservations'
       });
     }
+    const target = body.target.kind === 'LEDGER_DEFINITION'
+      ? {
+          kind: 'LEDGER_DEFINITION' as const,
+          code: body.target.code as string
+        }
+      : {
+          kind: 'APPLICATION_ANCHOR' as const,
+          applicationId: body.target.applicationId as string
+        };
     try {
       return {
         contractVersion: '0.1.0',
         observations: await runtime.runtimeObservations.query({
           contractVersion: '0.1.0',
           enterpriseId: body.enterpriseId,
-          target: {
-            kind: 'LEDGER_DEFINITION',
-            code: body.target.code
-          },
+          target,
           window: {
             startAt: body.window.startAt,
             endAt: body.window.endAt
