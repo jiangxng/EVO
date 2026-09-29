@@ -11,6 +11,10 @@ export interface WorkItemView {
   readonly dimensions: JsonObject;
   readonly quantity: string;
   readonly amount: string;
+  readonly assignedActorType: string | null;
+  readonly assignedActorId: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
 }
 
 export interface WorkProjection {
