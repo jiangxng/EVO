@@ -315,6 +315,7 @@ The following Core-facing endpoints are implemented for the current alpha bounda
 GET  /api/v1/enterprises/:enterpriseCode
 GET  /api/v1/apps?enterprise_id=<id>
 GET  /api/v1/capabilities?enterprise_id=<id>
+GET  /api/v1/work-items?enterprise_id=<id>[&actor_type=<type>&actor_id=<id>&limit=<1..100>]
 POST /api/v1/commands
 ```
 
@@ -390,3 +391,46 @@ Additive changes are preferred. Breaking behavior or schema changes require an e
 
 ### Replay
 `prepareFullReplay()` returns the preserved cost method and cost pins needed to reconstruct the pre-replay valuation semantics.
+
+
+## Public WorkItem Read Boundary
+
+`GET /api/v1/work-items` exposes the current open operational WorkItem projection through a governed public read contract.
+
+Rules:
+
+- `enterprise_id` is required.
+- `actor_type` and `actor_id` are optional but must be supplied together.
+- `limit` defaults to 50 and is bounded to 1..100.
+- only CURRENT open/in-progress WorkItems are returned through the workflow module's `WorkProjection.listOpen()` boundary.
+- assignment filtering is exact; the API does not infer roles or ownership.
+- the response uses `Cache-Control: private, max-age=0, must-revalidate` and an ETag validator.
+- this endpoint is the product-facing read boundary. `/api/v1/demo/dashboard` remains reference/demo-only and MUST NOT be used by Host/App Platform production features.
+
+Response contract v0.1.0:
+
+```json
+{
+  "contractVersion": "0.1.0",
+  "enterpriseId": "enterprise-id",
+  "items": [
+    {
+      "id": "work-item-id",
+      "workType": "PRODUCE",
+      "title": "待生产",
+      "status": "OPEN",
+      "priority": 30,
+      "sourceLedgerCode": "pending_production",
+      "dimensions": {},
+      "quantity": "10",
+      "amount": "0",
+      "assignedActorType": null,
+      "assignedActorId": null,
+      "createdAt": "2026-09-29T00:00:00.000Z",
+      "updatedAt": "2026-09-29T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+The public read contract does not imply a generic "complete WorkItem" command. A WorkItem is a derived operational projection; completion remains the result of the authoritative business Command/Ledger transition that closes its source condition.
