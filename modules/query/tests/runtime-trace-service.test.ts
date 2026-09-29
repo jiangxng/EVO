@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 import { RuntimeTraceServiceV010 } from "../application/runtime-trace-service.js";
 
 test("runtime trace service validates window and canonical application filters", async () => {
-  const calls = [];
+  const calls: Array<{
+    enterpriseId: string;
+    startAt: Date;
+    endAt: Date;
+    applicationIds?: string[];
+  }> = [];
   const service = new RuntimeTraceServiceV010({
     async query(input) {
       calls.push(input);
