@@ -13,6 +13,9 @@ describe("RuntimeObservationServiceV010", () => {
     }> = [];
     const service = new RuntimeObservationServiceV010(
       {
+        async observeApplication() {
+          throw new Error("should not run");
+        },
         async observeLedger(input) {
           seen.push(input);
           return {
@@ -62,8 +65,87 @@ describe("RuntimeObservationServiceV010", () => {
     )).toBe(true);
   });
 
+  it("observes ApplicationAnchor BusinessData event count and frequency without exposing application instances", async () => {
+    const seen: Array<{
+      enterpriseId: string;
+      applicationId: string;
+      startAt: Date;
+      endAt: Date;
+    }> = [];
+    const service = new RuntimeObservationServiceV010(
+      {
+        async observeApplication(input) {
+          seen.push(input);
+          return { windowEventCount: 18 };
+        },
+        async observeLedger() {
+          throw new Error("should not run");
+        }
+      },
+      () => new Date("2026-09-29T00:00:00.000Z")
+    );
+
+    const result = await service.query({
+      contractVersion: "0.1.0",
+      enterpriseId: "enterprise:demo",
+      target: {
+        kind: "APPLICATION_ANCHOR",
+        applicationId: "sales-order"
+      },
+      window: {
+        startAt: "2026-09-28T08:00:00.000Z",
+        endAt: "2026-09-28T12:00:00.000Z"
+      },
+      metricCodes: ["event.count", "event.frequency"]
+    });
+
+    expect(seen).toHaveLength(1);
+    const observed = seen[0];
+    expect(observed).toBeDefined();
+    expect(observed!.applicationId).toBe("sales-order");
+    expect(result.map(item => [item.metricCode, item.value])).toEqual([
+      ["event.count", 18],
+      ["event.frequency", 4.5]
+    ]);
+    expect(result.every(item =>
+      item.target.kind === "APPLICATION_ANCHOR"
+      && item.target.applicationId === "sales-order"
+      && item.source.kind === "EVO_APPLICATION_RUNTIME"
+    )).toBe(true);
+  });
+
+  it("rejects Ledger-only metrics for ApplicationAnchor targets", async () => {
+    const service = new RuntimeObservationServiceV010({
+      async observeApplication() {
+        throw new Error("should not run");
+      },
+      async observeLedger() {
+        throw new Error("should not run");
+      }
+    });
+
+    await expect(service.query({
+      contractVersion: "0.1.0",
+      enterpriseId: "enterprise:demo",
+      target: {
+        kind: "APPLICATION_ANCHOR",
+        applicationId: "sales-order"
+      },
+      window: {
+        startAt: "2026-09-28T08:00:00.000Z",
+        endAt: "2026-09-28T12:00:00.000Z"
+      },
+      metricCodes: ["balance.quantity"]
+    })).rejects.toThrow(
+      "EVO_RUNTIME_OBSERVATION_APPLICATION_METRIC_UNSUPPORTED"
+    );
+  });
+
   it("fails closed on unsupported metrics instead of inventing semantics", async () => {
     const service = new RuntimeObservationServiceV010({
+      async observeApplication() {
+        throw new Error("should not run");
+      },
       async observeLedger() {
         throw new Error("should not run");
       }
@@ -88,6 +170,9 @@ describe("RuntimeObservationServiceV010", () => {
 
   it("fails closed when a requested quantity or amount unit is not unambiguous", async () => {
     const service = new RuntimeObservationServiceV010({
+      async observeApplication() {
+        throw new Error("should not run");
+      },
       async observeLedger() {
         return {
           windowEventCount: 2,
@@ -134,6 +219,9 @@ describe("RuntimeObservationServiceV010", () => {
 
   it("rejects zero or negative time windows", async () => {
     const service = new RuntimeObservationServiceV010({
+      async observeApplication() {
+        throw new Error("should not run");
+      },
       async observeLedger() {
         throw new Error("should not run");
       }

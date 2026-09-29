@@ -17,10 +17,15 @@ export interface EvoRuntimeObservationWindowV010 {
   endAt: string;
 }
 
-export interface EvoRuntimeObservationTargetV010 {
-  kind: "LEDGER_DEFINITION";
-  code: string;
-}
+export type EvoRuntimeObservationTargetV010 =
+  | {
+      kind: "LEDGER_DEFINITION";
+      code: string;
+    }
+  | {
+      kind: "APPLICATION_ANCHOR";
+      applicationId: string;
+    };
 
 export interface EvoRuntimeObservationQueryV010 {
   contractVersion: typeof EVO_RUNTIME_OBSERVATION_VERSION_V010;
@@ -42,7 +47,7 @@ export interface EvoRuntimeObservationV010 {
   window: EvoRuntimeObservationWindowV010;
   observedAt: string;
   source: {
-    kind: "EVO_LEDGER_RUNTIME";
+    kind: "EVO_LEDGER_RUNTIME" | "EVO_APPLICATION_RUNTIME";
     ref: string;
   };
 }
@@ -59,6 +64,10 @@ export interface EvoLedgerObservationAggregateV010 {
   balanceAmountCurrency: string | null;
 }
 
+export interface EvoApplicationObservationAggregateV010 {
+  windowEventCount: number;
+}
+
 export interface EvoRuntimeObservationReaderV010 {
   observeLedger(input: {
     enterpriseId: string;
@@ -66,4 +75,11 @@ export interface EvoRuntimeObservationReaderV010 {
     startAt: Date;
     endAt: Date;
   }): Promise<EvoLedgerObservationAggregateV010>;
+
+  observeApplication(input: {
+    enterpriseId: string;
+    applicationId: string;
+    startAt: Date;
+    endAt: Date;
+  }): Promise<EvoApplicationObservationAggregateV010>;
 }

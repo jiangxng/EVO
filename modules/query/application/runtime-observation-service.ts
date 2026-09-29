@@ -3,6 +3,7 @@ import {
   type EvoRuntimeObservationMetricCodeV010,
   type EvoRuntimeObservationQueryV010,
   type EvoRuntimeObservationReaderV010,
+  type EvoRuntimeObservationTargetV010,
   type EvoRuntimeObservationV010
 } from "../api/runtime-observations.js";
 
@@ -37,6 +38,42 @@ function validateMetricCodes(
   return result;
 }
 
+function applicationMetricCodes(
+  metricCodes: readonly EvoRuntimeObservationMetricCodeV010[]
+): void {
+  if (metricCodes.some(code =>
+    code !== "event.count" && code !== "event.frequency"
+  )) {
+    throw new Error(
+      "EVO_RUNTIME_OBSERVATION_APPLICATION_METRIC_UNSUPPORTED"
+    );
+  }
+}
+
+function normalizeTarget(
+  target: EvoRuntimeObservationTargetV010
+): EvoRuntimeObservationTargetV010 {
+  if (target?.kind === "LEDGER_DEFINITION") {
+    return {
+      kind: "LEDGER_DEFINITION",
+      code: requiredText(
+        target.code,
+        "EVO_RUNTIME_OBSERVATION_TARGET_INVALID"
+      )
+    };
+  }
+  if (target?.kind === "APPLICATION_ANCHOR") {
+    return {
+      kind: "APPLICATION_ANCHOR",
+      applicationId: requiredText(
+        target.applicationId,
+        "EVO_RUNTIME_OBSERVATION_TARGET_INVALID"
+      )
+    };
+  }
+  throw new Error("EVO_RUNTIME_OBSERVATION_TARGET_INVALID");
+}
+
 export class RuntimeObservationServiceV010 {
   constructor(
     private readonly reader: EvoRuntimeObservationReaderV010,
@@ -53,14 +90,7 @@ export class RuntimeObservationServiceV010 {
       request.enterpriseId,
       "EVO_RUNTIME_OBSERVATION_ENTERPRISE_REQUIRED"
     );
-    if (
-      request.target?.kind !== "LEDGER_DEFINITION"
-      || typeof request.target.code !== "string"
-      || !request.target.code.trim()
-    ) {
-      throw new Error("EVO_RUNTIME_OBSERVATION_TARGET_INVALID");
-    }
-    const ledgerCode = request.target.code.trim();
+    const target = normalizeTarget(request.target);
     const startAt = parseInstant(
       request.window?.startAt,
       "EVO_RUNTIME_OBSERVATION_WINDOW_INVALID"
@@ -73,9 +103,52 @@ export class RuntimeObservationServiceV010 {
       throw new Error("EVO_RUNTIME_OBSERVATION_WINDOW_INVALID");
     }
     const metricCodes = validateMetricCodes(request.metricCodes);
+    const durationHours = (endAt.getTime() - startAt.getTime()) / 3_600_000;
+    const observedAt = this.now().toISOString();
+    const window = {
+      startAt: startAt.toISOString(),
+      endAt: endAt.toISOString()
+    };
+
+    if (target.kind === "APPLICATION_ANCHOR") {
+      applicationMetricCodes(metricCodes);
+      const aggregate = await this.reader.observeApplication({
+        enterpriseId,
+        applicationId: target.applicationId,
+        startAt,
+        endAt
+      });
+      if (
+        typeof aggregate.windowEventCount !== "number"
+        || !Number.isFinite(aggregate.windowEventCount)
+        || aggregate.windowEventCount < 0
+      ) {
+        throw new Error("EVO_RUNTIME_OBSERVATION_READER_INVALID");
+      }
+      const source = {
+        kind: "EVO_APPLICATION_RUNTIME" as const,
+        ref: "application:" + target.applicationId
+      };
+      return metricCodes.map(code => ({
+        contractVersion: "0.1.0",
+        enterpriseId,
+        target,
+        metricCode: code,
+        kind: code === "event.count" ? "COUNT" as const : "RATE" as const,
+        unit: code === "event.count" ? "events" : "events/hour",
+        value: code === "event.count"
+          ? aggregate.windowEventCount
+          : aggregate.windowEventCount / durationHours,
+        sampleCount: aggregate.windowEventCount,
+        window,
+        observedAt,
+        source
+      }));
+    }
+
     const aggregate = await this.reader.observeLedger({
       enterpriseId,
-      ledgerCode,
+      ledgerCode: target.code,
       startAt,
       endAt
     });
@@ -94,15 +167,9 @@ export class RuntimeObservationServiceV010 {
       throw new Error("EVO_RUNTIME_OBSERVATION_READER_INVALID");
     }
 
-    const durationHours = (endAt.getTime() - startAt.getTime()) / 3_600_000;
-    const observedAt = this.now().toISOString();
-    const window = {
-      startAt: startAt.toISOString(),
-      endAt: endAt.toISOString()
-    };
     const source = {
       kind: "EVO_LEDGER_RUNTIME" as const,
-      ref: "ledger:" + ledgerCode
+      ref: "ledger:" + target.code
     };
 
     const make = (
@@ -114,10 +181,7 @@ export class RuntimeObservationServiceV010 {
     ): EvoRuntimeObservationV010 => ({
       contractVersion: "0.1.0",
       enterpriseId,
-      target: {
-        kind: "LEDGER_DEFINITION",
-        code: ledgerCode
-      },
+      target,
       metricCode,
       kind,
       unit,
