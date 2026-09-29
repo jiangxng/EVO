@@ -79,7 +79,13 @@ export class RuntimeObservationServiceV010 {
       startAt,
       endAt
     });
-    for (const value of Object.values(aggregate)) {
+    for (const value of [
+      aggregate.windowEventCount,
+      aggregate.windowQuantity,
+      aggregate.windowAmount,
+      aggregate.balanceQuantityAtEnd,
+      aggregate.balanceAmountAtEnd
+    ]) {
       if (typeof value !== "number" || !Number.isFinite(value)) {
         throw new Error("EVO_RUNTIME_OBSERVATION_READER_INVALID");
       }
