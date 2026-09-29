@@ -115,6 +115,10 @@ export class PostgresRuntimeObservationReaderV010
     if (matches.length > 1) {
       throw new Error("EVO_RUNTIME_OBSERVATION_APPLICATION_AMBIGUOUS");
     }
+    const match = matches[0];
+    if (!match) {
+      throw new Error("EVO_RUNTIME_OBSERVATION_APPLICATION_NOT_FOUND");
+    }
 
     const window = await this.db
       .selectFrom("business_data")
@@ -122,7 +126,7 @@ export class PostgresRuntimeObservationReaderV010
         fn.countAll<number>().as("event_count")
       ])
       .where("enterprise_id", "=", input.enterpriseId)
-      .where("application_instance_id", "=", matches[0].id)
+      .where("application_instance_id", "=", match.id)
       .where("effective_at", ">=", input.startAt)
       .where("effective_at", "<", input.endAt)
       .executeTakeFirstOrThrow();
