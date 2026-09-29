@@ -128,6 +128,59 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
     }
   });
 
+  app.post('/api/v1/runtime-traces/query', async request => {
+    const body = request.body as {
+      contractVersion?: unknown;
+      enterpriseId?: unknown;
+      window?: { startAt?: unknown; endAt?: unknown };
+      applicationIds?: unknown;
+    };
+    if (
+      body.contractVersion !== '0.1.0'
+      || typeof body.enterpriseId !== 'string'
+      || typeof body.window?.startAt !== 'string'
+      || typeof body.window.endAt !== 'string'
+      || (
+        body.applicationIds !== undefined
+        && !Array.isArray(body.applicationIds)
+      )
+    ) {
+      throw new AppError({
+        code: 'RUNTIME_TRACE_REQUEST_INVALID',
+        message: 'Runtime trace query is invalid.',
+        module: 'api',
+        operation: 'queryRuntimeTraces'
+      });
+    }
+    try {
+      return {
+        contractVersion: '0.1.0',
+        traces: await runtime.runtimeTraces.query({
+          contractVersion: '0.1.0',
+          enterpriseId: body.enterpriseId,
+          window: {
+            startAt: body.window.startAt,
+            endAt: body.window.endAt
+          },
+          ...(Array.isArray(body.applicationIds)
+            ? { applicationIds: body.applicationIds as string[] }
+            : {})
+        })
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const code = /^[A-Z0-9_]+$/u.test(message)
+        ? message
+        : 'RUNTIME_TRACE_QUERY_FAILED';
+      throw new AppError({
+        code,
+        message,
+        module: 'api',
+        operation: 'queryRuntimeTraces'
+      });
+    }
+  });
+
   app.get('/api/v1/configurator/status', async () => {
     const enterprise = await runtime.db.selectFrom('enterprise')
       .select(['id','code','name'])
