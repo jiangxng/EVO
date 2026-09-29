@@ -199,7 +199,11 @@ export class PostgresWorkProjection implements WorkProjection {
       sourceLedgerCode: row.source_ledger_code,
       dimensions: row.source_dimensions as JsonObject,
       quantity: row.source_quantity,
-      amount: row.source_amount
+      amount: row.source_amount,
+      assignedActorType: row.assigned_actor_type,
+      assignedActorId: row.assigned_actor_id,
+      createdAt: row.created_at.toISOString(),
+      updatedAt: row.updated_at.toISOString()
     }));
   }
 }
