@@ -222,6 +222,58 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
   });
   app.get('/api/v1/apps',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listApplications'});return runtime.capabilityDiscovery.listApplications(q.enterprise_id);});
   app.get('/api/v1/capabilities',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listCapabilities'});return runtime.capabilityDiscovery.listCapabilities(q.enterprise_id);});
+  app.get('/api/v1/work-items',async (request,reply)=>{
+   const q=request.query as {
+    enterprise_id?:string;
+    actor_type?:string;
+    actor_id?:string;
+    limit?:string;
+   };
+   if(q.enterprise_id===undefined||q.enterprise_id.trim().length===0){
+    throw new AppError({
+     code:'ENTERPRISE_SCOPE_REQUIRED',
+     message:'enterprise_id query parameter is required.',
+     module:'api',
+     operation:'listWorkItems'
+    });
+   }
+   if((q.actor_type===undefined)!==(q.actor_id===undefined)){
+    throw new AppError({
+     code:'WORK_ITEM_ACTOR_FILTER_INVALID',
+     message:'actor_type and actor_id must be supplied together.',
+     module:'api',
+     operation:'listWorkItems'
+    });
+   }
+   const parsedLimit=q.limit===undefined?50:Number(q.limit);
+   if(!Number.isInteger(parsedLimit)||parsedLimit<1||parsedLimit>100){
+    throw new AppError({
+     code:'WORK_ITEM_LIMIT_INVALID',
+     message:'limit must be an integer from 1 to 100.',
+     module:'api',
+     operation:'listWorkItems'
+    });
+   }
+   const all=await runtime.work.listOpen(q.enterprise_id.trim());
+   const filtered=q.actor_type===undefined
+    ? all
+    : all.filter(item=>
+       item.assignedActorType===q.actor_type
+       && item.assignedActorId===q.actor_id
+      );
+   const body={
+    contractVersion:'0.1.0' as const,
+    enterpriseId:q.enterprise_id.trim(),
+    items:filtered.slice(0,parsedLimit)
+   };
+   const etag=representationEtagV010(body);
+   reply.header('etag',etag);
+   reply.header('cache-control','private, max-age=0, must-revalidate');
+   if(ifNoneMatchSatisfiedV010(request.headers['if-none-match'],etag)){
+    return reply.code(304).send();
+   }
+   return body;
+  });
   app.post('/api/v1/commands',async request=>{
    const body=request.body as PublicCommandBody;
    const enterpriseId=requireText(body.enterpriseId,'enterpriseId');
