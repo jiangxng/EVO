@@ -199,15 +199,16 @@ EVO exposes a generic Host-facing read boundary for time-scoped operational obse
 POST /api/v1/runtime-observations/query
 ```
 
-The v0.1 target is deliberately narrow and canonical:
+The v0.1 target is deliberately narrow and canonical.
 
-- target kind: `LEDGER_DEFINITION`;
-- target identity: stable LedgerDefinition code;
-- explicit `startAt/endAt` time window;
-- explicit metric allow-list;
-- historical balance is reconstructed from immutable LedgerEntry data as of `endAt`.
+Supported targets:
 
-Supported metrics:
+- `LEDGER_DEFINITION`, identified by stable LedgerDefinition code;
+- `APPLICATION_ANCHOR`, identified only by stable `applicationId`.
+
+All queries use an explicit `startAt/endAt` time window and metric allow-list. Historical Ledger balance is reconstructed from immutable LedgerEntry data as of `endAt`.
+
+LedgerDefinition metrics:
 
 - `event.count`;
 - `event.frequency` in events/hour;
@@ -215,6 +216,13 @@ Supported metrics:
 - `flow.net_amount`;
 - `balance.quantity`;
 - `balance.amount`.
+
+ApplicationAnchor metrics:
+
+- `event.count`;
+- `event.frequency` in events/hour.
+
+Application observation counts accepted BusinessData for the exact ApplicationAnchor inside the requested window. It does not expose or require EVO-private `application_instance_id`. The current alpha storage reader resolves the existing compatibility ApplicationInstance from an exact `sourceApplicationId` configuration match; this is a replaceable compatibility adapter until the ApplicationAnchor/applicationId runtime convergence is completed.
 
 This API does not expose database rows, EOG node IDs, renderer state, SOP interpretation or bottleneck judgments. Those remain Host/Provider concerns.
 
