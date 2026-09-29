@@ -42,7 +42,7 @@ test("runtime trace service validates window and canonical application filters",
   });
 
   assert.equal(result.length, 1);
-  assert.deepEqual(calls[0].applicationIds, ["sales-order"]);
+  assert.deepEqual(calls[0]!.applicationIds, ["sales-order"]);
   assert.throws(
     () => service.query({
       contractVersion: "0.1.0",
