@@ -14,6 +14,19 @@ function numeric(value: unknown): number {
   return parsed;
 }
 
+function singleObservedText(
+  rows: readonly { value: string | null }[],
+  mixedCode: string
+): string | null {
+  const values = [...new Set(
+    rows
+      .map(row => row.value?.trim())
+      .filter((value): value is string => Boolean(value))
+  )];
+  if (values.length > 1) throw new Error(mixedCode);
+  return values[0] ?? null;
+}
+
 export class PostgresRuntimeObservationReaderV010
   implements EvoRuntimeObservationReaderV010 {
   constructor(private readonly db: Kysely<Database>) {}
@@ -122,12 +135,78 @@ export class PostgresRuntimeObservationReaderV010
       .where("effective_at", "<", input.endAt)
       .executeTakeFirstOrThrow();
 
+    const windowQuantityUnits = await this.db
+      .selectFrom("ledger_entry")
+      .select("unit as value")
+      .distinct()
+      .where("enterprise_id", "=", input.enterpriseId)
+      .where("consistency_domain", "=", dataset.consistencyDomain)
+      .where("ledger_dataset_id", "=", dataset.ledgerDatasetId)
+      .where("ledger_definition_id", "=", definition.id)
+      .where("effective_at", ">=", input.startAt)
+      .where("effective_at", "<", input.endAt)
+      .where("quantity", "is not", null)
+      .execute();
+
+    const windowAmountCurrencies = await this.db
+      .selectFrom("ledger_entry")
+      .select("currency as value")
+      .distinct()
+      .where("enterprise_id", "=", input.enterpriseId)
+      .where("consistency_domain", "=", dataset.consistencyDomain)
+      .where("ledger_dataset_id", "=", dataset.ledgerDatasetId)
+      .where("ledger_definition_id", "=", definition.id)
+      .where("effective_at", ">=", input.startAt)
+      .where("effective_at", "<", input.endAt)
+      .where("amount", "is not", null)
+      .execute();
+
+    const balanceQuantityUnits = await this.db
+      .selectFrom("ledger_entry")
+      .select("unit as value")
+      .distinct()
+      .where("enterprise_id", "=", input.enterpriseId)
+      .where("consistency_domain", "=", dataset.consistencyDomain)
+      .where("ledger_dataset_id", "=", dataset.ledgerDatasetId)
+      .where("ledger_definition_id", "=", definition.id)
+      .where("effective_at", "<", input.endAt)
+      .where("quantity", "is not", null)
+      .execute();
+
+    const balanceAmountCurrencies = await this.db
+      .selectFrom("ledger_entry")
+      .select("currency as value")
+      .distinct()
+      .where("enterprise_id", "=", input.enterpriseId)
+      .where("consistency_domain", "=", dataset.consistencyDomain)
+      .where("ledger_dataset_id", "=", dataset.ledgerDatasetId)
+      .where("ledger_definition_id", "=", definition.id)
+      .where("effective_at", "<", input.endAt)
+      .where("amount", "is not", null)
+      .execute();
+
     return {
       windowEventCount: numeric(window.event_count),
       windowQuantity: numeric(window.quantity_sum),
+      windowQuantityUnit: singleObservedText(
+        windowQuantityUnits,
+        "EVO_RUNTIME_OBSERVATION_MIXED_QUANTITY_UNITS"
+      ),
       windowAmount: numeric(window.amount_sum),
+      windowAmountCurrency: singleObservedText(
+        windowAmountCurrencies,
+        "EVO_RUNTIME_OBSERVATION_MIXED_AMOUNT_CURRENCIES"
+      ),
       balanceQuantityAtEnd: numeric(balance.quantity_sum),
-      balanceAmountAtEnd: numeric(balance.amount_sum)
+      balanceQuantityUnit: singleObservedText(
+        balanceQuantityUnits,
+        "EVO_RUNTIME_OBSERVATION_MIXED_QUANTITY_UNITS"
+      ),
+      balanceAmountAtEnd: numeric(balance.amount_sum),
+      balanceAmountCurrency: singleObservedText(
+        balanceAmountCurrencies,
+        "EVO_RUNTIME_OBSERVATION_MIXED_AMOUNT_CURRENCIES"
+      )
     };
   }
 }
