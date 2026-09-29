@@ -62,10 +62,11 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
       };
       metricCodes?: unknown;
     };
-    const validTarget = body.target?.kind === 'LEDGER_DEFINITION'
-      ? typeof body.target.code === 'string'
-      : body.target?.kind === 'APPLICATION_ANCHOR'
-        ? typeof body.target.applicationId === 'string'
+    const targetBody = body.target;
+    const validTarget = targetBody?.kind === 'LEDGER_DEFINITION'
+      ? typeof targetBody.code === 'string'
+      : targetBody?.kind === 'APPLICATION_ANCHOR'
+        ? typeof targetBody.applicationId === 'string'
         : false;
     if (
       body.contractVersion !== '0.1.0'
@@ -82,14 +83,22 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
         operation: 'queryRuntimeObservations'
       });
     }
-    const target = body.target.kind === 'LEDGER_DEFINITION'
+    if (!targetBody) {
+      throw new AppError({
+        code: 'RUNTIME_OBSERVATION_REQUEST_INVALID',
+        message: 'Runtime observation target is required.',
+        module: 'api',
+        operation: 'queryRuntimeObservations'
+      });
+    }
+    const target = targetBody.kind === 'LEDGER_DEFINITION'
       ? {
           kind: 'LEDGER_DEFINITION' as const,
-          code: body.target.code as string
+          code: targetBody.code as string
         }
       : {
           kind: 'APPLICATION_ANCHOR' as const,
-          applicationId: body.target.applicationId as string
+          applicationId: targetBody.applicationId as string
         };
     try {
       return {
