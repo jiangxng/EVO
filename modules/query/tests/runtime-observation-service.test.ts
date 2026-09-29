@@ -18,9 +18,13 @@ describe("RuntimeObservationServiceV010", () => {
           return {
             windowEventCount: 12,
             windowQuantity: 45,
+            windowQuantityUnit: "pcs",
             windowAmount: 900,
+            windowAmountCurrency: "USD",
             balanceQuantityAtEnd: 180,
-            balanceAmountAtEnd: 3600
+            balanceQuantityUnit: "pcs",
+            balanceAmountAtEnd: 3600,
+            balanceAmountCurrency: "USD"
           };
         }
       },
@@ -80,6 +84,52 @@ describe("RuntimeObservationServiceV010", () => {
         "event.count"
       ]
     })).rejects.toThrow("EVO_RUNTIME_OBSERVATION_METRIC_UNSUPPORTED");
+  });
+
+  it("fails closed when a requested quantity or amount unit is not unambiguous", async () => {
+    const service = new RuntimeObservationServiceV010({
+      async observeLedger() {
+        return {
+          windowEventCount: 2,
+          windowQuantity: 15,
+          windowQuantityUnit: null,
+          windowAmount: 180,
+          windowAmountCurrency: null,
+          balanceQuantityAtEnd: 15,
+          balanceQuantityUnit: null,
+          balanceAmountAtEnd: 180,
+          balanceAmountCurrency: null
+        };
+      }
+    });
+
+    await expect(service.query({
+      contractVersion: "0.1.0",
+      enterpriseId: "enterprise:demo",
+      target: {
+        kind: "LEDGER_DEFINITION",
+        code: "mixed"
+      },
+      window: {
+        startAt: "2026-09-28T08:00:00.000Z",
+        endAt: "2026-09-28T12:00:00.000Z"
+      },
+      metricCodes: ["balance.quantity"]
+    })).rejects.toThrow("EVO_RUNTIME_OBSERVATION_QUANTITY_UNIT_UNAVAILABLE");
+
+    await expect(service.query({
+      contractVersion: "0.1.0",
+      enterpriseId: "enterprise:demo",
+      target: {
+        kind: "LEDGER_DEFINITION",
+        code: "mixed"
+      },
+      window: {
+        startAt: "2026-09-28T08:00:00.000Z",
+        endAt: "2026-09-28T12:00:00.000Z"
+      },
+      metricCodes: ["flow.net_amount"]
+    })).rejects.toThrow("EVO_RUNTIME_OBSERVATION_AMOUNT_CURRENCY_UNAVAILABLE");
   });
 
   it("rejects zero or negative time windows", async () => {

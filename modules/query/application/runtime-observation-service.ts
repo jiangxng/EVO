@@ -79,7 +79,13 @@ export class RuntimeObservationServiceV010 {
       startAt,
       endAt
     });
-    for (const value of Object.values(aggregate)) {
+    for (const value of [
+      aggregate.windowEventCount,
+      aggregate.windowQuantity,
+      aggregate.windowAmount,
+      aggregate.balanceQuantityAtEnd,
+      aggregate.balanceAmountAtEnd
+    ]) {
       if (typeof value !== "number" || !Number.isFinite(value)) {
         throw new Error("EVO_RUNTIME_OBSERVATION_READER_INVALID");
       }
@@ -141,33 +147,45 @@ export class RuntimeObservationServiceV010 {
             aggregate.windowEventCount
           );
         case "flow.net_quantity":
+          if (!aggregate.windowQuantityUnit) {
+            throw new Error("EVO_RUNTIME_OBSERVATION_QUANTITY_UNIT_UNAVAILABLE");
+          }
           return make(
             code,
             "QUANTITY",
-            "ledger-unit",
+            aggregate.windowQuantityUnit,
             aggregate.windowQuantity,
             aggregate.windowEventCount
           );
         case "flow.net_amount":
+          if (!aggregate.windowAmountCurrency) {
+            throw new Error("EVO_RUNTIME_OBSERVATION_AMOUNT_CURRENCY_UNAVAILABLE");
+          }
           return make(
             code,
             "AMOUNT",
-            "ledger-amount",
+            aggregate.windowAmountCurrency,
             aggregate.windowAmount,
             aggregate.windowEventCount
           );
         case "balance.quantity":
+          if (!aggregate.balanceQuantityUnit) {
+            throw new Error("EVO_RUNTIME_OBSERVATION_QUANTITY_UNIT_UNAVAILABLE");
+          }
           return make(
             code,
             "QUANTITY",
-            "ledger-unit",
+            aggregate.balanceQuantityUnit,
             aggregate.balanceQuantityAtEnd
           );
         case "balance.amount":
+          if (!aggregate.balanceAmountCurrency) {
+            throw new Error("EVO_RUNTIME_OBSERVATION_AMOUNT_CURRENCY_UNAVAILABLE");
+          }
           return make(
             code,
             "AMOUNT",
-            "ledger-amount",
+            aggregate.balanceAmountCurrency,
             aggregate.balanceAmountAtEnd
           );
       }

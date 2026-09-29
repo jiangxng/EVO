@@ -50,9 +50,13 @@ export interface EvoRuntimeObservationV010 {
 export interface EvoLedgerObservationAggregateV010 {
   windowEventCount: number;
   windowQuantity: number;
+  windowQuantityUnit: string | null;
   windowAmount: number;
+  windowAmountCurrency: string | null;
   balanceQuantityAtEnd: number;
+  balanceQuantityUnit: string | null;
   balanceAmountAtEnd: number;
+  balanceAmountCurrency: string | null;
 }
 
 export interface EvoRuntimeObservationReaderV010 {
