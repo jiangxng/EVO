@@ -5,7 +5,12 @@ import {
 
 describe("RuntimeObservationServiceV010", () => {
   it("derives deterministic window flow, historical balance and event frequency", async () => {
-    const seen = [];
+    const seen: Array<{
+      enterpriseId: string;
+      ledgerCode: string;
+      startAt: Date;
+      endAt: Date;
+    }> = [];
     const service = new RuntimeObservationServiceV010(
       {
         async observeLedger(input) {
@@ -71,7 +76,9 @@ describe("RuntimeObservationServiceV010", () => {
         startAt: "2026-09-28T08:00:00.000Z",
         endAt: "2026-09-28T12:00:00.000Z"
       },
-      metricCodes: ["flow.wip"]
+      metricCodes: ["flow.wip"] as unknown as [
+        "event.count"
+      ]
     })).rejects.toThrow("EVO_RUNTIME_OBSERVATION_METRIC_UNSUPPORTED");
   });
 
