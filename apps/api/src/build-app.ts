@@ -2,6 +2,9 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import type { DatabaseHandle } from '../../../platform/database/src/index.js';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { JsonObject, JsonValue } from '../../../modules/metadata/api/contracts.js';
+import type {
+  EvoRuntimeObservationMetricCodeV010
+} from '../../../modules/query/api/runtime-observations.js';
 import { legacyEnterpriseTemplateV1 } from '../../../modules/enterprise-template/reference/legacy-enterprise-template-v1.js';
 import { enterpriseCoreV1 } from '../../../modules/enterprise-template/reference/enterprise-core-v1.js';
 import { createEvoRuntime, demoIds, drainPosting } from './evo-runtime.js';
@@ -44,6 +47,67 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
     const body = request.body as ConfiguratorSubmitBody;
     return submitConfiguratorBusinessData(runtime, request.id, body);
   });
+  app.post('/api/v1/runtime-observations/query', async request => {
+    const body = request.body as {
+      contractVersion?: unknown;
+      enterpriseId?: unknown;
+      target?: {
+        kind?: unknown;
+        code?: unknown;
+      };
+      window?: {
+        startAt?: unknown;
+        endAt?: unknown;
+      };
+      metricCodes?: unknown;
+    };
+    if (
+      body.contractVersion !== '0.1.0'
+      || typeof body.enterpriseId !== 'string'
+      || body.target?.kind !== 'LEDGER_DEFINITION'
+      || typeof body.target.code !== 'string'
+      || typeof body.window?.startAt !== 'string'
+      || typeof body.window.endAt !== 'string'
+      || !Array.isArray(body.metricCodes)
+    ) {
+      throw new AppError({
+        code: 'RUNTIME_OBSERVATION_REQUEST_INVALID',
+        message: 'Runtime observation query is invalid.',
+        module: 'api',
+        operation: 'queryRuntimeObservations'
+      });
+    }
+    try {
+      return {
+        contractVersion: '0.1.0',
+        observations: await runtime.runtimeObservations.query({
+          contractVersion: '0.1.0',
+          enterpriseId: body.enterpriseId,
+          target: {
+            kind: 'LEDGER_DEFINITION',
+            code: body.target.code
+          },
+          window: {
+            startAt: body.window.startAt,
+            endAt: body.window.endAt
+          },
+          metricCodes: body.metricCodes as EvoRuntimeObservationMetricCodeV010[]
+        })
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const code = /^[A-Z0-9_]+$/u.test(message)
+        ? message
+        : 'RUNTIME_OBSERVATION_QUERY_FAILED';
+      throw new AppError({
+        code,
+        message,
+        module: 'api',
+        operation: 'queryRuntimeObservations'
+      });
+    }
+  });
+
   app.get('/api/v1/configurator/status', async () => {
     const enterprise = await runtime.db.selectFrom('enterprise')
       .select(['id','code','name'])
