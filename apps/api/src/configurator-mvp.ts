@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { sql, type Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 import type { JsonObject, JsonValue } from '../../../modules/metadata/api/contracts.js';
+import type { CommandLineage } from '../../../modules/command/api/contracts.js';
 import { drainPosting } from './evo-runtime.js';
 
 type Direction = 'DEBIT' | 'CREDIT' | 'ADD' | 'SUB';
@@ -39,6 +40,7 @@ export interface ConfiguratorSubmitBody {
   applicationId: string;
   payload: JsonObject;
   businessObjectKey?: string;
+  lineage?: CommandLineage;
 }
 
 function shortHash(value: string): string {
@@ -63,6 +65,48 @@ function ledgerCode(ledgerId: number): string {
 
 function asJsonObject(value: unknown): JsonObject {
   return value as JsonObject;
+}
+
+function normalizedLineage(value: CommandLineage | undefined): CommandLineage | undefined {
+  if (value === undefined) return undefined;
+  const text = (candidate: unknown, code: string): string => {
+    if (typeof candidate !== 'string' || !candidate.trim()) throw new Error(code);
+    return candidate.trim();
+  };
+  const relation = value.relationType;
+  if (
+    relation !== undefined
+    && relation !== 'CAUSES'
+    && relation !== 'FULFILLS'
+    && relation !== 'ALLOCATES_TO'
+    && relation !== 'DERIVES_FROM'
+    && relation !== 'REFERENCES'
+  ) {
+    throw new Error('CONFIGURATOR_RUNTIME_FLOW_RELATION_INVALID');
+  }
+  return {
+    flowDefinitionId: text(
+      value.flowDefinitionId,
+      'CONFIGURATOR_RUNTIME_FLOW_DEFINITION_REQUIRED'
+    ),
+    flowInstanceKey: text(
+      value.flowInstanceKey,
+      'CONFIGURATOR_RUNTIME_FLOW_INSTANCE_REQUIRED'
+    ),
+    stepCode: text(
+      value.stepCode,
+      'CONFIGURATOR_RUNTIME_FLOW_STEP_REQUIRED'
+    ),
+    ...(value.parentBusinessDataId === undefined
+      ? {}
+      : {
+          parentBusinessDataId: text(
+            value.parentBusinessDataId,
+            'CONFIGURATOR_RUNTIME_FLOW_PARENT_REQUIRED'
+          )
+        }),
+    ...(relation === undefined ? {} : { relationType: relation })
+  };
 }
 
 export async function burnConfiguratorConfiguration(
@@ -318,13 +362,16 @@ export async function submitConfiguratorBusinessData(
         input: JsonObject;
         effectiveAt: Date;
         businessObjectKey: string;
+        lineage?: CommandLineage;
       }): Promise<{
+        commandExecutionId: string;
         businessDataId: string;
         postingInputId: string;
         postingSequence: bigint;
         postingStatus: 'QUEUED' | 'BLOCKED_REPLAY_REQUIRED';
       }>;
     };
+    flow: { projectCommand(commandExecutionId: string): Promise<void> };
     posting: { processNext(enterpriseId: string): Promise<unknown> };
     work: { refresh(enterpriseId: string): Promise<unknown> };
   },
@@ -347,6 +394,7 @@ export async function submitConfiguratorBusinessData(
     .executeTakeFirstOrThrow();
 
   const objectKey = input.businessObjectKey?.trim() || `MVP-${Date.now()}`;
+  const lineage = normalizedLineage(input.lineage);
   const command = await runtime.command.execute({
     enterpriseId: enterprise.id,
     applicationInstanceId: instance.id,
@@ -357,8 +405,13 @@ export async function submitConfiguratorBusinessData(
     idempotencyKey: `${objectKey}:${requestId}`,
     input: input.payload,
     effectiveAt: new Date(),
-    businessObjectKey: objectKey
+    businessObjectKey: objectKey,
+    ...(lineage === undefined ? {} : { lineage })
   });
+
+  if (lineage !== undefined) {
+    await runtime.flow.projectCommand(command.commandExecutionId);
+  }
 
   const posted = await drainPosting(runtime as never, enterprise.id);
 
@@ -396,6 +449,7 @@ export async function submitConfiguratorBusinessData(
     applicationId: input.applicationId,
     businessObjectKey: objectKey,
     command: {
+      commandExecutionId: command.commandExecutionId,
       businessDataId: command.businessDataId,
       postingInputId: command.postingInputId,
       postingSequence: command.postingSequence.toString(),
