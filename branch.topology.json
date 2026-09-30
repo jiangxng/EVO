@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "EVO",
   "authority": "machine-readable-branch-analysis-contract",
-  "updatedAt": "2026-09-24",
+  "updatedAt": "2026-09-30",
   "authoritativeBranch": "main",
   "analysisRules": [
     "Never infer branch authority from branch name, commit count, age, or open/closed PR state alone.",
@@ -17,7 +17,8 @@
     "Bundle branches must remain business-bounded: do not mix unrelated capabilities, speculative platform work, broad refactors, or opportunistic cleanup into the same PR.",
     "For an ACTIVE_WORK bundle, inspect project.status.json open/closed gates and the PR evidence to determine which sub-gates are implemented or verified; do not infer all numbered slices are complete merely because they share a branch.",
     "Prefer fewer evidence-complete branches over mechanically tiny branches when auditability, rollback clarity, and failure localization remain intact.",
-    "After a bundle is merged, main becomes the only authoritative source of those capabilities; the source branch becomes MERGED_MILESTONE and must not be revived for new work."
+    "After a bundle is merged, main becomes the only authoritative source of those capabilities; the source branch becomes MERGED_MILESTONE and must not be revived for new work.",
+    "branchClasses may retain historical records after their Git refs are deleted; refRetired=true means the name is evidence only and is not expected in the live branch list."
   ],
   "branchClasses": {
     "main": {
@@ -30,35 +31,45 @@
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "Former certified integration branch merged by PR #3. Retained as historical milestone."
+      "description": "Former certified integration branch merged by PR #3. Retained as historical milestone.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/er-c05b4-4b-read-routing-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "B4.4B verified read-routing/failure-matrix slice merged by PR #4."
+      "description": "B4.4B verified read-routing/failure-matrix slice merged by PR #4.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/llm-progress-markers-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "LLM progress-governance slice merged by PR #5."
+      "description": "LLM progress-governance slice merged by PR #5.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/enterprise-package-v0.1": {
       "class": "ANCESTOR_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "evo/apm-certification-enterprise-template-v0.1",
-      "description": "Historical ancestor whose content was absorbed by the later certified integration branch."
+      "description": "Historical ancestor whose content was absorbed by the later certified integration branch.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/recovery-full-template-build": {
       "class": "ANCESTOR_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "evo/apm-certification-enterprise-template-v0.1",
-      "description": "Historical recovery/build ancestor fully absorbed by the certified integration branch."
+      "description": "Historical recovery/build ancestor fully absorbed by the certified integration branch.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "convergence/upstream-readiness-v0.2.1": {
       "class": "DIVERGED_HISTORICAL",
@@ -66,7 +77,9 @@
       "containedByMain": false,
       "pr": 1,
       "prDisposition": "CLOSED_SUPERSEDED",
-      "description": "Early Convergence readiness evidence. May be mined selectively; do not merge as a branch."
+      "description": "Early Convergence readiness evidence. May be mined selectively; do not merge as a branch.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "v0.3.0-apm-runtime": {
       "class": "DIVERGED_HISTORICAL",
@@ -74,70 +87,90 @@
       "containedByMain": false,
       "pr": 2,
       "prDisposition": "CLOSED_SUPERSEDED",
-      "description": "Early APM runtime integration experiment. PR #3 explicitly rejected wholesale merge; generic public-boundary work was reimplemented under EVO ownership."
+      "description": "Early APM runtime integration experiment. PR #3 explicitly rejected wholesale merge; generic public-boundary work was reimplemented under EVO ownership.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/branch-topology-contract-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "Deterministic branch-topology governance slice merged by PR #6."
+      "description": "Deterministic branch-topology governance slice merged by PR #6.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/branch-topology-drift-fix-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "description": "Bounded governance correction removing self-invalidating exact-main-HEAD semantics.",
-      "supersededBy": "main"
+      "supersededBy": "main",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/er-c05b4-4b-multigeneration-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "description": "ER-C05B4.4B consecutive multi-generation activation slice; PostgreSQL 18 E2E verified, ready to merge.",
-      "supersededBy": "main"
+      "supersededBy": "main",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/er-c05b4-4b-worker-concurrency-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "ER-C05B4.4B Worker/Activation concurrency slice; PostgreSQL cutover-lock and CURRENT live-tail E2E merged by PR #9."
+      "description": "ER-C05B4.4B Worker/Activation concurrency slice; PostgreSQL cutover-lock and CURRENT live-tail E2E merged by PR #9.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/er-c05b4-4b-crash-retry-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "ER-C05B4.4B crash/retry, invalidated-checkpoint, and final activation-safety certification slice merged by PR #10."
+      "description": "ER-C05B4.4B crash/retry, invalidated-checkpoint, and final activation-safety certification slice merged by PR #10.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/stage-e-o2c-packet-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "Stage E / EEL-C01 planning packet merged by PR #11."
+      "description": "Stage E / EEL-C01 planning packet merged by PR #11.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-receipt-posting-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "EEL-C01.1/C01.2 cash.received dual-measurement posting slice merged by PR #12."
+      "description": "EEL-C01.1/C01.2 cash.received dual-measurement posting slice merged by PR #12.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-settlement-allocation-v0.1": {
       "class": "ABANDONED",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": false,
       "pr": 13,
-      "description": "Superseded EEL-C01.3 attempt. Valuable implementation evidence, but diverged after governance changes and had a brittle global replay-count assertion."
+      "description": "Superseded EEL-C01.3 attempt. Valuable implementation evidence, but diverged after governance changes and had a brittle global replay-count assertion.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/human-llm-requirement-alignment-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "Human–LLM requirement alignment and anti-overdesign governance merged by PR #14."
+      "description": "Human–LLM requirement alignment and anti-overdesign governance merged by PR #14.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-settlement-allocation-v0.2": {
       "class": "MERGED_MILESTONE",
@@ -145,7 +178,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 15,
-      "description": "EEL-C01.3 canonical cash.received explicit settlement allocation and realized-FX slice merged after PostgreSQL 18 E2E."
+      "description": "EEL-C01.3 canonical cash.received explicit settlement allocation and realized-FX slice merged after PostgreSQL 18 E2E.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-work-closure-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -153,7 +188,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 16,
-      "description": "EEL-C01.4 full O2C Work closure slice merged after PostgreSQL 18 E2E; existing WorkProjection proved sufficient."
+      "description": "EEL-C01.4 full O2C Work closure slice merged after PostgreSQL 18 E2E; existing WorkProjection proved sufficient.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/requirement-alignment-governance-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -161,14 +198,18 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 18,
-      "description": "Human–LLM alignment usability refinement: 60-second business summary and contradiction guards."
+      "description": "Human–LLM alignment usability refinement: 60-second business summary and contradiction guards.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-full-replay-equality-v0.1": {
       "class": "ABANDONED",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": false,
       "pr": 17,
-      "description": "Superseded EEL-C01.5 branch. Runtime proof passed, but branch diverged after Human–LLM alignment governance merged; implementation migrated to v0.2 on latest main."
+      "description": "Superseded EEL-C01.5 branch. Runtime proof passed, but branch diverged after Human–LLM alignment governance merged; implementation migrated to v0.2 on latest main.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-full-replay-equality-v0.2": {
       "class": "MERGED_MILESTONE",
@@ -176,7 +217,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 19,
-      "description": "EEL-C01.5 full O2C Full Replay equality slice revalidated on Human–LLM-aligned main with full CI and isolated PostgreSQL 18 proof."
+      "description": "EEL-C01.5 full O2C Full Replay equality slice revalidated on Human–LLM-aligned main with full CI and isolated PostgreSQL 18 proof.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/requirement-alignment-cadence-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -184,7 +227,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 20,
-      "description": "Deterministic Human–LLM requirement-alignment cadence and post-merge status-drift cleanup."
+      "description": "Deterministic Human–LLM requirement-alignment cadence and post-merge status-drift cleanup.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-legacy-receipt-compat-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -192,7 +237,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 21,
-      "description": "EEL-C01 legacy receipt replay compatibility proof merged by PR #21."
+      "description": "EEL-C01 legacy receipt replay compatibility proof merged by PR #21.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-final-certification-alignment-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -200,14 +247,18 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 22,
-      "description": "Final EEL-C01 certification and completed-loop Human–LLM requirement alignment merged by PR #22."
+      "description": "Final EEL-C01 certification and completed-loop Human–LLM requirement alignment merged by PR #22.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c01-post-cert-pointer-fix-v0.1": {
       "class": "MERGED_MILESTONE",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": true,
       "supersededBy": "main",
-      "description": "Historical EEL-C01 post-certification pointer cleanup branch. Live compare against main on 2026-09-22 shows ahead_by=0; do not revive."
+      "description": "Historical EEL-C01 post-certification pointer cleanup branch. Live compare against main on 2026-09-22 shows ahead_by=0; do not revive.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c02-procure-to-pay-packet-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -215,7 +266,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 26,
-      "description": "EEL-C02 Procure-to-Pay reference loop certified and merged by PR #26 at 43c23050b74819caf311535598808bdf5339d237."
+      "description": "EEL-C02 Procure-to-Pay reference loop certified and merged by PR #26 at 43c23050b74819caf311535598808bdf5339d237.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/effective-capability-discovery-v0.1": {
       "class": "ABANDONED",
@@ -223,13 +276,17 @@
       "containedByMain": false,
       "pr": 25,
       "description": "Superseded capability-discovery experiment. Capability/Application discovery is now a Host/App Platform responsibility; useful ideas were already reimplemented for compatibility in main.",
-      "prDisposition": "CLOSED_SUPERSEDED_BY_PR56"
+      "prDisposition": "CLOSED_SUPERSEDED_BY_PR56",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c02-post-merge-pointer-cleanup-v0.1": {
       "class": "DIVERGED_HISTORICAL",
       "mergePolicy": "NO_WHOLESALE_MERGE",
       "containedByMain": false,
-      "description": "Historical post-EEL-C02 pointer-cleanup branch. It is not current Stage E work; inspect selectively only if status archaeology is required."
+      "description": "Historical post-EEL-C02 pointer-cleanup branch. It is not current Stage E work; inspect selectively only if status archaeology is required.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-sales-return-refund-packet-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -237,7 +294,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 28,
-      "description": "EEL-C03 reverse-sales business packet and business-finance mainline merged by PR #28."
+      "description": "EEL-C03 reverse-sales business packet and business-finance mainline merged by PR #28.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-sales-return-recognition-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -245,7 +304,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 29,
-      "description": "EEL-C03.1 Sales Return Economic Recognition merged after PostgreSQL 18 E2E / CI #600."
+      "description": "EEL-C03.1 Sales Return Economic Recognition merged after PostgreSQL 18 E2E / CI #600.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-sales-exchange-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -253,13 +314,17 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 30,
-      "description": "EEL-C03.2 Sales Exchange merged after PostgreSQL 18 E2E / CI #602."
+      "description": "EEL-C03.2 Sales Exchange merged after PostgreSQL 18 E2E / CI #602.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/financial-double-entry-integrity-v0.1": {
       "class": "EXPERIMENTAL",
       "mergePolicy": "NO_WHOLESALE_MERGE",
       "containedByMain": false,
-      "description": "Historical/experimental financial-integrity branch. Requirements and audit findings are valid, but implementation is incomplete. Do not treat this branch as evidence that double-entry was implemented; recover selectively only."
+      "description": "Historical/experimental financial-integrity branch. Requirements and audit findings are valid, but implementation is incomplete. Do not treat this branch as evidence that double-entry was implemented; recover selectively only.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-customer-refund-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -267,7 +332,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 32,
-      "description": "EEL-C03.3 Customer Refund merged after PostgreSQL 18 E2E / CI #614."
+      "description": "EEL-C03.3 Customer Refund merged after PostgreSQL 18 E2E / CI #614.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-red-invoice-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -275,7 +342,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 33,
-      "description": "EEL-C03.4 Red Invoice merged after PostgreSQL 18 E2E / CI #620."
+      "description": "EEL-C03.4 Red Invoice merged after PostgreSQL 18 E2E / CI #620.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-work-balance-closure-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -283,7 +352,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 34,
-      "description": "EEL-C03.5 balance-driven reverse Work merged after PostgreSQL 18 E2E / CI #623."
+      "description": "EEL-C03.5 balance-driven reverse Work merged after PostgreSQL 18 E2E / CI #623.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-full-replay-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -291,7 +362,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 35,
-      "description": "EEL-C03.6 Full Replay Equality merged after PostgreSQL 18 E2E / CI #626."
+      "description": "EEL-C03.6 Full Replay Equality merged after PostgreSQL 18 E2E / CI #626.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c03-final-certification-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -299,7 +372,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 36,
-      "description": "EEL-C03 final certification merged after CI #628."
+      "description": "EEL-C03 final certification merged after CI #628.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/post-eel-c03-alignment-eel-c04-selection-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -307,7 +382,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 37,
-      "description": "Post-EEL-C03 alignment and EEL-C04 Manufacturing Execution selection merged after CI #630."
+      "description": "Post-EEL-C03 alignment and EEL-C04 Manufacturing Execution selection merged after CI #630.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c04-production-demand-work-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -315,7 +392,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 38,
-      "description": "EEL-C04.1 independent Production Demand / Work merged after PostgreSQL 18 E2E / CI #632."
+      "description": "EEL-C04.1 independent Production Demand / Work merged after PostgreSQL 18 E2E / CI #632.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c04-manufacturing-execution-bundle-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -323,7 +402,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 39,
-      "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle merged by PR #39 after PostgreSQL 18.6 database E2E and CI verification."
+      "description": "EEL-C04.2–C04.5 Manufacturing Execution bundle merged by PR #39 after PostgreSQL 18.6 database E2E and CI verification.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c04-full-replay-final-certification-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -331,7 +412,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 40,
-      "description": "EEL-C04.6 Full Replay Equality and C04.7 final certification evidence merged by PR #40 after CI #642."
+      "description": "EEL-C04.6 Full Replay Equality and C04.7 final certification evidence merged by PR #40 after CI #642.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/post-codex-eel-c04-alignment-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -339,7 +422,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 41,
-      "description": "Post-Codex EEL-C04 status/context alignment merged by PR #41 after CI #644."
+      "description": "Post-Codex EEL-C04 status/context alignment merged by PR #41 after CI #644.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/post-eel-c04-alignment-eel-c05-selection-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -347,7 +432,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 42,
-      "description": "Post-EEL-C04 alignment and EEL-C05 Inventory Transfer selection merged after CI #646."
+      "description": "Post-EEL-C04 alignment and EEL-C05 Inventory Transfer selection merged after CI #646.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c05-transfer-execution-bundle-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -355,7 +442,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 43,
-      "description": "EEL-C05 transfer conservation merged after CI #649."
+      "description": "EEL-C05 transfer conservation merged after CI #649.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/eel-c05-full-replay-final-certification-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -363,13 +452,17 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 44,
-      "description": "EEL-C05 Full Replay and final certification merged after CI #656."
+      "description": "EEL-C05 Full Replay and final certification merged after CI #656.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/fai-double-entry-alignment-v0.1": {
       "class": "ABANDONED",
       "mergePolicy": "DO_NOT_MERGE_AGAIN",
       "containedByMain": false,
-      "description": "Historical finance-alignment branch superseded by later merged FAI work and the minimal EVO Runtime Plugin boundary; not current mainline."
+      "description": "Historical finance-alignment branch superseded by later merged FAI work and the minimal EVO Runtime Plugin boundary; not current mainline.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/fai-01-02-double-entry-runtime-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -377,7 +470,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 46,
-      "description": "FAI-01/02 authoritative double-entry journal runtime merged after CI #664."
+      "description": "FAI-01/02 authoritative double-entry journal runtime merged after CI #664.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/fai-03-05-accounting-recognition-trial-balance-replay-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -385,7 +480,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 47,
-      "description": "FAI-03~05 accounting recognition, rule trace, Trial Balance and GL Replay merged after CI #668."
+      "description": "FAI-03~05 accounting recognition, rule trace, Trial Balance and GL Replay merged after CI #668.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/fai-06-period-reconciliation-statement-metadata-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -393,7 +490,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 48,
-      "description": "FAI-06 accounting periods, economic↔GL reconciliation and statement projection metadata merged after CI #670."
+      "description": "FAI-06 accounting periods, economic↔GL reconciliation and statement projection metadata merged after CI #670.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/fai-07-three-financial-statements-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -401,7 +500,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 49,
-      "description": "FAI-07 three core financial statements merged by PR #49; three-statement projections, reconciliation and deterministic replay are contained in main."
+      "description": "FAI-07 three core financial statements merged by PR #49; three-statement projections, reconciliation and deterministic replay are contained in main.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/post-fai-07-finance-gap-alignment-v0.1": {
       "class": "ABANDONED",
@@ -409,7 +510,9 @@
       "containedByMain": false,
       "pr": 50,
       "description": "Superseded documentation alignment. The newer minimal-runtime-plugin boundary moves General Ledger/statutory accounting and broader finance governance outside mandatory EVO Core.",
-      "prDisposition": "CLOSED_SUPERSEDED_BY_PR56"
+      "prDisposition": "CLOSED_SUPERSEDED_BY_PR56",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/minimal-runtime-plugin-boundary-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -417,7 +520,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 56,
-      "description": "Minimal EVO Runtime Plugin boundary merged by PR #56 after CI #738. Defines EVO as lightweight BusinessData→supplied PostingRules→Ledger/Balance runtime with platform/governance/domain concerns externalized."
+      "description": "Minimal EVO Runtime Plugin boundary merged by PR #56 after CI #738. Defines EVO as lightweight BusinessData→supplied PostingRules→Ledger/Balance runtime with platform/governance/domain concerns externalized.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/core-min-02-application-routing-anchor-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -425,7 +530,9 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 57,
-      "description": "CORE-MIN-02 application-routing architecture refinement merged by PR #57 after CI #743. Restores minimal ApplicationAnchor/applicationId inside EVO Core as the mandatory BusinessData→PostingRule routing key."
+      "description": "CORE-MIN-02 application-routing architecture refinement merged by PR #57 after CI #743. Restores minimal ApplicationAnchor/applicationId inside EVO Core as the mandatory BusinessData→PostingRule routing key.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     },
     "evo/repository-compute-plugin-scope-v0.1": {
       "class": "MERGED_MILESTONE",
@@ -433,7 +540,65 @@
       "containedByMain": true,
       "supersededBy": "main",
       "pr": 58,
-      "description": "Repository-scope clarification merged by PR #58 / CI #756. Formal component name is EVO Ledger Runtime (Chinese alias: EVO 账本引擎); branch name is a historical pre-rename artifact."
+      "description": "Repository-scope clarification merged by PR #58 / CI #756. Formal component name is EVO Ledger Runtime (Chinese alias: EVO 账本引擎); branch name is a historical pre-rename artifact.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
+    },
+    "architecture/prc-accounting-guidance-convergence": {
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": false,
+      "pr": 69,
+      "prDisposition": "CLOSED_CONTENT_MIGRATED_TO_MAIN",
+      "description": "Accounting-guidance convergence content was selectively migrated onto current mainline during 2026-09-30 repository reconciliation; the diverged source branch must not be merged wholesale.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
+    },
+    "docs/project-continuous-integration-constitution": {
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": false,
+      "pr": 63,
+      "prDisposition": "CLOSED_CONTENT_MIGRATED_TO_MAIN",
+      "description": "Founder-confirmed cross-project constitution content was migrated onto current mainline during 2026-09-30 repository reconciliation; the old diverged branch is retired.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
+    },
+    "eog/runtime-observation-public-api-v0.1": {
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": false,
+      "supersededBy": "main",
+      "description": "Superseded by current main runtime-observation contracts, service, PostgreSQL reader and /api/v1/runtime-observations/query public route.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
+    },
+    "evo/core-boundary-audit-v0.1": {
+      "class": "DIVERGED_HISTORICAL",
+      "mergePolicy": "NO_WHOLESALE_MERGE",
+      "containedByMain": false,
+      "supersededBy": "main",
+      "description": "Historical Core-boundary migration audit. Current authority is the minimal EVO Ledger Runtime boundary and current Core boundary/code-planning documentation; do not revive the old implementation branch.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
+    },
+    "evo/eel-c01-final-certification-v0.1": {
+      "class": "ANCESTOR_MILESTONE",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": true,
+      "supersededBy": "main",
+      "description": "Historical EEL-C01 certification ancestor fully contained by current main; live compare on 2026-09-30 showed ahead_by=0.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
+    },
+    "evo/plugin-oriented-development-model-v0.1": {
+      "class": "ABANDONED",
+      "mergePolicy": "DO_NOT_MERGE_AGAIN",
+      "containedByMain": false,
+      "prDisposition": "CONTENT_MIGRATED_TO_MAIN",
+      "description": "Accepted plugin-oriented development decision was migrated as a durable ADR onto current mainline during 2026-09-30 reconciliation; source branch retired.",
+      "refRetired": true,
+      "retiredAt": "2026-09-30"
     }
   },
   "requiredLLMProcedure": [
@@ -461,7 +626,7 @@
     "NO_WHOLESALE_MERGE",
     "MANUAL_REVIEW_ONLY"
   ],
-  "lastReviewedMainCommit": "dc613987247f9da209a503c65dbd7b33a08de94c",
+  "lastReviewedMainCommit": "39b5e0983427983dd26e71d029b4277a687f9376",
   "branchStrategy": {
     "default": "SHORT_LIVED_BOUNDED_WORK_PACKET",
     "bundleAllowed": true,
