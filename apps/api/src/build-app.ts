@@ -2,6 +2,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import type { DatabaseHandle } from '../../../platform/database/src/index.js';
 import { AppError } from '../../../platform/contracts/src/index.js';
 import type { JsonObject, JsonValue } from '../../../modules/metadata/api/contracts.js';
+import type { CommandLineage } from '../../../modules/command/api/contracts.js';
 import type {
   EvoRuntimeObservationMetricCodeV010
 } from '../../../modules/query/api/runtime-observations.js';
@@ -29,10 +30,40 @@ type PublicCommandBody={
  actor?:{type?:'HUMAN'|'AI'|'AUTOMATION';id?:string};
  idempotencyKey?:string; correlationId?:string; effectiveAt?:string;
  businessObjectKey?:string; input?:unknown;
+ lineage?:{
+  flowDefinitionId?:unknown;
+  flowInstanceKey?:unknown;
+  stepCode?:unknown;
+  parentBusinessDataId?:unknown;
+  relationType?:unknown;
+ };
 };
 function requireText(value:unknown,field:string):string{
  if(typeof value!=='string'||value.trim().length===0)throw new AppError({code:'PUBLIC_COMMAND_FIELD_REQUIRED',message:`${field} is required.`,module:'api',operation:'invokePublicCommand',details:{field}});
  return value.trim();
+}
+function publicCommandLineage(value:PublicCommandBody['lineage']):CommandLineage|undefined{
+ if(value===undefined)return undefined;
+ const relation=value.relationType;
+ if(
+  relation!==undefined
+  && relation!=='CAUSES'
+  && relation!=='FULFILLS'
+  && relation!=='ALLOCATES_TO'
+  && relation!=='DERIVES_FROM'
+  && relation!=='REFERENCES'
+ ){
+  throw new AppError({code:'PUBLIC_COMMAND_LINEAGE_INVALID',message:'lineage.relationType is invalid.',module:'api',operation:'invokePublicCommand'});
+ }
+ return {
+  flowDefinitionId:requireText(value.flowDefinitionId,'lineage.flowDefinitionId'),
+  flowInstanceKey:requireText(value.flowInstanceKey,'lineage.flowInstanceKey'),
+  stepCode:requireText(value.stepCode,'lineage.stepCode'),
+  ...(value.parentBusinessDataId===undefined
+   ?{}
+   :{parentBusinessDataId:requireText(value.parentBusinessDataId,'lineage.parentBusinessDataId')}),
+  ...(relation===undefined?{}:{relationType:relation})
+ };
 }
 
 export function buildApp(options:BuildAppOptions={}):FastifyInstance{
@@ -185,6 +216,66 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
     }
   });
 
+  app.post('/api/v1/runtime-flow-definitions/register', async request => {
+    const body = request.body as {
+      contractVersion?: unknown;
+      enterpriseId?: unknown;
+      code?: unknown;
+      name?: unknown;
+      source?: {
+        authority?: unknown;
+        ref?: unknown;
+        revision?: unknown;
+        digest?: unknown;
+      };
+      definition?: unknown;
+    };
+    if (
+      body.contractVersion !== '0.1.0'
+      || typeof body.enterpriseId !== 'string'
+      || typeof body.code !== 'string'
+      || typeof body.name !== 'string'
+      || body.source?.authority !== 'HOST'
+      || typeof body.source.ref !== 'string'
+      || typeof body.source.revision !== 'number'
+      || typeof body.source.digest !== 'string'
+      || body.definition === null
+      || typeof body.definition !== 'object'
+      || Array.isArray(body.definition)
+    ) {
+      throw new AppError({
+        code: 'RUNTIME_FLOW_DEFINITION_REQUEST_INVALID',
+        message: 'Runtime flow definition registration is invalid.',
+        module: 'api',
+        operation: 'registerRuntimeFlowDefinition'
+      });
+    }
+    try {
+      return await runtime.flowDefinitions.register({
+        enterpriseId: body.enterpriseId,
+        code: body.code,
+        name: body.name,
+        source: {
+          authority: 'HOST',
+          ref: body.source.ref,
+          revision: body.source.revision,
+          digest: body.source.digest
+        },
+        definition: body.definition as JsonObject
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new AppError({
+        code: /^[A-Z0-9_]+$/u.test(message)
+          ? message
+          : 'RUNTIME_FLOW_DEFINITION_REGISTRATION_FAILED',
+        message,
+        module: 'api',
+        operation: 'registerRuntimeFlowDefinition'
+      });
+    }
+  });
+
   app.get('/api/v1/configurator/status', async () => {
     const enterprise = await runtime.db.selectFrom('enterprise')
       .select(['id','code','name'])
@@ -292,7 +383,8 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
     idempotencyKey:requireText(body.idempotencyKey,'idempotencyKey'),
     effectiveAt,
     businessObjectKey:requireText(body.businessObjectKey,'businessObjectKey'),
-    input:body.input as JsonObject
+    input:body.input as JsonObject,
+    ...(body.lineage===undefined?{}:{lineage:publicCommandLineage(body.lineage)})
    });
    return {
     capabilityCode:result.capabilityCode,
