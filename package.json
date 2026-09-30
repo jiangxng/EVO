@@ -53,7 +53,10 @@
     "validate:fai-accounting-loop": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-accounting-loop.ts",
     "validate:fai-statement-readiness": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-statement-readiness.ts",
     "validate:fai-three-financial-statements": "node --env-file-if-exists=.env --import tsx scripts/validate-fai-three-financial-statements.ts",
-    "validate:public-capability-command": "node --env-file-if-exists=.env --import tsx scripts/validate-public-capability-command.ts"
+    "validate:public-capability-command": "node --env-file-if-exists=.env --import tsx scripts/validate-public-capability-command.ts",
+    "validate:ci-manifest": "node scripts/validate-ci-certification-manifest.mjs",
+    "ci:baseline": "node scripts/run-ci-certifications.mjs baseline",
+    "validate:migration-upgrade": "node --env-file-if-exists=.env --import tsx scripts/validate-migration-upgrade.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",

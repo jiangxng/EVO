@@ -5,9 +5,39 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: evo-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: '24.20.0'
+  DATABASE_URL: postgres://evo:evo@localhost:5432/evo
+  NODE_ENV: test
+  LOG_LEVEL: silent
+
 jobs:
-  test:
+  plan:
+    name: plan
     runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate certification manifest
+        run: node scripts/validate-ci-certification-manifest.mjs
+      - id: plan
+        name: Emit isolated certification matrix
+        run: echo "matrix=$(node scripts/ci-certification-plan.mjs)" >> "$GITHUB_OUTPUT"
+
+  quality:
+    name: quality
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:18
@@ -22,36 +52,31 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '24.20.0'
-      - run: npm install
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run validate:ci-manifest
       - run: npm run validate:docs
       - run: npm run migrate
       - run: npm run typecheck
       - run: npm run build
       - run: npm run test
       - run: npm run seed:demo
-      - run: npm run validate:demo
-      - run: npm run validate:eel-c01-receipt-posting
-      - run: npm run validate:eel-c01-settlement-allocation
-      - run: npm run validate:eel-c01-work-closure
-      - run: npm run validate:eel-c02-purchase-recognition
-      - run: npm run validate:eel-c02-goods-receipt
-      - run: npm run validate:eel-c02-supplier-payment
-      - run: npm run validate:worker-activation-concurrency
-      - run: npm run validate:activation-crash-retry
-      - run: npm run validate:activation-failure-matrix
+      - run: npm run ci:baseline
 
-
-  public-capability-command:
+  certification:
+    name: certification / ${{ matrix.id }}
+    needs: plan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
     services:
       postgres:
         image: postgres:18
@@ -66,23 +91,23 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '24.20.0'
-      - run: npm install
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
       - run: npm run migrate
       - run: npm run seed:demo
-      - run: npm run validate:public-capability-command
+      - name: Run ${{ matrix.id }}
+        run: npm run ${{ matrix.script }}
 
-
-  eel-c01-full-replay:
+  migration-upgrade:
+    name: migration-upgrade
+    needs: plan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:18
@@ -97,23 +122,20 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c01-full-replay
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run validate:migration-upgrade
 
-
-  eel-c01-legacy-receipt-compat:
+  production-artifact:
+    name: production-artifact
+    needs: plan
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     services:
       postgres:
         image: postgres:18
@@ -128,512 +150,102 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c01-legacy-receipt-compat
+      - uses: actions/checkout@v5
+      - name: Build production image
+        run: docker build --tag "evo-ci:${GITHUB_SHA}" .
+      - name: Migrate and seed through production image
+        run: |
+          docker run --rm --network host \
+            -e DATABASE_URL="${DATABASE_URL}" \
+            -e NODE_ENV=production \
+            "evo-ci:${GITHUB_SHA}" \
+            node dist/scripts/migrate.js
+          docker run --rm --network host \
+            -e DATABASE_URL="${DATABASE_URL}" \
+            -e NODE_ENV=production \
+            "evo-ci:${GITHUB_SHA}" \
+            node dist/scripts/seed-demo.js
+      - name: Smoke API and worker from production image
+        run: |
+          set -euo pipefail
+          image="evo-ci:${GITHUB_SHA}"
+          api_id=""
+          worker_id=""
+          cleanup() {
+            if [ -n "${worker_id}" ]; then docker rm -f "${worker_id}" >/dev/null 2>&1 || true; fi
+            if [ -n "${api_id}" ]; then docker rm -f "${api_id}" >/dev/null 2>&1 || true; fi
+          }
+          trap cleanup EXIT
 
+          api_id=$(docker run -d --network host \
+            -e DATABASE_URL="${DATABASE_URL}" \
+            -e HOST=0.0.0.0 \
+            -e PORT=3000 \
+            -e NODE_ENV=production \
+            -e LOG_LEVEL=silent \
+            "${image}")
 
-  eel-c02-full-replay:
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/health/ready > /tmp/evo-ready.json; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "${ready}" -ne 1 ]; then
+            docker logs "${api_id}" || true
+            exit 1
+          fi
+
+          curl -fsS http://127.0.0.1:3000/health/live > /tmp/evo-live.json
+          grep -q '"status":"ok"' /tmp/evo-live.json
+          grep -q '"status":"ready"' /tmp/evo-ready.json
+
+          worker_id=$(docker run -d --network host \
+            -e DATABASE_URL="${DATABASE_URL}" \
+            -e NODE_ENV=production \
+            -e LOG_LEVEL=silent \
+            -e WORKER_POLL_INTERVAL_MS=200 \
+            "${image}" \
+            node dist/apps/worker/src/main.js)
+          sleep 3
+          if [ "$(docker inspect -f '{{.State.Running}}' "${worker_id}")" != "true" ]; then
+            docker logs "${worker_id}" || true
+            exit 1
+          fi
+
+  gate:
+    name: gate
+    if: always()
+    needs:
+      - plan
+      - quality
+      - certification
+      - migration-upgrade
+      - production-artifact
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
+    timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c02-full-replay
-
-
-  eel-c03-sales-return:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
+      - name: Require every CI lane
         env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c03-sales-return
-
-
-  eel-c03-sales-exchange:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c03-sales-exchange
-
-
-  eel-c03-customer-refund:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c03-customer-refund
-
-
-  eel-c03-red-invoice:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c03-red-invoice
-
-
-  eel-c03-work-balance-closure:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c03-work-balance-closure
-
-
-  eel-c03-full-replay:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c03-full-replay
-
-
-  eel-c04-production-demand-work:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c04-production-demand-work
-
-
-  eel-c04-manufacturing-execution-bundle:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c04-manufacturing-execution-bundle
-
-
-  eel-c04-full-replay:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c04-full-replay
-
-
-  eel-c05-inventory-transfer:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c05-inventory-transfer
-
-
-  eel-c05-full-replay:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:eel-c05-full-replay
-
-
-  fai-double-entry:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:fai-double-entry
-
-
-  fai-accounting-loop:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:fai-accounting-loop
-
-
-  fai-statement-readiness:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:fai-statement-readiness
-
-
-  fai-three-financial-statements:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: evo
-          POSTGRES_PASSWORD: evo
-          POSTGRES_DB: evo
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U evo -d evo"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://evo:evo@localhost:5432/evo
-      NODE_ENV: test
-      LOG_LEVEL: silent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.20.0'
-      - run: npm install
-      - run: npm run migrate
-      - run: npm run seed:demo
-      - run: npm run validate:fai-three-financial-statements
+          PLAN_RESULT: ${{ needs.plan.result }}
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          CERTIFICATION_RESULT: ${{ needs.certification.result }}
+          MIGRATION_UPGRADE_RESULT: ${{ needs.migration-upgrade.result }}
+          PRODUCTION_ARTIFACT_RESULT: ${{ needs.production-artifact.result }}
+        run: |
+          set -euo pipefail
+          for result in \
+            "${PLAN_RESULT}" \
+            "${QUALITY_RESULT}" \
+            "${CERTIFICATION_RESULT}" \
+            "${MIGRATION_UPGRADE_RESULT}" \
+            "${PRODUCTION_ARTIFACT_RESULT}"
+          do
+            if [ "${result}" != "success" ]; then
+              echo "Required CI lane did not succeed: ${result}"
+              exit 1
+            fi
+          done
