@@ -2,7 +2,12 @@ import { AppError } from '../../../platform/contracts/src/index.js';
 import type { EffectiveCapabilityDiscovery } from '../../../modules/capability/api/contracts.js';
 import type { AuthorizationService } from '../../../modules/identity/api/authorization.js';
 import type { CommandExecutor } from '../../../modules/command/api/command-executor.js';
-import type { CommandActor, ExecuteCommandResult } from '../../../modules/command/api/contracts.js';
+import type {
+  CommandActor,
+  CommandLineage,
+  ExecuteCommandResult
+} from '../../../modules/command/api/contracts.js';
+import type { FlowProjection } from '../../../modules/flow/api/contracts.js';
 import type { JsonObject } from '../../../modules/metadata/api/contracts.js';
 
 export interface InvokePublicCommandRequest {
@@ -15,6 +20,7 @@ export interface InvokePublicCommandRequest {
   readonly effectiveAt: Date;
   readonly businessObjectKey: string;
   readonly input: JsonObject;
+  readonly lineage?: CommandLineage;
 }
 
 export interface InvokePublicCommandResult {
@@ -26,7 +32,8 @@ export class PublicCommandInvoker {
   constructor(
     private readonly discovery: EffectiveCapabilityDiscovery,
     private readonly authorization: AuthorizationService,
-    private readonly commands: CommandExecutor
+    private readonly commands: CommandExecutor,
+    private readonly flowProjection?: FlowProjection
   ) {}
 
   async invoke(request: InvokePublicCommandRequest): Promise<InvokePublicCommandResult> {
@@ -78,8 +85,21 @@ export class PublicCommandInvoker {
       idempotencyKey: request.idempotencyKey,
       input: request.input,
       effectiveAt: request.effectiveAt,
-      businessObjectKey: request.businessObjectKey
+      businessObjectKey: request.businessObjectKey,
+      ...(request.lineage === undefined ? {} : { lineage: request.lineage })
     });
+
+    if (request.lineage !== undefined) {
+      if (!this.flowProjection) {
+        throw new AppError({
+          code: 'FLOW_PROJECTION_UNAVAILABLE',
+          message: 'Runtime flow lineage was supplied but no Flow projection is configured.',
+          module: 'api',
+          operation: 'invokePublicCommand'
+        });
+      }
+      await this.flowProjection.projectCommand(command.commandExecutionId);
+    }
 
     return {
       capabilityCode: request.capabilityCode,
