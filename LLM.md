@@ -303,3 +303,35 @@ EVO-family systems serve enterprises, but Ledger Runtime remains deliberately na
 `docs/architecture/ENTERPRISE-PLATFORM-BOUNDARY-v0.1.md`
 
 These capabilities belong to App Platform/provider plugins unless they are strictly required for deterministic BusinessData → PostingRule → Ledger → Balance execution.
+
+## Cross-Project Continuous Integration Constitution
+
+EVO is a long-lived integrated system, not a sequence of disposable demos. Every accepted slice becomes durable project capital in the correct owner repository and composes with prior slices.
+
+Canonical ownership:
+
+```text
+EVO Ledger Runtime
+= business facts + deterministic posting / ledger / balance execution
+
+EVO App Platform
+= Package / Feature lifecycle + capability dependency resolution + effective Experience Contributions
+
+Eidos
+= human experience framework + reusable capabilities/renderers + canonical App Host
+
+Experience Compiler
+= intelligence / learning / experience production above these public contracts
+```
+
+Rules:
+
+- Reuse/converge existing implementation assets before creating replacements.
+- EVO-family product frontend uses Eidos public capabilities/contracts.
+- If Eidos lacks a required reusable interaction, extend Eidos first, validate it there, then consume it from the product.
+- Eidos App Host is the canonical production frontend container; installed applications contribute Experiences rather than independent shells.
+- Plugin/package product acceptance begins from discovery/install planning/installation/activation, then validates the resulting Experience and business behavior.
+- Each accepted change leaves automated regression tests, CI evidence and repository documentation sufficient for a fresh LLM.
+- Demo/showcase/diagnostic artifacts are evidence, not competing architecture.
+
+Authority: `docs/architecture/principles/PROJECT-CONTINUOUS-INTEGRATION-CONSTITUTION-v0.1.md`.
