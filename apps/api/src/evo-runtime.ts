@@ -26,6 +26,7 @@ import { RuntimeRevisionServiceV010 } from '../../../modules/query/application/r
 import { PostgresRuntimeRevisionReaderV010 } from '../../../modules/query/infrastructure/postgres-runtime-revision-reader.js';
 import { PostgresAiCapabilityCatalog } from '../../../modules/ai/infrastructure/postgres-ai-capability-catalog.js';
 import { PostgresFlowProjection } from '../../../modules/flow/infrastructure/postgres-flow-projection.js';
+import { PostgresExternalFlowDefinitionRegistryV010 } from '../../../modules/flow/infrastructure/postgres-external-flow-definition-registry.js';
 import { PostgresEnterpriseTemplateService } from '../../../modules/enterprise-template/infrastructure/postgres-enterprise-template-service.js';
 import { PostgresAllocationStore } from '../../../modules/allocation/infrastructure/postgres-allocation-store.js';
 import { PostgresRateDatasetStore } from '../../../modules/economic/infrastructure/postgres-rate-dataset-store.js';
@@ -71,7 +72,14 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const command = new CommandService(capabilities,new PostgresCommandTransaction(db));
   const auth = new PostgresAuthorizationService(db);
   const capabilityDiscovery = new DefaultEffectiveCapabilityDiscovery(metadata);
-  const publicCommands = new PublicCommandInvoker(capabilityDiscovery,auth,command);
+  const flow = new PostgresFlowProjection(db);
+  const flowDefinitions = new PostgresExternalFlowDefinitionRegistryV010(db);
+  const publicCommands = new PublicCommandInvoker(
+    capabilityDiscovery,
+    auth,
+    command,
+    flow
+  );
   const state = new PostgresPostingStateStore(db);
   const businessData = new PostgresBusinessDataReader(db);
   const postingMetadata = new PostgresPostingMetadataReader(db);
@@ -157,7 +165,7 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const statementReplay = new PostgresStatementReplayService(db,statementProjection);
   const coreStatementReconciliation = new PostgresCoreStatementReconciliationService(db,statementProjection);
   const financialStatements = new PostgresFinancialStatementProjectionService(statementProjection,statementReplay,coreStatementReconciliation);
-  return { db, metadata, command, accounting, accountingRecognition, trialBalance, accountingReplay, accountingPeriod, accountingReconciliation, financialStatements, posting, candidatePostingReplay, ledger:new PostgresLedgerReader(db), work:new PostgresWorkProjection(db), auth, capabilityDiscovery, publicCommands, replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, candidateEconomicRuntimeDigest, oracleEconomicRuntimeDigest, replayCoverage, replayPromotion, runtimeDatasets, runtimeEquivalence, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db,currentEconomicRuntimeView), currentEconomicRuntimeView, runtimeObservations, runtimeTraces, runtimeRevision, ai:new PostgresAiCapabilityCatalog(db), flow:new PostgresFlowProjection(db), enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
+  return { db, metadata, command, accounting, accountingRecognition, trialBalance, accountingReplay, accountingPeriod, accountingReconciliation, financialStatements, posting, candidatePostingReplay, ledger:new PostgresLedgerReader(db), work:new PostgresWorkProjection(db), auth, capabilityDiscovery, publicCommands, replay:new PostgresReplayService(db), replayTopology, dependencyGraph, replayCheckpoint, replayCheckpointMaterialization, candidateEconomicRuntimeDigest, oracleEconomicRuntimeDigest, replayCoverage, replayPromotion, runtimeDatasets, runtimeEquivalence, materializationContexts, incrementalReplayPlanner, valuationRequests, valuationReplay, valuation, valuationStore, fxValuation, fxSettlement, cost:new PostgresCostEngine(db,valuation,allocation,valuationInputs,replayTopology), allocation, rates, positions, query:new PostgresEnterpriseQuery(db,currentEconomicRuntimeView), currentEconomicRuntimeView, runtimeObservations, runtimeTraces, runtimeRevision, ai:new PostgresAiCapabilityCatalog(db), flow, flowDefinitions, enterpriseTemplates:new PostgresEnterpriseTemplateService(db) };
 }
 
 export async function demoIds(runtime: ReturnType<typeof createEvoRuntime>) {
