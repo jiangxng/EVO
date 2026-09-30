@@ -155,3 +155,10 @@ Full Replay clears derived cost/valuation state, rebuilds operational posting, r
 - INV-080 — Canonical App Host: Eidos App Host is the canonical production application container for EVO-family Experiences. Installed Packages/Features contribute Experiences into the Host rather than creating independent shells.
 - INV-081 — Installation-First Product Acceptance: End-to-end validation of an installable Package MUST include catalog discovery, side-effect-free install planning, dependency/capability resolution, installation, Feature activation, effective Contribution discovery, Eidos App Host rendering and representative business execution. Skipping lifecycle steps invalidates end-to-end product acceptance evidence.
 - INV-082 — Existing Asset Convergence: Before creating a new shell/runtime/capability, project history and repositories MUST be checked for existing compatible assets. Valuable historical implementation is converged/reused unless an explicit superseding architecture decision replaces it.
+
+## Runtime Flow Evidence Constitution
+
+- INV-083 — Flow Evidence Requires Explicit Lineage: Runtime flow/transition evidence MUST originate from accepted BusinessData/Command execution carrying explicit flow identity, instance identity and step semantics. EVO MUST NOT infer process transitions from timestamps, quantities, labels or coincidental ordering.
+- INV-084 — External Flow Authority Remains External: A Host/plugin may register a published flow snapshot for runtime trace identity, but EVO MUST NOT reinterpret that registration as ownership of SOP/workflow lifecycle or Human publication authority.
+- INV-085 — Runtime Trace Scope Fails Closed: FlowDefinition scope, parent BusinessData scope and projected trace scope MUST agree with the executing enterprise. Invalid or unpublished lineage MUST fail rather than produce ambiguous evidence.
+
