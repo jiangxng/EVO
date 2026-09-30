@@ -60,7 +60,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run validate:ci-manifest
-      - run: npm run validate:docs
+      - run: node scripts/run-ci-certifications.mjs quality
       - run: npm run migrate
       - run: npm run typecheck
       - run: npm run build
@@ -129,7 +129,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npm run validate:migration-upgrade
+      - run: node scripts/run-ci-certifications.mjs upgrade
 
   production-artifact:
     name: production-artifact
