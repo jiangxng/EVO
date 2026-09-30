@@ -1,0 +1,57 @@
+name: Branch Hygiene
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  delete-merged-main-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branches whose PRs are merged into main
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const defaultBranch = context.payload.repository?.default_branch ?? "main";
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: "closed",
+              per_page: 100,
+              sort: "updated",
+              direction: "desc"
+            });
+
+            const branches = new Set();
+            for (const pr of pulls) {
+              if (!pr.merged_at) continue;
+              if (pr.base?.ref !== defaultBranch) continue;
+              if (pr.head?.repo?.full_name !== `${owner}/${repo}`) continue;
+              if (!pr.head?.ref || pr.head.ref === defaultBranch) continue;
+              branches.add(pr.head.ref);
+            }
+
+            for (const branch of [...branches].sort()) {
+              try {
+                await github.rest.git.deleteRef({
+                  owner,
+                  repo,
+                  ref: `heads/${branch}`
+                });
+                core.info(`Deleted merged branch: ${branch}`);
+              } catch (error) {
+                if (error.status === 404 || error.status === 422) {
+                  core.info(`Branch already absent or not deletable: ${branch}`);
+                  continue;
+                }
+                throw error;
+              }
+            }
