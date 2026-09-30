@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "authority": "branch.topology.json",
+  "reconciliation": "docs/governance/RESIDUAL-BRANCH-RECONCILIATION-20260930.md",
+  "retiredBranches": [
+    {
+      "name": "architecture/prc-accounting-guidance-convergence",
+      "reason": "content migrated to current mainline; old diverged source retired"
+    },
+    {
+      "name": "convergence/upstream-readiness-v0.2.1",
+      "reason": "DIVERGED_HISTORICAL convergence readiness evidence; no wholesale merge"
+    },
+    {
+      "name": "docs/project-continuous-integration-constitution",
+      "reason": "founder-confirmed constitution migrated to current mainline; old diverged source retired"
+    },
+    {
+      "name": "eog/runtime-observation-public-api-v0.1",
+      "reason": "superseded by current runtime-observation public contract and API implementation"
+    },
+    {
+      "name": "evo/core-boundary-audit-v0.1",
+      "reason": "superseded by current minimal Ledger Runtime/Core boundary authority"
+    },
+    {
+      "name": "evo/eel-c01-final-certification-v0.1",
+      "reason": "fully contained historical EEL-C01 certification ancestor"
+    },
+    {
+      "name": "evo/eel-c01-full-replay-equality-v0.1",
+      "reason": "ABANDONED and superseded by merged v0.2 replay-equality work"
+    },
+    {
+      "name": "evo/eel-c01-settlement-allocation-v0.1",
+      "reason": "ABANDONED and superseded by merged v0.2 settlement allocation"
+    },
+    {
+      "name": "evo/effective-capability-discovery-v0.1",
+      "reason": "ABANDONED; compatibility ideas reimplemented and capability ownership moved to Host/App Platform"
+    },
+    {
+      "name": "evo/enterprise-package-v0.1",
+      "reason": "ANCESTOR_MILESTONE absorbed by later certified integration work"
+    },
+    {
+      "name": "evo/plugin-oriented-development-model-v0.1",
+      "reason": "accepted ADR migrated to current mainline; source branch retired"
+    },
+    {
+      "name": "evo/post-fai-07-finance-gap-alignment-v0.1",
+      "reason": "ABANDONED; superseded by minimal EVO Ledger Runtime boundary"
+    },
+    {
+      "name": "evo/recovery-full-template-build",
+      "reason": "ANCESTOR_MILESTONE fully absorbed by later certified integration work"
+    },
+    {
+      "name": "v0.3.0-apm-runtime",
+      "reason": "DIVERGED_HISTORICAL early APM runtime experiment; selectively superseded by later EVO-owned boundaries"
+    }
+  ]
+}
