@@ -147,3 +147,11 @@ Full Replay clears derived cost/valuation state, rebuilds operational posting, r
 - **LLM-INV-01** A participating LLM MUST evaluate deterministic-runtime completeness beyond the literal user request and surface material missing foundations before they become expensive.
 - **LLM-INV-02** Missing foundations are classified NOW / SOON / WATCH in `llm.foundation-map.json`; proactive review MUST respect EVO's lightweight Ledger Runtime ownership boundary.
 - **LLM-INV-03** Repeated rediscovery of the same missing runtime foundation or inability of a fresh LLM to reconstruct the runtime boundary is an architecture/context defect, not an acceptable dependency on chat history.
+
+## Cross-Project Product Growth Constitution
+
+- INV-078 — Continuous Accumulation: Accepted MVP/proof work MUST converge into the long-lived integrated system with durable implementation, tests, CI and repository documentation; disposable parallel product architectures are forbidden.
+- INV-079 — Eidos Frontend Boundary: Human-facing EVO-family product surfaces MUST use Eidos public contracts/capabilities. Missing reusable frontend capability is resolved by extending Eidos first, not by bypassing it in a product repository.
+- INV-080 — Canonical App Host: Eidos App Host is the canonical production application container for EVO-family Experiences. Installed Packages/Features contribute Experiences into the Host rather than creating independent shells.
+- INV-081 — Installation-First Product Acceptance: End-to-end validation of an installable Package MUST include catalog discovery, side-effect-free install planning, dependency/capability resolution, installation, Feature activation, effective Contribution discovery, Eidos App Host rendering and representative business execution. Skipping lifecycle steps invalidates end-to-end product acceptance evidence.
+- INV-082 — Existing Asset Convergence: Before creating a new shell/runtime/capability, project history and repositories MUST be checked for existing compatible assets. Valuable historical implementation is converged/reused unless an explicit superseding architecture decision replaces it.
