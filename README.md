@@ -1,5 +1,7 @@
 # EVO — Product Knowledge Repository + EVO Ledger Runtime
 
+> **Current ecosystem:** EVO is one of four current owner projects: **EVO-App-Platform / EVO / Eidos / Experience-Compiler**. This repository's current owner boundary is summarized in `docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md`; cross-project placement is in `docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md`. The old `EVO-EC-Eidos-Convergence` repository is historical evidence only.
+
 Current implementation baseline: **v1.0.0-alpha.2**  
 Target component: **EVO Ledger Runtime**  
 中文产品别名：**EVO 账本引擎**
