@@ -35,7 +35,10 @@
     "docs/architecture/decisions/*": "DECISION_RECORD",
     "docs/architecture/continuity/checkpoints/*": "HISTORICAL_SNAPSHOT",
     "docs/architecture/certification/*": "HISTORICAL_SNAPSHOT",
-    "docs/architecture/legacy/*": "HISTORICAL_SNAPSHOT"
+    "docs/architecture/legacy/*": "HISTORICAL_SNAPSHOT",
+    "docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md": "CURRENT_AUTHORITY",
+    "docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md": "CURRENT_AUTHORITY",
+    "docs/architecture/continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md": "CURRENT_AUTHORITY"
   },
   "historyLoading": "on-demand"
 }
