@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "authority": "docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md",
+  "repositoryRole": "deterministic-ledger-runtime-and-broader-historical-assets",
+  "coreAdmissionQuestion": "required-for-deterministic-BusinessData-PostingRule-Ledger-Balance-execution",
+  "defaults": {
+    "replaceablePlatformService": "EVO-App-Platform/PLATFORM_PROVIDER",
+    "businessProduct": "EVO-App-Platform/APPLICATION",
+    "humanExperience": "Eidos/EXPERIENCE",
+    "externalCompatibility": "Integration-Adapter",
+    "persistentIntelligence": "Experience-Compiler"
+  },
+  "historyLoading": "on-demand"
+}

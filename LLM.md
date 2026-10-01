@@ -1,5 +1,7 @@
 # EVO LLM Context Contract
 
+> **Current ecosystem/ownership boundary (2026-10-01):** Read `docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md` and `docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md` before moving functionality across EVO, EVO-App-Platform, Eidos or Experience-Compiler. The active ecosystem has four owner projects only. `EVO-EC-Eidos-Convergence` is historical evidence, not a current owner. EVO Ledger Runtime accepts new responsibility only when it is required for deterministic BusinessData → PostingRule → Ledger → Balance execution.
+
 > **Mandatory proactive-engineering instinct:** Read `docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md` and `llm.foundation-map.json`. Do not assume the user's explicit runtime request enumerates all mature deterministic-runtime concerns. Proactively scan for contract, replay, failure recovery, observability, performance, migration, data-lifecycle and context-health gaps, while keeping plugin/UI concerns outside EVO ownership.
 
 Status: Authoritative

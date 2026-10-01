@@ -25,7 +25,10 @@
     "applicationRoutingDecision": "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
     "repositoryScopeDecision": "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md",
     "proactiveEngineering": "docs/architecture/LLM-PROACTIVE-ENGINEERING-INSTINCTS-v0.1.md",
-    "foundationMap": "llm.foundation-map.json"
+    "foundationMap": "llm.foundation-map.json",
+    "currentAuthorityBoundary": "docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md",
+    "ecosystemBoundary": "docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md",
+    "documentationPolicy": "documentation.policy.json"
   },
   "requiredReading": [
     "PHILOSOPHY.md",
@@ -34,9 +37,8 @@
     "ARCHITECTURE.md",
     "PUBLIC-API.md",
     "architecture.manifest.json",
-    "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
-    "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-    "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
+    "docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md",
+    "docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md"
   ],
   "readProfiles": {
     "boundedModuleChange": {
@@ -51,7 +53,7 @@
       ]
     },
     "crossModuleArchitecture": {
-      "maxInitialDocuments": 19,
+      "maxInitialDocuments": 18,
       "documents": [
         "AGENTS.md",
         "LLM.md",
@@ -69,13 +71,12 @@
         "architecture.manifest.json",
         "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
         "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
+        "docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md",
+        "docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md"
       ]
     },
     "continuation": {
-      "maxInitialDocuments": 18,
+      "maxInitialDocuments": 17,
       "documents": [
         "AGENTS.md",
         "LLM.md",
@@ -92,20 +93,22 @@
         "docs/architecture/status/EVO-STAGE-E-EEL-C01-ORDER-TO-CASH-PACKET-v0.1.md",
         "docs/product/EVO-BUSINESS-REQUIREMENT-BASELINE-v0.1.md",
         "docs/architecture/continuity/EVO-HUMAN-LLM-REQUIREMENT-ALIGNMENT-PROTOCOL-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
-        "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
+        "docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md",
+        "docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md"
       ]
     },
     "archaeology": {
-      "maxInitialDocuments": 6,
+      "maxInitialDocuments": 9,
       "documents": [
         "AGENTS.md",
         "LLM.md",
         "context.manifest.json",
         "project.status.json",
         "requirements.status.json",
-        "branch.topology.json"
+        "branch.topology.json",
+        "docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md",
+        "docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md",
+        "docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md"
       ]
     }
   },
@@ -120,10 +123,10 @@
   "sourcePriority": [
     "use-two-axis-authority-model",
     "executable-reality-code-migrations-db-constraints-tests-verified-ci",
-    "normative-intent-current-adr-invariants-contracts-freezes",
-    "progress-latest-checkpoint-status",
+    "normative-intent-current-authority-invariants-contracts",
+    "progress-current-status",
     "evidence-certification-with-explicit-boundary",
-    "history-legacy-chat-model-memory"
+    "history-decisions-checkpoints-legacy-chat-model-memory-on-demand"
   ],
   "moduleContextPattern": [
     "modules/<module>/README.md",
