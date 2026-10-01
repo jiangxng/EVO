@@ -433,5 +433,13 @@
       "HOST_PLATFORM",
       "HISTORICAL_EVIDENCE"
     ]
-  }
+  },
+  "boundaryPolicy": "architecture.boundary-policy.json",
+  "ecosystemBoundary": "docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md",
+  "documentationPolicy": "documentation.policy.json",
+  "architectureAuthorities": [
+    "docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md",
+    "docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md",
+    "docs/architecture/continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md"
+  ]
 }
