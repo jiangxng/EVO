@@ -34,23 +34,28 @@ has enough information to act safely.
 
 ## 3. Document classes
 
-Every important document belongs primarily to one class.
+Every important document belongs primarily to one lifecycle class.
+
+The project rule is:
+
+> **Historical evidence is preserved; current authority is allowed to evolve.**
+
+Do not implement project memory by freezing every document. Current authority must remain concise enough that a fresh LLM can determine today's rule without reconstructing every prior version.
 
 | Class | Purpose | Mutability | Examples |
 |---|---|---|---|
-| Instruction | Agent behavior and bootstrap | Maintained in place, concise | `AGENTS.md`, `LLM.md` |
-| Router | Machine-readable current pointers | Maintained in place, validated | `context.manifest.json` |
-| Normative | Required architecture behavior | Versioned/superseded | ADR, Invariants, Contract, Freeze |
-| Reality | Actual executable behavior | Changes with implementation | code, migration, test, DB constraint |
-| Business Intent | Confirmed business outcomes, acceptance and non-goals | Versioned/additive | business requirement baseline |
-| Progress | Current stage and next packet | Append or new checkpoint | status, current checkpoint |
-| Alignment | Requirement-to-capability/evidence and anti-overdesign state | Maintained pointer + additive review evidence | requirements.status.json, alignment matrix |
-| Evidence | Proof within named boundary | Immutable/additive | certification packet, CI run |
-| Historical | Genealogy and discarded/superseded state | Immutable, not default reading | legacy, archaeology history |
+| CURRENT_AUTHORITY | What is required now | Maintained in place; material rationale preserved separately when needed | `LLM.md`, `INVARIANTS.md`, current architecture standards |
+| DECISION_RECORD | Why a material architecture decision was made/changed | Semantic content preserved; supersede with a new record | `docs/architecture/decisions/*` |
+| HISTORICAL_SNAPSHOT | What state/evidence existed at a point in time | Frozen after milestone/proof | checkpoints, certification packets, legacy archaeology |
+| VERSIONED_CONTRACT | Exact meaning of a released public contract/version | Incompatible semantic change requires a new version | schemas, public contracts |
+| LIVING_RUNBOOK | What operators should do now | Maintained in place | deployment/operations procedures |
+| GENERATED_CURRENT_VIEW | Synthesized current pointer/index | Regeneratable/replaceable | generated handoff/index |
+| CURRENT_STATUS | Current progress/next action | Maintained in place | `project.status.json`, `requirements.status.json` |
+| REALITY | Actual executable behavior | Changes with implementation | code, migration, test, DB constraint |
 
-One document may reference other classes, but must not blur them. For example, a
-certification proves a scenario; it does not automatically redefine the global
-architecture.
+One document may reference other classes, but must not blur them. A certification proves a scenario; it does not redefine current global architecture. A current architecture document should state one current rule instead of accumulating every obsolete alternative.
+
+Use `documentation.policy.json` as the machine-readable classification map.
 
 ## 4. Required metadata for new important documents
 
@@ -149,22 +154,35 @@ Current mandatory clarification:
 Do not introduce a second term for an existing concept solely because another
 model prefers different wording. Propose a versioned terminology decision first.
 
-## 9. Additive history and maintained pointers
+## 9. Selective history preservation
 
-Versioned decisions, certifications, checkpoints, database snapshots, and
-genealogy evidence are additive.
+History is additive only for artifacts whose purpose is historical evidence or exact version meaning.
 
-The following are intentional maintained-pointer exceptions:
+Preserve/supersede rather than rewrite:
+
+- Decision Records / ADRs;
+- completed checkpoints and milestone snapshots;
+- certifications and production proof;
+- legacy/genealogy evidence;
+- released incompatible contract versions.
+
+Maintain in place when the purpose is current truth or routing:
 
 - `AGENTS.md`;
 - `CLAUDE.md`;
 - `.github/copilot-instructions.md`;
 - `LLM.md`;
+- `INVARIANTS.md`;
+- `architecture.manifest.json`;
 - `context.manifest.json`;
+- `project.status.json`;
+- current architecture standards;
+- living runbooks;
 - index README files and ordinary module README/CONTEXT files.
 
-These files must point to versioned evidence and may be updated in place so a new
-agent does not begin from a stale route.
+A material change to current authority should create or reference a Decision Record when the rationale will matter to future engineering. Typos, clearer wording, generated index refreshes and routine current-pointer maintenance do not require permanent history artifacts.
+
+Git history preserves ordinary file evolution. Decision Records/Historical Snapshots preserve semantic project memory when reconstructing commit diffs would be an unreasonable burden for a future LLM.
 
 ## 10. Review checklist
 
