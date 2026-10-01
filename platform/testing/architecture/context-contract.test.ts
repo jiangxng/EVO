@@ -15,20 +15,30 @@ describe('LLM context determinism contract', () => {
       repositoryScope: {
         computeComponent: string;
       };
+      readProfiles: Record<string, { documents: string[] }>;
       rules: Record<string, unknown>;
     };
     expect(manifest.requiredReading).toContain('PHILOSOPHY.md');
     expect(manifest.requiredReading).toContain('INVARIANTS.md');
     expect(manifest.requiredReading).toContain('PUBLIC-API.md');
     expect(manifest.requiredReading).toContain(
-      'docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md'
+      'docs/architecture/EVO-CURRENT-AUTHORITY-BOUNDARY-v0.1.md'
     );
     expect(manifest.requiredReading).toContain(
-      'docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md'
+      'docs/architecture/EVO-ECOSYSTEM-PROJECT-BOUNDARIES-v0.1.md'
     );
-    expect(manifest.requiredReading).toContain(
+
+    const historicalDecisions = [
+      'docs/architecture/decisions/2026-09-24-evo-minimal-runtime-plugin-boundary-v0.1.md',
+      'docs/architecture/decisions/2026-09-24-minimal-application-routing-anchor-v0.1.md',
       'docs/architecture/decisions/2026-09-24-evo-repository-vs-ledger-runtime-scope-v0.1.md'
-    );
+    ];
+    for (const decision of historicalDecisions) {
+      expect(manifest.requiredReading).not.toContain(decision);
+      expect(manifest.readProfiles.crossModuleArchitecture.documents).not.toContain(decision);
+      expect(manifest.readProfiles.continuation.documents).not.toContain(decision);
+      expect(manifest.readProfiles.archaeology.documents).toContain(decision);
+    }
     expect(manifest.repositoryScope.computeComponent).toBe('EVO Ledger Runtime');
     expect(manifest.rules.broaderRepositoryRequirementsAreLedgerRuntimeRequirements).toBe(false);
     expect(manifest.rules.preserveBroaderRequirementDocuments).toBe(true);
