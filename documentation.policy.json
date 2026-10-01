@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "authority": "docs/architecture/continuity/EVO-LLM-DOCUMENTATION-OPERATING-STANDARD-v0.1.md",
+  "principle": "historical-evidence-preserved-current-authority-evolves",
+  "classes": {
+    "CURRENT_AUTHORITY": {
+      "editable": true
+    },
+    "DECISION_RECORD": {
+      "editableSemantics": false,
+      "supersedeWithNewRecord": true
+    },
+    "HISTORICAL_SNAPSHOT": {
+      "editableSemantics": false
+    },
+    "VERSIONED_CONTRACT": {
+      "editableSemantics": false,
+      "incompatibleChangeRequiresNewVersion": true
+    },
+    "LIVING_RUNBOOK": {
+      "editable": true
+    },
+    "GENERATED_CURRENT_VIEW": {
+      "regeneratable": true
+    },
+    "CURRENT_STATUS": {
+      "editable": true
+    }
+  },
+  "keyDocuments": {
+    "LLM.md": "CURRENT_AUTHORITY",
+    "INVARIANTS.md": "CURRENT_AUTHORITY",
+    "architecture.manifest.json": "CURRENT_AUTHORITY",
+    "project.status.json": "CURRENT_STATUS",
+    "docs/architecture/decisions/*": "DECISION_RECORD",
+    "docs/architecture/continuity/checkpoints/*": "HISTORICAL_SNAPSHOT",
+    "docs/architecture/certification/*": "HISTORICAL_SNAPSHOT",
+    "docs/architecture/legacy/*": "HISTORICAL_SNAPSHOT"
+  },
+  "historyLoading": "on-demand"
+}
