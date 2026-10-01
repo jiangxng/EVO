@@ -15,7 +15,11 @@ describe('LLM context determinism contract', () => {
       repositoryScope: {
         computeComponent: string;
       };
-      readProfiles: Record<string, { documents: string[] }>;
+      readProfiles: {
+        crossModuleArchitecture: { documents: string[] };
+        continuation: { documents: string[] };
+        archaeology: { documents: string[] };
+      };
       rules: Record<string, unknown>;
     };
     expect(manifest.requiredReading).toContain('PHILOSOPHY.md');
