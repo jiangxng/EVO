@@ -4,8 +4,8 @@ import type {
 } from '../../../platform/database/src/transaction.js';
 import type { BusinessDataReader } from '../../business-data/api/business-data-reader.js';
 import type { LedgerWriter } from '../../ledger/api/ledger-writer.js';
-import type { PostingMetadataReader } from '../../metadata/api/posting-metadata-reader.js';
 import type { PostingProcessor } from '../api/posting-processor.js';
+import type { CurrentPostingRuleReader } from '../api/current-posting-rule-reader.js';
 import type {
   PostingFailureInfo,
   PostingProcessResult
@@ -21,7 +21,7 @@ export class PostingService implements PostingProcessor {
     private readonly queue: PostingQueueReader,
     private readonly state: PostingStateStore,
     private readonly businessData: BusinessDataReader,
-    private readonly metadata: PostingMetadataReader,
+    private readonly currentRules: CurrentPostingRuleReader,
     private readonly ledger: LedgerWriter,
     private readonly transactions: DatabaseTransactionRunner
   ) {}
@@ -48,14 +48,13 @@ export class PostingService implements PostingProcessor {
         });
       }
 
-      const metadata = await this.metadata.loadPostingMetadata(
-        candidate.applicationId,
-        candidate.metadataVersion
+      const postingRules = await this.currentRules.loadCurrentPostingRules(
+        candidate.applicationId
       );
 
       const effects = evaluatePostingRules(
         businessData.payload,
-        metadata.postingRules
+        postingRules
       );
 
       return await this.transactions.run(async (trx) => {
