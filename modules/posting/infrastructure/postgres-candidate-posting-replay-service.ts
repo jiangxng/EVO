@@ -35,14 +35,13 @@ implements CandidatePostingReplayService {
     }
 
     const rows = await this.db.selectFrom('posting_input as p')
-      .innerJoin('application_instance as ai','ai.id','p.application_instance_id')
       .select([
         'p.id',
         'p.enterprise_id',
         'p.consistency_domain',
         'p.business_data_id',
         'p.application_instance_id',
-        'ai.application_definition_id',
+        'p.application_id',
         'p.effective_at',
         'p.posting_priority',
         'p.posting_sequence',
@@ -71,7 +70,7 @@ implements CandidatePostingReplayService {
       }
 
       const snapshot = await this.metadata.loadPostingMetadata(
-        row.application_definition_id,
+        row.application_id,
         row.metadata_version
       );
       const effects = evaluatePostingRules(fact.payload,snapshot.postingRules);
