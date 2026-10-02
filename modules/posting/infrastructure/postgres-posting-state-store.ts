@@ -164,6 +164,7 @@ export class PostgresPostingStateStore
         'pi.consistency_domain',
         'pi.business_data_id',
         'pi.application_instance_id',
+        'pi.application_id',
         'ai.application_definition_id',
         'pi.effective_at',
         'pi.posting_priority',
@@ -179,6 +180,7 @@ export class PostgresPostingStateStore
     readonly consistency_domain: string;
     readonly business_data_id: string;
     readonly application_instance_id: string;
+    readonly application_id: string;
     readonly application_definition_id: string;
     readonly effective_at: Date;
     readonly posting_priority: number;
@@ -191,6 +193,7 @@ export class PostgresPostingStateStore
       consistencyDomain: row.consistency_domain,
       businessDataId: row.business_data_id,
       applicationInstanceId: row.application_instance_id,
+      applicationId: row.application_id,
       applicationDefinitionId: row.application_definition_id,
       effectiveAt: new Date(row.effective_at),
       postingPriority: row.posting_priority,
