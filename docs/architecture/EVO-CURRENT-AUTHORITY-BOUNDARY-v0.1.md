@@ -83,3 +83,12 @@ Stop and reassess ownership when a change would add any of these to EVO Core:
 - business workflow/product lifecycle unrelated to deterministic posting/ledger execution.
 
 Such pressure is evidence that another owner boundary is being crossed.
+
+
+## Compatibility API interpretation rule
+
+Current compatibility endpoints and repository modules may expose richer platform behavior during convergence. They are retained implementation assets, not authority expansion.
+
+When `PUBLIC-API.md` documents both target and current alpha surfaces, target Core classification is determined by `project.status.json.targetCoreBoundary` and the accepted minimal-runtime architecture decisions.
+
+Do not infer target ownership from endpoint existence alone.
