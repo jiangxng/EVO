@@ -248,6 +248,15 @@ export async function burnConfiguratorConfiguration(
         }))
         .execute();
 
+      await trx
+        .insertInto('application_anchor')
+        .values({
+          application_id: app.applicationId,
+          source_ref: `configurator:${input.configurationId}`
+        })
+        .onConflict((oc) => oc.column('application_id').doNothing())
+        .execute();
+
       versionByApplication.set(app.applicationId, version.id);
       instanceByApplication.set(app.applicationId, instance.id);
     }
