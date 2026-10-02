@@ -45,9 +45,9 @@ export class PostgresCommandTransaction
           businessObjectVersion: string;
           postingInputId: string;
           postingSequence: string;
-          written.postingStatus: 'QUEUED' | 'BLOCKED_REPLAY_REQUIRED';
-          written.retroactive: boolean;
-          written.replayRequired: boolean;
+          postingStatus: 'QUEUED' | 'BLOCKED_REPLAY_REQUIRED';
+          retroactive: boolean;
+          replayRequired: boolean;
         };
 
         return {
@@ -56,9 +56,9 @@ export class PostgresCommandTransaction
           businessObjectVersion: BigInt(stored.businessObjectVersion),
           postingInputId: stored.postingInputId,
           postingSequence: BigInt(stored.postingSequence),
-          written.postingStatus: stored.written.postingStatus,
-          written.retroactive: stored.written.retroactive,
-          written.replayRequired: stored.written.replayRequired,
+          postingStatus: stored.postingStatus,
+          retroactive: stored.retroactive,
+          replayRequired: stored.replayRequired,
           idempotentReplay: true
         };
       }
@@ -131,9 +131,9 @@ export class PostgresCommandTransaction
         businessObjectVersion: written.businessObjectVersion.toString(),
         postingInputId: written.postingInputId,
         postingSequence: written.postingSequence.toString(),
-        written.postingStatus,
-        written.retroactive,
-        written.replayRequired
+        postingStatus: written.postingStatus,
+        retroactive: written.retroactive,
+        replayRequired: written.replayRequired
       };
 
       await trx
@@ -152,9 +152,9 @@ export class PostgresCommandTransaction
         businessObjectVersion: written.businessObjectVersion,
         postingInputId: written.postingInputId,
         postingSequence: written.postingSequence,
-        written.postingStatus,
-        written.retroactive,
-        written.replayRequired,
+        postingStatus: written.postingStatus,
+        retroactive: written.retroactive,
+        replayRequired: written.replayRequired,
         idempotentReplay: false
       };
     });
