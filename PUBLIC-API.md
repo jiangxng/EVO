@@ -230,6 +230,21 @@ The endpoint does **not** return business payloads, ledger rows or flow trace co
 
 This boundary exists so one Host-side bridge can observe EVO efficiently. Browser/mobile clients should subscribe to the Host event lane rather than polling EVO independently.
 
+### Runtime flow evidence boundary
+
+EVO exposes an execution-evidence adapter for Host-governed process semantics:
+
+```text
+POST /api/v1/runtime-flow-definitions/register
+POST /api/v1/runtime-traces/query
+```
+
+The registration endpoint accepts a Host-owned published flow identity/reference/revision/digest and returns an EVO runtime `flowDefinitionId`. Re-registering the same immutable version is idempotent; a conflicting definition for the same enterprise/code/version fails closed.
+
+`POST /api/v1/commands` may carry optional explicit lineage. The current Configurator compatibility submission accepts the same lineage contract. When lineage is present, successful BusinessData execution is projected into immutable runtime trace evidence.
+
+This is an adapter boundary only. EVO does not become the lifecycle authority for the Host's EOG/SOP/process definition, and runtime traces never infer business transitions from ordering or similarity.
+
 ### Runtime observation read boundary
 
 EVO exposes a generic Host-facing read boundary for time-scoped operational observation:

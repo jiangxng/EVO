@@ -7,7 +7,7 @@ interface StoredLineage {
   flowInstanceKey: string;
   stepCode: string;
   parentBusinessDataId?: string;
-  relationType?: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'REFERENCES';
+  relationType?: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'DERIVES_FROM' | 'REFERENCES';
 }
 
 export class PostgresFlowProjection implements FlowProjection {
@@ -23,6 +23,33 @@ export class PostgresFlowProjection implements FlowProjection {
     const lineage = execution.lineage as unknown as StoredLineage;
     const result = execution.result as unknown as { businessDataId?: string };
     if (!lineage.flowDefinitionId || !lineage.flowInstanceKey || !lineage.stepCode || !result.businessDataId) return;
+
+    const flowDefinition = await this.db
+      .selectFrom('flow_definition')
+      .select(['enterprise_id','status'])
+      .where('id','=',lineage.flowDefinitionId)
+      .executeTakeFirst();
+    if (
+      !flowDefinition
+      || flowDefinition.status !== 'PUBLISHED'
+      || (
+        flowDefinition.enterprise_id !== null
+        && flowDefinition.enterprise_id !== execution.enterprise_id
+      )
+    ) {
+      throw new Error('EVO_RUNTIME_FLOW_DEFINITION_NOT_ACTIVE');
+    }
+
+    if (lineage.parentBusinessDataId !== undefined) {
+      const parent = await this.db
+        .selectFrom('business_data')
+        .select('enterprise_id')
+        .where('id','=',lineage.parentBusinessDataId)
+        .executeTakeFirst();
+      if (!parent || parent.enterprise_id !== execution.enterprise_id) {
+        throw new Error('EVO_RUNTIME_FLOW_PARENT_SCOPE_INVALID');
+      }
+    }
 
     const flowInstance = await this.db.insertInto('flow_instance').values({
       enterprise_id: execution.enterprise_id,
