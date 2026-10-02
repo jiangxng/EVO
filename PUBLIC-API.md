@@ -3,6 +3,27 @@
 Status: Authoritative Contract Overview
 Version: 1.0-alpha.2
 
+## Current vs target interpretation
+
+This document contains both:
+
+1. **target EVO Ledger Runtime public contracts**; and
+2. **current compatibility/Host-composition APIs** retained while convergence is in progress.
+
+Repository presence or current endpoint availability does not make a capability part of the target EVO Core boundary.
+
+When classification conflicts or looks ambiguous, authority order is:
+
+```text
+project.status.json targetCoreBoundary
+→ ARCHITECTURE.md Target Product Boundary
+→ current architecture decisions
+→ this document's explicit target/compatibility labels
+→ current implementation endpoints
+```
+
+In particular, identity, authorization, rich Application lifecycle, capability discovery and generic Command orchestration remain outside target EVO Ledger Runtime even where compatibility endpoints still expose them today.
+
 ## Boundary Philosophy
 
 Public write APIs represent business Commands. They do not expose direct writes to BusinessData, LedgerEntry, LedgerBalance, CostResult, WorkItem or Replay internals.
