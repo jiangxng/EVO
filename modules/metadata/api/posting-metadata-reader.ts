@@ -3,6 +3,7 @@ import type {
 } from './contracts.js';
 
 export interface PostingMetadataSnapshot {
+  readonly applicationId: string;
   readonly applicationDefinitionVersionId: string;
   readonly applicationDefinitionId: string;
   readonly metadataVersion: number;
@@ -11,7 +12,7 @@ export interface PostingMetadataSnapshot {
 
 export interface PostingMetadataReader {
   loadPostingMetadata(
-    applicationDefinitionId: string,
+    applicationId: string,
     metadataVersion: number
   ): Promise<PostingMetadataSnapshot>;
 }
