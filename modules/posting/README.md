@@ -99,3 +99,21 @@ PostingInput.applicationId
 Legacy `ApplicationDefinitionVersion` remains compatibility lineage for the current migration phase, including `metadataVersion`, but it is no longer the first routing key for normal posting or candidate replay.
 
 The migration fails closed if one legacy ApplicationDefinition maps to multiple explicit runtime applicationIds. A zero-rule applicationId is valid and produces zero PostingRule effects.
+
+
+## Current executable PostingRule registry
+
+Normal posting now reads the Core-owned current executable rule set from `current_posting_rule`:
+
+```text
+BusinessData.applicationId
+  → current_posting_rule.application_id
+  → priority + stable rule_id
+  → rule evaluation
+```
+
+This registry intentionally has no ApplicationDefinitionVersion ownership. A rule-owning Host/plugin may later replace the current set through a dedicated public configuration contract.
+
+During convergence, legacy versioned `posting_rule` rows remain preserved as compatibility/history lineage and candidate replay continues to use the versioned reader. Configurator/demo compatibility writers dual-write the current registry.
+
+This separation prevents direct BusinessData submission from depending on rich ApplicationDefinition lifecycle while avoiding a replay-semantics rewrite in the same slice.

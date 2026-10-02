@@ -258,6 +258,12 @@ export async function burnConfiguratorConfiguration(
         .execute();
     }
 
+    for (const applicationId of versionByApplication.keys()) {
+      await trx.deleteFrom('current_posting_rule')
+        .where('application_id', '=', applicationId)
+        .execute();
+    }
+
     let installedRules = 0;
     for (const rule of input.rules) {
       const versionId = versionByApplication.get(rule.applicationId);
@@ -272,7 +278,7 @@ export async function burnConfiguratorConfiguration(
       if (rule.quantityAst !== null) effect.quantity = rule.quantityAst;
       if (rule.amountAst !== null) effect.amount = rule.amountAst;
 
-      await trx
+      const legacyRule = await trx
         .insertInto('posting_rule')
         .values({
           application_definition_version_id: versionId,
@@ -283,7 +289,23 @@ export async function burnConfiguratorConfiguration(
           effect_ast: asJsonObject(effect),
           rule_schema_version: 2
         })
+        .returning('id')
+        .executeTakeFirstOrThrow();
+
+      await trx
+        .insertInto('current_posting_rule')
+        .values({
+          rule_id: legacyRule.id,
+          application_id: rule.applicationId,
+          code: `legacy_${rule.sourceId}`,
+          priority: rule.sourceId,
+          condition_ast: asJsonObject(rule.conditionAst),
+          effect_ast: asJsonObject(effect),
+          rule_schema_version: 2,
+          source_ref: `legacy:posting_rule:${legacyRule.id}`
+        })
         .execute();
+
       installedRules += 1;
     }
 

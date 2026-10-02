@@ -7,6 +7,7 @@ import { PostgresMetadataRepository } from '../../../modules/metadata/infrastruc
 import { PostgresPostingMetadataReader } from '../../../modules/metadata/infrastructure/postgres-posting-metadata-reader.js';
 import { PostgresBusinessDataReader } from '../../../modules/business-data/infrastructure/postgres-business-data-reader.js';
 import { PostgresPostingStateStore } from '../../../modules/posting/infrastructure/postgres-posting-state-store.js';
+import { PostgresCurrentPostingRuleReader } from '../../../modules/posting/infrastructure/postgres-current-posting-rule-reader.js';
 import { PostingService } from '../../../modules/posting/application/posting-service.js';
 import { PostgresCandidatePostingReplayService } from '../../../modules/posting/infrastructure/postgres-candidate-posting-replay-service.js';
 import { PostgresLedgerWriter } from '../../../modules/ledger/infrastructure/postgres-ledger-writer.js';
@@ -75,13 +76,14 @@ export function createEvoRuntime(database: DatabaseHandle) {
   const state = new PostgresPostingStateStore(db);
   const businessData = new PostgresBusinessDataReader(db);
   const postingMetadata = new PostgresPostingMetadataReader(db);
+  const currentPostingRules = new PostgresCurrentPostingRuleReader(db);
   const ledgerWriter = new PostgresLedgerWriter();
   const transactions = createTransactionRunner(db);
   const posting = new PostingService(
     state,
     state,
     businessData,
-    postingMetadata,
+    currentPostingRules,
     ledgerWriter,
     transactions
   );

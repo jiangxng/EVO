@@ -2,15 +2,15 @@ import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 
 describe('PostingRule applicationId routing convergence', () => {
-  it('routes normal PostingService by exact applicationId', async () => {
+  it('routes normal PostingService by exact applicationId through current rules', async () => {
     const source = await readFile(
       'modules/posting/application/posting-service.ts',
       'utf8'
     );
-    expect(source).toContain(
-      'candidate.applicationId,\n        candidate.metadataVersion'
-    );
+    expect(source).toContain('loadCurrentPostingRules');
+    expect(source).toContain('candidate.applicationId');
     expect(source).not.toContain('candidate.applicationDefinitionId');
+    expect(source).not.toContain('candidate.metadataVersion');
   });
 
   it('routes replay directly from posting_input.application_id', async () => {
