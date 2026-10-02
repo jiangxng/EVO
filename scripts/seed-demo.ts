@@ -466,7 +466,7 @@ try {
       .where('adv.id', '=', versionId)
       .executeTakeFirstOrThrow();
 
-    await db.insertInto('posting_rule').values({
+    const legacyRule = await db.insertInto('posting_rule').values({
       application_definition_version_id: versionId,
       application_id: application.application_id,
       code, priority,
@@ -476,6 +476,25 @@ try {
     }).onConflict((oc) => oc.columns(['application_definition_version_id','code']).doUpdateSet({
       application_id: application.application_id,
       priority, condition_ast: condition, effect_ast: effect, rule_schema_version: 1
+    })).returning('id').executeTakeFirstOrThrow();
+
+    await db.insertInto('current_posting_rule').values({
+      rule_id: legacyRule.id,
+      application_id: application.application_id,
+      code,
+      priority,
+      condition_ast: condition,
+      effect_ast: effect,
+      rule_schema_version: 1,
+      source_ref: `legacy:posting_rule:${legacyRule.id}`
+    }).onConflict((oc) => oc.columns(['application_id','code']).doUpdateSet({
+      rule_id: legacyRule.id,
+      priority,
+      condition_ast: condition,
+      effect_ast: effect,
+      rule_schema_version: 1,
+      source_ref: `legacy:posting_rule:${legacyRule.id}`,
+      updated_at: new Date()
     })).execute();
   }
 
