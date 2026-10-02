@@ -69,3 +69,17 @@ It deliberately does not require:
 The current Command path remains a compatibility composition layer until the submission contract is backed by the existing atomic BusinessData + PostingInput transaction and PostgreSQL-proven.
 
 `applicationId` is the exact ApplicationAnchor routing key used for PostingRule selection.
+
+
+## ApplicationId schema convergence — phase 1
+
+The compatibility schema now carries additive `application_id` columns on `business_data` and `posting_input`.
+
+Migration behavior:
+
+1. prefer explicit legacy compatibility metadata `application_instance.config.sourceApplicationId`;
+2. fall back to `application_definition.code` only for older rows that predate that explicit mapping;
+3. keep legacy `application_instance_id`, `command_execution_id` and `metadata_version` columns unchanged;
+4. compatibility Command writes dual-write the resolved `application_id`.
+
+The new columns intentionally remain nullable in phase 1 for rolling-deployment safety. A later gate may tighten constraints only after database evidence proves all active write paths populate the target routing key.
