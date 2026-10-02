@@ -99,3 +99,30 @@ posting_input.application_id NOT NULL
 ```
 
 Legacy `application_instance_id`, `command_execution_id` and `metadata_version` dependencies remain intact in this phase. Removing or relaxing them belongs to the direct BusinessDataSubmission transaction cutover, not this constraint step.
+
+
+## Direct submission durable idempotency
+
+Direct `BusinessDataSubmissionV010` does not create synthetic `CommandExecution` rows.
+
+Its durable idempotency/result receipt is:
+
+`business_data_submission_receipt`
+
+The receipt stores:
+
+- resolved internal enterprise scope;
+- original `scopeKey`;
+- exact `applicationId`;
+- idempotency/correlation identity;
+- deterministic request digest;
+- PROCESSING / COMPLETED / FAILED status;
+- stable result/error envelope.
+
+The uniqueness key is:
+
+```text
+enterprise_id + application_id + idempotency_key
+```
+
+This is runtime idempotency only. It does not add actor, permission, CommandDefinition or rich Application semantics back into EVO Core.
