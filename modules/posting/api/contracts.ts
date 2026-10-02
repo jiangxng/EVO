@@ -6,7 +6,7 @@ export interface PostingCandidate {
   readonly consistencyDomain: string;
   readonly businessDataId: string;
   readonly applicationInstanceId: string;
-  readonly applicationDefinitionId: string;
+  readonly applicationId: string;
   readonly effectiveAt: Date;
   readonly postingPriority: number;
   readonly postingSequence: bigint;

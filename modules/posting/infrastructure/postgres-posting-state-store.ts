@@ -153,18 +153,13 @@ export class PostgresPostingStateStore
   ) {
     return db
       .selectFrom('posting_input as pi')
-      .innerJoin(
-        'application_instance as ai',
-        'ai.id',
-        'pi.application_instance_id'
-      )
       .select([
         'pi.id',
         'pi.enterprise_id',
         'pi.consistency_domain',
         'pi.business_data_id',
         'pi.application_instance_id',
-        'ai.application_definition_id',
+        'pi.application_id',
         'pi.effective_at',
         'pi.posting_priority',
         'pi.posting_sequence',
@@ -179,7 +174,7 @@ export class PostgresPostingStateStore
     readonly consistency_domain: string;
     readonly business_data_id: string;
     readonly application_instance_id: string;
-    readonly application_definition_id: string;
+    readonly application_id: string;
     readonly effective_at: Date;
     readonly posting_priority: number;
     readonly posting_sequence: bigint;
@@ -191,7 +186,7 @@ export class PostgresPostingStateStore
       consistencyDomain: row.consistency_domain,
       businessDataId: row.business_data_id,
       applicationInstanceId: row.application_instance_id,
-      applicationDefinitionId: row.application_definition_id,
+      applicationId: row.application_id,
       effectiveAt: new Date(row.effective_at),
       postingPriority: row.posting_priority,
       postingSequence: BigInt(row.posting_sequence),

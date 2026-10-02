@@ -83,3 +83,19 @@ Application recalculation
 Posting does not inspect an Application-specific "recalculate" flag.
 
 A scoped runtime-cache clear may be used before a full Application-driven repopulation. Cache clearing must not silently erase required historical/audit evidence.
+
+
+## ApplicationId routing convergence
+
+Posting candidate routing now uses the exact minimal runtime `applicationId`.
+
+```text
+PostingInput.applicationId
+  → PostingRule.applicationId
+  → deterministic priority + rule code order
+  → rule evaluation
+```
+
+Legacy `ApplicationDefinitionVersion` remains compatibility lineage for the current migration phase, including `metadataVersion`, but it is no longer the first routing key for normal posting or candidate replay.
+
+The migration fails closed if one legacy ApplicationDefinition maps to multiple explicit runtime applicationIds. A zero-rule applicationId is valid and produces zero PostingRule effects.

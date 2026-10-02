@@ -455,13 +455,26 @@ try {
     condition: Record<string, unknown>,
     effect: Record<string, unknown>
   ) {
+    const application = await db
+      .selectFrom('application_definition_version as adv')
+      .innerJoin(
+        'application_definition as ad',
+        'ad.id',
+        'adv.application_definition_id'
+      )
+      .select('ad.code as application_id')
+      .where('adv.id', '=', versionId)
+      .executeTakeFirstOrThrow();
+
     await db.insertInto('posting_rule').values({
       application_definition_version_id: versionId,
+      application_id: application.application_id,
       code, priority,
       condition_ast: condition,
       effect_ast: effect,
       rule_schema_version: 1
     }).onConflict((oc) => oc.columns(['application_definition_version_id','code']).doUpdateSet({
+      application_id: application.application_id,
       priority, condition_ast: condition, effect_ast: effect, rule_schema_version: 1
     })).execute();
   }

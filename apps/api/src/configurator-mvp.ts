@@ -276,6 +276,7 @@ export async function burnConfiguratorConfiguration(
         .insertInto('posting_rule')
         .values({
           application_definition_version_id: versionId,
+          application_id: rule.applicationId,
           code: `legacy_${rule.sourceId}`,
           priority: rule.sourceId,
           condition_ast: asJsonObject(rule.conditionAst),
