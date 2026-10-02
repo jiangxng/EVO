@@ -126,3 +126,22 @@ enterprise_id + application_id + idempotency_key
 ```
 
 This is runtime idempotency only. It does not add actor, permission, CommandDefinition or rich Application semantics back into EVO Core.
+
+
+## Shared atomic write core
+
+The compatibility Command path and the future direct `BusinessDataSubmissionV010` path converge on one atomic write primitive:
+
+`modules/business-data/application/atomic-business-data-write.ts`
+
+That primitive owns, inside one database transaction:
+
+1. business object version allocation by exact `applicationId`;
+2. BusinessData insertion;
+3. runtime-state lock and posting-sequence allocation;
+4. retroactive/replay-required calculation;
+5. PostingInput insertion;
+6. runtime-state high-level sequence/replay update;
+7. BusinessData outbox event creation.
+
+The current Command adapter still supplies legacy provenance columns because the database schema has not yet relaxed them. The next bounded slice makes those legacy provenance fields optional for direct submission without changing the shared atomic write algorithm.
