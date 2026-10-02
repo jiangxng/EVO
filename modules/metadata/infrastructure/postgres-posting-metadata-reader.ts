@@ -1,5 +1,4 @@
 import type { Kysely } from 'kysely';
-import { AppError } from '../../../platform/contracts/src/index.js';
 import type { Database } from '../../../platform/database/src/types.js';
 import type {
   PostingMetadataReader,
@@ -48,16 +47,6 @@ export class PostgresPostingMetadataReader
       .orderBy('pr.code')
       .execute();
 
-    if (rows.length === 0) {
-      throw new AppError({
-        code: 'POSTING_METADATA_VERSION_NOT_FOUND',
-        message: 'Posting metadata version does not exist for applicationId.',
-        module: 'metadata',
-        operation: 'loadPostingMetadata',
-        details: { applicationId, metadataVersion }
-      });
-    }
-
     const [version] = rows;
 
     const postingRules: PostingRuleDefinition[] = rows.map((row) => ({
@@ -70,11 +59,16 @@ export class PostgresPostingMetadataReader
     }));
 
     return {
-      applicationId: version!.application_id,
-      applicationDefinitionVersionId:
-        version!.application_definition_version_id,
-      applicationDefinitionId: version!.application_definition_id,
-      metadataVersion: version!.version,
+      applicationId,
+      ...(version === undefined
+        ? {}
+        : {
+            applicationDefinitionVersionId:
+              version.application_definition_version_id,
+            applicationDefinitionId:
+              version.application_definition_id
+          }),
+      metadataVersion,
       postingRules
     };
   }
