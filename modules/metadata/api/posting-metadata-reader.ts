@@ -4,8 +4,8 @@ import type {
 
 export interface PostingMetadataSnapshot {
   readonly applicationId: string;
-  readonly applicationDefinitionVersionId: string;
-  readonly applicationDefinitionId: string;
+  readonly applicationDefinitionVersionId?: string;
+  readonly applicationDefinitionId?: string;
   readonly metadataVersion: number;
   readonly postingRules: readonly PostingRuleDefinition[];
 }
