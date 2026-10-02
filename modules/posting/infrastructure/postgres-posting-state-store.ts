@@ -153,11 +153,6 @@ export class PostgresPostingStateStore
   ) {
     return db
       .selectFrom('posting_input as pi')
-      .innerJoin(
-        'application_instance as ai',
-        'ai.id',
-        'pi.application_instance_id'
-      )
       .select([
         'pi.id',
         'pi.enterprise_id',
@@ -165,7 +160,6 @@ export class PostgresPostingStateStore
         'pi.business_data_id',
         'pi.application_instance_id',
         'pi.application_id',
-        'ai.application_definition_id',
         'pi.effective_at',
         'pi.posting_priority',
         'pi.posting_sequence',
@@ -181,7 +175,6 @@ export class PostgresPostingStateStore
     readonly business_data_id: string;
     readonly application_instance_id: string;
     readonly application_id: string;
-    readonly application_definition_id: string;
     readonly effective_at: Date;
     readonly posting_priority: number;
     readonly posting_sequence: bigint;
@@ -194,7 +187,6 @@ export class PostgresPostingStateStore
       businessDataId: row.business_data_id,
       applicationInstanceId: row.application_instance_id,
       applicationId: row.application_id,
-      applicationDefinitionId: row.application_definition_id,
       effectiveAt: new Date(row.effective_at),
       postingPriority: row.posting_priority,
       postingSequence: BigInt(row.posting_sequence),
