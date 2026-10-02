@@ -63,6 +63,12 @@ export class PostgresCommandTransaction
         };
       }
 
+      const applicationId = await this.resolveCompatibilityApplicationId(
+        trx,
+        input.request.enterpriseId,
+        input.request.applicationInstanceId
+      );
+
       const execution = await trx
         .insertInto('command_execution')
         .values({
@@ -102,6 +108,7 @@ export class PostgresCommandTransaction
         .values({
           enterprise_id: input.request.enterpriseId,
           application_instance_id: input.request.applicationInstanceId,
+          application_id: applicationId,
           command_execution_id: execution.id,
           business_data_type: input.capability.resultingBusinessDataType,
           business_object_key: input.request.businessObjectKey,
@@ -151,6 +158,7 @@ export class PostgresCommandTransaction
           consistency_domain: runtime.consistency_domain,
           business_data_id: businessData.id,
           application_instance_id: input.request.applicationInstanceId,
+          application_id: applicationId,
           effective_at: input.request.effectiveAt,
           posting_priority: postingPriority,
           posting_sequence: postingSequence,
@@ -228,6 +236,34 @@ export class PostgresCommandTransaction
         idempotentReplay: false
       };
     });
+  }
+
+  private async resolveCompatibilityApplicationId(
+    trx: DbTransaction,
+    enterpriseId: string,
+    applicationInstanceId: string
+  ): Promise<string> {
+    const row = await trx
+      .selectFrom('application_instance as ai')
+      .innerJoin(
+        'application_definition as ad',
+        'ad.id',
+        'ai.application_definition_id'
+      )
+      .select([
+        'ai.config',
+        'ad.code as application_definition_code'
+      ])
+      .where('ai.id', '=', applicationInstanceId)
+      .where('ai.enterprise_id', '=', enterpriseId)
+      .executeTakeFirstOrThrow();
+
+    const configured = row.config.sourceApplicationId;
+    if (typeof configured === 'string' && configured.trim().length > 0) {
+      return configured.trim();
+    }
+
+    return row.application_definition_code;
   }
 
   private async allocateBusinessObjectVersion(
