@@ -49,7 +49,7 @@ export class PostingService implements PostingProcessor {
       }
 
       const metadata = await this.metadata.loadPostingMetadata(
-        candidate.applicationDefinitionId,
+        candidate.applicationId,
         candidate.metadataVersion
       );
 
