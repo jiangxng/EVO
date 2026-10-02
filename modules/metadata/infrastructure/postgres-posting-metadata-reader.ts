@@ -20,33 +20,45 @@ export class PostgresPostingMetadataReader
   constructor(private readonly db: Kysely<Database>) {}
 
   async loadPostingMetadata(
-    applicationDefinitionId: string,
+    applicationId: string,
     metadataVersion: number
   ): Promise<PostingMetadataSnapshot> {
-    const version = await this.db
-      .selectFrom('application_definition_version')
-      .select(['id', 'application_definition_id', 'version'])
-      .where('application_definition_id', '=', applicationDefinitionId)
-      .where('version', '=', metadataVersion)
-      .executeTakeFirst();
+    const rows = await this.db
+      .selectFrom('posting_rule as pr')
+      .innerJoin(
+        'application_definition_version as adv',
+        'adv.id',
+        'pr.application_definition_version_id'
+      )
+      .select([
+        'pr.id',
+        'pr.code',
+        'pr.priority',
+        'pr.condition_ast',
+        'pr.effect_ast',
+        'pr.rule_schema_version',
+        'pr.application_id',
+        'adv.id as application_definition_version_id',
+        'adv.application_definition_id',
+        'adv.version'
+      ])
+      .where('pr.application_id', '=', applicationId)
+      .where('adv.version', '=', metadataVersion)
+      .orderBy('pr.priority')
+      .orderBy('pr.code')
+      .execute();
 
-    if (version === undefined) {
+    if (rows.length === 0) {
       throw new AppError({
         code: 'POSTING_METADATA_VERSION_NOT_FOUND',
-        message: 'Posting metadata version does not exist.',
+        message: 'Posting metadata version does not exist for applicationId.',
         module: 'metadata',
         operation: 'loadPostingMetadata',
-        details: { applicationDefinitionId, metadataVersion }
+        details: { applicationId, metadataVersion }
       });
     }
 
-    const rows = await this.db
-      .selectFrom('posting_rule')
-      .selectAll()
-      .where('application_definition_version_id', '=', version.id)
-      .orderBy('priority')
-      .orderBy('code')
-      .execute();
+    const [version] = rows;
 
     const postingRules: PostingRuleDefinition[] = rows.map((row) => ({
       id: row.id,
@@ -58,9 +70,11 @@ export class PostgresPostingMetadataReader
     }));
 
     return {
-      applicationDefinitionVersionId: version.id,
-      applicationDefinitionId: version.application_definition_id,
-      metadataVersion: version.version,
+      applicationId: version!.application_id,
+      applicationDefinitionVersionId:
+        version!.application_definition_version_id,
+      applicationDefinitionId: version!.application_definition_id,
+      metadataVersion: version!.version,
       postingRules
     };
   }
