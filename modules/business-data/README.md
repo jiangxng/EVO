@@ -83,3 +83,19 @@ Migration behavior:
 4. compatibility Command writes dual-write the resolved `application_id`.
 
 The new columns intentionally remain nullable in phase 1 for rolling-deployment safety. A later gate may tighten constraints only after database evidence proves all active write paths populate the target routing key.
+
+
+## ApplicationId schema convergence — phase 2
+
+After phase 1 dual-write is active, migration phase 2 performs a fail-closed coverage check.
+
+It refuses to continue if any persisted `business_data.application_id` or `posting_input.application_id` is null.
+
+Only after complete coverage is proven does it apply:
+
+```text
+business_data.application_id NOT NULL
+posting_input.application_id NOT NULL
+```
+
+Legacy `application_instance_id`, `command_execution_id` and `metadata_version` dependencies remain intact in this phase. Removing or relaxing them belongs to the direct BusinessDataSubmission transaction cutover, not this constraint step.
