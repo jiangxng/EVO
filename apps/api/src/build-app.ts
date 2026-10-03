@@ -14,6 +14,18 @@ import {
   representationEtagV010
 } from './conditional-http.js';
 import {
+  PostgresApplicationAnchorRegistryV010
+} from '../../../modules/business-data/infrastructure/postgres-application-anchor-registry.js';
+import {
+  PostgresBusinessDataSubmissionPortV010
+} from '../../../modules/business-data/infrastructure/postgres-business-data-submission.js';
+import {
+  registerBusinessDataSubmissionRouteV010
+} from './business-data-submission-route.js';
+import {
+  PostgresRuntimeScopeResolverV010
+} from './postgres-runtime-scope-resolver.js';
+import {
   burnConfiguratorConfiguration,
   submitConfiguratorBusinessData,
   type ConfiguratorBurnBody,
@@ -41,6 +53,16 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
  app.get('/health/ready',async(_request,reply)=>{if(options.database===undefined)return reply.code(503).send({status:'not_ready',reason:'database_not_configured'});try{await options.database.ping();return{status:'ready',version:'1.0.0-alpha.2'};}catch{return reply.code(503).send({status:'not_ready',reason:'database_unavailable'});}});
  if(options.database!==undefined){
   const runtime=createEvoRuntime(options.database);
+  const applicationAnchors = new PostgresApplicationAnchorRegistryV010(
+    runtime.db
+  );
+  const businessDataSubmissions = new PostgresBusinessDataSubmissionPortV010(
+    runtime.db,
+    new PostgresRuntimeScopeResolverV010(runtime.db),
+    applicationAnchors
+  );
+  registerBusinessDataSubmissionRouteV010(app, businessDataSubmissions);
+
   app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
 
   app.post('/api/v1/configurator/burn', async request => {
