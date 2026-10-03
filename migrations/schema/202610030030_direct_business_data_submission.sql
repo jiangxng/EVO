@@ -18,7 +18,7 @@ alter table posting_input
 alter table posting_run
   alter column metadata_version drop not null;
 
-do $
+do $migration$
 begin
   if exists (
     select 1
@@ -34,7 +34,7 @@ begin
       'CORE_MIN_BUSINESS_OBJECT_APPLICATION_VERSION_AMBIGUOUS';
   end if;
 end
-$;
+$migration$;
 
 create unique index if not exists uq_business_data_application_object_version
   on business_data(
