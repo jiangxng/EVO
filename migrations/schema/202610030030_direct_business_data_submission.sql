@@ -15,6 +15,9 @@ alter table posting_input
   alter column application_instance_id drop not null,
   alter column metadata_version drop not null;
 
+alter table posting_run
+  alter column metadata_version drop not null;
+
 do $
 begin
   if exists (
