@@ -183,3 +183,26 @@ legacy metadata pin is absent until a current-rule replay contract is defined.
 
 This slice implements the port only. Public HTTP transport and PostgreSQL
 end-to-end proof remain separate gates.
+
+
+## PostgreSQL direct-submission proof
+
+The isolated certification `direct-business-data-submission` proves the
+target write path against PostgreSQL:
+
+```text
+BusinessDataSubmission(applicationId=sales_order)
+  -> durable submission receipt
+  -> BusinessData(no Command/ApplicationInstance provenance)
+  -> PostingInput(applicationId=sales_order)
+  -> current PostingRules(applicationId=sales_order)
+  -> normal Posting
+  -> LedgerEntry / LedgerBalance
+```
+
+The proof also verifies deterministic idempotent replay, rejection of
+idempotency-key reuse with a changed request, and absence of synthetic
+`CommandExecution` state.
+
+This closes the database proof for the port. Public transport remains a
+separate convergence slice.

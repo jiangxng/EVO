@@ -2,43 +2,140 @@
   "schemaVersion": 1,
   "lanes": {
     "quality": [
-      { "id": "docs", "script": "validate:docs" }
+      {
+        "id": "docs",
+        "script": "validate:docs"
+      }
     ],
     "baseline": [
-      { "id": "demo", "script": "validate:demo" },
-      { "id": "eel-c01-receipt-posting", "script": "validate:eel-c01-receipt-posting" },
-      { "id": "eel-c01-settlement-allocation", "script": "validate:eel-c01-settlement-allocation" },
-      { "id": "eel-c01-work-closure", "script": "validate:eel-c01-work-closure" },
-      { "id": "eel-c02-purchase-recognition", "script": "validate:eel-c02-purchase-recognition" },
-      { "id": "eel-c02-goods-receipt", "script": "validate:eel-c02-goods-receipt" },
-      { "id": "eel-c02-supplier-payment", "script": "validate:eel-c02-supplier-payment" },
-      { "id": "worker-activation-concurrency", "script": "validate:worker-activation-concurrency" },
-      { "id": "activation-crash-retry", "script": "validate:activation-crash-retry" },
-      { "id": "activation-failure-matrix", "script": "validate:activation-failure-matrix" }
+      {
+        "id": "demo",
+        "script": "validate:demo"
+      },
+      {
+        "id": "eel-c01-receipt-posting",
+        "script": "validate:eel-c01-receipt-posting"
+      },
+      {
+        "id": "eel-c01-settlement-allocation",
+        "script": "validate:eel-c01-settlement-allocation"
+      },
+      {
+        "id": "eel-c01-work-closure",
+        "script": "validate:eel-c01-work-closure"
+      },
+      {
+        "id": "eel-c02-purchase-recognition",
+        "script": "validate:eel-c02-purchase-recognition"
+      },
+      {
+        "id": "eel-c02-goods-receipt",
+        "script": "validate:eel-c02-goods-receipt"
+      },
+      {
+        "id": "eel-c02-supplier-payment",
+        "script": "validate:eel-c02-supplier-payment"
+      },
+      {
+        "id": "worker-activation-concurrency",
+        "script": "validate:worker-activation-concurrency"
+      },
+      {
+        "id": "activation-crash-retry",
+        "script": "validate:activation-crash-retry"
+      },
+      {
+        "id": "activation-failure-matrix",
+        "script": "validate:activation-failure-matrix"
+      }
     ],
     "isolated": [
-      { "id": "public-capability-command", "script": "validate:public-capability-command" },
-      { "id": "eel-c01-full-replay", "script": "validate:eel-c01-full-replay" },
-      { "id": "eel-c01-legacy-receipt-compat", "script": "validate:eel-c01-legacy-receipt-compat" },
-      { "id": "eel-c02-full-replay", "script": "validate:eel-c02-full-replay" },
-      { "id": "eel-c03-sales-return", "script": "validate:eel-c03-sales-return" },
-      { "id": "eel-c03-sales-exchange", "script": "validate:eel-c03-sales-exchange" },
-      { "id": "eel-c03-customer-refund", "script": "validate:eel-c03-customer-refund" },
-      { "id": "eel-c03-red-invoice", "script": "validate:eel-c03-red-invoice" },
-      { "id": "eel-c03-work-balance-closure", "script": "validate:eel-c03-work-balance-closure" },
-      { "id": "eel-c03-full-replay", "script": "validate:eel-c03-full-replay" },
-      { "id": "eel-c04-production-demand-work", "script": "validate:eel-c04-production-demand-work" },
-      { "id": "eel-c04-manufacturing-execution-bundle", "script": "validate:eel-c04-manufacturing-execution-bundle" },
-      { "id": "eel-c04-full-replay", "script": "validate:eel-c04-full-replay" },
-      { "id": "eel-c05-inventory-transfer", "script": "validate:eel-c05-inventory-transfer" },
-      { "id": "eel-c05-full-replay", "script": "validate:eel-c05-full-replay" },
-      { "id": "fai-double-entry", "script": "validate:fai-double-entry" },
-      { "id": "fai-accounting-loop", "script": "validate:fai-accounting-loop" },
-      { "id": "fai-statement-readiness", "script": "validate:fai-statement-readiness" },
-      { "id": "fai-three-financial-statements", "script": "validate:fai-three-financial-statements" }
+      {
+        "id": "direct-business-data-submission",
+        "script": "validate:direct-business-data-submission"
+      },
+      {
+        "id": "public-capability-command",
+        "script": "validate:public-capability-command"
+      },
+      {
+        "id": "eel-c01-full-replay",
+        "script": "validate:eel-c01-full-replay"
+      },
+      {
+        "id": "eel-c01-legacy-receipt-compat",
+        "script": "validate:eel-c01-legacy-receipt-compat"
+      },
+      {
+        "id": "eel-c02-full-replay",
+        "script": "validate:eel-c02-full-replay"
+      },
+      {
+        "id": "eel-c03-sales-return",
+        "script": "validate:eel-c03-sales-return"
+      },
+      {
+        "id": "eel-c03-sales-exchange",
+        "script": "validate:eel-c03-sales-exchange"
+      },
+      {
+        "id": "eel-c03-customer-refund",
+        "script": "validate:eel-c03-customer-refund"
+      },
+      {
+        "id": "eel-c03-red-invoice",
+        "script": "validate:eel-c03-red-invoice"
+      },
+      {
+        "id": "eel-c03-work-balance-closure",
+        "script": "validate:eel-c03-work-balance-closure"
+      },
+      {
+        "id": "eel-c03-full-replay",
+        "script": "validate:eel-c03-full-replay"
+      },
+      {
+        "id": "eel-c04-production-demand-work",
+        "script": "validate:eel-c04-production-demand-work"
+      },
+      {
+        "id": "eel-c04-manufacturing-execution-bundle",
+        "script": "validate:eel-c04-manufacturing-execution-bundle"
+      },
+      {
+        "id": "eel-c04-full-replay",
+        "script": "validate:eel-c04-full-replay"
+      },
+      {
+        "id": "eel-c05-inventory-transfer",
+        "script": "validate:eel-c05-inventory-transfer"
+      },
+      {
+        "id": "eel-c05-full-replay",
+        "script": "validate:eel-c05-full-replay"
+      },
+      {
+        "id": "fai-double-entry",
+        "script": "validate:fai-double-entry"
+      },
+      {
+        "id": "fai-accounting-loop",
+        "script": "validate:fai-accounting-loop"
+      },
+      {
+        "id": "fai-statement-readiness",
+        "script": "validate:fai-statement-readiness"
+      },
+      {
+        "id": "fai-three-financial-statements",
+        "script": "validate:fai-three-financial-statements"
+      }
     ],
     "upgrade": [
-      { "id": "migration-upgrade", "script": "validate:migration-upgrade" }
+      {
+        "id": "migration-upgrade",
+        "script": "validate:migration-upgrade"
+      }
     ]
   }
 }
