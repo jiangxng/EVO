@@ -5,12 +5,12 @@ export interface PostingCandidate {
   readonly enterpriseId: string;
   readonly consistencyDomain: string;
   readonly businessDataId: string;
-  readonly applicationInstanceId: string;
+  readonly applicationInstanceId: string | null;
   readonly applicationId: string;
   readonly effectiveAt: Date;
   readonly postingPriority: number;
   readonly postingSequence: bigint;
-  readonly metadataVersion: number;
+  readonly metadataVersion: number | null;
 }
 
 export type PostingProcessResult =
