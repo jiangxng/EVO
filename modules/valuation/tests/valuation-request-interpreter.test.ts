@@ -126,6 +126,7 @@ describe('valuation request interpreter', () => {
           return {
             id: 'payment-1',
             enterpriseId: 'e1',
+            applicationId: 'payments',
             applicationInstanceId: 'app-1',
             commandExecutionId: 'cmd-1',
             businessDataType: 'customer_payment.received',
