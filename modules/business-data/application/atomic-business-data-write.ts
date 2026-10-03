@@ -160,6 +160,15 @@ async function allocateBusinessObjectVersion(
   trx: DbTransaction,
   input: AtomicBusinessDataWriteInputV010
 ): Promise<bigint> {
+  const lockKey = [
+    input.enterpriseId,
+    input.applicationId,
+    input.businessObjectKey
+  ].join(':');
+
+  await sql`select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`
+    .execute(trx);
+
   const latest = await trx
     .selectFrom('business_data')
     .select('business_object_version')
