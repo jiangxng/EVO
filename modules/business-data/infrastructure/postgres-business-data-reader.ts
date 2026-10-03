@@ -23,6 +23,7 @@ export class PostgresBusinessDataReader implements BusinessDataReader {
     return {
       id: row.id,
       enterpriseId: row.enterprise_id,
+      applicationId: row.application_id,
       applicationInstanceId: row.application_instance_id,
       commandExecutionId: row.command_execution_id,
       businessDataType: row.business_data_type,

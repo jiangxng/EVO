@@ -9,9 +9,9 @@ import {
 export interface AtomicBusinessDataWriteInputV010 {
   readonly enterpriseId: string;
   readonly applicationId: string;
-  readonly legacyApplicationInstanceId: string;
-  readonly legacyCommandExecutionId: string;
-  readonly legacyMetadataVersion: number;
+  readonly legacyApplicationInstanceId?: string;
+  readonly legacyCommandExecutionId?: string;
+  readonly legacyMetadataVersion?: number;
   readonly businessDataType: string;
   readonly businessObjectKey: string;
   readonly expectedBusinessVersion?: bigint;
@@ -47,14 +47,14 @@ export async function writeBusinessDataAndPostingInputV010(
     .insertInto('business_data')
     .values({
       enterprise_id: input.enterpriseId,
-      application_instance_id: input.legacyApplicationInstanceId,
+      application_instance_id: input.legacyApplicationInstanceId ?? null,
       application_id: input.applicationId,
-      command_execution_id: input.legacyCommandExecutionId,
+      command_execution_id: input.legacyCommandExecutionId ?? null,
       business_data_type: input.businessDataType,
       business_object_key: input.businessObjectKey,
       business_object_version: businessObjectVersion,
       effective_at: input.effectiveAt,
-      metadata_version: input.legacyMetadataVersion,
+      metadata_version: input.legacyMetadataVersion ?? null,
       payload: input.payload
     })
     .returning('id')
@@ -97,12 +97,12 @@ export async function writeBusinessDataAndPostingInputV010(
       enterprise_id: input.enterpriseId,
       consistency_domain: runtime.consistency_domain,
       business_data_id: businessData.id,
-      application_instance_id: input.legacyApplicationInstanceId,
+      application_instance_id: input.legacyApplicationInstanceId ?? null,
       application_id: input.applicationId,
       effective_at: input.effectiveAt,
       posting_priority: postingPriority,
       posting_sequence: postingSequence,
-      metadata_version: input.legacyMetadataVersion,
+      metadata_version: input.legacyMetadataVersion ?? null,
       status: postingStatus,
       retroactive,
       posted_at: null
@@ -129,7 +129,8 @@ export async function writeBusinessDataAndPostingInputV010(
       aggregate_type: 'BusinessData',
       aggregate_id: businessData.id,
       correlation_id: input.correlationId,
-      causation_id: input.causationId ?? input.legacyCommandExecutionId,
+      causation_id:
+        input.causationId ?? input.legacyCommandExecutionId ?? null,
       payload: {
         businessDataId: businessData.id,
         postingInputId: postingInput.id,
@@ -159,6 +160,15 @@ async function allocateBusinessObjectVersion(
   trx: DbTransaction,
   input: AtomicBusinessDataWriteInputV010
 ): Promise<bigint> {
+  const lockKey = [
+    input.enterpriseId,
+    input.applicationId,
+    input.businessObjectKey
+  ].join(':');
+
+  await sql`select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`
+    .execute(trx);
+
   const latest = await trx
     .selectFrom('business_data')
     .select('business_object_version')

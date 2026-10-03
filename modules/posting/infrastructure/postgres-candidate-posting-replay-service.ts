@@ -69,6 +69,13 @@ implements CandidatePostingReplayService {
         );
       }
 
+      if (row.metadata_version === null) {
+        throw new Error(
+          'Candidate replay requires legacy metadataVersion; direct ' +
+          'BusinessDataSubmission rows must use the current-rule replay path.'
+        );
+      }
+
       const snapshot = await this.metadata.loadPostingMetadata(
         row.application_id,
         row.metadata_version

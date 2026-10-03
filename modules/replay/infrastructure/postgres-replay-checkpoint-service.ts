@@ -127,7 +127,9 @@ export class PostgresReplayCheckpointService implements ReplayCheckpointService 
       .execute();
 
     const postingMetadataVersions = [...new Set(
-      postingMetadataRows.map((row) => row.metadata_version)
+      postingMetadataRows
+        .map((row) => row.metadata_version)
+        .filter((value): value is number => value !== null)
     )].sort((a,b) => a-b);
 
     const postingPolicyPins: JsonObject = {
