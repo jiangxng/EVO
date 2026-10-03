@@ -152,6 +152,39 @@ try {
   const posted = await drainPosting(runtime, enterprise.id);
   assert.ok(posted >= 1);
 
+  const observationResponse = await app.inject({
+    method: 'POST',
+    url: '/api/v1/runtime-observations/query',
+    payload: {
+      contractVersion: '0.1.0',
+      enterpriseId: enterprise.id,
+      target: {
+        kind: 'APPLICATION_ANCHOR',
+        applicationId: 'sales_order'
+      },
+      window: {
+        startAt: '2026-10-03T01:59:00.000Z',
+        endAt: '2026-10-03T02:01:00.000Z'
+      },
+      metricCodes: ['event.count']
+    }
+  });
+  assert.equal(observationResponse.statusCode, 200);
+  const observationBody = observationResponse.json() as {
+    observations: Array<{
+      metricCode: string;
+      value: number;
+      target: { kind: string; applicationId?: string };
+    }>;
+  };
+  const applicationEventCount = observationBody.observations.find(
+    item => item.metricCode === 'event.count'
+  );
+  assert.ok(applicationEventCount);
+  assert.equal(applicationEventCount.target.kind, 'APPLICATION_ANCHOR');
+  assert.equal(applicationEventCount.target.applicationId, 'sales_order');
+  assert.equal(applicationEventCount.value, 1);
+
   const [pendingProduction, pendingShipment, receivable] = await Promise.all([
     runtime.ledger.getBalances(enterprise.id, 'pending_production'),
     runtime.ledger.getBalances(enterprise.id, 'pending_shipment'),
@@ -185,6 +218,7 @@ try {
     postingInputId: first.postingInputId,
     commandExecutionCreated: false,
     idempotentReplay: repeat.idempotentReplay,
+    applicationEventCount: applicationEventCount.value,
     posted
   }, null, 2));
 } finally {
