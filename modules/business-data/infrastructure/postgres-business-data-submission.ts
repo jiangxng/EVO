@@ -8,6 +8,9 @@ import type {
   BusinessDataSubmissionResultV010,
   BusinessDataSubmissionV010
 } from '../api/contracts.js';
+import type {
+  ApplicationAnchorReaderV010
+} from '../api/application-anchor.js';
 import {
   writeBusinessDataAndPostingInputV010
 } from '../application/atomic-business-data-write.js';
@@ -169,7 +172,8 @@ export class PostgresBusinessDataSubmissionPortV010
 {
   constructor(
     private readonly db: Kysely<Database>,
-    private readonly scopeResolver: BusinessDataScopeResolverV010
+    private readonly scopeResolver: BusinessDataScopeResolverV010,
+    private readonly applicationAnchors: ApplicationAnchorReaderV010
   ) {}
 
   async submit(
@@ -221,6 +225,8 @@ export class PostgresBusinessDataSubmissionPortV010
       await this.scopeResolver.resolveEnterpriseId(scopeKey),
       'BUSINESS_DATA_SCOPE_NOT_FOUND'
     );
+    await this.applicationAnchors.require(applicationId);
+
     const digest = businessDataSubmissionRequestDigestV010({
       ...request,
       scopeKey,

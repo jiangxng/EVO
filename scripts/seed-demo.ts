@@ -141,6 +141,21 @@ try {
   const salesInvoiceVersion = await version(salesInvoiceApp.id);
 
   async function instance(appId: string, code: string, name: string) {
+    const definition = await db
+      .selectFrom('application_definition')
+      .select('code')
+      .where('id', '=', appId)
+      .executeTakeFirstOrThrow();
+
+    await db
+      .insertInto('application_anchor')
+      .values({
+        application_id: definition.code,
+        source_ref: 'seed:application-definition:' + appId
+      })
+      .onConflict((oc) => oc.column('application_id').doNothing())
+      .execute();
+
     return one(
       db.insertInto('application_instance').values({
         enterprise_id: enterprise.id,
