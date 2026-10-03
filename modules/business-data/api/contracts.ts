@@ -3,13 +3,14 @@ import type { JsonObject } from '../../metadata/api/contracts.js';
 export interface BusinessDataRecord {
   readonly id: string;
   readonly enterpriseId: string;
-  readonly applicationInstanceId: string;
-  readonly commandExecutionId: string;
+  readonly applicationId: string;
+  readonly applicationInstanceId: string | null;
+  readonly commandExecutionId: string | null;
   readonly businessDataType: string;
   readonly businessObjectKey: string;
   readonly businessObjectVersion: bigint;
   readonly effectiveAt: Date;
-  readonly metadataVersion: number;
+  readonly metadataVersion: number | null;
   readonly payload: JsonObject;
 }
 
