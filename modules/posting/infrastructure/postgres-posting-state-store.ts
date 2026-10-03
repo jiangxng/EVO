@@ -173,12 +173,12 @@ export class PostgresPostingStateStore
     readonly enterprise_id: string;
     readonly consistency_domain: string;
     readonly business_data_id: string;
-    readonly application_instance_id: string;
+    readonly application_instance_id: string | null;
     readonly application_id: string;
     readonly effective_at: Date;
     readonly posting_priority: number;
     readonly posting_sequence: bigint;
-    readonly metadata_version: number;
+    readonly metadata_version: number | null;
   }): PostingCandidate {
     return {
       id: row.id,
