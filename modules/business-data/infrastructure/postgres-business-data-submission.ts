@@ -16,13 +16,15 @@ export interface BusinessDataScopeResolverV010 {
   resolveEnterpriseId(scopeKey: string): Promise<string>;
 }
 
+type ReceiptJson = Record<string, unknown>;
+
 type ReceiptRow = {
   id: string;
   scope_key: string;
   request_digest: string;
   status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  result: JsonObject | null;
-  error: JsonObject | null;
+  result: ReceiptJson | null;
+  error: ReceiptJson | null;
 };
 
 function requiredText(value: string, code: string): string {
@@ -92,7 +94,7 @@ export function businessDataSubmissionRequestDigestV010(
 }
 
 function parseCompletedResult(
-  value: JsonObject | null
+  value: ReceiptJson | null
 ): BusinessDataSubmissionResultV010 {
   if (
     value === null
@@ -143,7 +145,7 @@ function errorPayload(error: unknown): JsonObject {
   };
 }
 
-function previousFailure(value: JsonObject | null): AppError {
+function previousFailure(value: ReceiptJson | null): AppError {
   return new AppError({
     code:
       value !== null && typeof value.code === 'string'
@@ -235,7 +237,9 @@ export class PostgresBusinessDataSubmissionPortV010
       applicationId,
       idempotencyKey,
       correlationId,
-      causationId: request.causationId,
+      ...(request.causationId === undefined
+        ? {}
+        : { causationId: request.causationId }),
       digest
     });
 
