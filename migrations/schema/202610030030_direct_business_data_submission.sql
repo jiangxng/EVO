@@ -15,6 +15,24 @@ alter table posting_input
   alter column application_instance_id drop not null,
   alter column metadata_version drop not null;
 
+do $
+begin
+  if exists (
+    select 1
+    from business_data
+    group by
+      enterprise_id,
+      application_id,
+      business_object_key,
+      business_object_version
+    having count(*) > 1
+  ) then
+    raise exception
+      'CORE_MIN_BUSINESS_OBJECT_APPLICATION_VERSION_AMBIGUOUS';
+  end if;
+end
+$;
+
 create unique index if not exists uq_business_data_application_object_version
   on business_data(
     enterprise_id,
