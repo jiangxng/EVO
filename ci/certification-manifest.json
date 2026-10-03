@@ -51,6 +51,10 @@
     ],
     "isolated": [
       {
+        "id": "business-data-submission-http",
+        "script": "validate:business-data-submission-http"
+      },
+      {
         "id": "direct-business-data-submission",
         "script": "validate:direct-business-data-submission"
       },
