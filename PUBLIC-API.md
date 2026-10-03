@@ -26,9 +26,9 @@ In particular, identity, authorization, rich Application lifecycle, capability d
 
 ## Boundary Philosophy
 
-Public write APIs represent business Commands. They do not expose direct writes to BusinessData, LedgerEntry, LedgerBalance, CostResult, WorkItem or Replay internals.
+The target EVO Ledger Runtime write boundary is generic BusinessData submission. It does not expose direct writes to LedgerEntry, LedgerBalance, CostResult, WorkItem or Replay internals.
 
-A client may be a human UI, mobile tool, scanner, AI agent, automation, portal or external integration. Actor type does not bypass the Command boundary.
+Human/UI/Agent/domain Commands belong to the Host/Application layer and may remain available through compatibility adapters while convergence is in progress. A compatibility Command adapter may translate governed product actions into the generic BusinessData submission contract; Command orchestration is not target EVO Core ownership.
 
 ## Application-Scoped API Principle
 
@@ -211,6 +211,43 @@ request recalculation over retained BusinessData
 clear EVO runtime data
 export EVO runtime data
 ```
+
+### BusinessData submission transport
+
+The generic target runtime write transport is now:
+
+```text
+POST /api/v1/business-data
+```
+
+Request v0.1:
+
+```json
+{
+  "contractVersion": "0.1.0",
+  "scopeKey": "<opaque EVO runtime scope id>",
+  "applicationId": "<registered ApplicationAnchor>",
+  "businessDataType": "<type>",
+  "businessObjectKey": "<object key>",
+  "effectiveAt": "2026-10-03T02:00:00.000Z",
+  "payload": {},
+  "correlationId": "<correlation id>",
+  "idempotencyKey": "<idempotency key>",
+  "causationId": "<optional business-data/source id>",
+  "expectedBusinessVersion": "<optional non-negative integer string>",
+  "postingPriority": 0
+}
+```
+
+The v0.1 HTTP adapter interprets `scopeKey` only as the exact opaque EVO runtime scope identifier currently persisted as `enterprise.id`. This is a compatibility storage adapter; it does not make rich Enterprise lifecycle an EVO Core responsibility.
+
+`applicationId` MUST already exist in the minimal ApplicationAnchor registry. Unknown application IDs fail explicitly.
+
+Accepted submissions return HTTP `202` with durable BusinessData/PostingInput identity and status. BigInt values are serialized as decimal strings.
+
+The endpoint does not accept actor/permission/capability metadata and does not create `CommandExecution`, `ApplicationInstance` or legacy metadata-version provenance.
+
+Compatibility endpoint `POST /api/v1/commands` remains available separately and is not the target Core write model.
 
 ### Runtime observation revision boundary
 

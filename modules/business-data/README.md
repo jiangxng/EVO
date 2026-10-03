@@ -228,3 +228,24 @@ configuration paths register their runtime applicationId explicitly.
 
 Unknown applicationId fails before a submission receipt or BusinessData row is
 created.
+
+
+## Generic HTTP transport
+
+The target Core write transport is now `POST /api/v1/business-data`.
+
+The route is intentionally thin:
+
+```text
+HTTP JSON
+  -> runtime scope adapter
+  -> ApplicationAnchor check
+  -> BusinessDataSubmissionPortV010
+```
+
+It does not perform capability discovery, actor authorization, rich Application
+resolution or Command orchestration. Those remain Host/Application concerns.
+
+The isolated certification `business-data-submission-http` proves the HTTP
+request reaches the same direct port and deterministic Posting/Ledger path
+without synthesizing legacy Command metadata.
