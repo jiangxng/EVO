@@ -3,6 +3,9 @@ import { AppError } from '../platform/contracts/src/index.js';
 import { createDatabase } from '../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../platform/runtime/src/config.js';
 import {
+  PostgresApplicationAnchorRegistryV010
+} from '../modules/business-data/infrastructure/postgres-application-anchor-registry.js';
+import {
   PostgresBusinessDataSubmissionPortV010
 } from '../modules/business-data/infrastructure/postgres-business-data-submission.js';
 import {
@@ -22,6 +25,7 @@ try {
     .executeTakeFirstOrThrow();
 
   const scopeKey = 'enterprise:EVO_DEMO';
+  const anchors = new PostgresApplicationAnchorRegistryV010(runtime.db);
   const submission = new PostgresBusinessDataSubmissionPortV010(
     runtime.db,
     {
@@ -29,7 +33,8 @@ try {
         assert.equal(inputScopeKey, scopeKey);
         return enterprise.id;
       }
-    }
+    },
+    anchors
   );
 
   const orderNo = `DIRECT-SUBMISSION-${Date.now()}`;
@@ -62,6 +67,19 @@ try {
     correlationId,
     idempotencyKey
   };
+
+  await assert.rejects(
+    submission.submit({
+      ...request,
+      applicationId: 'unregistered-application',
+      idempotencyKey: `unknown:${orderNo}`
+    }),
+    (error: unknown) => {
+      assert.ok(error instanceof AppError);
+      assert.equal(error.code, 'APPLICATION_ANCHOR_NOT_FOUND');
+      return true;
+    }
+  );
 
   const first = await submission.submit(request);
   assert.equal(first.postingStatus, 'QUEUED');
