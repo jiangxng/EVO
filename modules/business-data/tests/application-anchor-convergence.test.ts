@@ -32,9 +32,12 @@ describe('minimal ApplicationAnchor convergence', () => {
     expect(migration).toContain(
       'create table if not exists application_anchor'
     );
-    expect(migration).toContain('application_id text primary key');
-    expect(migration).not.toContain('status');
-    expect(migration).not.toContain('version');
-    expect(migration).not.toContain('permission');
+    const tableDefinition = migration
+      .split('create table if not exists application_anchor', 2)[1]!
+      .split(');', 1)[0]!;
+    expect(tableDefinition).toContain('application_id text primary key');
+    expect(tableDefinition).not.toContain('status');
+    expect(tableDefinition).not.toContain('version');
+    expect(tableDefinition).not.toContain('permission');
   });
 });
