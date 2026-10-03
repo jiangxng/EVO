@@ -97,26 +97,13 @@ export class PostgresRuntimeObservationReaderV010
     startAt: Date;
     endAt: Date;
   }): Promise<EvoApplicationObservationAggregateV010> {
-    const candidates = await this.db
-      .selectFrom("application_instance")
-      .select(["id", "config"])
-      .where("enterprise_id", "=", input.enterpriseId)
-      .where("status", "=", "ACTIVE")
-      .execute();
+    const anchor = await this.db
+      .selectFrom("application_anchor")
+      .select("application_id")
+      .where("application_id", "=", input.applicationId)
+      .executeTakeFirst();
 
-    const matches = candidates.filter(row => {
-      const value = row.config["sourceApplicationId"];
-      return typeof value === "string"
-        && value === input.applicationId;
-    });
-    if (matches.length === 0) {
-      throw new Error("EVO_RUNTIME_OBSERVATION_APPLICATION_NOT_FOUND");
-    }
-    if (matches.length > 1) {
-      throw new Error("EVO_RUNTIME_OBSERVATION_APPLICATION_AMBIGUOUS");
-    }
-    const match = matches[0];
-    if (!match) {
+    if (!anchor) {
       throw new Error("EVO_RUNTIME_OBSERVATION_APPLICATION_NOT_FOUND");
     }
 
@@ -126,7 +113,7 @@ export class PostgresRuntimeObservationReaderV010
         fn.countAll<number>().as("event_count")
       ])
       .where("enterprise_id", "=", input.enterpriseId)
-      .where("application_instance_id", "=", match.id)
+      .where("application_id", "=", input.applicationId)
       .where("effective_at", ">=", input.startAt)
       .where("effective_at", "<", input.endAt)
       .executeTakeFirstOrThrow();

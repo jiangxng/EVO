@@ -298,7 +298,7 @@ ApplicationAnchor metrics:
 - `event.count`;
 - `event.frequency` in events/hour.
 
-Application observation counts accepted BusinessData for the exact ApplicationAnchor inside the requested window. It does not expose or require EVO-private `application_instance_id`. The current alpha storage reader resolves the existing compatibility ApplicationInstance from an exact `sourceApplicationId` configuration match; this is a replaceable compatibility adapter until the ApplicationAnchor/applicationId runtime convergence is completed.
+Application observation counts accepted BusinessData for the exact ApplicationAnchor inside the requested window. The storage reader queries BusinessData by the exact public `applicationId`; it does not resolve or require EVO-private `application_instance_id`.
 
 This API does not expose database rows, EOG node IDs, renderer state, SOP interpretation or bottleneck judgments. Those remain Host/Provider concerns.
 
