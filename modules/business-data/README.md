@@ -206,3 +206,25 @@ idempotency-key reuse with a changed request, and absence of synthetic
 
 This closes the database proof for the port. Public transport remains a
 separate convergence slice.
+
+
+## Minimal ApplicationAnchor registry
+
+Direct BusinessData submission now requires a registered `applicationId`.
+
+The target Core anchor is intentionally tiny:
+
+```text
+ApplicationAnchor
+= applicationId
+```
+
+It does not own rich Application metadata, lifecycle, permissions, capability
+discovery or package state.
+
+The PostgreSQL compatibility migration backfills anchors from existing
+Application/PostingRule/runtime identities. New reference/demo and Configurator
+configuration paths register their runtime applicationId explicitly.
+
+Unknown applicationId fails before a submission receipt or BusinessData row is
+created.
