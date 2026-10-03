@@ -145,3 +145,41 @@ That primitive owns, inside one database transaction:
 7. BusinessData outbox event creation.
 
 The current Command adapter still supplies legacy provenance columns because the database schema has not yet relaxed them. The next bounded slice makes those legacy provenance fields optional for direct submission without changing the shared atomic write algorithm.
+
+
+## Direct submission port — implementation slice
+
+The target `BusinessDataSubmissionPortV010` now has a PostgreSQL adapter:
+
+`modules/business-data/infrastructure/postgres-business-data-submission.ts`
+
+The direct path:
+
+```text
+scopeKey
+  -> injected scope resolver
+  -> enterpriseId
+
+applicationId
+  -> canonical runtime routing key
+
+BusinessDataSubmission
+  -> durable idempotency receipt
+  -> shared atomic BusinessData + PostingInput writer
+  -> current Posting pipeline
+```
+
+It does **not** create a synthetic `CommandExecution` and does not require
+`ApplicationInstance`, `CommandDefinition` or `metadataVersion`.
+
+Legacy provenance columns remain readable/writable for compatibility Command
+rows but are nullable for direct runtime submissions. `application_id`
+remains mandatory.
+
+Normal Posting may therefore carry a null legacy `metadata_version`; normal
+rule execution already uses the current PostingRule registry keyed by exact
+`applicationId`. Historical candidate replay remains fail-closed when its
+legacy metadata pin is absent until a current-rule replay contract is defined.
+
+This slice implements the port only. Public HTTP transport and PostgreSQL
+end-to-end proof remain separate gates.
