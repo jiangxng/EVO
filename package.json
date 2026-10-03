@@ -56,7 +56,8 @@
     "validate:public-capability-command": "node --env-file-if-exists=.env --import tsx scripts/validate-public-capability-command.ts",
     "validate:ci-manifest": "node scripts/validate-ci-certification-manifest.mjs",
     "ci:baseline": "node scripts/run-ci-certifications.mjs baseline",
-    "validate:migration-upgrade": "node --env-file-if-exists=.env --import tsx scripts/validate-migration-upgrade.ts"
+    "validate:migration-upgrade": "node --env-file-if-exists=.env --import tsx scripts/validate-migration-upgrade.ts",
+    "validate:direct-business-data-submission": "node --env-file-if-exists=.env --import tsx scripts/validate-direct-business-data-submission.ts"
   },
   "dependencies": {
     "fastify": "5.12.3",
