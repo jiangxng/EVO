@@ -1,11 +1,12 @@
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
+import type { JsonObject } from '../../metadata/api/contracts.js';
 import type { BusinessDataSubmissionV010 } from '../api/contracts.js';
 import {
   businessDataSubmissionRequestDigestV010
 } from '../infrastructure/postgres-business-data-submission.js';
 
-function request(payload: Record<string, unknown>): BusinessDataSubmissionV010 {
+function request(payload: JsonObject): BusinessDataSubmissionV010 {
   return {
     contractVersion: '0.1.0',
     scopeKey: 'enterprise:demo',
