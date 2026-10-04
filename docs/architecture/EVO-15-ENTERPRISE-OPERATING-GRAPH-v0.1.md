@@ -108,11 +108,13 @@ Therefore EVO adopts:
 
 > **Template-first Implementation: start from a governed reusable template, then confirm and specialize for the enterprise.**
 
-### Template storage
+### Template storage and enterprise ownership
 
-The versioned **Enterprise Template Catalog** belongs in Enterprise Context because it is reusable enterprise context/configuration knowledge, not runtime fact history.
+The shared **Template Store** is an independent copy/distribution surface. It does not belong to Enterprise Context and is not a runtime authority.
 
-A template may contain candidates for:
+Enterprise Context becomes authoritative only for the enterprise-owned copy after an explicit template copy/adoption action. That enterprise-owned copy may then evolve as a Working Draft and immutable enterprise software versions without any hidden live link back to the Template Store.
+
+A shared template may contain candidates for:
 
 - Application identities / anchors;
 - LedgerDefinitions;
@@ -128,10 +130,12 @@ A template may contain candidates for:
 Reference knowledge
 (accounting / APQC / public industry knowledge / reusable patterns)
         ↓ curate + validate + version
-Enterprise Template Catalog
-        ↓ enterprise owner selects
-Enterprise adoption / trimming / adjustment
-        ↓
+Template Store
+        ↓ explicit copy
+Enterprise Context Working Draft
+        ↓ enterprise trimming / adjustment / Create Version
+Enterprise software version
+        ↓ explicit activation
 Enterprise-specific pinned Runtime Definition
 ├─ ApplicationAnchor
 ├─ LedgerDefinition
@@ -157,9 +161,9 @@ The product objective is to reduce implementation time, communication cost and o
 
 A template is not runtime truth and is never an already-occurred business fact.
 
-Selecting a template does not make the catalog object itself executable. Adoption must create or pin the enterprise-specific Runtime Definition under the owning EVO contracts.
+Selecting a template does not make the Template Store object itself executable. Copying/adopting it creates an enterprise-owned draft/version boundary in Enterprise Context, and activation must explicitly create or pin the enterprise-specific Runtime Definition under the owning EVO contracts.
 
-Template updates must not silently mutate an already implemented enterprise. Upgrade requires explicit diff, adoption/migration and version governance.
+Template Store updates must not silently mutate an already implemented enterprise. Upgrade requires an explicit new copy/adoption or governed diff/migration/version action.
 
 EOG may preview a candidate template or compare template guidance with adopted enterprise definitions, but EOG remains a projection tool rather than the template/runtime designer.
 
@@ -177,16 +181,16 @@ It defines what enterprise software may rely on: ApplicationAnchor routing, Ledg
 
 It does not describe one enterprise's chosen operating configuration.
 
-### Enterprise Template Version = software version
+### Enterprise software version
 
-Enterprise Context stores the versioned enterprise software/template line.
+Enterprise Context stores the versioned enterprise-owned software line after template copy/adoption.
 
 ```text
 Ledger Runtime Spec v1.0
         ↑ compatible
-Enterprise Template v1.0
-Enterprise Template v1.1
-Enterprise Template v1.2
+Enterprise Software v1.0
+Enterprise Software v1.1
+Enterprise Software v1.2
 ```
 
 Each enterprise software version MUST pin or declare its compatible Runtime Spec.
