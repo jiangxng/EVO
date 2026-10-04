@@ -35,6 +35,54 @@ Previously confirmed EVO concepts are directly useful in the graph:
 
 The graph is an editing and understanding surface over these concepts.
 
+## 2.1 Runtime authority clarification
+
+The Enterprise Operating Graph must distinguish **runtime definition**, **runtime fact**, and **enterprise context**.
+
+### Runtime Definition Plane
+
+The core economic/operational skeleton is owned by EVO Runtime definitions:
+
+```text
+ApplicationAnchor
++ PostingRule
++ LedgerDefinition
++ conditional posting semantics
+```
+
+Rich Application UI/metadata/lifecycle may remain Host-owned, but the Application identity used for deterministic posting is the EVO `ApplicationAnchor/applicationId`.
+
+A versioned **Default Runtime Template** may provide the initial installable set of Application anchors, Ledger definitions and Posting-rule patterns. Its purpose is implementation efficiency and a sane starting operating skeleton.
+
+The template is not immutable enterprise truth. Once adopted/adjusted for one enterprise, the pinned enterprise Runtime Definition is the executable authority.
+
+### Runtime Fact Plane
+
+Actual enterprise operational facts originate only through the EVO runtime chain:
+
+```text
+BusinessData
+→ Posting
+→ LedgerEntry
+→ LedgerBalance
+```
+
+EOG, Enterprise Context, UI state or an Agent must never manufacture an already-happened runtime fact.
+
+### Enterprise Context / EOG Graph
+
+Enterprise Context may own Host-side enterprise context and the user's EOG Graph organization, including stable references to runtime definitions, graph membership, navigation and non-runtime enterprise semantics.
+
+It must not duplicate Application ↔ PostingRule ↔ Ledger semantics and become a second executable truth source.
+
+Therefore:
+
+> **EVO Runtime owns executable operating semantics and occurred runtime facts. EOG organizes and visualizes references to them. Enterprise Context supplies the surrounding enterprise context.**
+
+This refines the earlier shorthand that the Human-confirmed graph itself is the executable truth: Human confirmation governs which Runtime definitions/template choices the enterprise adopts, while the executable Application/Posting/Ledger semantics remain in their owning Runtime contracts.
+
+---
+
 ## 3. Human / LLM / Agent roles
 
 ### Human
@@ -254,9 +302,11 @@ It may accept, modify or reject guidance where the enterprise's actual business 
 
 The required relationship is:
 
-`Guidance Template → LLM proposal → Human confirmation/adjustment → Published Enterprise Operating Graph`
+`Guidance Template → enterprise adoption/adjustment → pinned Enterprise Runtime Definition → EOG projection`
 
-The system must never silently convert a guidance template into published enterprise truth.
+LLM/Agent assistance may help propose or explain choices later, but it is not required for this flow.
+
+The system must never silently convert a guidance template into enterprise Runtime truth.
 
 ### Accounting guidance convergence rule
 
@@ -267,9 +317,10 @@ Use:
 ```text
 Accounting Guidance Knowledge
 → versioned Accounting Guidance Template Pack
-→ EOG Guidance Topology
-→ LLM proposal
-→ Human-confirmed enterprise policy/topology
+→ Default Runtime Template / Guidance Topology
+→ enterprise adoption / adjustment
+→ pinned Runtime Definition
+→ EOG projection
 ```
 
 This allows the same visual model to show a recommended accounting path while keeping source authority, enterprise policy, Posting/Recognition rules and visual presentation as separate versioned concerns.
@@ -278,19 +329,33 @@ This allows the same visual model to show a recommended accounting path while ke
 
 The Enterprise Operating Graph Editor should therefore not behave like a blank free-form canvas by default.
 
-When appropriate, it should be able to surface:
+When appropriate, it should be able to surface and navigate the active Runtime topology.
 
-- recommended Application ↔ Ledger relationships;
-- recommended Transaction Type / PostingRule patterns;
-- missing accounting consequences;
-- missing upstream/downstream state transitions;
-- conflicts between the enterprise graph and a selected guidance template.
+Initial deterministic toolbox traversal is:
 
-The Human can then confirm, adjust or explicitly depart from the recommendation.
+```text
+selected Application
+→ show Ledger definitions that may receive an INCREASE effect
+  from that Application's conditional PostingRules
 
-This is a stronger model than generic diagramming:
+selected Ledger
+→ show Application anchors whose conditional PostingRules
+  may produce a DECREASE effect on that Ledger
+```
 
-`knowledge template + enterprise-specific confirmation + executable semantic bindings`
+“May” means a matching rule/condition definition exists. It does not mean the condition has been satisfied by a current BusinessData fact.
+
+This provides a guided alternating path:
+
+```text
+Application → +Ledger → Application that -Ledger → +Ledger → ...
+```
+
+The editor can also surface template recommendations or conflicts, but its first source for an enterprise already configured in EVO is the active/pinned Enterprise Runtime Definition.
+
+This is stronger than generic diagramming:
+
+`runtime topology + user-selected graph projection + governed definition editing`
 
 ## 11. Decision Backbone
 
@@ -330,12 +395,25 @@ Preferred principle:
 
 Graph Node
 → stable reference to canonical definition
++ graph membership / navigation metadata
 + view/layout metadata
-+ explicit graph relationship
 
-Application nodes reference Application identities; Ledger nodes reference LedgerDefinition; Transaction Type nodes reference TransactionType.
+For the initial Application/Ledger modeling flow:
 
-Layout coordinates, zoom, collapsed groups and visual annotations are presentation data. Business semantics remain canonical definition data.
+- dragging an Application or Ledger from the toolbox adds an existing definition reference to the current Graph;
+- it saves only graph/view data needed to display that object;
+- it does **not** create an Application;
+- it does **not** create a LedgerDefinition;
+- it does **not** create or modify a PostingRule;
+- it does **not** install an Application.
+
+If the referenced Runtime definitions already imply an Application ↔ Ledger posting relation, EOG may project that existing relation automatically. The drop action itself does not create the semantic relation.
+
+Application nodes reference ApplicationAnchor/applicationId plus Host metadata where needed. Ledger nodes reference LedgerDefinition.
+
+Creating new Applications, LedgerDefinitions or PostingRules is an advanced-definition workflow and is intentionally deferred from ordinary toolbox drag/drop.
+
+Layout coordinates, zoom, collapsed groups and visual annotations are presentation data. Executable business semantics remain canonical definition data.
 
 ## 14. Versioning
 
@@ -384,6 +462,10 @@ Do not currently build a generic diagramming suite, mind maps/network diagrams, 
 
 EOG-01 — The Enterprise Operating Graph is a semantic projection/editor over canonical EVO/Host definitions, not a parallel ontology.
 
+EOG-01A — Application/PostingRule/Ledger executable semantics are owned by EVO Runtime definitions; Enterprise Context/EOG must not become a second runtime authority.
+
+EOG-01B — Actual BusinessData/Posting/LedgerEntry/LedgerBalance facts originate from EVO Runtime, never from graph layout or contextual metadata.
+
 EOG-02 — Transaction Type and Application remain distinct.
 
 EOG-03 — Ledger nodes reference governed LedgerDefinitions; diagram nodes do not redefine ledger semantics.
@@ -402,7 +484,7 @@ EOG-09 — The target enterprise operating model precedes legacy-data projection
 
 EOG-10 — Presentation/layout data must not become enterprise business truth.
 
-EOG-11 — Accounting/APQC/industry templates provide guidance topology only; they cannot become published enterprise truth without Human confirmation.
+EOG-11 — Accounting/APQC/industry templates provide default/guidance topology; enterprise adoption/adjustment must produce a pinned Runtime Definition before it becomes executable for that enterprise.
 
 EOG-12 — Legacy bookkeeping/Asloop semantic convergence remains genealogy evidence for Application, Transaction Type, PostingRule and Ledger graph nodes.
 
@@ -414,19 +496,18 @@ LLM
 → proposal
 Personal Agent
 → declared model actions
-Enterprise Operating Graph
-├─ Capability / APQC reference
-├─ Process
-├─ Transaction Type
-├─ Application
-├─ Command
-├─ Business Fact
-├─ Metadata
-├─ Posting Rule
-└─ Ledger
-→ Human confirms / edits
-→ Published Enterprise Operating Model
-→ legacy-data projection can begin
+Default / Guidance Runtime Template
+→ enterprise adoption / adjustment
+→ Enterprise Runtime Definition
+   ├─ ApplicationAnchor
+   ├─ PostingRule
+   └─ LedgerDefinition
+→ EOG projects / organizes references
+   ├─ multiple user-defined Graphs
+   └─ guided Application ↔ Ledger traversal
+→ runtime execution
+   BusinessData → Posting → LedgerEntry → LedgerBalance
+→ legacy-data projection / detailed Application design can continue
 
 ## 19. One-line target
 
