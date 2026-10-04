@@ -35,9 +35,11 @@ Previously confirmed EVO concepts are directly useful in the graph:
 
 The graph is an editing and understanding surface over these concepts.
 
-## 2.1 Runtime authority clarification
+## 2.1 Authority clarification — no previous design is superseded
 
-The Enterprise Operating Graph must distinguish **runtime definition**, **runtime fact**, and **enterprise context**.
+This section **does not overturn or supersede the previously established architecture**. It only makes the existing authority boundaries explicit.
+
+The Enterprise Operating Graph must distinguish **graph definition**, **runtime definition**, **runtime fact**, and **enterprise context**.
 
 ### Runtime Definition Plane
 
@@ -69,17 +71,30 @@ BusinessData
 
 EOG, Enterprise Context, UI state or an Agent must never manufacture an already-happened runtime fact.
 
-### Enterprise Context / EOG Graph
+### Enterprise Context / Enterprise Graph Definition
 
-Enterprise Context may own Host-side enterprise context and the user's EOG Graph organization, including stable references to runtime definitions, graph membership, navigation and non-runtime enterprise semantics.
+The previously established rule remains valid:
 
-It must not duplicate Application ↔ PostingRule ↔ Ledger semantics and become a second executable truth source.
+> **Enterprise Context is the authority for Enterprise Graph Definition.**
+
+Here, Enterprise Graph Definition means the definition of the projection itself:
+
+- which authoritative objects are included in a Graph;
+- graph membership;
+- graph-to-graph / subgraph navigation;
+- projection organization;
+- stable references;
+- projection annotations and other Graph-level semantics.
+
+It does **not** mean Enterprise Context owns the executable Application ↔ PostingRule ↔ Ledger definitions.
+
+Enterprise Context must not duplicate those runtime semantics and become a second executable truth source.
 
 Therefore:
 
-> **EVO Runtime owns executable operating semantics and occurred runtime facts. EOG organizes and visualizes references to them. Enterprise Context supplies the surrounding enterprise context.**
+> **Enterprise Context owns Enterprise Graph Definition. EVO Runtime owns executable Application/Posting/Ledger semantics and occurred runtime facts. EOG is the projection surface over these authorities.**
 
-This refines the earlier shorthand that the Human-confirmed graph itself is the executable truth: Human confirmation governs which Runtime definitions/template choices the enterprise adopts, while the executable Application/Posting/Ledger semantics remain in their owning Runtime contracts.
+No prior authority is moved; the ambiguous word “definition” is merely separated into Graph Definition versus Runtime Definition.
 
 ---
 
@@ -359,7 +374,7 @@ This is stronger than generic diagramming:
 
 ## 11. Decision Backbone
 
-The graph's first purpose is to define the enterprise's Decision Backbone:
+The graph's first purpose is to **project and make understandable** the enterprise's Decision Backbone:
 
 Process
 → Business Action
@@ -389,7 +404,7 @@ It is no longer:
 
 ## 13. Graph is not a duplicate store
 
-The visual graph must not copy authoritative definitions into an unrelated diagram schema and then drift.
+The visual graph is a projection and must not copy authoritative definitions into an unrelated diagram schema and then drift.
 
 Preferred principle:
 
@@ -398,7 +413,7 @@ Graph Node
 + graph membership / navigation metadata
 + view/layout metadata
 
-For the initial Application/Ledger modeling flow:
+For the initial Application/Ledger projection flow:
 
 - dragging an Application or Ledger from the toolbox adds an existing definition reference to the current Graph;
 - it saves only graph/view data needed to display that object;
@@ -460,9 +475,9 @@ Do not currently build a generic diagramming suite, mind maps/network diagrams, 
 
 ## 17. Invariants
 
-EOG-01 — The Enterprise Operating Graph is a semantic projection/editor over canonical EVO/Host definitions, not a parallel ontology.
+EOG-01 — The Enterprise Operating Graph is a semantic **projection/editor of the projection** over canonical EVO/Host definitions, not a parallel ontology and not an enterprise-definition authoring system.
 
-EOG-01A — Application/PostingRule/Ledger executable semantics are owned by EVO Runtime definitions; Enterprise Context/EOG must not become a second runtime authority.
+EOG-01A — Enterprise Context remains authoritative for Enterprise Graph Definition. Application/PostingRule/Ledger executable semantics are owned by EVO Runtime definitions. These are complementary authorities, not competing ones.
 
 EOG-01B — Actual BusinessData/Posting/LedgerEntry/LedgerBalance facts originate from EVO Runtime, never from graph layout or contextual metadata.
 
@@ -502,7 +517,7 @@ Default / Guidance Runtime Template
    ├─ ApplicationAnchor
    ├─ PostingRule
    └─ LedgerDefinition
-→ EOG projects / organizes references
+→ EOG projects / organizes references (projection only)
    ├─ multiple user-defined Graphs
    └─ guided Application ↔ Ledger traversal
 → runtime execution
