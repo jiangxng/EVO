@@ -98,6 +98,73 @@ No prior authority is moved; the ambiguous word “definition” is merely separ
 
 ---
 
+## 2.2 Template-first enterprise implementation
+
+Enterprise implementation should not default to a blank-slate design exercise.
+
+A large part of enterprise operating structure is reusable or referenceable before a customer's detailed Application fields are known. Sources may include accounting standards and application guidance, APQC/process frameworks, public industry material, reusable implementation experience and basic enterprise metadata patterns.
+
+Therefore EVO adopts:
+
+> **Template-first Implementation: start from a governed reusable template, then confirm and specialize for the enterprise.**
+
+### Template storage
+
+The versioned **Enterprise Template Catalog** belongs in Enterprise Context because it is reusable enterprise context/configuration knowledge, not runtime fact history.
+
+A template may contain candidates for:
+
+- Application identities / anchors;
+- LedgerDefinitions;
+- PostingRules and conditional-posting topology;
+- base metadata structures;
+- process/classification references;
+- default projection hints;
+- provenance, applicability and version information.
+
+### Adoption flow
+
+```text
+Reference knowledge
+(accounting / APQC / public industry knowledge / reusable patterns)
+        ↓ curate + validate + version
+Enterprise Template Catalog
+        ↓ enterprise owner selects
+Enterprise adoption / trimming / adjustment
+        ↓
+Enterprise-specific pinned Runtime Definition
+├─ ApplicationAnchor
+├─ LedgerDefinition
+├─ PostingRule
+└─ Conditional Posting Topology
+        ↓
+Runtime execution
+        ↓
+EOG projection / later Application-detail implementation
+```
+
+The implementation conversation therefore begins with:
+
+> “Which parts of this default operating skeleton fit your enterprise?”
+
+rather than:
+
+> “Please design your enterprise from a blank page.”
+
+The product objective is to reduce implementation time, communication cost and omission risk.
+
+### Boundary
+
+A template is not runtime truth and is never an already-occurred business fact.
+
+Selecting a template does not make the catalog object itself executable. Adoption must create or pin the enterprise-specific Runtime Definition under the owning EVO contracts.
+
+Template updates must not silently mutate an already implemented enterprise. Upgrade requires explicit diff, adoption/migration and version governance.
+
+EOG may preview a candidate template or compare template guidance with adopted enterprise definitions, but EOG remains a projection tool rather than the template/runtime designer.
+
+---
+
 ## 3. Human / LLM / Agent roles
 
 ### Human
