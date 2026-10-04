@@ -9,7 +9,7 @@ Context Version: 1.0
 | Domain | semantic grouping such as Sales or Inventory | execution engine |
 | Capability | stable description of what the enterprise can do | workflow instance |
 | Flow | traceable cross-domain value/object/state/responsibility chain | one screen or one module |
-| Enterprise Operating Graph | versioned semantic view/editor that connects canonical Capability, Process, Transaction Type, Application, Command, Business Fact, Metadata, PostingRule and Ledger definitions | generic diagram document or duplicate business ontology |
+| Enterprise Operating Graph | versioned semantic view/editor that organizes stable references to canonical enterprise/runtime definitions across one or more user-defined Graphs; it does not create runtime facts merely by drawing | generic diagram document, duplicate business ontology, or second Posting/Ledger authority |
 | Transaction Type | high-level business occurrence category | UI page |
 | Application | executable tool around business capability/process | source of independent truth |
 | Command | authorized request to perform a business action | replayable event |
@@ -34,7 +34,11 @@ Context Version: 1.0
 
 `Natural Language ↔ Enterprise Operating Graph ↔ Visual Model`
 
-The graph reuses canonical semantic objects as nodes/references. Transaction Type, Application, Metadata, PostingRule and LedgerDefinition remain authoritative in their owning contracts; graph layout is presentation state. Target operating modeling precedes legacy-data projection.
+The graph reuses canonical semantic objects as nodes/references. ApplicationAnchor, PostingRule and LedgerDefinition remain authoritative in EVO Runtime contracts; rich Application/enterprise metadata remains authoritative in its Host contracts; graph organization/layout is not a second runtime truth.
+
+Actual runtime facts originate through `BusinessData → Posting → LedgerEntry → LedgerBalance`.
+
+A Default Runtime Template may accelerate implementation, but only the enterprise-adopted/pinned Runtime Definition is executable for that enterprise. Target operating modeling may therefore begin from Application ↔ conditional PostingRule ↔ Ledger topology before detailed Application fields are finalized.
 
 Authority: `docs/architecture/EVO-15-ENTERPRISE-OPERATING-GRAPH-v0.1.md`.
 
