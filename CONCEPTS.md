@@ -175,3 +175,20 @@ BusinessData.applicationId
 ```
 
 The Host owns rich application lifecycle and user-facing metadata. EVO owns only the routing anchor required to select the correct rules.
+
+
+## Template-first Enterprise Implementation
+
+Enterprise implementation starts from a governed reusable template by default rather than from a blank model.
+
+```text
+Enterprise Template Catalog (Enterprise Context)
+→ enterprise selection / trimming / adjustment
+→ enterprise-specific pinned Runtime Definition
+→ runtime execution
+→ EOG projection
+```
+
+Templates may be built from standards, accounting/application guidance, APQC/process references, public industry knowledge, reusable implementation patterns and basic metadata. They are implementation baselines, not runtime facts.
+
+Template version changes never silently alter an implemented enterprise. Adoption and upgrades require explicit versioned enterprise-specific configuration.
