@@ -239,6 +239,88 @@ Whether activation requires replay/re-posting, supports scheduled effective time
 This deliberately follows the useful Git mental separation of working state, committed immutable version and deployment/release, without making EVO depend on Git implementation.
 
 ---
+## 2.4 Plugin ownership freeze
+
+No new product plugin is introduced for Runtime Spec, default templates, drafts, versions, releases, or EOG projection.
+
+The responsibilities converge to two existing ownership domains:
+
+```text
+Ledger Runtime
+= Runtime Spec + deterministic execution
+
+Enterprise Context
+= Default Enterprise Template + Working Draft + Version Management
+  + administrator active-version governance + Enterprise Graph Definition
+
+EOG
+= projection / governed editing surface
+  (not a third authority/plugin)
+```
+
+### Ledger Runtime ownership
+
+Ledger Runtime owns the hardware-like specification and execution safety:
+
+- Runtime Spec / semantic contract;
+- ApplicationAnchor / LedgerDefinition / PostingRule executable contracts;
+- condition/effect execution semantics;
+- BusinessData → Posting → LedgerEntry → Balance;
+- replay and deterministic execution;
+- compatibility validation for an enterprise software version;
+- acceptance/rejection and execution of the version selected by Enterprise Context.
+
+Ledger Runtime does not own the Enterprise Template catalog, working-draft history, software version history, or administrator release decision.
+
+### Enterprise Context ownership
+
+Enterprise Context owns the software/template lifecycle:
+
+- Default Enterprise Template;
+- Enterprise Template Catalog;
+- provenance / applicability;
+- enterprise adoption and trimming;
+- Working Draft;
+- Save Working Draft;
+- Create Version;
+- immutable Enterprise Template Version history;
+- diff / migration metadata;
+- administrator selection of which version is intended to become active/effective;
+- Enterprise Graph Definition and EOG Graph revisions.
+
+### Activation is a protocol, not a plugin
+
+Activation crosses the existing boundary:
+
+```text
+Enterprise Context
+administrator selects enterprise software version
+        ↓ activation request
+Ledger Runtime
+validates Runtime Spec compatibility and execution safety
+        ↓ accept / reject
+active runtime execution
+```
+
+This cross-boundary handshake MUST NOT be implemented as a new Version/Release plugin.
+
+### Enterprise Package contract nuance
+
+The executable/portable package schema may remain EVO-owned because Ledger Runtime must define what it can safely validate and execute.
+
+That schema ownership does not imply that EVO/Ledger Runtime owns the product lifecycle of enterprise software versions.
+
+Use the distinction:
+
+```text
+EVO / Ledger Runtime
+→ executable schema + compatibility contract
+
+Enterprise Context
+→ catalog + draft + immutable versions + release governance
+```
+
+---
 ## 3. Human / LLM / Agent roles
 
 ### Human
