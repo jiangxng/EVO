@@ -192,3 +192,22 @@ Enterprise Template Catalog (Enterprise Context)
 Templates may be built from standards, accounting/application guidance, APQC/process references, public industry knowledge, reusable implementation patterns and basic metadata. They are implementation baselines, not runtime facts.
 
 Template version changes never silently alter an implemented enterprise. Adoption and upgrades require explicit versioned enterprise-specific configuration.
+
+
+## Runtime / Enterprise Context Ownership
+
+No new product plugin is created for the hardware/software/version model.
+
+```text
+Ledger Runtime
+= Runtime Spec + deterministic execution
+
+Enterprise Context
+= Default Enterprise Template + Working Draft + Version Management
+  + administrator version selection + Graph Definition
+
+EOG
+= projection/governed-edit surface only
+```
+
+Executable package schema/compatibility remains constrained by EVO/Ledger Runtime. Enterprise software lifecycle and release governance belong to Enterprise Context.
