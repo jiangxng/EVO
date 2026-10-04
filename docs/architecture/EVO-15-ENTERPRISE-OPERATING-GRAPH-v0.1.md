@@ -165,6 +165,80 @@ EOG may preview a candidate template or compare template guidance with adopted e
 
 ---
 
+## 2.3 Runtime-spec / enterprise-software version model
+
+This section refines version ownership without superseding any earlier design.
+
+### Ledger Runtime Spec = hardware contract
+
+`Ledger Runtime Spec v1.0` is the stable execution contract, analogous to hardware capability.
+
+It defines what enterprise software may rely on: ApplicationAnchor routing, LedgerDefinition, PostingRule/condition/effect semantics, BusinessData→Posting→Ledger execution, replay/version pinning and compatibility behavior.
+
+It does not describe one enterprise's chosen operating configuration.
+
+### Enterprise Template Version = software version
+
+Enterprise Context stores the versioned enterprise software/template line.
+
+```text
+Ledger Runtime Spec v1.0
+        ↑ compatible
+Enterprise Template v1.0
+Enterprise Template v1.1
+Enterprise Template v1.2
+```
+
+Each enterprise software version MUST pin or declare its compatible Runtime Spec.
+
+A created version is immutable. Continued editing occurs in a Working Draft based on a version; an explicit Create Version operation snapshots the draft as the next immutable software version.
+
+### EOG Graph Revision = projection revision
+
+EOG may project all or only part of one Enterprise Template/Runtime Definition.
+
+Graph membership, layout, visibility, Graph/Subgraph organization and drill-down are projection state. Saving such state MUST NOT create a new Enterprise Template Version.
+
+### Posting-relationship edit
+
+Within EOG's current scope, editing a governed Application↔Ledger conditional Posting relationship is an enterprise-software semantic edit, not a projection edit.
+
+Such a change first updates an Enterprise Template Working Draft. It MUST NOT mutate the base immutable version and MUST NOT automatically affect the active runtime.
+
+Only an explicit Create Version operation creates the next software version.
+
+Other enterprise-software semantics edited outside EOG may also require software versioning according to their owning contracts; this rule is not meant to imply that Posting relationships are the only versioned software semantics in the whole platform.
+
+### Activation
+
+Creating a software version and activating it are separate actions.
+
+An authorized Enterprise Administrator chooses which compatible Enterprise Template Version becomes effective in the enterprise Ledger Runtime.
+
+Conceptually the activation binding is:
+
+```text
+enterpriseId
++ runtimeSpecVersion
++ enterpriseTemplateVersion
++ effective boundary
+→ active enterprise runtime definition
+```
+
+Activation MUST be explicit and auditable. Runtime behavior MUST never change merely because an EOG Graph was saved.
+
+Whether activation requires replay/re-posting, supports scheduled effective time, or allows staged/parallel activation remains a separate decision.
+
+### Four distinct user actions
+
+1. `Save Projection` — save EOG Graph/View changes only.
+2. `Save Working Draft` — persist pending enterprise-software semantic edits without creating a version.
+3. `Create Version` — validate/diff/check compatibility and snapshot an immutable Enterprise Template Version.
+4. `Activate Version` — administrator deploys/selects a compatible version for Ledger Runtime execution.
+
+This deliberately follows the useful Git mental separation of working state, committed immutable version and deployment/release, without making EVO depend on Git implementation.
+
+---
 ## 3. Human / LLM / Agent roles
 
 ### Human
