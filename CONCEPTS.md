@@ -182,13 +182,14 @@ The Host owns rich application lifecycle and user-facing metadata. EVO owns only
 Enterprise implementation starts from a governed reusable template by default rather than from a blank model.
 
 ```text
-Enterprise Template Catalog (Enterprise Context)
-→ enterprise selection / trimming / adjustment
-→ enterprise-specific pinned Runtime Definition
+Template Store (independent copy/distribution surface)
+→ explicit copy into Enterprise Context
+→ enterprise Working Draft / immutable enterprise software version
+→ explicit activation into Ledger Runtime
 → runtime execution
 → EOG projection
 ```
 
 Templates may be built from standards, accounting/application guidance, APQC/process references, public industry knowledge, reusable implementation patterns and basic metadata. They are implementation baselines, not runtime facts.
 
-Template version changes never silently alter an implemented enterprise. Adoption and upgrades require explicit versioned enterprise-specific configuration.
+Template Store is not Enterprise Context authority. Copying a template creates an enterprise-owned copy/draft; there is no hidden live link back to the store. Store template updates never silently alter an implemented enterprise. Adoption, version creation and activation are explicit enterprise actions.
