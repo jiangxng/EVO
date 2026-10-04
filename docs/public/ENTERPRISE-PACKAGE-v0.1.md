@@ -101,3 +101,30 @@ MUST recreate a semantically equivalent governed enterprise operating definition
 3EC governs the cross-project request, compatibility and certification. EVO owns this package contract and its implementation. EC compiles to EVO-published schemas; Eidos may consume relevant published definitions for experience realization; neither may redefine EVO operational truth.
 
 Any new cross-project semantic requirement discovered while implementing this contract must be proposed in 3EC before another project's contract is changed.
+
+
+## Working draft, immutable version, and runtime activation
+
+Enterprise Package/Template lifecycle is intentionally separated from runtime activation.
+
+```text
+compatible Runtime Spec
+        ↑
+published/created Enterprise Package Version
+        ↑ Create Version
+Working Draft
+```
+
+Rules:
+
+- a Working Draft may be saved repeatedly without creating a package/template version;
+- an existing immutable version MUST NOT be rewritten in place;
+- `Create Version` validates and snapshots a new immutable enterprise-software version;
+- creating a version does not activate it;
+- an authorized enterprise administrator explicitly activates a compatible version for the enterprise runtime;
+- graph/view/layout changes are not package-version changes unless they alter portable executable definition semantics;
+- ordinary EOG projection saves MUST NOT deploy or activate enterprise definitions.
+
+The deployment/activation operation must pin enough identity to prove which enterprise-software version and runtime semantic/spec version produced later runtime facts and derived state.
+
+This is compatible with existing replay/checkpoint requirements that pin template and runtime semantic versions.
