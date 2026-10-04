@@ -128,3 +128,28 @@ Rules:
 The deployment/activation operation must pin enough identity to prove which enterprise-software version and runtime semantic/spec version produced later runtime facts and derived state.
 
 This is compatible with existing replay/checkpoint requirements that pin template and runtime semantic versions.
+
+## Product lifecycle ownership
+
+This contract defines the portable/executable schema and runtime compatibility surface. That remains EVO-owned because EVO/Ledger Runtime must reject definitions it cannot safely execute.
+
+The **product lifecycle** of enterprise software is owned by Enterprise Context, not by a separate plugin and not by EOG.
+
+Enterprise Context owns:
+
+- Default Enterprise Template;
+- Template Catalog;
+- Working Draft persistence;
+- Create Version and immutable version history;
+- diff/migration metadata;
+- administrator active-version selection/governance.
+
+EVO/Ledger Runtime owns:
+
+- package/schema compatibility contract;
+- semantic validation required for execution;
+- runtime compatibility validation;
+- acceptance/rejection of an activation request;
+- deterministic execution of the accepted active definition.
+
+Therefore `DeployEnterprisePackage`/activation semantics must be implemented as a protocol across Enterprise Context governance and Ledger Runtime execution, not as justification for a third Template/Version/Release plugin.
