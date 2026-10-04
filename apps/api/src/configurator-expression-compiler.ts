@@ -321,9 +321,10 @@ function canonical(value: JsonValue): string {
   if (Array.isArray(value)) {
     return `[${value.map(item => canonical(item)).join(',')}]`;
   }
-  return `{${Object.keys(value)
+  const object = value as Readonly<Record<string, JsonValue>>;
+  return `{${Object.keys(object)
     .sort()
-    .map(key => `${JSON.stringify(key)}:${canonical(value[key] ?? null)}`)
+    .map(key => `${JSON.stringify(key)}:${canonical(object[key] ?? null)}`)
     .join(',')}}`;
 }
 
