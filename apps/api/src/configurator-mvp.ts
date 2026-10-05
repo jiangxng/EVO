@@ -20,6 +20,11 @@ interface CompiledRule {
 
 export interface ConfiguratorBurnBody {
   contractVersion: '0.1.0';
+  target?: {
+    enterpriseId?: string;
+    enterpriseCode?: string;
+    enterpriseName?: string;
+  };
   kind: 'evo.ledger-runtime.compiled-configuration';
   sourceDialect: 'bookkeeping-aviator-v1';
   configurationId: string;
@@ -78,20 +83,36 @@ export async function burnConfiguratorConfiguration(
   }
 
   return db.transaction().execute(async (trx) => {
-    const enterprise = await trx
-      .insertInto('enterprise')
-      .values({
-        code: 'EVO_CONFIG_MVP',
-        name: 'EVO Configurator MVP',
-        status: 'ACTIVE',
-        default_timezone: 'UTC'
-      })
-      .onConflict((oc) => oc.column('code').doUpdateSet({
-        name: 'EVO Configurator MVP',
-        status: 'ACTIVE'
-      }))
-      .returning('id')
-      .executeTakeFirstOrThrow();
+    const requestedEnterpriseId = input.target?.enterpriseId?.trim();
+    const requestedEnterpriseCode = input.target?.enterpriseCode?.trim();
+    const requestedEnterpriseName = input.target?.enterpriseName?.trim();
+
+    const enterprise = requestedEnterpriseId
+      ? await trx
+          .selectFrom('enterprise')
+          .select(['id', 'code', 'name'])
+          .where('id', '=', requestedEnterpriseId)
+          .executeTakeFirstOrThrow()
+      : await trx
+          .insertInto('enterprise')
+          .values({
+            code: requestedEnterpriseCode || 'EVO_CONFIG_MVP',
+            name:
+              requestedEnterpriseName
+              || requestedEnterpriseCode
+              || 'EVO Configurator MVP',
+            status: 'ACTIVE',
+            default_timezone: 'UTC'
+          })
+          .onConflict((oc) => oc.column('code').doUpdateSet({
+            name:
+              requestedEnterpriseName
+              || requestedEnterpriseCode
+              || 'EVO Configurator MVP',
+            status: 'ACTIVE'
+          }))
+          .returning(['id', 'code', 'name'])
+          .executeTakeFirstOrThrow();
 
     await trx
       .insertInto('enterprise_runtime_state')
@@ -269,6 +290,7 @@ export async function burnConfiguratorConfiguration(
 
     for (const applicationId of versionByApplication.keys()) {
       await trx.deleteFrom('current_posting_rule')
+        .where('enterprise_id', '=', enterprise.id)
         .where('application_id', '=', applicationId)
         .execute();
     }
@@ -305,6 +327,7 @@ export async function burnConfiguratorConfiguration(
         .insertInto('current_posting_rule')
         .values({
           rule_id: legacyRule.id,
+          enterprise_id: enterprise.id,
           application_id: rule.applicationId,
           code: `legacy_${rule.sourceId}`,
           priority: rule.sourceId,
@@ -321,7 +344,7 @@ export async function burnConfiguratorConfiguration(
     return {
       ok: true,
       enterpriseId: enterprise.id,
-      enterpriseCode: 'EVO_CONFIG_MVP',
+      enterpriseCode: enterprise.code,
       configurationId: input.configurationId,
       semanticDigest: input.semanticDigest,
       applications: versionByApplication.size,
