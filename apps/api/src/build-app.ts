@@ -207,10 +207,12 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
     }
   });
 
-  app.get('/api/v1/configurator/status', async () => {
+  app.get('/api/v1/configurator/status', async request => {
+    const query = request.query as { enterprise_code?: string };
+    const enterpriseCode = query.enterprise_code?.trim() || 'EVO_CONFIG_MVP';
     const enterprise = await runtime.db.selectFrom('enterprise')
       .select(['id','code','name'])
-      .where('code','=','EVO_CONFIG_MVP')
+      .where('code','=',enterpriseCode)
       .executeTakeFirst();
     if (enterprise === undefined) return { burned:false };
     const rules = await runtime.db.selectFrom('posting_rule as r')

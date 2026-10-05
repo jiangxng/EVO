@@ -8,6 +8,7 @@ describe('current executable PostingRule registry convergence', () => {
       'utf8'
     );
     expect(service).toContain('loadCurrentPostingRules');
+    expect(service).toContain('enterpriseId');
     expect(service).toContain('candidate.applicationId');
     expect(service).not.toContain('candidate.metadataVersion');
   });
@@ -32,6 +33,15 @@ describe('current executable PostingRule registry convergence', () => {
       'current_posting_rule (\n  application_definition_version_id'
     );
     expect(migration).toContain('CORE_MIN_CURRENT_POSTING_RULE_AMBIGUOUS');
+
+    const enterpriseScopeMigration = await readFile(
+      'migrations/schema/202610050010_current_posting_rule_enterprise_scope.sql',
+      'utf8'
+    );
+    expect(enterpriseScopeMigration).toContain('enterprise_id');
+    expect(enterpriseScopeMigration).toContain(
+      'uq_current_posting_rule_enterprise_application_code'
+    );
   });
 
   it('legacy writers dual-write current executable rules during convergence', async () => {

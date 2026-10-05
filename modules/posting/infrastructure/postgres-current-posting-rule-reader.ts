@@ -13,15 +13,28 @@ export class PostgresCurrentPostingRuleReader
   constructor(private readonly db: Kysely<Database>) {}
 
   async loadCurrentPostingRules(
+    enterpriseId: string,
     applicationId: string
   ): Promise<readonly PostingRuleDefinition[]> {
-    const rows = await this.db
+    const enterpriseRows = await this.db
       .selectFrom('current_posting_rule')
       .selectAll()
+      .where('enterprise_id', '=', enterpriseId)
       .where('application_id', '=', applicationId)
       .orderBy('priority')
       .orderBy('rule_id')
       .execute();
+
+    const rows = enterpriseRows.length > 0
+      ? enterpriseRows
+      : await this.db
+          .selectFrom('current_posting_rule')
+          .selectAll()
+          .where('enterprise_id', 'is', null)
+          .where('application_id', '=', applicationId)
+          .orderBy('priority')
+          .orderBy('rule_id')
+          .execute();
 
     return rows.map((row) => ({
       id: row.rule_id,
