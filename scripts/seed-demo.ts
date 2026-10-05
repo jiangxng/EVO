@@ -493,8 +493,15 @@ try {
       priority, condition_ast: condition, effect_ast: effect, rule_schema_version: 1
     })).returning('id').executeTakeFirstOrThrow();
 
+    await db.deleteFrom('current_posting_rule')
+      .where('enterprise_id', 'is', null)
+      .where('application_id', '=', application.application_id)
+      .where('code', '=', code)
+      .execute();
+
     await db.insertInto('current_posting_rule').values({
       rule_id: legacyRule.id,
+      enterprise_id: null,
       application_id: application.application_id,
       code,
       priority,
@@ -502,15 +509,7 @@ try {
       effect_ast: effect,
       rule_schema_version: 1,
       source_ref: `legacy:posting_rule:${legacyRule.id}`
-    }).onConflict((oc) => oc.columns(['application_id','code']).doUpdateSet({
-      rule_id: legacyRule.id,
-      priority,
-      condition_ast: condition,
-      effect_ast: effect,
-      rule_schema_version: 1,
-      source_ref: `legacy:posting_rule:${legacyRule.id}`,
-      updated_at: new Date()
-    })).execute();
+    }).execute();
   }
 
   const orderDims = {
