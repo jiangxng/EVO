@@ -49,6 +49,7 @@ export class PostingService implements PostingProcessor {
       }
 
       const postingRules = await this.currentRules.loadCurrentPostingRules(
+        enterpriseId,
         candidate.applicationId
       );
 
