@@ -33,6 +33,35 @@ describe('direct BusinessDataSubmission convergence', () => {
     );
   });
 
+  it('includes the optional fact relation in deterministic idempotency identity', () => {
+    const base = request({ amount: '100.00', quantity: 2 });
+    const withReference = {
+      ...base,
+      relation: {
+        fromBusinessDataId: '00000000-0000-0000-0000-000000000001',
+        relationType: 'REFERENCES' as const
+      }
+    };
+    const withFulfillment = {
+      ...base,
+      relation: {
+        fromBusinessDataId: '00000000-0000-0000-0000-000000000001',
+        relationType: 'FULFILLS' as const
+      }
+    };
+
+    expect(
+      businessDataSubmissionRequestDigestV010(base)
+    ).not.toBe(
+      businessDataSubmissionRequestDigestV010(withReference)
+    );
+    expect(
+      businessDataSubmissionRequestDigestV010(withReference)
+    ).not.toBe(
+      businessDataSubmissionRequestDigestV010(withFulfillment)
+    );
+  });
+
   it('keeps direct submission independent from the Command module', async () => {
     const source = await readFile(
       'modules/business-data/infrastructure/postgres-business-data-submission.ts',
