@@ -47,7 +47,8 @@ function relation(value: unknown):
         | 'FULFILLS'
         | 'ALLOCATES_TO'
         | 'DERIVES_FROM'
-        | 'REFERENCES';
+        | 'REFERENCES'
+        | 'REVERSES';
     }
   | undefined {
   if (value === undefined) return undefined;
@@ -74,7 +75,8 @@ function relation(value: unknown):
     'FULFILLS',
     'ALLOCATES_TO',
     'DERIVES_FROM',
-    'REFERENCES'
+    'REFERENCES',
+    'REVERSES'
   ].includes(relationType)) {
     throw new AppError({
       code: 'BUSINESS_DATA_SUBMISSION_REQUEST_INVALID',
