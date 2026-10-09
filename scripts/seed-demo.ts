@@ -622,6 +622,12 @@ try {
   await rule(inventoryVersion.id,'purchase-receipt-inventory',40,eq('movementType','PURCHASE_RECEIPT'),{
     ledgerCode:'inventory', quantity: field('quantity'), amount: field('totalCost'), currency: field('currency'), dimensions: purchaseReceiptInventoryDims
   });
+  await rule(inventoryVersion.id,'purchase-receipt-reversal-reopen-pending',50,eq('movementType','PURCHASE_RECEIPT_REVERSAL'),{
+    ledgerCode:'pending_purchase', quantity: field('quantity'), amount: { type:'literal', value:'0' }, dimensions: purchaseDims
+  });
+  await rule(inventoryVersion.id,'purchase-receipt-reversal-inventory',60,eq('movementType','PURCHASE_RECEIPT_REVERSAL'),{
+    ledgerCode:'inventory', quantity: neg('quantity'), amount: neg('totalCost'), currency: field('currency'), dimensions: purchaseReceiptInventoryDims
+  });
 
   const salesReturnInventoryDims = {
     product_id: field('productId'), warehouse: field('warehouse'),

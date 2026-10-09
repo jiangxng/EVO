@@ -158,6 +158,47 @@ try {
     .executeTakeFirstOrThrow();
   assert.equal(relationRow.relation_type, 'REFERENCES');
 
+  const reversalRelationResponse = await app.inject({
+    method: 'POST',
+    url: '/api/v1/business-data',
+    payload: {
+      contractVersion: '0.1.0',
+      scopeKey: enterprise.id,
+      applicationId: 'inventory_movement',
+      businessDataType: 'direct_relation.reversal_proof',
+      businessObjectKey: `${orderNo}:REVERSED`,
+      effectiveAt: '2026-10-03T02:00:40.000Z',
+      payload: {
+        proof: 'HTTP_DIRECT_BUSINESS_DATA_REVERSAL_RELATION'
+      },
+      correlationId: `HTTP:${orderNo}:REVERSED`,
+      idempotencyKey: `${idempotencyKey}:REVERSED`,
+      causationId: related.businessDataId,
+      relation: {
+        fromBusinessDataId: related.businessDataId,
+        relationType: 'REVERSES'
+      }
+    }
+  });
+  assert.equal(
+    reversalRelationResponse.statusCode,
+    202,
+    `REVERSES submission failed: ${reversalRelationResponse.body}`
+  );
+  const reversalRelation = reversalRelationResponse.json() as typeof first;
+  const reversalRelationRow = await runtime.db
+    .selectFrom('business_object_link')
+    .select([
+      'from_business_data_id',
+      'to_business_data_id',
+      'relation_type'
+    ])
+    .where('enterprise_id', '=', enterprise.id)
+    .where('from_business_data_id', '=', related.businessDataId)
+    .where('to_business_data_id', '=', reversalRelation.businessDataId)
+    .executeTakeFirstOrThrow();
+  assert.equal(reversalRelationRow.relation_type, 'REVERSES');
+
   const [businessData, postingInput, commandExecution] = await Promise.all([
     runtime.db
       .selectFrom('business_data')

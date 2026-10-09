@@ -262,7 +262,7 @@ relation.relationType
 ```
 
 Allowed relation types reuse the canonical `business_object_link` vocabulary:
-`CAUSES`, `FULFILLS`, `ALLOCATES_TO`, `DERIVES_FROM`, `REFERENCES`.
+`CAUSES`, `FULFILLS`, `ALLOCATES_TO`, `DERIVES_FROM`, `REFERENCES`, `REVERSES`.
 
 Rules:
 
@@ -277,3 +277,6 @@ Rules:
 This bounded contract lets Host/Application adapters preserve explicit business
 relationships such as Purchase Order `FULFILLS` Goods Receipt while keeping rich
 workflow orchestration outside the minimal EVO Ledger Runtime boundary.
+
+
+`REVERSES` identifies an immutable correction/reversal fact linked from the prior fact; neither fact is mutated.
