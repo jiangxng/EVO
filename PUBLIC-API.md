@@ -234,6 +234,10 @@ Request v0.1:
   "correlationId": "<correlation id>",
   "idempotencyKey": "<idempotency key>",
   "causationId": "<optional business-data/source id>",
+  "relation": {
+    "fromBusinessDataId": "<optional existing BusinessData id>",
+    "relationType": "CAUSES | FULFILLS | ALLOCATES_TO | DERIVES_FROM | REFERENCES"
+  },
   "expectedBusinessVersion": "<optional non-negative integer string>",
   "postingPriority": 0
 }
@@ -246,6 +250,16 @@ The v0.1 HTTP adapter interprets `scopeKey` only as the exact opaque EVO runtime
 Accepted submissions return HTTP `202` with durable BusinessData/PostingInput identity and status. BigInt values are serialized as decimal strings.
 
 The endpoint does not accept actor/permission/capability metadata and does not create `CommandExecution`, `ApplicationInstance` or legacy metadata-version provenance.
+
+The optional `relation` writes one immutable `business_object_link` from an
+existing BusinessData fact to the newly submitted fact in the same database
+transaction. The source fact MUST belong to the same resolved runtime scope.
+Changing the relation changes the idempotency request digest.
+
+This relation is deliberately **not** Command `FlowTrace` metadata. Direct
+BusinessData submission does not synthesize a CommandExecution or require a
+FlowDefinition UUID merely to express facts such as
+`Purchase Order --FULFILLS--> Goods Receipt`.
 
 Compatibility endpoint `POST /api/v1/commands` remains available separately and is not the target Core write model.
 
