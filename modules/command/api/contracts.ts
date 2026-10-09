@@ -5,7 +5,7 @@ export interface CommandActor { readonly type: ActorType; readonly id: string; }
 export interface CommandLineage {
   readonly flowDefinitionId: string; readonly flowInstanceKey: string; readonly stepCode: string;
   readonly parentBusinessDataId?: string;
-  readonly relationType?: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'DERIVES_FROM' | 'REFERENCES';
+  readonly relationType?: 'CAUSES' | 'FULFILLS' | 'ALLOCATES_TO' | 'DERIVES_FROM' | 'REFERENCES' | 'REVERSES';
 }
 export interface ExecuteCommandRequest {
   readonly enterpriseId: string; readonly applicationInstanceId: string; readonly commandCode: string;
