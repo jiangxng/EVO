@@ -226,6 +226,52 @@ try {
   assert.equal(applicationEventCount.target.applicationId, 'sales_order');
   assert.equal(applicationEventCount.value, 1);
 
+  const publicBalanceResponse = await app.inject({
+    method: 'GET',
+    url:
+      '/api/v1/ledgers/receivable/balances'
+      + '?enterprise_id=' + encodeURIComponent(enterprise.id)
+      + '&dimension.order_no=' + encodeURIComponent(orderNo)
+  });
+  assert.equal(
+    publicBalanceResponse.statusCode,
+    200,
+    `public ledger balance read failed: ${publicBalanceResponse.body}`
+  );
+  const publicBalance = publicBalanceResponse.json() as {
+    contractVersion: string;
+    enterpriseId: string;
+    ledgerCode: string;
+    dimensionFilters: Record<string, string>;
+    items: Array<{
+      ledgerCode: string;
+      dimensions: Record<string, unknown>;
+      quantity: string;
+      amount: string;
+      lastPostingSequence: string;
+    }>;
+    truncated: boolean;
+  };
+  assert.equal(publicBalance.contractVersion, '0.1.0');
+  assert.equal(publicBalance.enterpriseId, enterprise.id);
+  assert.equal(publicBalance.ledgerCode, 'receivable');
+  assert.deepEqual(publicBalance.dimensionFilters, { order_no: orderNo });
+  assert.equal(publicBalance.truncated, false);
+  assert.equal(publicBalance.items.length, 1);
+  assert.equal(publicBalance.items[0]?.dimensions.order_no, orderNo);
+  assert.equal(publicBalance.items[0]?.amount, '600.000000000000');
+  assert.match(publicBalance.items[0]?.lastPostingSequence ?? '', /^\d+$/u);
+
+  const missingScopeBalance = await app.inject({
+    method: 'GET',
+    url: '/api/v1/ledgers/receivable/balances'
+  });
+  assert.equal(missingScopeBalance.statusCode, 422);
+  assert.equal(
+    (missingScopeBalance.json() as { error: { code: string } }).error.code,
+    'ENTERPRISE_SCOPE_REQUIRED'
+  );
+
   const [pendingProduction, pendingShipment, receivable] = await Promise.all([
     runtime.ledger.getBalances(enterprise.id, 'pending_production'),
     runtime.ledger.getBalances(enterprise.id, 'pending_shipment'),
@@ -265,6 +311,11 @@ try {
       relationType: relationRow.relation_type
     },
     applicationEventCount: applicationEventCount.value,
+    publicLedgerBalanceRead: {
+      ledgerCode: publicBalance.ledgerCode,
+      dimensionFilters: publicBalance.dimensionFilters,
+      itemCount: publicBalance.items.length
+    },
     posted
   }, null, 2));
 } finally {
