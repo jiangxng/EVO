@@ -263,6 +263,70 @@ FlowDefinition UUID merely to express facts such as
 
 Compatibility endpoint `POST /api/v1/commands` remains available separately and is not the target Core write model.
 
+### Ledger balance read boundary
+
+EVO exposes the CURRENT LedgerBalance projection without aggregating across
+dimensions, units or currencies:
+
+```text
+GET /api/v1/ledgers/:ledgerCode/balances
+```
+
+Query contract v0.1:
+
+- `enterprise_id` is required;
+- `limit` defaults to 100 and is bounded to 1..500;
+- arbitrary exact dimension filters use
+  `dimension.<dimension_key>=<value>`.
+
+Example:
+
+```text
+GET /api/v1/ledgers/inventory/balances
+  ?enterprise_id=<scope>
+  &dimension.product_id=item-1
+  &dimension.warehouse=warehouse-1
+```
+
+Response:
+
+```json
+{
+  "contractVersion": "0.1.0",
+  "enterpriseId": "<scope>",
+  "ledgerCode": "inventory",
+  "dimensionFilters": {
+    "product_id": "item-1",
+    "warehouse": "warehouse-1"
+  },
+  "items": [
+    {
+      "ledgerCode": "inventory",
+      "dimensions": {},
+      "quantity": "10.000000000000",
+      "amount": "125.000000000000",
+      "lastPostingSequence": "123"
+    }
+  ],
+  "truncated": false
+}
+```
+
+Rules:
+
+- the endpoint delegates to the CURRENT/ACTIVE Ledger reader;
+- dimension filtering is exact and occurs over the canonical balance groups;
+- quantities and amounts remain decimal strings;
+- `lastPostingSequence` is serialized as a decimal string;
+- the endpoint does **not** sum across units, currencies or arbitrary dimensions;
+- callers that need a particular Item/Warehouse/currency position must request
+  the relevant dimensions instead of treating heterogeneous balances as one scalar;
+- this is a read boundary only and creates no LedgerEntry/LedgerBalance state.
+
+This endpoint implements the long-standing EVO-11 recommended Ledger balance read
+shape and is suitable for Host/Application composition such as Trading Reference
+Loop inventory-position reads.
+
 ### Runtime observation revision boundary
 
 EVO exposes a lightweight Host-facing revision cursor for cache invalidation and realtime bridging:
