@@ -94,6 +94,7 @@ function relation(value: unknown):
       | 'ALLOCATES_TO'
       | 'DERIVES_FROM'
       | 'REFERENCES'
+      | 'REVERSES'
   };
 }
 
