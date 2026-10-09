@@ -32,6 +32,22 @@ export interface EnterprisePostingState {
 
 export const BUSINESS_DATA_SUBMISSION_VERSION_V010 = '0.1.0' as const;
 
+export type BusinessDataRelationTypeV010 =
+  | 'CAUSES'
+  | 'FULFILLS'
+  | 'ALLOCATES_TO'
+  | 'DERIVES_FROM'
+  | 'REFERENCES';
+
+export interface BusinessDataSubmissionRelationV010 {
+  /**
+   * Existing BusinessData fact that points to the newly submitted fact.
+   * The source fact must belong to the same resolved enterprise scope.
+   */
+  readonly fromBusinessDataId: string;
+  readonly relationType: BusinessDataRelationTypeV010;
+}
+
 export interface BusinessDataSubmissionV010 {
   readonly contractVersion: typeof BUSINESS_DATA_SUBMISSION_VERSION_V010;
   readonly scopeKey: string;
@@ -43,6 +59,11 @@ export interface BusinessDataSubmissionV010 {
   readonly correlationId: string;
   readonly idempotencyKey: string;
   readonly causationId?: string;
+  /**
+   * Optional immutable BusinessData-to-BusinessData relation written atomically
+   * with this new fact. This is not Command FlowTrace metadata.
+   */
+  readonly relation?: BusinessDataSubmissionRelationV010;
   readonly expectedBusinessVersion?: bigint;
   readonly postingPriority?: number;
 }

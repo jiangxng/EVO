@@ -117,6 +117,47 @@ try {
     'APPLICATION_ANCHOR_NOT_FOUND'
   );
 
+  const relatedResponse = await app.inject({
+    method: 'POST',
+    url: '/api/v1/business-data',
+    payload: {
+      contractVersion: '0.1.0',
+      scopeKey: enterprise.id,
+      applicationId: 'inventory_movement',
+      businessDataType: 'direct_relation.proof',
+      businessObjectKey: `${orderNo}:RELATED`,
+      effectiveAt: '2026-10-03T02:00:30.000Z',
+      payload: {
+        proof: 'HTTP_DIRECT_BUSINESS_DATA_RELATION'
+      },
+      correlationId: `HTTP:${orderNo}:RELATED`,
+      idempotencyKey: `${idempotencyKey}:RELATED`,
+      causationId: first.businessDataId,
+      relation: {
+        fromBusinessDataId: first.businessDataId,
+        relationType: 'REFERENCES'
+      }
+    }
+  });
+  assert.equal(
+    relatedResponse.statusCode,
+    202,
+    `related submission failed: ${relatedResponse.body}`
+  );
+  const related = relatedResponse.json() as typeof first;
+  const relationRow = await runtime.db
+    .selectFrom('business_object_link')
+    .select([
+      'from_business_data_id',
+      'to_business_data_id',
+      'relation_type'
+    ])
+    .where('enterprise_id', '=', enterprise.id)
+    .where('from_business_data_id', '=', first.businessDataId)
+    .where('to_business_data_id', '=', related.businessDataId)
+    .executeTakeFirstOrThrow();
+  assert.equal(relationRow.relation_type, 'REFERENCES');
+
   const [businessData, postingInput, commandExecution] = await Promise.all([
     runtime.db
       .selectFrom('business_data')
@@ -218,6 +259,11 @@ try {
     postingInputId: first.postingInputId,
     commandExecutionCreated: false,
     idempotentReplay: repeat.idempotentReplay,
+    directRelation: {
+      sourceBusinessDataId: first.businessDataId,
+      targetBusinessDataId: related.businessDataId,
+      relationType: relationRow.relation_type
+    },
     applicationEventCount: applicationEventCount.value,
     posted
   }, null, 2));

@@ -30,6 +30,36 @@ type ReceiptRow = {
   error: ReceiptJson | null;
 };
 
+const BUSINESS_DATA_RELATION_TYPES = new Set([
+  'CAUSES',
+  'FULFILLS',
+  'ALLOCATES_TO',
+  'DERIVES_FROM',
+  'REFERENCES'
+] as const);
+
+function normalizedRelation(
+  value: BusinessDataSubmissionV010['relation']
+): BusinessDataSubmissionV010['relation'] {
+  if (value === undefined) return undefined;
+  const fromBusinessDataId = requiredText(
+    value.fromBusinessDataId,
+    'BUSINESS_DATA_RELATION_SOURCE_REQUIRED'
+  );
+  if (!BUSINESS_DATA_RELATION_TYPES.has(value.relationType)) {
+    throw new AppError({
+      code: 'BUSINESS_DATA_RELATION_TYPE_INVALID',
+      message: 'BusinessData relation type is invalid.',
+      module: 'business-data',
+      operation: 'submit'
+    });
+  }
+  return {
+    fromBusinessDataId,
+    relationType: value.relationType
+  };
+}
+
 function requiredText(value: string, code: string): string {
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new AppError({
@@ -89,6 +119,7 @@ export function businessDataSubmissionRequestDigestV010(
     correlationId: request.correlationId,
     idempotencyKey: request.idempotencyKey,
     causationId: request.causationId ?? null,
+    relation: request.relation ?? null,
     expectedBusinessVersion:
       request.expectedBusinessVersion?.toString() ?? null,
     postingPriority: request.postingPriority ?? null
@@ -226,6 +257,7 @@ export class PostgresBusinessDataSubmissionPortV010
       'BUSINESS_DATA_SCOPE_NOT_FOUND'
     );
     await this.applicationAnchors.require(applicationId);
+    const relation = normalizedRelation(request.relation);
 
     const digest = businessDataSubmissionRequestDigestV010({
       ...request,
@@ -234,7 +266,8 @@ export class PostgresBusinessDataSubmissionPortV010
       businessDataType,
       businessObjectKey,
       correlationId,
-      idempotencyKey
+      idempotencyKey,
+      ...(relation === undefined ? {} : { relation })
     });
 
     const claim = await this.claimReceipt({
@@ -283,6 +316,23 @@ export class PostgresBusinessDataSubmissionPortV010
           throw previousFailure(receipt.error);
         }
 
+        if (relation !== undefined) {
+          const source = await trx
+            .selectFrom('business_data')
+            .select(['id', 'enterprise_id'])
+            .where('id', '=', relation.fromBusinessDataId)
+            .executeTakeFirst();
+          if (source === undefined || source.enterprise_id !== enterpriseId) {
+            throw new AppError({
+              code: 'BUSINESS_DATA_RELATION_SOURCE_NOT_FOUND',
+              message:
+                'Relation source BusinessData was not found in the resolved scope.',
+              module: 'business-data',
+              operation: 'submit'
+            });
+          }
+        }
+
         const written = await writeBusinessDataAndPostingInputV010(trx, {
           enterpriseId,
           applicationId,
@@ -301,6 +351,19 @@ export class PostgresBusinessDataSubmissionPortV010
             ? {}
             : { causationId: request.causationId })
         });
+
+        if (relation !== undefined) {
+          await trx
+            .insertInto('business_object_link')
+            .values({
+              enterprise_id: enterpriseId,
+              from_business_data_id: relation.fromBusinessDataId,
+              to_business_data_id: written.businessDataId,
+              relation_type: relation.relationType,
+              metadata: {}
+            })
+            .execute();
+        }
 
         const stored: JsonObject = {
           businessDataId: written.businessDataId,

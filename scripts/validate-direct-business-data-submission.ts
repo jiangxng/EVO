@@ -205,6 +205,90 @@ try {
   assert.equal(shipmentBalance.quantity, '4.000000000000');
   assert.equal(receivableBalance.amount, '500.000000000000');
 
+  const relatedObjectKey = `${orderNo}:RELATED`;
+  const related = await submission.submit({
+    contractVersion: '0.1.0',
+    scopeKey,
+    applicationId: 'sales_order',
+    businessDataType: 'direct_relation.proof',
+    businessObjectKey: relatedObjectKey,
+    effectiveAt: new Date('2026-10-03T01:01:00.000Z'),
+    payload: {
+      proof: 'DIRECT_BUSINESS_DATA_RELATION'
+    },
+    correlationId: `${correlationId}:RELATED`,
+    idempotencyKey: `${idempotencyKey}:RELATED`,
+    causationId: first.businessDataId,
+    relation: {
+      fromBusinessDataId: first.businessDataId,
+      relationType: 'REFERENCES'
+    }
+  });
+  assert.equal(related.postingStatus, 'QUEUED');
+
+  const link = await runtime.db
+    .selectFrom('business_object_link')
+    .select([
+      'enterprise_id',
+      'from_business_data_id',
+      'to_business_data_id',
+      'relation_type'
+    ])
+    .where('enterprise_id', '=', enterprise.id)
+    .where('from_business_data_id', '=', first.businessDataId)
+    .where('to_business_data_id', '=', related.businessDataId)
+    .executeTakeFirstOrThrow();
+  assert.equal(link.relation_type, 'REFERENCES');
+
+  const failedObjectKey = `${orderNo}:MISSING-PARENT`;
+  await assert.rejects(
+    submission.submit({
+      contractVersion: '0.1.0',
+      scopeKey,
+      applicationId: 'sales_order',
+      businessDataType: 'direct_relation.proof',
+      businessObjectKey: failedObjectKey,
+      effectiveAt: new Date('2026-10-03T01:02:00.000Z'),
+      payload: {
+        proof: 'DIRECT_BUSINESS_DATA_RELATION_MISSING_PARENT'
+      },
+      correlationId: `${correlationId}:MISSING-PARENT`,
+      idempotencyKey: `${idempotencyKey}:MISSING-PARENT`,
+      relation: {
+        fromBusinessDataId: '00000000-0000-0000-0000-000000000000',
+        relationType: 'FULFILLS'
+      }
+    }),
+    (error: unknown) => {
+      assert.ok(error instanceof AppError);
+      assert.equal(error.code, 'BUSINESS_DATA_RELATION_SOURCE_NOT_FOUND');
+      return true;
+    }
+  );
+  const failedBusinessData = await runtime.db
+    .selectFrom('business_data')
+    .select('id')
+    .where('enterprise_id', '=', enterprise.id)
+    .where('application_id', '=', 'sales_order')
+    .where('business_object_key', '=', failedObjectKey)
+    .executeTakeFirst();
+  assert.equal(
+    failedBusinessData,
+    undefined,
+    'invalid relation must roll back BusinessData creation'
+  );
+
+  const relationCommandExecution = await runtime.db
+    .selectFrom('command_execution')
+    .select('id')
+    .where('correlation_id', '=', `${correlationId}:RELATED`)
+    .executeTakeFirst();
+  assert.equal(
+    relationCommandExecution,
+    undefined,
+    'direct related submission must not synthesize CommandExecution'
+  );
+
   const receipt = await runtime.db
     .selectFrom('business_data_submission_receipt')
     .select(['status', 'result', 'error'])
@@ -225,6 +309,13 @@ try {
     postingRunId: run.id,
     idempotentReplay: replay.idempotentReplay,
     commandExecutionCreated: false,
+    directRelation: {
+      sourceBusinessDataId: first.businessDataId,
+      targetBusinessDataId: related.businessDataId,
+      relationType: link.relation_type,
+      syntheticCommandExecutionCreated: false,
+      invalidParentRollback: true
+    },
     legacyProvenance: {
       applicationInstanceId: null,
       commandExecutionId: null,
