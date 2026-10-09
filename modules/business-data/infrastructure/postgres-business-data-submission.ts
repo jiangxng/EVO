@@ -35,7 +35,8 @@ const BUSINESS_DATA_RELATION_TYPES = new Set([
   'FULFILLS',
   'ALLOCATES_TO',
   'DERIVES_FROM',
-  'REFERENCES'
+  'REFERENCES',
+  'REVERSES'
 ] as const);
 
 function normalizedRelation(
