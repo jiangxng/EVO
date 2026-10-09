@@ -16,6 +16,7 @@ type BusinessDataSubmissionHttpBodyV010 = {
   correlationId?: unknown;
   idempotencyKey?: unknown;
   causationId?: unknown;
+  relation?: unknown;
   expectedBusinessVersion?: unknown;
   postingPriority?: unknown;
 };
@@ -36,6 +37,62 @@ function requiredText(value: unknown, field: string): string {
 function optionalText(value: unknown, field: string): string | undefined {
   if (value === undefined) return undefined;
   return requiredText(value, field);
+}
+
+function relation(value: unknown):
+  | {
+      fromBusinessDataId: string;
+      relationType:
+        | 'CAUSES'
+        | 'FULFILLS'
+        | 'ALLOCATES_TO'
+        | 'DERIVES_FROM'
+        | 'REFERENCES';
+    }
+  | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new AppError({
+      code: 'BUSINESS_DATA_SUBMISSION_REQUEST_INVALID',
+      message: 'relation must be an object.',
+      module: 'api',
+      operation: 'submitBusinessData',
+      details: { field: 'relation' }
+    });
+  }
+  const input = value as Record<string, unknown>;
+  const fromBusinessDataId = requiredText(
+    input.fromBusinessDataId,
+    'relation.fromBusinessDataId'
+  );
+  const relationType = requiredText(
+    input.relationType,
+    'relation.relationType'
+  );
+  if (![
+    'CAUSES',
+    'FULFILLS',
+    'ALLOCATES_TO',
+    'DERIVES_FROM',
+    'REFERENCES'
+  ].includes(relationType)) {
+    throw new AppError({
+      code: 'BUSINESS_DATA_SUBMISSION_REQUEST_INVALID',
+      message: 'relation.relationType is invalid.',
+      module: 'api',
+      operation: 'submitBusinessData',
+      details: { field: 'relation.relationType' }
+    });
+  }
+  return {
+    fromBusinessDataId,
+    relationType: relationType as
+      | 'CAUSES'
+      | 'FULFILLS'
+      | 'ALLOCATES_TO'
+      | 'DERIVES_FROM'
+      | 'REFERENCES'
+  };
 }
 
 function expectedVersion(value: unknown): bigint | undefined {
@@ -110,6 +167,7 @@ export function registerBusinessDataSubmissionRouteV010(
     }
 
     const causationId = optionalText(body.causationId, 'causationId');
+    const businessRelation = relation(body.relation);
     const expectedBusinessVersion = expectedVersion(
       body.expectedBusinessVersion
     );
@@ -129,6 +187,7 @@ export function registerBusinessDataSubmissionRouteV010(
       correlationId: requiredText(body.correlationId, 'correlationId'),
       idempotencyKey: requiredText(body.idempotencyKey, 'idempotencyKey'),
       ...(causationId === undefined ? {} : { causationId }),
+      ...(businessRelation === undefined ? {} : { relation: businessRelation }),
       ...(expectedBusinessVersion === undefined
         ? {}
         : { expectedBusinessVersion }),
