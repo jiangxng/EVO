@@ -249,3 +249,31 @@ resolution or Command orchestration. Those remain Host/Application concerns.
 The isolated certification `business-data-submission-http` proves the HTTP
 request reaches the same direct port and deterministic Posting/Ledger path
 without synthesizing legacy Command metadata.
+
+
+## Direct BusinessData relation
+
+Direct submission may optionally declare one immutable relationship from an existing
+BusinessData fact to the newly submitted fact:
+
+```text
+relation.fromBusinessDataId
+relation.relationType
+```
+
+Allowed relation types reuse the canonical `business_object_link` vocabulary:
+`CAUSES`, `FULFILLS`, `ALLOCATES_TO`, `DERIVES_FROM`, `REFERENCES`.
+
+Rules:
+
+- the source fact must exist in the same resolved enterprise/runtime scope;
+- relationship creation is atomic with the new BusinessData + PostingInput write;
+- relation identity participates in the direct-submission idempotency digest;
+- invalid/missing/cross-scope sources fail closed with no BusinessData write;
+- direct submission still creates no synthetic CommandExecution;
+- this is BusinessData-to-BusinessData lineage only and does not fabricate
+  `flow_trace`, which remains Command/Flow projection evidence.
+
+This bounded contract lets Host/Application adapters preserve explicit business
+relationships such as Purchase Order `FULFILLS` Goods Receipt while keeping rich
+workflow orchestration outside the minimal EVO Ledger Runtime boundary.
