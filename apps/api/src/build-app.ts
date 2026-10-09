@@ -246,6 +246,77 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
   });
   app.get('/api/v1/apps',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listApplications'});return runtime.capabilityDiscovery.listApplications(q.enterprise_id);});
   app.get('/api/v1/capabilities',async request=>{const q=request.query as {enterprise_id?:string};if(q.enterprise_id===undefined)throw new AppError({code:'ENTERPRISE_SCOPE_REQUIRED',message:'enterprise_id query parameter is required.',module:'api',operation:'listCapabilities'});return runtime.capabilityDiscovery.listCapabilities(q.enterprise_id);});
+  app.get('/api/v1/ledgers/:ledgerCode/balances',async (request,reply)=>{
+   const p=request.params as {ledgerCode:string};
+   const q=request.query as Record<string,string|undefined>;
+   const enterpriseId=q.enterprise_id?.trim();
+   if(!enterpriseId){
+    throw new AppError({
+     code:'ENTERPRISE_SCOPE_REQUIRED',
+     message:'enterprise_id query parameter is required.',
+     module:'api',
+     operation:'listLedgerBalances'
+    });
+   }
+   const ledgerCode=requireText(p.ledgerCode,'ledgerCode');
+   const parsedLimit=q.limit===undefined?100:Number(q.limit);
+   if(!Number.isInteger(parsedLimit)||parsedLimit<1||parsedLimit>500){
+    throw new AppError({
+     code:'LEDGER_BALANCE_LIMIT_INVALID',
+     message:'limit must be an integer from 1 to 500.',
+     module:'api',
+     operation:'listLedgerBalances'
+    });
+   }
+   const dimensionFilters=Object.entries(q)
+    .filter(([key,value])=>
+      key.startsWith('dimension.')
+      && key.length>'dimension.'.length
+      && value!==undefined
+    )
+    .map(([key,value])=>({
+      key:key.slice('dimension.'.length),
+      value:value!.trim()
+    }));
+   if(dimensionFilters.some(item=>!item.key||!item.value)){
+    throw new AppError({
+     code:'LEDGER_BALANCE_DIMENSION_FILTER_INVALID',
+     message:'dimension filters require non-empty keys and values.',
+     module:'api',
+     operation:'listLedgerBalances'
+    });
+   }
+   const all=await runtime.ledger.getBalances(enterpriseId,ledgerCode);
+   const filtered=all.filter(item=>
+    dimensionFilters.every(filter=>
+     String(item.dimensions[filter.key]??'')===filter.value
+    )
+   );
+   const items=filtered.slice(0,parsedLimit).map(item=>({
+    ledgerCode:item.ledgerCode,
+    dimensions:item.dimensions,
+    quantity:item.quantity,
+    amount:item.amount,
+    lastPostingSequence:item.lastPostingSequence.toString()
+   }));
+   const body={
+    contractVersion:'0.1.0' as const,
+    enterpriseId,
+    ledgerCode,
+    dimensionFilters:Object.fromEntries(
+     dimensionFilters.map(item=>[item.key,item.value])
+    ),
+    items,
+    truncated:filtered.length>items.length
+   };
+   const etag=representationEtagV010(body);
+   reply.header('etag',etag);
+   reply.header('cache-control','private, max-age=0, must-revalidate');
+   if(ifNoneMatchSatisfiedV010(request.headers['if-none-match'],etag)){
+    return reply.code(304).send();
+   }
+   return body;
+  });
   app.get('/api/v1/work-items',async (request,reply)=>{
    const q=request.query as {
     enterprise_id?:string;
