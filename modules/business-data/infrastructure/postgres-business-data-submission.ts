@@ -267,7 +267,7 @@ export class PostgresBusinessDataSubmissionPortV010
       businessObjectKey,
       correlationId,
       idempotencyKey,
-      ...(relation === undefined ? { relation: undefined } : { relation })
+      ...(relation === undefined ? {} : { relation })
     });
 
     const claim = await this.claimReceipt({
