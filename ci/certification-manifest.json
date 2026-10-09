@@ -133,6 +133,10 @@
       {
         "id": "fai-three-financial-statements",
         "script": "validate:fai-three-financial-statements"
+      },
+      {
+        "id": "tr01-purchase-receipt-reversal",
+        "script": "validate:tr01-purchase-receipt-reversal"
       }
     ],
     "upgrade": [
