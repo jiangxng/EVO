@@ -236,7 +236,7 @@ Request v0.1:
   "causationId": "<optional business-data/source id>",
   "relation": {
     "fromBusinessDataId": "<optional existing BusinessData id>",
-    "relationType": "CAUSES | FULFILLS | ALLOCATES_TO | DERIVES_FROM | REFERENCES"
+    "relationType": "CAUSES | FULFILLS | ALLOCATES_TO | DERIVES_FROM | REFERENCES | REVERSES"
   },
   "expectedBusinessVersion": "<optional non-negative integer string>",
   "postingPriority": 0
@@ -259,7 +259,7 @@ Changing the relation changes the idempotency request digest.
 This relation is deliberately **not** Command `FlowTrace` metadata. Direct
 BusinessData submission does not synthesize a CommandExecution or require a
 FlowDefinition UUID merely to express facts such as
-`Purchase Order --FULFILLS--> Goods Receipt`.
+`Purchase Order --FULFILLS--> Goods Receipt` or an immutable reversal lineage such as `Goods Receipt --REVERSES--> Receipt Reversal`.
 
 Compatibility endpoint `POST /api/v1/commands` remains available separately and is not the target Core write model.
 
