@@ -262,7 +262,7 @@ relation.relationType
 ```
 
 Allowed relation types reuse the canonical `business_object_link` vocabulary:
-`CAUSES`, `FULFILLS`, `ALLOCATES_TO`, `DERIVES_FROM`, `REFERENCES`.
+`CAUSES`, `FULFILLS`, `ALLOCATES_TO`, `DERIVES_FROM`, `REFERENCES`, `REVERSES`.
 
 Rules:
 
