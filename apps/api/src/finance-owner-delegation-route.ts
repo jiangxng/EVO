@@ -171,24 +171,20 @@ async function authenticateAgainstPostgresTrust(
   db: Kysely<Database>, token: unknown
 ): Promise<FinanceClaimsV010> {
   const locator = delegationLocator(token);
-  // FOR SHARE locks the active key until nonce admission commits; any
-  // post-revocation request reads REVOKED and is rejected without a fallback.
+  // Scoped SECURITY DEFINER locks the ACTIVE key until nonce admission
+  // commits. PostgreSQL FOR SHARE requires UPDATE on at least one column;
+  // runtime must never receive raw UPDATE on the trusted key table.
+  // Operator grants EXECUTE to the isolated runtime login, not public.
   return db.transaction().execute(async trx => {
     const found = await sql<{
       installationId: string; issuer: string; keyId: string;
       publicKeyPem: string; hostEnterpriseId: string;
       contextId: string; evoEnterpriseId: string
     }>`
-      select installation_id as "installationId", issuer,
-        key_id as "keyId", public_key_pem as "publicKeyPem",
-        host_enterprise_id as "hostEnterpriseId", context_id as "contextId",
-        evo_enterprise_id as "evoEnterpriseId"
-      from finance_trusted_signing_key
-      where issuer = ${locator.issuer}
-        and installation_id = ${locator.installationId}
-        and key_id = ${locator.keyId}
-        and status = 'ACTIVE'
-      for share
+      select *
+      from public.finance_lock_active_signing_key_v010(
+        ${locator.issuer}, ${locator.installationId}, ${locator.keyId}
+      )
     `.execute(trx);
     const keys: FinanceTrustedInstallationV010[] = found.rows.map(row => ({
       ...row, enabled: true
