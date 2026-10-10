@@ -1,12 +1,22 @@
 import { buildApp } from './build-app.js';
+import { parseFinanceTrustedInstallationsV010 } from './finance-owner-delegation-route.js';
 import { createDatabase } from '../../../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../../../platform/runtime/src/config.js';
 
 const config = loadRuntimeConfig();
+const financeTrustAuthorityRaw = process.env.EVO_FINANCE_TRUST_AUTHORITY?.trim() || 'STARTUP';
+if (financeTrustAuthorityRaw !== 'STARTUP' && financeTrustAuthorityRaw !== 'POSTGRES') {
+  throw new Error('EVO_FINANCE_TRUST_AUTHORITY_INVALID');
+}
+const financeTrustAuthority: 'STARTUP' | 'POSTGRES' = financeTrustAuthorityRaw;
 const database = createDatabase(config.databaseUrl);
 const app = buildApp({
   database,
-  loggerLevel: config.logLevel
+  loggerLevel: config.logLevel,
+  financeTrustAuthority,
+  // PostgreSQL is authoritative when selected; startup JSON MUST NOT remain a fallback.
+  financeTrustedInstallations: financeTrustAuthority === 'POSTGRES' ? [] :
+    parseFinanceTrustedInstallationsV010(process.env.EVO_FINANCE_TRUSTED_INSTALLATIONS_JSON)
 });
 
 async function shutdown(signal: string): Promise<void> {

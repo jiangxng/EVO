@@ -62,6 +62,10 @@ jobs:
       - run: npm run validate:ci-manifest
       - run: node scripts/run-ci-certifications.mjs quality
       - run: npm run migrate
+      - name: Certify restricted SECURITY DEFINER owner on disposable PostgreSQL
+        run: |
+          node --import tsx scripts/validate-finance-key-lock-owner.ts | tee /tmp/tr01b2d3-finance-owner-privileges.log
+          grep -q 'TR01B2D3_LEAST_PRIVILEGE_DEFINER_OWNER_CI=.*"status":"PASS"' /tmp/tr01b2d3-finance-owner-privileges.log
       - run: npm run typecheck
       - run: npm run build
       - run: npm run test
