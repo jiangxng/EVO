@@ -59,7 +59,8 @@
     "validate:migration-upgrade": "node --env-file-if-exists=.env --import tsx scripts/validate-migration-upgrade.ts",
     "validate:direct-business-data-submission": "node --env-file-if-exists=.env --import tsx scripts/validate-direct-business-data-submission.ts",
     "validate:business-data-submission-http": "node --env-file-if-exists=.env --import tsx scripts/validate-business-data-submission-http.ts",
-    "validate:tr01-purchase-receipt-reversal": "node --env-file-if-exists=.env --import tsx scripts/validate-tr01-purchase-receipt-reversal.ts"
+    "validate:tr01-purchase-receipt-reversal": "node --env-file-if-exists=.env --import tsx scripts/validate-tr01-purchase-receipt-reversal.ts",
+    "start:finance-owner-readonly": "node dist/apps/api/src/finance-owner-readonly-main.js"
   },
   "dependencies": {
     "fastify": "5.12.3",
