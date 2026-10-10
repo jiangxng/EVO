@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js';
+import { Decimal } from 'decimal.js';
 import type { Kysely } from 'kysely';
 import type { Database } from '../../../platform/database/src/types.js';
 
