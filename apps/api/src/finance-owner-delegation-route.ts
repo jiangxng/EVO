@@ -139,6 +139,66 @@ export function authenticateFinanceDelegationV010(
   return c;
 }
 
+/** Untrusted locator is used only for parameterized lookup; signature verification
+ * against a currently ACTIVE DB key occurs inside the same DB transaction.
+ */
+function delegationLocator(token: unknown): {
+  issuer: string; installationId: string; keyId: string
+} {
+  if (typeof token !== 'string' || token.length > 16384 ||
+    !/^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u.test(token)) {
+    deny('EVO_FINANCE_DELEGATION_MALFORMED');
+  }
+  let head: unknown, payload: unknown;
+  try {
+    const sections = token.split('.');
+    head = decodeJson(sections[0]!);
+    payload = decodeJson(sections[1]!);
+  } catch {
+    return deny('EVO_FINANCE_DELEGATION_MALFORMED');
+  }
+  if (!record(head) || !record(payload) ||
+    !nonempty(head.kid) || !nonempty(payload.iss) ||
+    !nonempty(payload.installationId)) {
+    deny('EVO_FINANCE_DELEGATION_UNTRUSTED');
+  }
+  return {
+    issuer: payload.iss, installationId: payload.installationId, keyId: head.kid
+  };
+}
+
+async function authenticateAgainstPostgresTrust(
+  db: Kysely<Database>, token: unknown
+): Promise<FinanceClaimsV010> {
+  const locator = delegationLocator(token);
+  // FOR SHARE locks the active key until nonce admission commits; any
+  // post-revocation request reads REVOKED and is rejected without a fallback.
+  return db.transaction().execute(async trx => {
+    const found = await sql<{
+      installationId: string; issuer: string; keyId: string;
+      publicKeyPem: string; hostEnterpriseId: string;
+      contextId: string; evoEnterpriseId: string
+    }>`
+      select installation_id as "installationId", issuer,
+        key_id as "keyId", public_key_pem as "publicKeyPem",
+        host_enterprise_id as "hostEnterpriseId", context_id as "contextId",
+        evo_enterprise_id as "evoEnterpriseId"
+      from finance_trusted_signing_key
+      where issuer = ${locator.issuer}
+        and installation_id = ${locator.installationId}
+        and key_id = ${locator.keyId}
+        and status = 'ACTIVE'
+      for share
+    `.execute(trx);
+    const keys: FinanceTrustedInstallationV010[] = found.rows.map(row => ({
+      ...row, enabled: true
+    }));
+    const c = authenticateFinanceDelegationV010(token, keys);
+    await consumeOnce(trx, c);
+    return c;
+  });
+}
+
 /** PostgreSQL UNIQUE constraint, not per-process memory, consumes a signed
  * assertion once across replicas. Denial also consumes the nonce.
  */
@@ -154,9 +214,11 @@ async function consumeOnce(db: Kysely<Database>, c: FinanceClaimsV010): Promise<
 
 export function registerFinanceOwnerDelegationRouteV010(
   app: FastifyInstance, db: Kysely<Database>,
-  installations: readonly FinanceTrustedInstallationV010[]
+  installations: readonly FinanceTrustedInstallationV010[],
+  options: { trustAuthority?: 'STARTUP' | 'POSTGRES' } = {}
 ): void {
-  if (!installations.length) return;
+  const postgresTrust = options.trustAuthority === 'POSTGRES';
+  if (!postgresTrust && !installations.length) return;
   const verifier = new PostgresTradingFinanceFactVerifierV010(db);
   app.post(FINANCE_OWNER_PATH_V010, { bodyLimit: 20000 },
     async (request, reply) => {
@@ -164,8 +226,10 @@ export function registerFinanceOwnerDelegationRouteV010(
       try {
         if (!record(body) || Object.keys(body).length !== 1 ||
           !Object.hasOwn(body,'assertion')) deny('EVO_FINANCE_DELEGATION_MALFORMED');
-        const c = authenticateFinanceDelegationV010(body.assertion,installations);
-        await consumeOnce(db,c);
+        const c = postgresTrust
+          ? await authenticateAgainstPostgresTrust(db, body.assertion)
+          : authenticateFinanceDelegationV010(body.assertion,installations);
+        if (!postgresTrust) await consumeOnce(db,c);
         const result = await verifier.verify(c.intent);
         return reply.code(200).send({
           contractVersion:'0.1.0',verified:result.verified,
