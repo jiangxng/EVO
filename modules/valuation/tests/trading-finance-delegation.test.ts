@@ -38,6 +38,7 @@ function token(override:Record<string,unknown>={},
 describe('TR-01B2D3 trusted delegation crypto admission',()=>{
  it('is disabled without an explicit installed trusted issuer',()=>{
   expect(parseFinanceTrustedInstallationsV010(undefined)).toEqual([]);
+  expect(parseFinanceTrustedInstallationsV010(JSON.stringify([trust]))[0]?.publicKeyPem).toBe(trust.publicKeyPem);
   expect(()=>authenticateFinanceDelegationV010(token(),[],t))
     .toThrow('EVO_FINANCE_INSTALLATION_NOT_ADMITTED');
  });
