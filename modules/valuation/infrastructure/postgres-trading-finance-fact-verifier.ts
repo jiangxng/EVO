@@ -166,7 +166,11 @@ export class PostgresTradingFinanceFactVerifierV010 {
     .where('enterprise_id','=',enterprise)
     .where('id','=',input.consumerReceiptBusinessDataId)
     .where('business_data_type','=','cash.received').executeTakeFirst();
-   if(!receipt||!payloadMatches(receipt.payload as Record<string,unknown>,input))
+   // A cash receipt is scoped by customer + order; Item/Warehouse are
+   // verified against the one immutable Sales Order, not invented on Cash.
+   const received=receipt?.payload as Record<string,unknown>|undefined;
+   if(!receipt||received?.orderNo!==input.orderNo
+     ||received.customer!==input.customerCounterpartyId)
      deny('RECEIPT_SCOPE_MISMATCH');
    const op=order.payload as Record<string,unknown>;
    const rp=receipt.payload as Record<string,unknown>;
