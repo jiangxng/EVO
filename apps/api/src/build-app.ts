@@ -36,7 +36,7 @@ import {
   type ConfiguratorSubmitBody
 } from './configurator-mvp.js';
 
-export interface BuildAppOptions { readonly database?:DatabaseHandle; readonly loggerLevel?:string; readonly financeTrustedInstallations?: readonly FinanceTrustedInstallationV010[]; }
+export interface BuildAppOptions { readonly database?:DatabaseHandle; readonly loggerLevel?:string; readonly financeTrustedInstallations?: readonly FinanceTrustedInstallationV010[]; readonly financeTrustAuthority?: 'STARTUP' | 'POSTGRES'; }
 type DemoActorBody={actor?:{type?:'HUMAN'|'AI';id?:string}};
 function resolveActor(body:DemoActorBody){return body.actor?.type==='AI'?{type:'AI' as const,id:body.actor.id??'demo-agent'}:{type:'HUMAN' as const,id:body.actor?.id??'demo-user'};}
 function payloadValue(payload:JsonObject,key:string):JsonValue{return payload[key]??null;}
@@ -67,7 +67,7 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
   );
   registerBusinessDataSubmissionRouteV010(app, businessDataSubmissions);
   // Explicit trusted owner plugin installations only; missing config creates no route.
-  registerFinanceOwnerDelegationRouteV010(app,runtime.db,options.financeTrustedInstallations??[]);
+  registerFinanceOwnerDelegationRouteV010(app,runtime.db,options.financeTrustedInstallations??[], { trustAuthority: options.financeTrustAuthority });
 
   app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
 
