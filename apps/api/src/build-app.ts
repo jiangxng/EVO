@@ -67,7 +67,7 @@ export function buildApp(options:BuildAppOptions={}):FastifyInstance{
   );
   registerBusinessDataSubmissionRouteV010(app, businessDataSubmissions);
   // Explicit trusted owner plugin installations only; missing config creates no route.
-  registerFinanceOwnerDelegationRouteV010(app,runtime.db,options.financeTrustedInstallations??[], { trustAuthority: options.financeTrustAuthority });
+  registerFinanceOwnerDelegationRouteV010(app,runtime.db,options.financeTrustedInstallations??[], { ...(options.financeTrustAuthority ? { trustAuthority: options.financeTrustAuthority } : {}) });
 
   app.get('/',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(demoConsoleHtml));
 
