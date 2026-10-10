@@ -1,4 +1,5 @@
 import { buildApp } from './build-app.js';
+import { parseFinanceTrustedInstallationsV010 } from './finance-owner-delegation-route.js';
 import { createDatabase } from '../../../platform/database/src/index.js';
 import { loadRuntimeConfig } from '../../../platform/runtime/src/config.js';
 
@@ -6,7 +7,8 @@ const config = loadRuntimeConfig();
 const database = createDatabase(config.databaseUrl);
 const app = buildApp({
   database,
-  loggerLevel: config.logLevel
+  loggerLevel: config.logLevel,
+  financeTrustedInstallations: parseFinanceTrustedInstallationsV010(process.env.EVO_FINANCE_TRUSTED_INSTALLATIONS_JSON)
 });
 
 async function shutdown(signal: string): Promise<void> {
