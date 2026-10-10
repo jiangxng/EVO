@@ -75,7 +75,9 @@ export function parseFinanceTrustedInstallationsV010(raw: string | undefined):
     if (!record(value) ||
       !['installationId','issuer','keyId','publicKeyPem',
         'hostEnterpriseId','contextId','evoEnterpriseId']
-        .every(k => nonempty(value[k])) ||
+        .every(k => k === 'publicKeyPem'
+          ? typeof value[k] === 'string' && value[k].length > 0 && value[k].length <= 4096
+          : nonempty(value[k])) ||
       value.enabled !== true) deny('EVO_FINANCE_TRUST_CONFIG_INVALID');
     const item = value as unknown as FinanceTrustedInstallationV010;
     const unique = item.issuer + ':' + item.keyId + ':' + item.installationId;
