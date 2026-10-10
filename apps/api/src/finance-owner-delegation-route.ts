@@ -146,7 +146,7 @@ function delegationLocator(token: unknown): {
   issuer: string; installationId: string; keyId: string
 } {
   if (typeof token !== 'string' || token.length > 16384 ||
-    !/^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u.test(token)) {
+    !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/u.test(token)) {
     deny('EVO_FINANCE_DELEGATION_MALFORMED');
   }
   let head: unknown, payload: unknown;
