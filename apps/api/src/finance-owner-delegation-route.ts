@@ -173,7 +173,7 @@ export function registerFinanceOwnerDelegationRouteV010(
         });
       } catch(e) {
         const code = e instanceof Error && /^EVO_FINANCE_(?:FACT_|DELEGATION_|INSTALLATION_)/u.test(e.message)
-          ? e.message.split(':')[0] : 'EVO_FINANCE_DELEGATION_DENIED';
+          ? (e.message.split(':')[0] ?? 'EVO_FINANCE_DELEGATION_DENIED') : 'EVO_FINANCE_DELEGATION_DENIED';
         const status = code === 'EVO_FINANCE_DELEGATION_REPLAY' ? 409
           : code.startsWith('EVO_FINANCE_FACT_') ? 422 : 401;
         request.log.warn({ code }, 'Finance owner read-only delegation rejected');
