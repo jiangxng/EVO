@@ -16,6 +16,13 @@ The owner endpoint calls that function in the **same database transaction** as i
 
 This is intentionally a small compatibility hardening of EVO's owner/plugin transport; it does not alter signed claim semantics, business facts, canonical replay, ledger balances, key grant/revoke governance triggers or external API shape.
 
+## Actual accepted bounded proof
+
+- [EVO PR #109](https://github.com/jiangxng/EVO/pull/109) implementation head `46e0b75a3386ea35b5fb31d5bc275b5c15ac41b3`; [EVO CI #38061768134](https://github.com/jiangxng/EVO/actions/runs/38061768134) **SUCCESS**, including migration-upgrade, production artifact, quality and the independent certification matrix.
+- [App Platform PR #609](https://github.com/jiangxng/EVO-App-Platform/pull/609) implementation head `b49c98a68c81df6ce9b8a3b5a0d78446b625d9d2`; exact [live original-sales PostgreSQL CI #38061971800](https://github.com/jiangxng/EVO-App-Platform/actions/runs/38061971800) **SUCCESS** with `TR01B2D3_DISTINCT_DATABASE_LOGINS_LIVE_OWNER_PROOF.status=PASS`. Both actual PostgreSQL login identities remained separate; a restricted EVO API performed signed read-only owner verification, an independently logged-in operator granted/revoked the public key with two audit entries, the running API refused revoked trust, and no economic/replay digest or CostRun/AllocationInstruction count changed.
+- Initial [failed CI #38061476431](https://github.com/jiangxng/EVO-App-Platform/actions/runs/38061476431) revealed the `FOR SHARE` UPDATE requirement, and [failed CI #38061811187](https://github.com/jiangxng/EVO-App-Platform/actions/runs/38061811187) revealed nonce `ON CONFLICT (issuer,jti)` SELECT-column permissions; the final grant is exact public-function EXECUTE plus nonce INSERT and SELECT(issuer,jti), with **no runtime UPDATE or raw SELECT on the trust-key table**.
+- This accepted CI is still **not** a production Credential/TLS/OIDC/security signoff and does not close B2D3. The final documentation-only PR head should be checked separately.
+
 ## Validation and limits
 
 - EVO TypeScript/unit CI should pass on the stacked branch.
