@@ -34,4 +34,6 @@ The previous [distinct database LOGIN CI](https://github.com/jiangxng/EVO-App-Pl
 
 ## Evidence
 
-This document defines the new head-CI acceptance gate. Record exact migration/quality and original-Sales+isolated-process HTTP evidence before marking the small PR review-ready.
+Exact implementation head `8fa737ca97de8472f89f806f866b9fbf7c71985f`: [EVO #110 full CI #38067997945](https://github.com/jiangxng/EVO/actions/runs/38067997945) **SUCCESS**. Paired [App Platform #616 cross-project live original-sales PostgreSQL CI #38068088650](https://github.com/jiangxng/EVO-App-Platform/actions/runs/38068088650) **SUCCESS**; restricted runtime signed Owner read, restricted operator grant/revoke, 2 audits, raw trust table access denial, unchanged canonical financial facts, and **`financeOwnerProcessIsolatedFromCommandsAndDemo=true`** were checked on the dedicated 3002 process. Concurrent two-EVO unique nonce and revoke ordering remained PASS. App Platform Continuity #38068088601 PASS.
+
+`financialExecutionAllowed=false`, `realProductionCredentials=NOT_CERTIFIED`, `productionTlsAndIdentity=NOT_CERTIFIED`; do not promote this to production certification. A new documentation head needs its own CI.
