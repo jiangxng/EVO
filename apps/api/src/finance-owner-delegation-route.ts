@@ -94,14 +94,14 @@ export function authenticateFinanceDelegationV010(
   now = Math.floor(Date.now()/1000)
 ): FinanceClaimsV010 {
   if (typeof token !== 'string' || token.length > 16384 ||
-    !/^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u.test(token)) {
+    !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/u.test(token)) {
     deny('EVO_FINANCE_DELEGATION_MALFORMED');
   }
   const [head, payload, signature] = token.split('.') as [string,string,string];
   let header: unknown, claims: unknown;
   try { header = decodeJson(head); claims = decodeJson(payload); }
   catch { return deny('EVO_FINANCE_DELEGATION_MALFORMED'); }
-  if (!record(header) || header.alg !== 'EdDSA' ||
+  if (!record(header) || header.alg !== 'Ed25519' ||
     header.typ !== FINANCE_OWNER_TYP_V010 || !nonempty(header.kid) ||
     !record(claims) || !nonempty(claims.iss)) {
     deny('EVO_FINANCE_DELEGATION_UNTRUSTED');
